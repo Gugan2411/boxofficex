@@ -1,0 +1,2829 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta
+    name="theme-color"
+    content="#080b14"
+>
+
+<meta
+    name="description"
+    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+>
+
+<meta
+    name="robots"
+    content="index, follow"
+>
+
+<title>
+    Highest-Grossing Movies & Box Office Rankings | BoxOfficeX
+</title>
+
+<link id="canonicalUrl" rel="canonical" href="">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BoxOfficeX">
+
+<meta
+    id="ogTitle"
+    property="og:title"
+    content="Highest-Grossing Movies & Box Office Rankings | BoxOfficeX"
+>
+
+<meta
+    id="ogDescription"
+    property="og:description"
+    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+>
+
+<meta id="ogUrl" property="og:url" content="">
+
+<meta name="twitter:card" content="summary">
+
+<meta
+    id="twitterTitle"
+    name="twitter:title"
+    content="Highest-Grossing Movies & Box Office Rankings | BoxOfficeX"
+>
+
+<meta
+    id="twitterDescription"
+    name="twitter:description"
+    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+>
+
+<script
+    id="rankingsStructuredData"
+    type="application/ld+json"
+></script>
+
+
+<style>
+
+    /* ==========================================
+       GLOBAL
+    ========================================== */
+
+    * {
+        box-sizing: border-box;
+    }
+
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+
+    body {
+
+        margin: 0;
+
+        min-height: 100vh;
+
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+
+        background:
+            linear-gradient(
+                180deg,
+                #080b14 0%,
+                #0b1120 55%,
+                #080b14 100%
+            );
+
+        color: white;
+
+        overflow-x: hidden;
+
+        padding-bottom:
+            env(safe-area-inset-bottom);
+    }
+
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+
+    button,
+    input {
+        font-family: inherit;
+    }
+
+
+    /* ==========================================
+       HEADER
+    ========================================== */
+
+    header {
+
+        position: sticky;
+
+        top: 0;
+
+        z-index: 1000;
+
+        min-height: 68px;
+
+        padding:
+            0 20px;
+
+        background:
+            rgba(16,22,37,0.96);
+
+        backdrop-filter:
+            blur(10px);
+
+        border-bottom:
+            1px solid #202b4a;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            center;
+    }
+
+
+    .header-inner {
+
+        width: 100%;
+
+        max-width: 1200px;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            space-between;
+
+        gap:
+            20px;
+    }
+
+
+    .logo {
+
+        font-size:
+            24px;
+
+        font-weight:
+            900;
+
+        letter-spacing:
+            0.7px;
+
+        white-space:
+            nowrap;
+    }
+
+
+    .logo span {
+        color:
+            #ffcc33;
+    }
+
+
+    nav {
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            18px;
+    }
+
+
+    nav a {
+
+        color:
+            #c7d0e5;
+
+        font-size:
+            14px;
+
+        transition:
+            0.2s;
+    }
+
+
+    nav a:hover {
+
+        color:
+            white;
+    }
+
+
+    nav a.active {
+
+        color:
+            #ffcc33;
+    }
+
+
+    .compare-btn {
+
+        background:
+            #e63946;
+
+        padding:
+            9px 13px;
+
+        border-radius:
+            8px;
+
+        color:
+            white !important;
+
+        font-weight:
+            bold;
+    }
+
+
+    /* ==========================================
+       MAIN
+    ========================================== */
+
+    .container {
+
+        width: 100%;
+
+        max-width:
+            1000px;
+
+        margin:
+            0 auto;
+
+        padding:
+            30px 20px 70px;
+    }
+
+
+    /* ==========================================
+       BACK BUTTON
+    ========================================== */
+
+    .back-button {
+
+        display:
+            inline-block;
+
+        margin-bottom:
+            20px;
+
+        padding:
+            9px 14px;
+
+        background:
+            #151d31;
+
+        border:
+            1px solid
+            #263454;
+
+        border-radius:
+            9px;
+
+        color:
+            #b9c4da;
+
+        font-size:
+            13px;
+    }
+
+
+    .back-button:hover {
+
+        color:
+            white;
+
+        border-color:
+            #405687;
+    }
+
+
+    /* ==========================================
+       PAGE HERO
+    ========================================== */
+
+    .page-header {
+
+        text-align:
+            center;
+
+        padding:
+            15px 0 20px;
+
+        margin-bottom:
+            15px;
+    }
+
+
+    .page-badge {
+
+        display:
+            inline-block;
+
+        padding:
+            7px 12px;
+
+        margin-bottom:
+            13px;
+
+        border-radius:
+            20px;
+
+        background:
+            #182445;
+
+        border:
+            1px solid
+            #2c3b64;
+
+        color:
+            #ffcc33;
+
+        font-size:
+            11px;
+
+        font-weight:
+            bold;
+
+        text-transform:
+            uppercase;
+    }
+
+
+    .page-header h1 {
+
+        margin:
+            0 0 10px;
+
+        font-size:
+            clamp(30px, 6vw, 42px);
+
+        line-height:
+            1.1;
+    }
+
+
+    .page-header p {
+
+        max-width:
+            700px;
+
+        margin:
+            0 auto;
+
+        color:
+            #aeb8ce;
+
+        font-size:
+            14px;
+
+        line-height:
+            1.6;
+    }
+
+
+    /* ==========================================
+       INDUSTRY FILTERS
+    ========================================== */
+
+    .industry-wrapper {
+
+        position:
+            sticky;
+
+        top:
+            68px;
+
+        z-index:
+            20;
+
+        padding:
+            10px 0;
+
+        background:
+            rgba(8,11,20,0.90);
+
+        backdrop-filter:
+            blur(8px);
+    }
+
+
+    .industries {
+
+        display:
+            flex;
+
+        gap:
+            9px;
+
+        overflow-x:
+            auto;
+
+        padding:
+            3px 2px 8px;
+
+        scrollbar-width:
+            none;
+    }
+
+
+    .industries::-webkit-scrollbar {
+
+        display:
+            none;
+    }
+
+
+    .industry-btn {
+
+        flex:
+            0 0 auto;
+
+        min-height:
+            40px;
+
+        padding:
+            0 14px;
+
+        border:
+            1px solid
+            #263454;
+
+        border-radius:
+            20px;
+
+        background:
+            #151d31;
+
+        color:
+            #c8d2e6;
+
+        cursor:
+            pointer;
+
+        font-size:
+            12px;
+
+        font-weight:
+            bold;
+
+        transition:
+            0.2s;
+    }
+
+
+    .industry-btn:hover {
+
+        border-color:
+            #405687;
+
+        color:
+            white;
+    }
+
+
+    .industry-btn.active {
+
+        background:
+            #ffcc33;
+
+        border-color:
+            #ffcc33;
+
+        color:
+            #10151e;
+    }
+
+
+    /* ==========================================
+       RANKINGS HEADER
+    ========================================== */
+
+    .ranking-header {
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            space-between;
+
+        gap:
+            15px;
+
+        margin:
+            25px 0 13px;
+    }
+
+
+    .ranking-heading {
+
+        margin:
+            0;
+
+        font-size:
+            24px;
+    }
+
+
+    .ranking-subtitle {
+
+        margin:
+            4px 0 0;
+
+        color:
+            #8f9bb5;
+
+        font-size:
+            11px;
+    }
+
+
+    .results-count {
+
+        color:
+            #aeb8ce;
+
+        font-size:
+            11px;
+
+        white-space:
+            nowrap;
+    }
+
+
+    /* ==========================================
+       MOVIE LIST
+    ========================================== */
+
+    #movies {
+
+        display:
+            flex;
+
+        flex-direction:
+            column;
+
+        gap:
+            11px;
+    }
+
+
+    .movie-card {
+
+        position:
+            relative;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            16px;
+
+        padding:
+            12px;
+
+        background:
+            linear-gradient(
+                145deg,
+                #151d31,
+                #111827
+            );
+
+        border:
+            1px solid
+            #222f50;
+
+        border-radius:
+            15px;
+
+        cursor:
+            pointer;
+
+        transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .movie-card:hover {
+
+        transform:
+            translateY(-3px);
+
+        border-color:
+            #405687;
+
+        box-shadow:
+            0 10px 25px
+            rgba(0,0,0,0.22);
+    }
+
+
+    /* ==========================================
+       RANK
+    ========================================== */
+
+    .rank {
+
+        width:
+            45px;
+
+        height:
+            45px;
+
+        flex-shrink:
+            0;
+
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        justify-content:
+            center;
+
+        border-radius:
+            50%;
+
+        background:
+            #202b44;
+
+        color:
+            #ffcc33;
+
+        font-size:
+            17px;
+
+        font-weight:
+            900;
+    }
+
+
+    .movie-card:nth-child(1)
+    .rank {
+
+        background:
+            #ffcc33;
+
+        color:
+            #10151e;
+    }
+
+
+    .movie-card:nth-child(2)
+    .rank {
+
+        background:
+            #d9dde5;
+
+        color:
+            #151b28;
+    }
+
+
+    .movie-card:nth-child(3)
+    .rank {
+
+        background:
+            #b77a48;
+
+        color:
+            #10151e;
+    }
+
+
+    /* ==========================================
+       POSTER
+    ========================================== */
+
+    .movie-card img {
+
+        width:
+            70px;
+
+        height:
+            95px;
+
+        flex-shrink:
+            0;
+
+        object-fit:
+            cover;
+
+        border-radius:
+            8px;
+
+        background:
+            #1c2742;
+
+        border:
+            1px solid
+            rgba(255,255,255,0.05);
+    }
+
+
+    /* ==========================================
+       MOVIE INFO
+    ========================================== */
+
+    .movie-info {
+
+        flex:
+            1;
+
+        min-width:
+            0;
+    }
+
+
+    .movie-title {
+
+        font-size:
+            20px;
+
+        font-weight:
+            bold;
+
+        line-height:
+            1.25;
+
+        white-space:
+            nowrap;
+
+        overflow:
+            hidden;
+
+        text-overflow:
+            ellipsis;
+    }
+
+
+    .details {
+
+        color:
+            #aeb8ce;
+
+        margin-top:
+            7px;
+
+        font-size:
+            13px;
+
+        line-height:
+            1.45;
+    }
+
+
+    .verdict {
+
+        display:
+            inline-block;
+
+        margin-top:
+            7px;
+
+        padding:
+            5px 8px;
+
+        border-radius:
+            7px;
+
+        background:
+            #202b44;
+
+        color:
+            #ffffff;
+
+        font-size:
+            11px;
+
+        font-weight:
+            bold;
+    }
+
+
+    /* ==========================================
+       EMPTY / LOADING
+    ========================================== */
+
+    .loading {
+
+        text-align:
+            center;
+
+        padding:
+            35px 20px;
+
+        background:
+            #111827;
+
+        border:
+            1px solid
+            #222f50;
+
+        border-radius:
+            14px;
+
+        color:
+            #9da8bf;
+    }
+
+
+    /* ==========================================
+       FOOTER
+    ========================================== */
+
+    footer {
+
+        margin-top:
+            25px;
+
+        padding:
+            35px 20px
+            calc(
+                35px +
+                env(safe-area-inset-bottom)
+            );
+
+        border-top:
+            1px solid
+            #202b4a;
+
+        background:
+            #101625;
+
+        text-align:
+            center;
+    }
+
+
+    footer h3 {
+
+        margin:
+            0 0 8px;
+    }
+
+
+    footer p {
+
+        margin:
+            6px 0;
+
+        color:
+            #8f9bb5;
+
+        font-size:
+            12px;
+
+        line-height:
+            1.6;
+    }
+
+
+    /* ==========================================
+       MOBILE BOTTOM NAV
+    ========================================== */
+
+    .mobile-nav {
+        display:
+            none;
+    }
+
+
+    /* ==========================================
+       TABLET
+    ========================================== */
+
+    @media (max-width: 800px) {
+
+        .container {
+
+            max-width:
+                760px;
+        }
+
+
+        .movie-card {
+
+            gap:
+                13px;
+        }
+
+
+        .movie-title {
+
+            font-size:
+                18px;
+        }
+
+    }
+
+
+    /* ==========================================
+       MOBILE
+    ========================================== */
+
+    @media (max-width: 700px) {
+
+        body {
+
+            padding-bottom:
+                70px;
+        }
+
+
+        header {
+
+            min-height:
+                62px;
+
+            padding:
+                0 13px;
+        }
+
+
+        .header-inner {
+
+            justify-content:
+                center;
+        }
+
+
+        .logo {
+
+            font-size:
+                20px;
+        }
+
+
+        nav {
+
+            display:
+                none;
+        }
+
+
+        .container {
+
+            padding:
+                18px 13px 45px;
+        }
+
+
+        .back-button {
+
+            margin-bottom:
+                13px;
+
+            font-size:
+                11px;
+        }
+
+
+        .page-header {
+
+            padding:
+                5px 0 14px;
+
+            margin-bottom:
+                5px;
+        }
+
+
+        .page-badge {
+
+            font-size:
+                9px;
+
+            padding:
+                6px 10px;
+
+            margin-bottom:
+                10px;
+        }
+
+
+        .page-header h1 {
+
+            font-size:
+                29px;
+
+            margin-bottom:
+                9px;
+        }
+
+
+        .page-header p {
+
+            font-size:
+                11px;
+
+            line-height:
+                1.6;
+        }
+
+
+        /* FILTER BAR */
+
+        .industry-wrapper {
+
+            top:
+                62px;
+
+            margin:
+                0 -13px;
+
+            padding:
+                7px 13px;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,0.02);
+
+            border-bottom:
+                1px solid
+                #1d2741;
+        }
+
+
+        .industries {
+
+            gap:
+                8px;
+
+            padding-bottom:
+                4px;
+        }
+
+
+        .industry-btn {
+
+            min-height:
+                37px;
+
+            padding:
+                0 12px;
+
+            font-size:
+                10px;
+        }
+
+
+        /* RANKING HEADER */
+
+        .ranking-header {
+
+            margin:
+                22px 0 11px;
+        }
+
+
+        .ranking-heading {
+
+            font-size:
+                20px;
+        }
+
+
+        .ranking-subtitle {
+
+            font-size:
+                9px;
+        }
+
+
+        .results-count {
+
+            font-size:
+                9px;
+        }
+
+
+        /* MOVIE LIST */
+
+        #movies {
+
+            gap:
+                9px;
+        }
+
+
+        .movie-card {
+
+            gap:
+                9px;
+
+            padding:
+                9px;
+
+            border-radius:
+                12px;
+        }
+
+
+        .rank {
+
+            width:
+                32px;
+
+            height:
+                32px;
+
+            flex-shrink:
+                0;
+
+            font-size:
+                12px;
+        }
+
+
+        .movie-card img {
+
+            width:
+                58px;
+
+            height:
+                80px;
+
+            border-radius:
+                7px;
+        }
+
+
+        .movie-title {
+
+            font-size:
+                14px;
+
+            line-height:
+                1.25;
+        }
+
+
+        .details {
+
+            margin-top:
+                5px;
+
+            font-size:
+                9px;
+
+            line-height:
+                1.45;
+        }
+
+
+        .verdict {
+
+            margin-top:
+                5px;
+
+            padding:
+                4px 6px;
+
+            font-size:
+                8px;
+        }
+
+
+        /* MOBILE BOTTOM NAV */
+
+        .mobile-nav {
+
+            position:
+                fixed;
+
+            left:
+                0;
+
+            right:
+                0;
+
+            bottom:
+                0;
+
+            z-index:
+                2000;
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(5, 1fr);
+
+            gap:
+                5px;
+
+            padding:
+                7px 7px
+                calc(
+                    7px +
+                    env(safe-area-inset-bottom)
+                );
+
+            background:
+                rgba(8,11,20,0.97);
+
+            border-top:
+                1px solid
+                #202b4a;
+
+            backdrop-filter:
+                blur(14px);
+        }
+
+
+        .mobile-nav a {
+
+            min-height:
+                48px;
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                3px;
+
+            border-radius:
+                10px;
+
+            color:
+                #8b97ad;
+
+            font-size:
+                9px;
+
+            font-weight:
+                bold;
+        }
+
+
+        .mobile-nav-icon {
+
+            font-size:
+                18px;
+        }
+
+
+        .mobile-nav a.active {
+
+            color:
+                #ffcc33;
+
+            background:
+                rgba(
+                    255,204,51,0.07
+                );
+        }
+
+    }
+
+
+    /* ==========================================
+       SMALL PHONES
+    ========================================== */
+
+    @media (max-width: 380px) {
+
+        .logo {
+
+            font-size:
+                18px;
+        }
+
+
+        .page-header h1 {
+
+            font-size:
+                27px;
+        }
+
+
+        .industry-btn {
+
+            padding:
+                0 10px;
+
+            font-size:
+                9px;
+        }
+
+
+        .rank {
+
+            width:
+                29px;
+
+            height:
+                29px;
+
+            font-size:
+                11px;
+        }
+
+
+        .movie-card img {
+
+            width:
+                53px;
+
+            height:
+                74px;
+        }
+
+
+        .movie-title {
+
+            font-size:
+                13px;
+        }
+
+    }
+
+
+    /* SHARED BOXOFFICEX POLISH */
+
+    .container {
+        max-width: 1200px;
+    }
+
+    footer h3 span {
+        color: #ffcc33;
+    }
+
+    .footer-links {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 7px 15px;
+        margin: 13px 0;
+    }
+
+    .footer-links a {
+        color: #79adff;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .footer-links a:hover {
+        color: white;
+    }
+
+    @media (max-width: 700px) {
+        .footer-links {
+            gap: 8px 12px;
+        }
+
+        .footer-links a {
+            font-size: 10px;
+        }
+    }
+
+
+    
+/* =========================================================
+   EXACT HEADER COPIED FROM INDEX.HTML
+========================================================= */
+
+
+header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 1000;
+
+    width: 100%;
+
+    background:
+        rgba(6,9,18,0.88);
+
+    backdrop-filter:
+        blur(18px);
+
+    -webkit-backdrop-filter:
+        blur(18px);
+
+    border-bottom:
+        1px solid var(--border);
+}
+
+
+.navbar {
+
+    width: 100%;
+
+    max-width:
+        var(--content-width);
+
+    min-height:
+        68px;
+
+    margin: auto;
+
+    padding:
+        0 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+
+.logo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    font-size: 21px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.6px;
+
+    white-space: nowrap;
+
+    flex-shrink: 0;
+}
+
+
+.logo-icon {
+
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--blue),
+            var(--purple)
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(77,141,255,0.24);
+}
+
+
+.logo span:last-child {
+    color: var(--gold);
+}
+
+
+nav {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+
+nav a {
+
+    min-height: 40px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        9px 12px;
+
+    border-radius: 10px;
+
+    color: #c7d1e6;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+nav a:hover {
+
+    background:
+        rgba(77,141,255,0.10);
+
+    color:
+        var(--blue-light);
+}
+
+
+nav a.active {
+
+    background:
+        rgba(77,141,255,0.14);
+
+    color:
+        var(--blue-light);
+}
+
+
+.nav-compare {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff4655,
+            #d92e3d
+        );
+
+    color:
+        white !important;
+
+    box-shadow:
+        0 8px 20px
+        rgba(255,70,85,0.16);
+}
+
+
+.nav-compare:hover {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff5967,
+            #e83b49
+        );
+
+    transform:
+        translateY(-1px);
+}
+
+
+
+@media (max-width: 700px) {
+
+
+    body {
+
+        padding-bottom:
+            70px;
+    }
+
+
+    header {
+
+        position:
+            sticky;
+    }
+
+
+    .navbar {
+
+        min-height:
+            61px;
+
+        padding:
+            0 13px;
+    }
+
+
+    .logo {
+
+        font-size:
+            18px;
+    }
+
+
+    .logo-icon {
+
+        width:
+            31px;
+
+        height:
+            31px;
+
+        border-radius:
+            9px;
+    }
+
+
+    nav {
+        display:
+            none;
+    }
+
+
+    
+}
+
+
+/* Exact BoxOfficeX logo behavior from index.html */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.logo-icon {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4d8dff, #795cff);
+    box-shadow: 0 8px 25px rgba(77,141,255,0.24);
+}
+
+.logo span:last-child {
+    color: #ffcc33;
+}
+
+@media (max-width: 700px) {
+    .logo {
+        font-size: 18px;
+    }
+
+    .logo-icon {
+        width: 31px;
+        height: 31px;
+        border-radius: 9px;
+    }
+}
+
+
+/* =========================================================
+   BOXOFFICEX MASTER POLISH — MOVIE RANKINGS
+========================================================= */
+:root{
+    --content-width:1180px;
+    --border:#202b4a;
+    --blue:#4d8dff;
+    --blue-light:#79adff;
+    --purple:#795cff;
+    --gold:#ffcc33;
+}
+
+header{
+    background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));
+    box-shadow:0 8px 28px rgba(0,0,0,.18);
+}
+.navbar{min-height:66px;gap:12px}
+.logo{font-size:20px;letter-spacing:.45px}
+.logo-icon{width:33px;height:33px;border-radius:9px}
+header nav{gap:2px;flex-wrap:nowrap}
+header nav a{
+    min-height:38px;padding:8px 10px;border-radius:9px;
+    font-size:12px;white-space:nowrap;
+}
+header nav .nav-compare{
+    background:linear-gradient(135deg,#ff4655,#d92e3d);
+    color:#fff!important;
+    box-shadow:0 8px 20px rgba(255,70,85,.16);
+}
+header nav .nav-compare:hover{
+    background:linear-gradient(135deg,#ff5967,#e83b49);
+    color:#fff!important;transform:translateY(-1px);
+}
+.nav-item-with-badge{position:relative}
+.nav-new-badge{
+    position:absolute;top:-5px;right:-1px;display:none;
+    align-items:center;justify-content:center;min-width:25px;height:13px;
+    padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;
+    font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none;
+}
+.nav-new-badge.show{display:inline-flex}
+
+.container{max-width:1120px;padding:27px 18px 58px}
+.back-button{padding:8px 12px;font-size:11px;border-radius:9px}
+.page-header{padding:8px 0 18px;margin-bottom:9px}
+.page-badge{padding:6px 11px;margin-bottom:11px;font-size:9px}
+.page-header h1{font-size:clamp(31px,5vw,43px);letter-spacing:-.7px}
+.page-header p{max-width:620px;font-size:12px}
+
+.industry-wrapper{top:66px;padding:8px 0}
+.industries{gap:7px;padding-bottom:5px}
+.industry-btn{
+    min-height:36px;padding:0 12px;border-radius:18px;
+    font-size:10px;
+}
+.ranking-header{margin:21px 0 11px}
+.ranking-heading{font-size:21px}
+.ranking-subtitle,.results-count{font-size:10px}
+
+#movies{gap:8px}
+.movie-card{
+    gap:12px;padding:9px 11px;border-radius:12px;
+    min-height:91px;
+}
+.movie-card:hover{transform:translateY(-2px)}
+.rank{width:36px;height:36px;font-size:13px}
+.movie-card img{
+    width:55px;height:76px;border-radius:7px;
+}
+.movie-title{font-size:16px}
+.details{margin-top:5px;font-size:10px}
+.verdict{margin-top:5px;padding:4px 7px;font-size:9px}
+
+footer{
+    margin-top:35px;
+    background:linear-gradient(180deg,#080c16,#050810);
+}
+.footer-inner{max-width:1180px;margin:auto;padding:28px 20px}
+.footer-brand{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:17px;font-weight:900;
+}
+.footer-brand-icon{
+    width:31px;height:31px;display:inline-flex;align-items:center;
+    justify-content:center;border-radius:9px;
+    background:linear-gradient(135deg,#4d8dff,#795cff);
+}
+.footer-brand strong span{color:#ffcc33}
+.footer-tagline{max-width:650px;margin:10px auto!important}
+.footer-links{gap:6px 15px;margin:14px 0}
+.footer-links a{color:#aebbd4;font-size:10px}
+.footer-links a:hover{color:#79adff}
+.footer-copy{margin-top:12px!important}
+
+@media(max-width:1180px) and (min-width:701px){
+    .navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}
+    .navbar::-webkit-scrollbar{display:none}
+    .logo{font-size:17px}
+    .logo-icon{width:30px;height:30px}
+    header nav{min-width:max-content}
+    header nav a{padding-left:7px;padding-right:7px;font-size:10.5px}
+}
+
+@media(max-width:700px){
+    body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+    .navbar{min-height:58px}
+    .container{padding:17px 10px 38px}
+    .back-button{margin-bottom:10px;font-size:9px}
+    .page-header{padding:3px 0 11px}
+    .page-badge{font-size:8px;padding:5px 9px}
+    .page-header h1{font-size:27px}
+    .page-header p{font-size:10px}
+    .industry-wrapper{top:58px;margin:0 -10px;padding:6px 10px}
+    .industry-btn{min-height:33px;padding:0 10px;font-size:9px}
+    .ranking-header{margin:17px 0 9px}
+    .ranking-heading{font-size:18px}
+    .ranking-subtitle,.results-count{font-size:8px}
+    #movies{gap:7px}
+    .movie-card{gap:7px;padding:7px;min-height:78px;border-radius:10px}
+    .rank{width:27px;height:27px;font-size:10px}
+    .movie-card img{width:47px;height:65px}
+    .movie-title{font-size:12.5px}
+    .details{font-size:8px;margin-top:4px}
+    .verdict{font-size:7px;padding:3px 5px;margin-top:4px}
+    .mobile-nav{
+        grid-template-columns:repeat(5,1fr);
+        min-height:calc(68px + env(safe-area-inset-bottom));
+        padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+        gap:2px;
+        box-shadow:0 -8px 24px rgba(0,0,0,.28);
+    }
+    .mobile-nav a{min-height:50px;padding:4px 2px;font-size:7.5px}
+    .mobile-nav-icon{font-size:17px}
+    .mobile-nav .nav-new-badge{top:2px;right:7px}
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE STANDARD — MOVIE RANKINGS
+========================================================= */
+.mobile-menu-button{display:none}
+
+.footer-brand,
+.footer-brand:hover,
+.footer-brand:visited{
+    text-decoration:none !important;
+    border-bottom:0 !important;
+    box-shadow:none !important;
+}
+
+@media(max-width:700px){
+    body{
+        padding-top:61px !important;
+        padding-bottom:0 !important;
+        overflow-x:hidden !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important; left:0 !important; right:0 !important;
+        width:100% !important;
+        min-height:61px !important;
+        padding:0 !important;
+        z-index:99999 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto !important;
+        align-items:center !important;
+        gap:10px !important;
+        background:#070a12 !important;
+        position:relative !important;
+        z-index:100000 !important;
+        overflow:visible !important;
+    }
+
+    .logo{
+        font-size:18px !important;
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    .logo-icon{width:31px !important;height:31px !important}
+
+    .mobile-menu-button{
+        width:42px;height:42px;
+        display:flex !important;
+        flex-direction:column;
+        align-items:center;justify-content:center;
+        gap:5px;padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+        position:relative;
+        z-index:100001;
+    }
+
+    .mobile-menu-button span{
+        width:20px;height:2px;
+        display:block;background:#fff;border-radius:999px;
+        transition:.2s;
+    }
+    .mobile-menu-button.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .mobile-menu-button.open span:nth-child(2){opacity:0}
+    .mobile-menu-button.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;left:10px !important;right:10px !important;
+        width:auto !important;
+        display:none !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:5px !important;padding:10px !important;
+        border:1px solid rgba(255,255,255,.09) !important;
+        border-radius:14px !important;
+        background:#0a0f1b !important;
+        box-shadow:0 18px 45px rgba(0,0,0,.42) !important;
+        z-index:100002 !important;
+    }
+    header nav.mobile-menu-open{display:flex !important}
+    header nav a{
+        width:100% !important;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start !important;
+        font-size:12px !important;
+    }
+
+    .mobile-nav{display:none !important}
+
+    .container{padding:17px 10px 38px !important}
+
+    /* Filter bar stays just below fixed header while scrolling */
+    .industry-wrapper{
+        top:61px !important;
+        z-index:100 !important;
+        background:#080b14 !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+    }
+
+    footer{
+        margin-top:35px !important;
+        padding:0 !important;
+        background:linear-gradient(180deg,#080c16,#050810) !important;
+    }
+    .footer-inner{
+        max-width:100% !important;
+        padding:32px 12px 28px !important;
+        text-align:center !important;
+    }
+    .footer-brand{
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:8px !important;
+        margin-bottom:13px !important;
+        font-size:18px !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+    }
+    .footer-brand-icon{width:34px !important;height:34px !important}
+    .footer-tagline{
+        max-width:290px !important;
+        margin:0 auto 20px !important;
+        font-size:11px !important;
+        line-height:1.65 !important;
+    }
+    .footer-links{
+        display:flex !important;
+        flex-wrap:nowrap !important;
+        justify-content:center !important;
+        align-items:center !important;
+        gap:0 !important;
+        width:100% !important;
+        margin:0 auto 22px !important;
+        white-space:nowrap !important;
+    }
+    .footer-links a{
+        flex:0 0 auto !important;
+        padding:4px 8px !important;
+        color:#aebbd4 !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+        font-size:8px !important;
+        line-height:1.2 !important;
+        white-space:nowrap !important;
+    }
+    .footer-copy{font-size:10px !important;line-height:1.4 !important}
+}
+
+@media(max-width:340px){
+    .footer-links a{
+        padding-left:6px !important;
+        padding-right:6px !important;
+        font-size:7.5px !important;
+    }
+}
+
+
+/* MOBILE INDUSTRY FILTER SWIPE HINT */
+.mobile-industry-swipe-hint{
+    display:none;
+}
+
+@media(max-width:700px){
+    .mobile-industry-swipe-hint{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+        margin:0 0 5px;
+        padding:5px 8px;
+        color:#9fc0ff;
+        font-size:9px;
+        font-weight:800;
+        white-space:nowrap;
+    }
+
+    .mobile-industry-swipe-hint span{
+        color:#ffcc33;
+        font-size:15px;
+        line-height:1;
+        animation:industrySwipeHint 1.4s ease-in-out infinite;
+    }
+
+    @keyframes industrySwipeHint{
+        0%,100%{transform:translateX(-3px)}
+        50%{transform:translateX(3px)}
+    }
+}
+
+</style>
+
+
+</head>
+
+<body>
+
+<!-- ==========================================
+     HEADER
+========================================== -->
+
+<header>
+
+    <div class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+            aria-label="BoxOfficeX Home"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
+            BOXOFFICE<span>X</span>
+
+        </a>
+        <button type="button" class="mobile-menu-button" id="mobileMenuButton"
+                aria-label="Open navigation menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+
+        <nav aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="new-movies.html" class="nav-item-with-badge">
+                New Movies
+                <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
+            </a>
+            <a href="movie-rankings.html" class="active">Rankings</a>
+            <a href="actors.html">Actors</a>
+            <a href="articles.html" class="nav-item-with-badge">
+                Articles
+                <span id="articlesBadge" class="nav-new-badge">NEW</span>
+            </a>
+            <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+            <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+        </nav>
+
+    </div>
+
+</header>
+
+<!-- ==========================================
+     MAIN
+========================================== -->
+
+<main class="container">
+
+
+<a
+    href="index.html"
+    class="back-button"
+>
+    ← Back to Home
+</a>
+
+
+<!-- ======================================
+     PAGE HEADER
+======================================= -->
+
+<section class="page-header">
+
+    <div class="page-badge">
+        BOXOFFICEX RANKINGS
+    </div>
+
+
+    <h1>
+        🏆 Movie Rankings
+    </h1>
+
+
+    <p>
+        Explore the biggest box-office movies
+        across major film industries.
+    </p>
+
+</section>
+
+
+<!-- ======================================
+     INDUSTRIES
+======================================= -->
+
+<div class="industry-wrapper">
+
+    <div class="mobile-industry-swipe-hint" aria-hidden="true">
+        <span>↔</span>
+        Swipe sideways to view more industries
+    </div>
+
+    <div class="industries">
+
+        <button
+            class="industry-btn active"
+            data-industry="All"
+            onclick="loadMovies('All')"
+        >
+            🌍 Global
+        </button>
+
+
+        <button
+            class="industry-btn"
+            data-industry="Kollywood"
+            onclick="loadMovies('Kollywood')"
+        >
+            🎬 Kollywood
+        </button>
+
+
+        <button
+            class="industry-btn"
+            data-industry="Tollywood"
+            onclick="loadMovies('Tollywood')"
+        >
+            🎬 Tollywood
+        </button>
+
+
+        <button
+            class="industry-btn"
+            data-industry="Bollywood"
+            onclick="loadMovies('Bollywood')"
+        >
+            🎬 Bollywood
+        </button>
+
+
+        <button
+            class="industry-btn"
+            data-industry="Sandalwood"
+            onclick="loadMovies('Sandalwood')"
+        >
+            🎬 Sandalwood
+        </button>
+
+
+        <button
+            class="industry-btn"
+            data-industry="Mollywood"
+            onclick="loadMovies('Mollywood')"
+        >
+            🎬 Mollywood
+        </button>
+
+
+        <button
+            class="industry-btn"
+            data-industry="Hollywood"
+            onclick="loadMovies('Hollywood')"
+        >
+            🎬 Hollywood
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ======================================
+     RANKING HEADER
+======================================= -->
+
+<div class="ranking-header">
+
+    <div>
+
+        <h2
+            class="ranking-heading"
+            id="rankingTitle"
+        >
+            🌍 Global Rankings
+        </h2>
+
+
+        <p
+            class="ranking-subtitle"
+            id="rankingSubtitle"
+        >
+            Highest-grossing movies worldwide
+        </p>
+
+    </div>
+
+
+    <div
+        class="results-count"
+        id="resultsCount"
+    >
+        Loading...
+    </div>
+
+</div>
+
+
+<!-- ======================================
+     MOVIES
+======================================= -->
+
+<div id="movies">
+
+    <div class="loading">
+        Loading rankings...
+    </div>
+
+</div>
+
+
+</main>
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer>
+    <div class="footer-inner">
+        <a href="index.html" class="footer-brand" aria-label="BoxOfficeX Home">
+            <span class="footer-brand-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </a>
+        <p class="footer-tagline">
+            Movie box-office collections, latest releases, actors,
+            articles, rankings and actor/movie comparisons.
+        </p>
+        <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="disclaimer.html">Disclaimer</a>
+        </div>
+        <p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- ==========================================
+     MOBILE NAV
+========================================== -->
+
+
+
+<script>
+
+
+const API_BASE = "";
+
+
+/* ==========================================
+   MOVIE RANKINGS SEO
+========================================== */
+
+function setupMovieRankingsSEO() {
+
+    const canonical =
+        window.location.origin +
+        window.location.pathname;
+
+    const canonicalTag =
+        document.getElementById(
+            "canonicalUrl"
+        );
+
+    if (canonicalTag) {
+        canonicalTag.href = canonical;
+    }
+
+    const ogUrl =
+        document.getElementById(
+            "ogUrl"
+        );
+
+    if (ogUrl) {
+        ogUrl.setAttribute(
+            "content",
+            canonical
+        );
+    }
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Highest-Grossing Movies & Box Office Rankings | BoxOfficeX",
+        "url": canonical,
+        "description":
+            "Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+    };
+
+    const jsonLd =
+        document.getElementById(
+            "rankingsStructuredData"
+        );
+
+    if (jsonLd) {
+        jsonLd.textContent =
+            JSON.stringify(
+                structuredData
+            );
+    }
+}
+
+
+setupMovieRankingsSEO();
+
+
+/* ==========================================
+   HTML ESCAPE
+========================================== */
+
+function escapeHTML(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value ?? "";
+
+    return div.innerHTML;
+}
+
+
+/* ==========================================
+   UPDATE ACTIVE INDUSTRY
+========================================== */
+
+function updateActiveIndustry(
+    industry
+) {
+
+    document
+        .querySelectorAll(
+            ".industry-btn"
+        )
+        .forEach(
+            function(button) {
+
+                if (
+                    button.dataset.industry ===
+                    industry
+                ) {
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                }
+                else {
+
+                    button.classList.remove(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+}
+
+
+/* ==========================================
+   UPDATE TITLE
+========================================== */
+
+function updateRankingHeading(
+    industry
+) {
+
+    const title =
+        document.getElementById(
+            "rankingTitle"
+        );
+
+
+    const subtitle =
+        document.getElementById(
+            "rankingSubtitle"
+        );
+
+
+    if (
+        industry === "All"
+    ) {
+
+        title.innerText =
+            "🌍 Global Rankings";
+
+
+        subtitle.innerText =
+            "Highest-grossing movies worldwide";
+
+    }
+    else {
+
+        title.innerText =
+            "🎬 " +
+            industry +
+            " Rankings";
+
+
+        subtitle.innerText =
+            "Top movies from " +
+            industry;
+
+    }
+
+}
+
+
+/* ==========================================
+   LOAD MOVIES
+========================================== */
+
+async function loadMovies(
+    industry
+) {
+
+    const container =
+        document.getElementById(
+            "movies"
+        );
+
+
+    const resultsCount =
+        document.getElementById(
+            "resultsCount"
+        );
+
+
+    updateActiveIndustry(
+        industry
+    );
+
+
+    updateRankingHeading(
+        industry
+    );
+
+
+    container.innerHTML = `
+
+        <div class="loading">
+            Loading ${escapeHTML(
+                industry
+            )} rankings...
+        </div>
+
+    `;
+
+
+    resultsCount.innerText =
+        "Loading...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/rankings/movies?industry=${encodeURIComponent(industry)}`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Ranking API error: " +
+                response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const rankings =
+            Array.isArray(data)
+                ? data
+                : Array.isArray(data.rankings)
+                    ? data.rankings
+                    : Array.isArray(data.movies)
+                        ? data.movies
+                        : [];
+
+
+        container.innerHTML =
+            "";
+
+
+        resultsCount.innerText =
+            rankings.length +
+            (
+                rankings.length === 1
+                    ? " movie"
+                    : " movies"
+            );
+
+
+        if (
+            rankings.length === 0
+        ) {
+
+            container.innerHTML = `
+
+                <div class="loading">
+                    No movies found for this industry.
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        rankings.forEach(
+            function(movie) {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "movie-card";
+
+
+                card.innerHTML = `
+
+                    <div class="rank">
+
+                        #${Number(
+                            movie.rank
+                        ) || "-"}
+
+                    </div>
+
+
+                    <img
+                        src="${
+                            movie.poster
+                                ? "posters/" +
+                                  encodeURIComponent(
+                                      movie.poster
+                                  )
+                                : "posters/coming-soon.png"
+                        }"
+                        alt="${escapeHTML(
+                            movie.title
+                        )}"
+                        loading="lazy"
+                        onerror="
+                            if (!this.dataset.fallbackTried) {
+                                this.dataset.fallbackTried='1';
+                                this.src='posters/coming-soon.png';
+                            } else {
+                                this.style.display='none';
+                            }
+                        "
+                    >
+
+
+                    <div class="movie-info">
+
+                        <div class="movie-title">
+
+                            ${escapeHTML(
+                                movie.title
+                            )}
+
+                        </div>
+
+
+                        <div class="details">
+
+                            📅 ${
+                                escapeHTML(
+                                    movie.release_date ||
+                                    "N/A"
+                                )
+                            }
+
+                            &nbsp; | &nbsp;
+
+                            🌍 ₹${
+                                Number(
+                                    (movie.worldwide_collection ?? movie.worldwide_collection_crore)
+                                ) || 0
+                            } Cr
+
+                        </div>
+
+
+                        <div class="verdict">
+
+                            🎬 ${
+                                escapeHTML(
+                                    movie.verdict ||
+                                    "Box Office"
+                                )
+                            }
+
+                        </div>
+
+                    </div>
+
+                `;
+
+
+                card.addEventListener(
+                    "click",
+                    function() {
+
+                        window.location.href =
+                            "movie.html?id=" +
+                            encodeURIComponent(
+                                movie.id
+                            );
+
+                    }
+                );
+
+
+                container.appendChild(
+                    card
+                );
+
+            }
+        );
+
+    }
+    catch(error) {
+
+        console.error(
+            "Ranking loading error:",
+            error
+        );
+
+
+        resultsCount.innerText =
+            "Error";
+
+
+        container.innerHTML = `
+
+            <div class="loading">
+                Unable to load rankings.
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* ==========================================
+   INITIAL LOAD
+========================================== */
+
+loadMovies(
+    "All"
+);
+
+
+
+function setSiteNewBadge(ids,visible){
+    ids.forEach(id=>{
+        const badge=document.getElementById(id);
+        if(badge) badge.classList.toggle("show",!!visible);
+    });
+}
+function parseSiteDate(value){
+    if(!value)return null;
+    const p=String(value).slice(0,10).split("-").map(Number);
+    if(p.length!==3||!p[0]||!p[1]||!p[2])return null;
+    return new Date(p[0],p[1]-1,p[2]);
+}
+async function updateSiteNewBadges(){
+    try{
+        const [mr,ar]=await Promise.all([
+            fetch("/movies/new-system",{cache:"no-store"}),
+            fetch("/articles/latest?limit=10",{cache:"no-store"})
+        ]);
+        if(mr.ok){
+            const d=await mr.json();
+            const all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];
+            const n=new Date();
+            const today=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+            const fresh=all.some(movie=>{
+                const dt=parseSiteDate(movie.release_date);
+                if(!dt)return false;
+                const days=Math.floor((dt-today)/86400000);
+                return days>=-7&&days<=7;
+            });
+            setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh);
+        }
+        if(ar.ok){
+            const d=await ar.json();
+            const now=Date.now(),seven=7*86400000;
+            const fresh=(d.articles||[]).some(article=>{
+                const ts=new Date(article.published_at).getTime();
+                return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven;
+            });
+            setSiteNewBadge(["articlesBadge"],fresh);
+        }
+    }catch(error){
+        console.warn("Site NEW badge check failed:",error);
+    }
+}
+updateSiteNewBadges();
+
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const b=document.getElementById("mobileMenuButton");
+    const n=document.querySelector("header nav");
+    if(!b||!n)return;
+
+    function closeMenu(){
+        n.classList.remove("mobile-menu-open");
+        b.classList.remove("open");
+        b.setAttribute("aria-expanded","false");
+    }
+
+    b.addEventListener("click",function(e){
+        e.stopPropagation();
+        const open=!n.classList.contains("mobile-menu-open");
+        n.classList.toggle("mobile-menu-open",open);
+        b.classList.toggle("open",open);
+        b.setAttribute("aria-expanded",open?"true":"false");
+    });
+
+    n.addEventListener("click",e=>{
+        if(e.target.closest("a"))closeMenu();
+    });
+
+    document.addEventListener("click",e=>{
+        if(!n.contains(e.target)&&!b.contains(e.target))closeMenu();
+    });
+
+    window.addEventListener("resize",()=>{
+        if(innerWidth>700)closeMenu();
+    });
+});
+</script>
+
+</body>
+
+</html>

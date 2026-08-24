@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movie News, Box Office Stories & Entertainment Articles | BoxOfficeX</title>
+<meta name="description" content="Read the latest movie news, box-office stories, theatrical analysis, interviews, actor features and entertainment articles from BoxOfficeX.">
+<meta name="robots" content="index, follow">
+
+<link id="canonicalUrl" rel="canonical" href="">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BoxOfficeX">
+<meta property="og:title" content="Movie News, Box Office Stories & Entertainment Articles | BoxOfficeX">
+<meta property="og:description" content="Read the latest movie news, box-office stories, theatrical analysis, interviews, actor features and entertainment articles from BoxOfficeX.">
+<meta id="ogUrl" property="og:url" content="">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Movie News, Box Office Stories & Entertainment Articles | BoxOfficeX">
+<meta name="twitter:description" content="Read the latest movie news, box-office stories, theatrical analysis, interviews, actor features and entertainment articles from BoxOfficeX.">
+
+<script id="articlesStructuredData" type="application/ld+json"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:#29334d;--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--red:#ff4655}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#17213a 0,#080b14 34%,#070a12 70%);color:var(--text);min-height:100vh}
+header{position:sticky;top:0;z-index:1000;background:rgba(6,9,18,.9);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}
+.navbar{max-width:1280px;min-height:68px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{display:flex;align-items:center;gap:9px;color:#fff;font-size:21px;font-weight:900;letter-spacing:.6px;text-decoration:none}
+.logo-icon{width:35px;height:35px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff)}
+.logo span:last-child{color:var(--gold)}
+nav{display:flex;gap:4px;align-items:center}
+nav a{padding:9px 12px;border-radius:10px;color:#c7d1e6;font-size:13px;font-weight:700;text-decoration:none}
+nav a:hover,nav a.active{background:rgba(77,141,255,.1);color:#79adff}
+.nav-compare{background:linear-gradient(135deg,var(--red),#d92e3d);color:#fff!important}
+main{width:min(1240px,calc(100% - 36px));margin:auto;padding:40px 0 70px}
+.eyebrow{color:#79adff;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.page-title{margin-top:7px;font-size:clamp(34px,5vw,56px);line-height:1;font-weight:900;letter-spacing:-1.5px}
+.page-intro{max-width:700px;margin-top:13px;color:#9ba7bd;font-size:15px;line-height:1.6}
+.section-head{margin:40px 0 17px;display:flex;justify-content:space-between;align-items:end;gap:15px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:11px}
+.section-head h2{font-size:24px}.section-head span{color:#77839a;font-size:12px}
+.hero{margin-top:28px;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,.75fr);gap:20px}
+.hero-main,.side-card,.story-card,.trend-card{cursor:pointer}
+.hero-main{position:relative;min-height:520px;overflow:hidden;border-radius:22px;border:1px solid rgba(255,255,255,.08);background:#101725}
+.hero-main img{position:absolute;width:100%;height:100%;object-fit:cover}
+.hero-main:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 25%,rgba(4,7,13,.92) 88%)}
+.hero-copy{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:32px}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#4d8dff;color:#fff;font-size:10px;font-weight:900;text-transform:uppercase}
+.hero-copy h2{margin-top:11px;max-width:800px;font-size:clamp(28px,4vw,47px);line-height:1.05}
+.hero-copy p{max-width:700px;margin-top:10px;color:#c2cbda;font-size:14px;line-height:1.55}
+.meta{margin-top:12px;color:#8e99b3;font-size:11px}
+.hero-side{display:grid;gap:15px}
+.side-card{display:grid;grid-template-columns:130px 1fr;gap:13px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:#101725}
+.side-card img{width:130px;height:110px;object-fit:cover;border-radius:11px;background:#0d1322}
+.side-card h3{margin-top:7px;font-size:16px;line-height:1.25}
+.latest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.story-card{overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:17px;background:#101725;transition:.18s}
+.story-card:hover,.trend-card:hover,.side-card:hover{transform:translateY(-2px);border-color:rgba(77,141,255,.35)}
+.story-card img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#0d1322}
+.story-body{padding:16px}
+.story-body h3{margin-top:8px;font-size:19px;line-height:1.25}
+.story-body p{margin-top:8px;color:#8f9bb1;font-size:12px;line-height:1.5}
+.category-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+.category-tabs button{border:1px solid rgba(255,255,255,.09);background:#101725;color:#aeb8ca;padding:8px 12px;border-radius:999px;font-weight:800;cursor:pointer}
+.category-tabs button.active{background:#4d8dff;color:white;border-color:#4d8dff}
+.trending{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.trend-card{display:grid;grid-template-columns:55px 1fr;gap:13px;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#101725}
+.trend-num{font-size:32px;font-weight:900;color:#34415d}
+.trend-card h3{font-size:15px;line-height:1.3}
+.empty,.loading{margin-top:30px;padding:30px;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:#101725;color:#8e99b3}
+footer{border-top:1px solid rgba(255,255,255,.08);background:#080c16}
+.footer-inner{max-width:1280px;margin:auto;padding:30px 18px;text-align:center;color:#73809a;font-size:12px}
+.footer-inner strong{color:#fff}.footer-inner strong span{color:var(--gold)}
+.mobile-bottom-nav{display:none}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.hero-side{grid-template-columns:repeat(2,1fr)}.side-card{grid-template-columns:100px 1fr}.side-card img{width:100px}.latest-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){body{padding-bottom:66px}.navbar{min-height:61px;padding:0 13px}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}main{width:min(94%,1240px);padding-top:28px}.hero-main{min-height:430px}.hero-copy{padding:22px}.hero-copy p{display:none}.hero-side{grid-template-columns:1fr}.latest-grid,.trending{grid-template-columns:1fr}.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 8px;background:rgba(7,11,20,.97);border-top:1px solid rgba(255,255,255,.08)}.mobile-bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:#8793a9;font-size:8px;font-weight:700;text-decoration:none}.mobile-bottom-nav a span:first-child{font-size:18px}}
+
+/* BOXOFFICEX MASTER POLISH — ARTICLES */
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{overflow-x:hidden;background:radial-gradient(circle at 50% -10%,rgba(77,141,255,.17),transparent 34%),linear-gradient(180deg,#070b15,#080d1c 58%,#070a12)}
+header{background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.navbar{min-height:66px;gap:12px}.logo{font-size:20px;letter-spacing:.45px}.logo-icon{width:33px;height:33px;border-radius:9px}
+nav{gap:2px;flex-wrap:nowrap}nav a{min-height:38px;display:inline-flex;align-items:center;padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+nav .nav-compare:hover{background:linear-gradient(135deg,#ff5967,#e83b49);transform:translateY(-1px)}
+.nav-item-with-badge{position:relative}
+.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none}
+.nav-new-badge.show{display:inline-flex}
+
+main{width:min(1120px,calc(100% - 36px));padding:28px 0 58px}
+.eyebrow{display:inline-flex;padding:6px 10px;border:1px solid rgba(77,141,255,.25);border-radius:999px;background:rgba(77,141,255,.08);font-size:8px}
+.page-title{margin-top:9px;font-size:clamp(31px,5vw,43px);letter-spacing:-.8px}
+.page-intro{max-width:650px;margin-top:9px;font-size:12px}
+.hero{margin-top:24px;grid-template-columns:minmax(0,1.6fr) minmax(250px,.8fr);gap:14px}
+.hero-main{min-height:390px;border-radius:16px}.hero-copy{padding:23px}.hero-copy h2{font-size:clamp(23px,3.6vw,37px)}.hero-copy p{font-size:12px}
+.badge{padding:4px 7px;font-size:8px}.meta{font-size:9px}
+.hero-side{gap:10px}.side-card{grid-template-columns:90px 1fr;gap:10px;padding:9px;border-radius:12px}.side-card img{width:90px;height:78px;border-radius:8px}.side-card h3{font-size:13px}
+.section-head{margin:28px 0 13px;padding-bottom:9px}.section-head h2{font-size:20px}.section-head span{font-size:9px}
+.category-tabs{gap:6px;margin:14px 0}.category-tabs button{padding:7px 10px;font-size:10px}
+.latest-grid{grid-template-columns:repeat(3,1fr);gap:12px}.story-card{border-radius:13px}.story-body{padding:12px}.story-body h3{font-size:15px}.story-body p{font-size:10px}
+.trending{gap:9px}.trend-card{grid-template-columns:44px 1fr;gap:10px;padding:11px;border-radius:11px}.trend-num{font-size:25px}.trend-card h3{font-size:12px}
+
+.site-footer{border-top:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#080c16,#050810)}
+.footer-inner{max-width:1180px;padding:28px 18px;text-align:center}
+.footer-brand{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-size:17px}
+.footer-logo-icon{width:31px;height:31px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff)}
+.footer-brand strong span{color:#ffcc33}.footer-tagline{max-width:650px;margin:9px auto 0!important;color:#73809a}.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 15px;margin:13px 0 4px}.footer-links a{color:#aebbd4;text-decoration:none;font-size:10px;font-weight:700}.footer-copy{margin-top:9px!important;color:#73809a}
+.mobile-bottom-nav{display:none}
+
+@media(max-width:1180px) and (min-width:701px){.navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}.navbar::-webkit-scrollbar{display:none}.logo{font-size:17px}.logo-icon{width:30px;height:30px}nav{min-width:max-content}nav a{padding-left:7px;padding-right:7px;font-size:10.5px}}
+@media(max-width:900px) and (min-width:651px){.hero{grid-template-columns:1fr}.hero-side{grid-template-columns:repeat(2,1fr)}.latest-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){
+body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}
+main{width:100%;padding:20px 10px 38px}.eyebrow{font-size:7px;padding:5px 8px}.page-title{font-size:27px}.page-intro{font-size:10px;line-height:1.55}
+.hero{margin-top:18px;gap:9px}.hero-main{min-height:315px;border-radius:13px}.hero-copy{padding:16px}.hero-copy h2{font-size:21px}.hero-copy p{display:none}.hero-side{grid-template-columns:1fr;gap:8px}.side-card{grid-template-columns:78px 1fr}.side-card img{width:78px;height:68px}
+.section-head{margin:22px 0 10px}.section-head h2{font-size:17px}.category-tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;scrollbar-width:none}.category-tabs::-webkit-scrollbar{display:none}.category-tabs button{white-space:nowrap;font-size:9px}
+.latest-grid,.trending{grid-template-columns:1fr}.story-body h3{font-size:14px}
+.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;background:rgba(7,11,20,.96);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px);box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+.mobile-bottom-nav a{position:relative;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:11px;color:#8793a9;font-size:7.5px;font-weight:700;text-decoration:none}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav a.active{color:#fff;background:rgba(77,141,255,.11)}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE STANDARD — ARTICLES
+========================================================= */
+.mobile-menu-button{display:none}
+
+.footer-brand,
+.footer-brand:hover,
+.footer-brand:visited{
+    text-decoration:none !important;
+    border-bottom:0 !important;
+    box-shadow:none !important;
+}
+
+@media(max-width:650px){
+    body{
+        padding-top:61px !important;
+        padding-bottom:0 !important;
+        overflow-x:hidden !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        width:100% !important;
+        z-index:99999 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto !important;
+        align-items:center !important;
+        gap:10px !important;
+        justify-content:initial !important;
+        background:#070a12 !important;
+        position:relative !important;
+        z-index:100000 !important;
+        overflow:visible !important;
+    }
+
+    .logo{
+        font-size:18px !important;
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    .logo-icon{
+        width:31px !important;
+        height:31px !important;
+    }
+
+    .mobile-menu-button{
+        width:42px;
+        height:42px;
+        display:flex !important;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+        position:relative;
+        z-index:100001;
+    }
+
+    .mobile-menu-button span{
+        width:20px;
+        height:2px;
+        display:block;
+        border-radius:999px;
+        background:#fff;
+        transition:.2s;
+    }
+
+    .mobile-menu-button.open span:nth-child(1){
+        transform:translateY(7px) rotate(45deg);
+    }
+    .mobile-menu-button.open span:nth-child(2){
+        opacity:0;
+    }
+    .mobile-menu-button.open span:nth-child(3){
+        transform:translateY(-7px) rotate(-45deg);
+    }
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;
+        left:10px !important;
+        right:10px !important;
+        width:auto !important;
+        display:none !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:5px !important;
+        padding:10px !important;
+        border:1px solid rgba(255,255,255,.09) !important;
+        border-radius:14px !important;
+        background:#0a0f1b !important;
+        box-shadow:0 18px 45px rgba(0,0,0,.42) !important;
+        z-index:100002 !important;
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+
+    header nav a{
+        width:100% !important;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start !important;
+        font-size:12px !important;
+    }
+
+    .mobile-bottom-nav{
+        display:none !important;
+    }
+
+    main{
+        width:100% !important;
+        padding:20px 10px 38px !important;
+    }
+
+    .hero{
+        grid-template-columns:1fr !important;
+        gap:9px !important;
+    }
+
+    .hero-main{
+        min-height:315px !important;
+    }
+
+    .hero-side{
+        grid-template-columns:1fr !important;
+        gap:8px !important;
+    }
+
+    .latest-grid,
+    .trending{
+        grid-template-columns:1fr !important;
+    }
+
+    .category-tabs{
+        overflow-x:auto !important;
+        flex-wrap:nowrap !important;
+        scrollbar-width:none;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .category-tabs::-webkit-scrollbar{
+        display:none;
+    }
+
+    .category-tabs button{
+        white-space:nowrap !important;
+    }
+
+    footer{
+        margin-top:35px !important;
+        padding:0 !important;
+        background:linear-gradient(180deg,#080c16,#050810) !important;
+    }
+
+    .footer-inner{
+        max-width:100% !important;
+        padding:32px 12px 28px !important;
+        text-align:center !important;
+    }
+
+    .footer-brand{
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:8px !important;
+        margin-bottom:13px !important;
+        font-size:18px !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+    }
+
+    .footer-logo-icon{
+        width:34px !important;
+        height:34px !important;
+    }
+
+    .footer-tagline{
+        max-width:290px !important;
+        margin:0 auto 20px !important;
+        font-size:11px !important;
+        line-height:1.65 !important;
+    }
+
+    .footer-links{
+        display:flex !important;
+        flex-wrap:nowrap !important;
+        justify-content:center !important;
+        align-items:center !important;
+        gap:0 !important;
+        width:100% !important;
+        margin:0 auto 22px !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-links a{
+        flex:0 0 auto !important;
+        padding:4px 8px !important;
+        color:#aebbd4 !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+        font-size:8px !important;
+        line-height:1.2 !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-copy{
+        font-size:10px !important;
+        line-height:1.4 !important;
+    }
+}
+
+@media(max-width:340px){
+    .footer-links a{
+        padding-left:6px !important;
+        padding-right:6px !important;
+        font-size:7.5px !important;
+    }
+}
+
+</style>
+</head>
+<body>
+<header>
+<div class="navbar">
+<a href="/index.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a>
+<button type="button"
+        class="mobile-menu-button"
+        id="mobileMenuButton"
+        aria-label="Open navigation menu"
+        aria-expanded="false">
+    <span></span><span></span><span></span>
+</button>
+<nav aria-label="Main navigation">
+<a href="/index.html">Home</a>
+<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/movie-rankings.html">Rankings</a>
+<a href="/actors.html">Actors</a>
+<a class="active nav-item-with-badge" href="/articles.html">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+<a class="nav-compare" href="/compare-select.html">⚔️ Actor Compare</a>
+<a class="nav-compare" href="/movie-compare-select.html">🎬 Movie Compare</a>
+</nav>
+</div>
+</header>
+
+<main>
+<div class="eyebrow">BoxOfficeX Editorial</div>
+<h1 class="page-title">Movies. Business. Box Office.</h1>
+<p class="page-intro">Latest entertainment stories, theatrical analysis, movie business, actors and worldwide box-office coverage.</p>
+
+<div id="content"><div class="loading">Loading latest stories...</div></div>
+</main>
+
+<footer class="site-footer">
+<div class="footer-inner">
+<a href="/index.html" class="footer-brand"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
+<p class="footer-tagline">Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
+<div class="footer-links">
+<a href="/about.html">About</a>
+<a href="/contact.html">Contact</a>
+<a href="/privacy.html">Privacy</a>
+<a href="/terms.html">Terms</a>
+<a href="/disclaimer.html">Disclaimer</a>
+</div>
+<p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
+</div>
+</footer>
+
+
+
+
+<script>
+(function setupArticlesSEO() {
+    const canonical =
+        window.location.origin +
+        window.location.pathname;
+
+    const canonicalTag =
+        document.getElementById("canonicalUrl");
+
+    if (canonicalTag) {
+        canonicalTag.href = canonical;
+    }
+
+    const ogUrl =
+        document.getElementById("ogUrl");
+
+    if (ogUrl) {
+        ogUrl.setAttribute("content", canonical);
+    }
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Movie News, Box Office Stories & Entertainment Articles | BoxOfficeX",
+        "url": canonical,
+        "description": "Read the latest movie news, box-office stories, theatrical analysis, interviews, actor features and entertainment articles from BoxOfficeX.",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "BoxOfficeX",
+            "url": window.location.origin + "/"
+        }
+    };
+
+    const jsonLd =
+        document.getElementById("articlesStructuredData");
+
+    if (jsonLd) {
+        jsonLd.textContent =
+            JSON.stringify(structuredData);
+    }
+})();
+</script>
+
+<script>
+const FALLBACK="/posters/coming-soon.png";
+let allArticles=[];
+
+function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+function date(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"" : d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
+function img(a){return a.hero_image?"/article-images/"+encodeURIComponent(a.hero_image):FALLBACK}
+function openArticle(a){window.location.href="/article/"+encodeURIComponent(a.slug)}
+function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'">`}
+function meta(a){return `${esc(a.author||"BoxOfficeX")}${a.published_at?" • "+date(a.published_at):""}`}
+
+function heroMarkup(a){
+return `<div class="hero-main" data-slug="${esc(a.slug)}">
+${imageTag(a)}
+<div class="hero-copy"><span class="badge">${esc(a.category||"News")}</span><h2>${esc(a.title)}</h2>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div>
+</div>`;
+}
+function sideMarkup(a){
+return `<article class="side-card" data-slug="${esc(a.slug)}">${imageTag(a)}<div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${meta(a)}</div></div></article>`;
+}
+function cardMarkup(a){
+return `<article class="story-card" data-slug="${esc(a.slug)}">${imageTag(a)}<div class="story-body"><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div></article>`;
+}
+function trendMarkup(a,i){
+return `<article class="trend-card" data-slug="${esc(a.slug)}"><div class="trend-num">${String(i+1).padStart(2,"0")}</div><div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${Number(a.views||0).toLocaleString("en-IN")} views</div></div></article>`;
+}
+function bindCards(){
+document.querySelectorAll("[data-slug]").forEach(el=>el.onclick=()=>window.location.href="/article/"+encodeURIComponent(el.dataset.slug));
+}
+function renderCategory(category){
+document.querySelectorAll(".category-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.category===category));
+const filtered=category==="All"?allArticles:allArticles.filter(a=>(a.category||"News")===category);
+document.getElementById("latestGrid").innerHTML=filtered.length?filtered.map(cardMarkup).join(""):`<div class="empty">No stories in this category yet.</div>`;
+bindCards();
+}
+function render(){
+if(!allArticles.length){document.getElementById("content").innerHTML=`<div class="empty">No published articles yet.</div>`;return}
+const hero=allArticles[0], side=allArticles.slice(1,4), latest=allArticles.slice(1);
+const categories=["All",...new Set(allArticles.map(a=>a.category||"News"))];
+const trending=[...allArticles].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,6);
+
+document.getElementById("content").innerHTML=`
+<section class="hero">${heroMarkup(hero)}<div class="hero-side">${side.length?side.map(sideMarkup).join(""):`<div class="empty">More stories coming soon.</div>`}</div></section>
+
+<div class="section-head"><h2>Latest Stories</h2><span>${allArticles.length} published</span></div>
+<div class="category-tabs">${categories.map((c,i)=>`<button class="${i===0?"active":""}" data-category="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+<section id="latestGrid" class="latest-grid">${latest.length?latest.map(cardMarkup).join(""):cardMarkup(hero)}</section>
+
+<div class="section-head"><h2>Trending</h2><span>Most-read BoxOfficeX stories</span></div>
+<section class="trending">${trending.map(trendMarkup).join("")}</section>`;
+document.querySelectorAll(".category-tabs button").forEach(b=>b.onclick=()=>renderCategory(b.dataset.category));
+bindCards();
+}
+async function load(){
+try{
+const r=await fetch("/articles");
+const data=await r.json();
+if(!r.ok)throw new Error("Failed");
+allArticles=Array.isArray(data.articles)?data.articles:[];
+render();
+updateSiteNewBadges();
+}catch(e){console.error(e);document.getElementById("content").innerHTML=`<div class="empty">Unable to load articles.</div>`}
+}
+load();
+
+
+function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
+function parseSiteDate(value){if(!value)return null;const p=String(value).slice(0,10).split("-").map(Number);if(p.length!==3||!p[0]||!p[1]||!p[2])return null;return new Date(p[0],p[1]-1,p[2])}
+async function updateSiteNewBadges(){
+try{
+const mr=await fetch("/movies/new-system",{cache:"no-store"});
+if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());const fresh=all.some(movie=>{const dt=parseSiteDate(movie.release_date);if(!dt)return false;const days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}
+const now=Date.now(),seven=7*86400000;
+const articleFresh=allArticles.some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});
+setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],articleFresh);
+}catch(error){console.warn("Site NEW badge check failed:",error)}
+}
+
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const b=document.getElementById("mobileMenuButton");
+    const n=document.querySelector("header nav");
+    if(!b||!n)return;
+
+    function closeMenu(){
+        n.classList.remove("mobile-menu-open");
+        b.classList.remove("open");
+        b.setAttribute("aria-expanded","false");
+    }
+
+    b.addEventListener("click",function(e){
+        e.stopPropagation();
+        const open=!n.classList.contains("mobile-menu-open");
+        n.classList.toggle("mobile-menu-open",open);
+        b.classList.toggle("open",open);
+        b.setAttribute("aria-expanded",open?"true":"false");
+    });
+
+    n.addEventListener("click",e=>{
+        if(e.target.closest("a"))closeMenu();
+    });
+
+    document.addEventListener("click",e=>{
+        if(!n.contains(e.target)&&!b.contains(e.target))closeMenu();
+    });
+
+    window.addEventListener("resize",()=>{
+        if(innerWidth>650)closeMenu();
+    });
+});
+</script>
+
+</body>
+</html>

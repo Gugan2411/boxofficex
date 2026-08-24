@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regional Box Office Admin | BoxOfficeX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070a12;--panel:#101725;--border:rgba(255,255,255,.08);--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--green:#3ac47d}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#17213a 0,#080b14 35%,#070a12 72%);color:var(--text);min-height:100vh}
+header{position:sticky;top:0;z-index:1000;background:rgba(6,9,18,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(18px)}
+.navbar{max-width:1280px;min-height:68px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{display:flex;align-items:center;gap:9px;color:white;font-size:21px;font-weight:900;text-decoration:none}.logo span:last-child{color:var(--gold)}
+.logo-icon{width:35px;height:35px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff)}
+nav{display:flex;gap:4px}nav a{padding:9px 12px;border-radius:10px;color:#c7d1e6;font-size:13px;font-weight:700;text-decoration:none}nav a:hover,nav a.active{background:rgba(77,141,255,.1);color:#79adff}
+main{width:min(1180px,calc(100% - 36px));margin:auto;padding:34px 0 70px}
+h1{font-size:clamp(30px,4vw,44px);letter-spacing:-1px}.intro{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;margin-top:24px}
+.panel{background:rgba(15,21,34,.96);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.panel-head{padding:16px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-head h2{font-size:17px}.panel-body{padding:17px}
+input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:#0a101c;color:white;outline:none}input:focus{border-color:var(--blue)}
+.movie-list{display:grid;gap:8px;margin-top:12px;max-height:520px;overflow:auto}.movie-item{padding:11px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:#0c1220;cursor:pointer}.movie-item.active{border-color:#4d8dff;background:rgba(77,141,255,.08)}.movie-item strong{display:block;font-size:13px}.movie-item small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
+.top-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{display:block;margin-bottom:6px;color:#aeb9cb;font-size:11px;font-weight:800}
+.regions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.region{padding:13px;border:1px solid var(--border);border-radius:12px;background:#0c1220}.region label{display:flex;justify-content:space-between;gap:10px}.region small{color:var(--muted);font-weight:400}
+.day-box{padding:13px;border:1px solid rgba(77,141,255,.22);border-radius:12px;background:rgba(77,141,255,.06)}.day-box b{font-size:20px;color:#79adff}.day-box span{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:900;cursor:pointer}.save{background:linear-gradient(135deg,#4d8dff,#795cff);color:white}.open{background:#151d31;color:#d7deec;border:1px solid var(--border)}
+.total-box{margin-top:16px;padding:14px;border:1px solid rgba(58,196,125,.25);border-radius:12px;background:rgba(58,196,125,.06);display:flex;justify-content:space-between;align-items:center}.total-box span{color:var(--muted);font-size:11px}.total-box b{color:#74e1aa;font-size:20px}
+.history{margin-top:22px}.history h3{font-size:17px;margin-bottom:10px}.history-row{display:grid;grid-template-columns:120px 1fr 110px;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:#0c1220;margin-bottom:7px}.history-row span{color:var(--muted);font-size:11px}.history-row b{text-align:right;color:#74e1aa;font-size:12px}
+.empty{padding:28px;text-align:center;color:var(--muted)}.toast{position:fixed;right:18px;bottom:18px;z-index:3000;padding:12px 15px;border:1px solid var(--border);border-radius:12px;background:#101725;display:none}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.movie-list{max-height:260px}}
+@media(max-width:650px){header nav{display:none}.navbar{min-height:61px;padding:0 13px}.logo{font-size:18px}main{width:min(94%,1180px);padding-top:24px}.top-form,.regions{grid-template-columns:1fr}.history-row{grid-template-columns:100px 1fr 90px}}
+.navbar{max-width:1500px;min-height:66px;gap:12px}.admin-nav{display:flex;align-items:center;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:thin}.admin-nav a{display:inline-flex;align-items:center;min-height:38px;padding:8px 10px!important;white-space:nowrap;font-size:11px!important}.admin-nav a.active{background:rgba(77,141,255,.14)!important;color:#8db5ff!important}@media(max-width:1100px){.navbar{align-items:flex-start;flex-direction:column;padding-top:10px;padding-bottom:9px}.admin-nav{width:100%}}@media(max-width:650px){header nav.admin-nav{display:flex}.navbar{align-items:flex-start}.admin-nav a{font-size:10px!important;padding:7px 9px!important}}
+/* BOXOFFICEX ADMIN ACCOUNT CONTROLS */
+.admin-account-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.admin-user-chip{padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:#101725;color:#aebbd4;font-size:10px;font-weight:800;white-space:nowrap}
+.admin-account-btn{border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 10px;background:#151d31;color:#dce5f5;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}
+.admin-account-btn:hover{background:#202b44}
+.admin-account-btn.logout{border-color:#703535;background:#351919;color:#ff9a9a}
+.account-modal{display:none;position:fixed;inset:0;z-index:5000;padding:20px;background:rgba(0,0,0,.78);overflow:auto}
+.account-modal-card{max-width:460px;margin:8vh auto;padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#101725}
+.account-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.account-modal-head h2{font-size:20px}
+.account-close{width:34px;height:34px;border-radius:50%;border:0;background:#29334d;color:#fff;font-size:20px;cursor:pointer}
+.account-field{margin-top:13px}
+.account-field label{display:block;margin-bottom:6px;color:#aeb9cb;font-size:11px;font-weight:800}
+.account-field input{width:100%;padding:11px 12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#0a101c;color:#fff;outline:none}
+.account-save{width:100%;margin-top:17px;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff);color:#fff;font-weight:900;cursor:pointer}
+.account-message{display:none;margin-top:12px;padding:10px;border-radius:9px;font-size:11px;font-weight:800;text-align:center}
+.account-message.ok{display:block;background:#142c22;color:#7de2bb;border:1px solid #2e6b4f}
+.account-message.bad{display:block;background:#351919;color:#ff9a9a;border:1px solid #703535}
+@media(max-width:1100px){.admin-account-actions{width:100%;overflow-x:auto}.admin-user-chip{margin-left:auto}}
+@media(max-width:650px){.admin-account-actions{justify-content:flex-start}.admin-user-chip{margin-left:0}}
+
+</style>
+</head>
+<body>
+<header>
+<div class="navbar">
+<a href="/index.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a>
+<nav class="admin-nav">
+<a href="/admin.html">🏠 Admin Home</a>
+<a href="/admin.html#movies">🎬 Movies</a>
+<a href="/admin-new-movies.html">🆕 New Movies</a>
+<a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
+<a href="/admin-regional-boxoffice.html" class="active">📍 Regional</a>
+<a href="/admin-articles.html">📰 Articles</a>
+<a href="/admin.html#actors">👤 Actors</a>
+<a href="/admin.html#actor-links">🔗 Actor Links</a>
+<a href="/admin.html#collections">📊 Collections</a>
+<a href="/new-movies.html" target="_blank">🌐 Public</a>
+</nav>
+<div class="admin-account-actions">
+    <div id="adminUserChip" class="admin-user-chip">Loading account...</div>
+    <button type="button" class="admin-account-btn" onclick="openOwnPasswordModal()">🔑 Password</button>
+    <button type="button" class="admin-account-btn logout" onclick="logoutCurrentAdmin()">🚪 Logout</button>
+</div>
+
+</div>
+</header>
+
+<main>
+<h1>Regional Box Office Manager</h1>
+<p class="intro">Enter territory-wise collections for each running movie and date. Values are saved into the existing BoxOfficeX collection table.</p>
+
+<div class="layout">
+<section class="panel">
+<div class="panel-head"><h2>Running Movies</h2><span id="count"></span></div>
+<div class="panel-body">
+<input id="search" placeholder="Search running movie...">
+<div id="movieList" class="movie-list"><div class="empty">Loading...</div></div>
+</div>
+</section>
+
+<section class="panel">
+<div class="panel-head"><h2 id="editorTitle">Select a movie</h2><span id="movieStatus"></span></div>
+<div class="panel-body">
+<div id="emptyEditor" class="empty">Choose a running movie from the left.</div>
+
+<div id="editor" style="display:none">
+<div class="top-form">
+<div class="full day-box">
+<b id="dayLabel">Day —</b>
+<span id="dayHelp">Choose a collection date.</span>
+</div>
+<div>
+<label>Collection Date</label>
+<input id="collectionDate" type="date">
+</div>
+</div>
+
+<div class="regions">
+<div class="region"><label>Tamil Nadu <small>₹ Cr</small></label><input id="regionTamilNadu" data-region="Tamil Nadu" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div class="region"><label>Kerala <small>₹ Cr</small></label><input id="regionKerala" data-region="Kerala" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div class="region"><label>Karnataka <small>₹ Cr</small></label><input id="regionKarnataka" data-region="Karnataka" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div class="region"><label>Telugu States <small>₹ Cr</small></label><input id="regionTeluguStates" data-region="Telugu States" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div class="region"><label>Rest of India <small>₹ Cr</small></label><input id="regionRestIndia" data-region="Rest of India" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div class="region"><label>Overseas <small>₹ Cr</small></label><input id="regionOverseas" data-region="Overseas" type="number" min="0" step="0.01" placeholder="0.00"></div>
+</div>
+
+<div class="total-box">
+<span>India Total</span>
+<b id="indiaTotal">₹0 Cr</b>
+</div>
+
+<div class="total-box">
+<span>Worldwide Total</span>
+<b id="total">₹0 Cr</b>
+</div>
+
+<div class="actions">
+<button id="saveBtn" class="save">💾 Save Regional Collections</button>
+<button id="moviePageBtn" class="open">Open Movie Page</button>
+</div>
+
+<div class="history">
+<h3>Saved Regional Totals</h3>
+<div id="historyList"></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const REGIONS=["Tamil Nadu","Kerala","Karnataka","Telugu States","Rest of India","Overseas"];
+let runningMovies=[];
+let selectedMovie=null;
+const $=id=>document.getElementById(id);
+
+function regionInput(regionName){
+    return document.querySelector(
+        `[data-region="${regionName}"]`
+    );
+}
+
+function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",1900)}
+function money(v){return "₹"+Number(v||0).toLocaleString("en-IN",{maximumFractionDigits:2})+" Cr"}
+function formatDate(v){if(!v)return"";const [y,m,d]=String(v).split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
+function dayNumber(releaseDate,collectionDate){if(!releaseDate||!collectionDate)return null;const a=new Date(releaseDate+"T00:00:00"),b=new Date(collectionDate+"T00:00:00");const diff=Math.floor((b-a)/86400000);return diff<0?0:diff+1}
+function updateDay(){if(!selectedMovie)return;const d=$("collectionDate").value;const n=dayNumber(selectedMovie.release_date,d);$("dayLabel").textContent=n===0?"Before Release":n?"Day "+n:"Day —";$("dayHelp").textContent=d?formatDate(d)+" • Release: "+formatDate(selectedMovie.release_date):"Choose a collection date."}
+function updateTotal(){
+    let indiaTotal = 0;
+    let worldwideTotal = 0;
+
+    REGIONS.forEach(regionName => {
+        const input = regionInput(regionName);
+        if(!input) return;
+
+        const raw = input.value.trim();
+        if(raw === "") return;
+
+        const value = Number(raw);
+        if(Number.isNaN(value)) return;
+
+        worldwideTotal += value;
+
+        if(regionName !== "Overseas"){
+            indiaTotal += value;
+        }
+    });
+
+    $("indiaTotal").textContent = money(indiaTotal);
+    $("total").textContent = money(worldwideTotal);
+}
+function filtered(){const q=$("search").value.trim().toLowerCase();return runningMovies.filter(m=>!q||String(m.title||"").toLowerCase().includes(q))}
+function renderList(){const list=filtered();$("count").textContent=list.length+(list.length===1?" movie":" movies");$("movieList").innerHTML=list.length?"":"<div class='empty'>No running movies found.</div>";list.forEach(m=>{const el=document.createElement("div");el.className="movie-item"+(selectedMovie&&selectedMovie.id===m.id?" active":"");el.innerHTML=`<strong>🔥 ${m.title}</strong><small>${formatDate(m.release_date)} • ${m.language||"N/A"}</small>`;el.onclick=()=>selectMovie(m);$("movieList").appendChild(el)})}
+async function loadRunning(){try{const r=await fetch("/movies/new-system",{cache:"no-store"});const d=await r.json();if(!r.ok)throw new Error(d.detail||"Unable to load");runningMovies=Array.isArray(d.running)?d.running:[];renderList()}catch(e){$("movieList").innerHTML="<div class='empty'>Unable to load running movies.</div>"}}
+async function selectMovie(m){selectedMovie=m;$("emptyEditor").style.display="none";$("editor").style.display="block";$("editorTitle").textContent=m.title;$("movieStatus").textContent="RUNNING";$("collectionDate").value=m.release_date||"";REGIONS.forEach(r=>{const input=regionInput(r);if(input)input.value=""});updateDay();updateTotal();renderList();await loadHistory();await loadExistingForDate()}
+async function loadExistingForDate(){if(!selectedMovie||!$("collectionDate").value)return;try{const r=await fetch(`/admin/movie-collections?movie_id=${selectedMovie.id}`,{cache:"no-store"});if(r.status===401){location.href="/admin-login.html";return}const d=await r.json();const rows=Array.isArray(d.collections)?d.collections:[];REGIONS.forEach(r=>{const input=regionInput(r);if(input)input.value=""});rows
+        .filter(x =>
+            x.collection_date === $("collectionDate").value &&
+            REGIONS.includes(x.state)
+        )
+        .forEach(x => {
+            const input = regionInput(x.state);
+            if(input) input.value = x.collection_crore;
+        });updateTotal()}catch{}}
+async function loadHistory(){if(!selectedMovie)return;try{const r=await fetch(`/movies/${selectedMovie.id}/state-collections`,{cache:"no-store"});const d=await r.json();const rows=Array.isArray(d.collections)?d.collections:[];$("historyList").innerHTML=rows.length?"":"<div class='empty'>No regional data saved yet.</div>";rows.forEach(x=>{const row=document.createElement("div");row.className="history-row";row.innerHTML=`<strong>${x.state}</strong><span>All saved dates</span><b>${money(x.collection_crore)}</b>`;$("historyList").appendChild(row)})}catch{$("historyList").innerHTML="<div class='empty'>Unable to load regional data.</div>"}}
+async function saveRegions(){if(!selectedMovie){toast("Select a movie first");return}const date=$("collectionDate").value;const n=dayNumber(selectedMovie.release_date,date);if(!date){toast("Choose collection date");return}if(n===0){toast("Date cannot be before release");return}try{let saved=0;for(const region of REGIONS){const input=regionInput(region);const raw=input?input.value.trim():"";if(raw==="")continue;const amount=Number(raw);if(Number.isNaN(amount)||amount<0)throw new Error("Invalid value for "+region);const r=await fetch("/admin/movie-collections",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({movie_id:Number(selectedMovie.id),collection_date:date,state:region,collection_crore:amount})});const d=await r.json();if(r.status===401){location.href="/admin-login.html";return}if(!r.ok)throw new Error(d.detail||"Failed to save "+region);saved++}toast(saved?`Saved ${saved} regions for Day ${n}`:"Enter at least one region");await loadHistory();await loadExistingForDate()}catch(e){toast(e.message)}}
+$("search").oninput=renderList;$("collectionDate").onchange=async()=>{updateDay();await loadExistingForDate()};REGIONS.forEach(r=>{
+    const input=regionInput(r);
+    if(input){
+        input.addEventListener("input",updateTotal);
+        input.addEventListener("change",updateTotal);
+    }
+});$("saveBtn").onclick=saveRegions;$("moviePageBtn").onclick=()=>{if(selectedMovie)window.open(`/movie.html?id=${selectedMovie.id}`,"_blank")};loadRunning();
+</script>
+
+<div id="ownPasswordModal" class="account-modal">
+    <div class="account-modal-card">
+        <div class="account-modal-head">
+            <h2>🔑 Change My Password</h2>
+            <button type="button" class="account-close" onclick="closeOwnPasswordModal()">×</button>
+        </div>
+
+        <div class="account-field">
+            <label>Current Password</label>
+            <input id="ownCurrentPassword" type="password" autocomplete="current-password">
+        </div>
+
+        <div class="account-field">
+            <label>New Password</label>
+            <input id="ownNewPassword" type="password" minlength="10" autocomplete="new-password">
+        </div>
+
+        <div class="account-field">
+            <label>Confirm New Password</label>
+            <input id="ownConfirmPassword" type="password" minlength="10" autocomplete="new-password">
+        </div>
+
+        <button type="button" class="account-save" onclick="changeOwnPassword()">
+            💾 CHANGE PASSWORD
+        </button>
+
+        <div id="ownPasswordMessage" class="account-message"></div>
+    </div>
+</div>
+
+
+<script>
+// ============================================================
+// ADMIN SELF ACCOUNT CONTROLS
+// ============================================================
+async function loadAdminAccountChip(){
+    try{
+        const r=await fetch("/admin/session",{credentials:"include"});
+        const d=await r.json();
+
+        if(!r.ok || !d.logged_in || !d.admin){
+            location.href="/admin-login.html";
+            return;
+        }
+
+        const role=String(d.admin.role||"admin").replaceAll("_"," ").toUpperCase();
+        const chip=document.getElementById("adminUserChip");
+        if(chip){
+            chip.textContent=(d.admin.display_name||d.admin.email)+" • "+role;
+        }
+    }catch(e){
+        console.error("Admin account check failed:",e);
+    }
+}
+
+function openOwnPasswordModal(){
+    document.getElementById("ownCurrentPassword").value="";
+    document.getElementById("ownNewPassword").value="";
+    document.getElementById("ownConfirmPassword").value="";
+    const msg=document.getElementById("ownPasswordMessage");
+    msg.className="account-message";
+    msg.textContent="";
+    document.getElementById("ownPasswordModal").style.display="block";
+}
+
+function closeOwnPasswordModal(){
+    document.getElementById("ownPasswordModal").style.display="none";
+}
+
+async function changeOwnPassword(){
+    const currentPassword=document.getElementById("ownCurrentPassword").value;
+    const newPassword=document.getElementById("ownNewPassword").value;
+    const confirmPassword=document.getElementById("ownConfirmPassword").value;
+    const msg=document.getElementById("ownPasswordMessage");
+
+    if(!currentPassword){
+        msg.className="account-message bad";
+        msg.textContent="Enter your current password.";
+        return;
+    }
+
+    if(newPassword.length<10){
+        msg.className="account-message bad";
+        msg.textContent="New password must be at least 10 characters.";
+        return;
+    }
+
+    if(newPassword!==confirmPassword){
+        msg.className="account-message bad";
+        msg.textContent="New passwords do not match.";
+        return;
+    }
+
+    try{
+        const r=await fetch("/admin/change-password",{
+            method:"PUT",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                current_password:currentPassword,
+                new_password:newPassword
+            })
+        });
+
+        const d=await r.json();
+
+        if(!r.ok){
+            throw new Error(d.detail||"Unable to change password");
+        }
+
+        msg.className="account-message ok";
+        msg.textContent="Password changed successfully.";
+
+        setTimeout(closeOwnPasswordModal,900);
+
+    }catch(e){
+        msg.className="account-message bad";
+        msg.textContent=e.message;
+    }
+}
+
+async function logoutCurrentAdmin(){
+    try{
+        await fetch("/admin/logout",{
+            method:"POST",
+            credentials:"include"
+        });
+    }finally{
+        location.href="/admin-login.html";
+    }
+}
+
+document.addEventListener("DOMContentLoaded",loadAdminAccountChip);
+</script>
+
+</body>
+</html>

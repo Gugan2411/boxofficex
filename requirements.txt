@@ -1,0 +1,12 @@
+Library
+/
+requirements.txt
+
+
+fastapi
+uvicorn[standard]
+psycopg[binary]
+pydantic
+python-multipart
+itsdangerous
+tzdata

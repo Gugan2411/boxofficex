@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Compare Actors - Movies, Box Office & Career | BoxOfficeX</title>
+
+    <meta
+        name="description"
+        content="Compare two actors on BoxOfficeX by movies, box office collections, hits, blockbusters and career performance."
+    >
+
+    <meta
+        name="robots"
+        content="index, follow"
+    >
+
+    <link id="canonicalUrl" rel="canonical" href="">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BoxOfficeX">
+
+    <meta
+        property="og:title"
+        content="Compare Actors - Movies, Box Office & Career | BoxOfficeX"
+    >
+
+    <meta
+        property="og:description"
+        content="Compare two actors by movies, box office collections, hits, blockbusters and career performance on BoxOfficeX."
+    >
+
+    <meta id="ogUrl" property="og:url" content="">
+
+    <meta name="twitter:card" content="summary">
+
+    <meta
+        name="twitter:title"
+        content="Compare Actors - Movies, Box Office & Career | BoxOfficeX"
+    >
+
+    <meta
+        name="twitter:description"
+        content="Compare two actors by movies, box office collections, hits, blockbusters and career performance on BoxOfficeX."
+    >
+
+    <script
+        id="compareSelectStructuredData"
+        type="application/ld+json"
+    ></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #080d1c;
+            color: white;
+        }
+
+        header {
+            background: #101a35;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 900px;
+            margin: auto;
+            padding: 35px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .page-header h1 {
+            font-size: 34px;
+            margin-bottom: 12px;
+        }
+
+        .page-header p {
+            color: #aeb8ce;
+            font-size: 17px;
+            line-height: 1.5;
+        }
+
+        .comparison-select {
+            display: grid;
+            grid-template-columns: 1fr 90px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .hero-selector {
+            background: #111a31;
+            padding: 25px;
+            border-radius: 18px;
+        }
+
+        .hero-selector h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 18px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #202c4d;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: #aeb8ce;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 55px;
+            left: 0;
+            right: 0;
+            background: #162653;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .search-result {
+            padding: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #27365d;
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .search-result:hover {
+            background: #253761;
+        }
+
+        .selected-hero {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .selected-hero img {
+            width: 100px;
+            height: 125px;
+            object-fit: cover;
+            border-radius: 10px;
+            display: block;
+            margin: auto;
+        }
+
+        .selected-hero-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .remove-hero {
+            margin-top: 8px;
+            background: transparent;
+            border: none;
+            color: #ff8d8d;
+            cursor: pointer;
+        }
+
+        .vs {
+            text-align: center;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .compare-button-area {
+            text-align: center;
+            margin-top: 35px;
+        }
+
+        .compare-button {
+            padding: 16px 35px;
+            border: none;
+            border-radius: 12px;
+            background: #e63946;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .compare-button:hover {
+            transform: scale(1.05);
+        }
+
+        .compare-button:disabled {
+            background: #4a5268;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            color: #aeb8ce;
+        }
+
+        @media (max-width: 700px) {
+
+            main {
+                padding: 25px 12px;
+            }
+
+            .page-header h1 {
+                font-size: 28px;
+            }
+
+            .comparison-select {
+                grid-template-columns: 1fr;
+            }
+
+            .vs {
+                margin: 0;
+            }
+
+            .hero-selector {
+                padding: 20px;
+            }
+
+        }
+
+    
+        /* ==========================================
+           BOXOFFICEX STANDARD HEADER
+        ========================================== */
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0;
+            text-align: initial;
+            background: rgba(6, 9, 18, 0.90);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1280px;
+            min-height: 68px;
+            margin: 0 auto;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: white;
+            text-decoration: none;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+            box-shadow: 0 8px 25px rgba(77,141,255,0.24);
+        }
+
+        .logo span:last-child {
+            color: #ffcc33;
+        }
+
+        header nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        header nav a {
+            min-height: 40px;
+            padding: 9px 12px;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 10px;
+            color: #c7d1e6;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        header nav a:hover {
+            color: #79adff;
+            background: rgba(77,141,255,0.10);
+        }
+
+        header nav .nav-compare {
+            color: white;
+            background: linear-gradient(135deg, #ff4655, #d92e3d);
+        }
+
+        /* ==========================================
+           PAGE POLISH
+        ========================================== */
+
+        body {
+            background:
+                radial-gradient(circle at 50% -10%, rgba(77,141,255,0.16), transparent 34%),
+                linear-gradient(180deg, #070b15 0%, #080d1c 100%);
+        }
+
+        main {
+            max-width: 1000px;
+            min-height: calc(100vh - 300px);
+        }
+
+        .hero-selector {
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+        }
+
+        .search-input {
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        /* ==========================================
+           FOOTER
+        ========================================== */
+
+        .site-footer {
+            margin-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: #080c16;
+        }
+
+        .footer-inner {
+            max-width: 1280px;
+            margin: auto;
+            padding: 32px 18px 35px;
+            text-align: center;
+        }
+
+        .footer-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .footer-logo-icon {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+        }
+
+        .footer-brand strong > span {
+            color: #ffcc33;
+        }
+
+        .site-footer p {
+            margin: 5px 0;
+            color: #73809a;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 15px;
+            margin: 13px 0;
+        }
+
+        .footer-links a {
+            color: #79adff;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding-bottom: 68px;
+            }
+
+            .navbar {
+                min-height: 61px;
+                padding: 0 13px;
+                justify-content: center;
+            }
+
+            .logo {
+                font-size: 18px;
+            }
+
+            .logo-icon {
+                width: 31px;
+                height: 31px;
+                border-radius: 9px;
+            }
+
+            header nav {
+                display: none;
+            }
+
+            .page-header {
+                margin-bottom: 25px;
+            }
+
+            .page-header p {
+                font-size: 14px;
+            }
+
+            .comparison-select {
+                gap: 14px;
+            }
+
+            .vs {
+                font-size: 22px;
+            }
+
+            .selected-hero img {
+                width: 90px;
+                height: 112px;
+            }
+
+            .compare-button {
+                width: 100%;
+                max-width: 420px;
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+
+            .mobile-bottom-nav {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1500;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+                background: rgba(7,11,20,0.96);
+                border-top: 1px solid rgba(255,255,255,0.08);
+            }
+
+            .mobile-bottom-nav a {
+                min-height: 48px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                border-radius: 11px;
+                color: #8793a9;
+                text-decoration: none;
+                font-size: 8px;
+                font-weight: 700;
+            }
+
+            .mobile-bottom-nav a span:first-child {
+                font-size: 18px;
+            }
+
+            .mobile-bottom-nav a.active {
+                color: #79adff;
+                background: rgba(77,141,255,0.10);
+            }
+        }
+
+
+/* =========================================================
+   BOXOFFICEX MASTER POLISH — ACTOR COMPARE SELECT
+========================================================= */
+.navbar{min-height:66px;gap:12px}
+.logo{font-size:20px;letter-spacing:.45px}
+.logo-icon{width:33px;height:33px;border-radius:9px}
+header nav{gap:2px;flex-wrap:nowrap}
+header nav a{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+header nav .nav-compare{
+    color:#fff!important;
+    background:linear-gradient(135deg,#ff4655,#d92e3d);
+    box-shadow:0 8px 20px rgba(255,70,85,.16);
+}
+header nav .nav-compare:hover{background:linear-gradient(135deg,#ff5967,#e83b49);transform:translateY(-1px)}
+header nav .nav-compare.active{box-shadow:0 0 0 1px rgba(255,255,255,.16),0 9px 24px rgba(255,70,85,.24)}
+
+.nav-item-with-badge{position:relative}
+.nav-new-badge{
+    position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;
+    min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;
+    font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none;
+}
+.nav-new-badge.show{display:inline-flex}
+
+main{max-width:980px;padding:28px 18px 54px}
+.page-header{margin-bottom:25px}
+.page-header::before{
+    content:"BOXOFFICEX COMPARE";display:inline-flex;margin-bottom:10px;padding:6px 10px;
+    border:1px solid rgba(77,141,255,.25);border-radius:999px;background:rgba(77,141,255,.08);
+    color:#79adff;font-size:8px;font-weight:900;letter-spacing:1px;
+}
+.page-header h1{margin:0 0 8px;font-size:clamp(30px,5vw,42px);letter-spacing:-.8px}
+.page-header p{max-width:650px;margin:5px auto;color:#98a6c0;font-size:12px}
+
+.comparison-select{grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);gap:14px}
+.hero-selector{
+    min-height:220px;padding:18px;border-radius:15px;
+    background:linear-gradient(145deg,#111a31,#0d1528);
+}
+.hero-selector h2{margin-bottom:13px;font-size:17px}
+.search-input{
+    min-height:44px;padding:11px 13px;border-radius:10px;background:#182440;
+    font-size:13px;
+}
+.search-results{top:49px;border:1px solid rgba(255,255,255,.08)}
+.search-result{padding:11px 12px;font-size:12px}
+.selected-hero{margin-top:14px}
+.selected-hero img{width:84px;height:105px;border-radius:9px}
+.selected-hero-name{font-size:15px;margin-top:8px}
+.remove-hero{font-size:10px}
+.vs{
+    width:52px;height:52px;margin:auto;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;background:linear-gradient(135deg,#ff4655,#d92e3d);
+    box-shadow:0 10px 25px rgba(255,70,85,.22);font-size:15px;
+}
+.compare-button-area{margin-top:24px}
+.compare-button{padding:13px 27px;border-radius:10px;font-size:14px}
+.message{margin-top:10px;font-size:10px}
+
+.site-footer{margin-top:30px;background:linear-gradient(180deg,#080c16,#050810)}
+.footer-inner{max-width:1180px;padding:28px 18px}
+.footer-brand{color:#fff;text-decoration:none}
+.footer-links a{color:#aebbd4}
+.footer-links a:hover{color:#79adff}
+
+@media(max-width:1180px) and (min-width:701px){
+    .navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}
+    .navbar::-webkit-scrollbar{display:none}
+    .logo{font-size:17px}
+    .logo-icon{width:30px;height:30px}
+    header nav{min-width:max-content}
+    header nav a{padding-left:7px;padding-right:7px;font-size:10.5px}
+}
+
+@media(max-width:700px){
+    body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+    .navbar{min-height:58px}
+    main{padding:20px 10px 38px}
+    .page-header{margin-bottom:18px}
+    .page-header::before{font-size:7px;padding:5px 8px}
+    .page-header h1{font-size:27px}
+    .page-header p{font-size:10px;line-height:1.55}
+    .comparison-select{grid-template-columns:1fr;gap:9px}
+    .hero-selector{min-height:0;padding:13px;border-radius:13px}
+    .hero-selector h2{font-size:14px;margin-bottom:10px}
+    .search-input{min-height:41px;padding:10px 11px;font-size:12px}
+    .vs{width:38px;height:38px;font-size:11px}
+    .selected-hero img{width:72px;height:90px}
+    .selected-hero-name{font-size:13px}
+    .compare-button-area{margin-top:16px}
+    .compare-button{max-width:none;padding:12px 16px;font-size:12px}
+    .mobile-bottom-nav{
+        grid-template-columns:repeat(5,1fr);
+        min-height:calc(68px + env(safe-area-inset-bottom));
+        padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;
+        box-shadow:0 -8px 24px rgba(0,0,0,.28);
+    }
+    .mobile-bottom-nav a{min-height:50px;padding:4px 2px;font-size:7.5px}
+    .mobile-bottom-nav a span:first-child{font-size:17px}
+    .mobile-bottom-nav .nav-new-badge{top:2px;right:7px}
+}
+
+
+/* BOXOFFICEX FINAL MOBILE STANDARD — ACTOR COMPARE SELECT */
+.mobile-menu-button{display:none}
+.footer-brand,.footer-brand:hover,.footer-brand:visited{text-decoration:none!important;border-bottom:0!important;box-shadow:none!important}
+
+@media(max-width:700px){
+ body{padding-top:61px!important;padding-bottom:0!important;overflow-x:hidden!important}
+ header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:99999!important;padding:0!important;background:#070a12!important;border-bottom:1px solid #202a3d!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 8px 22px rgba(0,0,0,.28)!important;overflow:visible!important}
+ .navbar{min-height:61px!important;height:61px!important;padding:0 13px!important;display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;justify-content:initial!important;gap:10px!important;background:#070a12!important;position:relative!important;z-index:100000!important;overflow:visible!important}
+ .logo{font-size:18px!important;position:relative!important;z-index:100001!important}
+ .logo-icon{width:31px!important;height:31px!important}
+ .mobile-menu-button{width:42px;height:42px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#101728;cursor:pointer;position:relative;z-index:100001}
+ .mobile-menu-button span{width:20px;height:2px;display:block;background:#fff;border-radius:999px;transition:.2s}
+ .mobile-menu-button.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+ .mobile-menu-button.open span:nth-child(2){opacity:0}
+ .mobile-menu-button.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+ header nav{position:absolute!important;top:61px!important;left:10px!important;right:10px!important;width:auto!important;display:none!important;flex-direction:column!important;align-items:stretch!important;gap:5px!important;padding:10px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;background:#0a0f1b!important;box-shadow:0 18px 45px rgba(0,0,0,.42)!important;z-index:100002!important}
+ header nav.mobile-menu-open{display:flex!important}
+ header nav a{width:100%!important;min-height:42px!important;padding:10px 12px!important;justify-content:flex-start!important;font-size:12px!important}
+ .mobile-bottom-nav{display:none!important}
+ main{padding:20px 10px 38px!important}
+ .comparison-select{grid-template-columns:1fr!important;gap:9px!important}
+ .hero-selector{min-height:0!important;padding:13px!important}
+ .vs{width:38px!important;height:38px!important;font-size:11px!important}
+ .compare-button{width:100%!important;max-width:none!important}
+ .search-results{z-index:50!important}
+ .site-footer{margin-top:35px!important;background:linear-gradient(180deg,#080c16,#050810)!important}
+ .footer-inner{max-width:100%!important;padding:32px 12px 28px!important;text-align:center!important}
+ .footer-brand{display:inline-flex!important;justify-content:center!important;margin-bottom:13px!important;font-size:18px!important;text-decoration:none!important;border-bottom:0!important}
+ .footer-logo-icon{width:34px!important;height:34px!important}
+ .site-footer p{max-width:290px!important;margin:0 auto 20px!important;font-size:11px!important;line-height:1.65!important}
+ .footer-links{display:flex!important;flex-wrap:nowrap!important;justify-content:center!important;align-items:center!important;gap:0!important;width:100%!important;margin:0 auto 22px!important;white-space:nowrap!important}
+ .footer-links a{flex:0 0 auto!important;padding:4px 8px!important;color:#aebbd4!important;text-decoration:none!important;border-bottom:0!important;font-size:8px!important;line-height:1.2!important;white-space:nowrap!important}
+ .footer-inner>p:last-child{margin-bottom:0!important;font-size:10px!important}
+}
+@media(max-width:340px){.footer-links a{padding-left:6px!important;padding-right:6px!important;font-size:7.5px!important}}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+    <div class="navbar">
+
+        <a href="index.html" class="logo" aria-label="BoxOfficeX Home">
+            <span class="logo-icon">🎬</span>
+            BOXOFFICE<span>X</span>
+        </a><button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
+
+        <nav aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="new-movies.html" class="nav-item-with-badge">
+                New Movies
+                <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
+            </a>
+            <a href="movie-rankings.html">Rankings</a>
+            <a href="actors.html">Actors</a>
+            <a href="articles.html" class="nav-item-with-badge">
+                Articles
+                <span id="articlesBadge" class="nav-new-badge">NEW</span>
+            </a>
+            <a href="compare-select.html" class="nav-compare active">⚔️ Actor Compare</a>
+            <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+        </nav>
+
+    </div>
+</header>
+
+<main>
+
+    <div class="page-header">
+
+        <h1>
+            ⚔️ Hero vs Hero
+        </h1>
+
+        <p>
+            Compare your favourite heroes and discover
+            their box-office journey.
+        </p>
+
+        <p>
+            Choose two heroes to compare their movies,
+            collections, hits, blockbusters and more.
+        </p>
+
+    </div>
+
+    <div class="comparison-select">
+
+        <div class="hero-selector">
+
+            <h2>
+                Hero 1
+            </h2>
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="search1"
+                    class="search-input"
+                    placeholder="🔍 Search actor..."
+                    autocomplete="off"
+                >
+
+                <div
+                    id="results1"
+                    class="search-results"
+                ></div>
+
+            </div>
+
+            <div
+                id="selected1"
+                class="selected-hero"
+            ></div>
+
+        </div>
+
+        <div class="vs">
+            VS
+        </div>
+
+        <div class="hero-selector">
+
+            <h2>
+                Hero 2
+            </h2>
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="search2"
+                    class="search-input"
+                    placeholder="🔍 Search actor..."
+                    autocomplete="off"
+                >
+
+                <div
+                    id="results2"
+                    class="search-results"
+                ></div>
+
+            </div>
+
+            <div
+                id="selected2"
+                class="selected-hero"
+            ></div>
+
+        </div>
+
+    </div>
+
+    <div class="compare-button-area">
+
+        <button
+            id="compareButton"
+            class="compare-button"
+            disabled
+        >
+            ⚔️ COMPARE HEROES
+        </button>
+
+        <div
+            id="message"
+            class="message"
+        >
+            Select two heroes to compare.
+        </div>
+
+    </div>
+
+</main>
+
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <a href="index.html" class="footer-brand" aria-label="BoxOfficeX Home">
+            <span class="footer-logo-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </a>
+        <p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
+        <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="disclaimer.html">Disclaimer</a>
+        </div>
+        <p>© 2026 BoxOfficeX. All rights reserved.</p>
+    </div>
+</footer>
+
+
+
+<script>
+
+// ==========================================
+// COMPARE SELECT SEO
+// ==========================================
+
+function setupCompareSelectSEO() {
+
+    const canonical =
+        window.location.origin +
+        window.location.pathname;
+
+    const canonicalTag =
+        document.getElementById(
+            "canonicalUrl"
+        );
+
+    if (canonicalTag) {
+        canonicalTag.href = canonical;
+    }
+
+    const ogUrl =
+        document.getElementById(
+            "ogUrl"
+        );
+
+    if (ogUrl) {
+        ogUrl.setAttribute(
+            "content",
+            canonical
+        );
+    }
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Compare Actors | BoxOfficeX",
+        "url": canonical,
+        "description":
+            "Compare two actors on BoxOfficeX by movies, box office collections, hits, blockbusters and career performance."
+    };
+
+    const jsonLd =
+        document.getElementById(
+            "compareSelectStructuredData"
+        );
+
+    if (jsonLd) {
+        jsonLd.textContent =
+            JSON.stringify(
+                structuredData
+            );
+    }
+}
+
+
+setupCompareSelectSEO();
+
+
+
+let selectedActor1 = null;
+let selectedActor2 = null;
+
+const search1 =
+    document.getElementById("search1");
+
+const search2 =
+    document.getElementById("search2");
+
+const results1 =
+    document.getElementById("results1");
+
+const results2 =
+    document.getElementById("results2");
+
+const selected1 =
+    document.getElementById("selected1");
+
+const selected2 =
+    document.getElementById("selected2");
+
+const compareButton =
+    document.getElementById("compareButton");
+
+const message =
+    document.getElementById("message");
+
+
+search1.addEventListener(
+    "input",
+    function () {
+
+        searchActors(
+            search1.value,
+            results1,
+            1
+        );
+
+    }
+);
+
+
+search2.addEventListener(
+    "input",
+    function () {
+
+        searchActors(
+            search2.value,
+            results2,
+            2
+        );
+
+    }
+);
+
+
+async function searchActors(
+    query,
+    resultsBox,
+    heroNumber
+) {
+
+    query = query.trim().toLowerCase();
+
+    if (query.length < 1) {
+
+        resultsBox.innerHTML = "";
+
+        return;
+
+    }
+
+    try {
+
+        // Use your existing working /actors API
+        const response =
+            await fetch(
+                window.location.origin + "/actors"
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Actors API failed: " +
+                response.status
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        const actors =
+            data.actors || [];
+
+        // Search inside the actors returned by API
+        const matchedActors =
+            actors.filter(actor =>
+                actor.name
+                    .toLowerCase()
+                    .includes(query)
+            );
+
+        resultsBox.innerHTML = "";
+
+        if (matchedActors.length === 0) {
+
+            resultsBox.innerHTML = `
+
+                <div class="search-result">
+                    No actors found.
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+        matchedActors
+            .slice(0, 8)
+            .forEach(actor => {
+
+                const result =
+                    document.createElement("div");
+
+                result.className =
+                    "search-result";
+
+                result.innerHTML = `
+                    ${actor.name}
+                `;
+
+                result.onclick =
+                    function () {
+
+                        selectActor(
+                            actor,
+                            heroNumber
+                        );
+
+                    };
+
+                resultsBox.appendChild(
+                    result
+                );
+
+            });
+
+    }
+    catch (error) {
+
+        console.error(
+            "Actor search error:",
+            error
+        );
+
+        resultsBox.innerHTML = `
+
+            <div class="search-result">
+                Unable to load actors.
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+
+function selectActor(
+    actor,
+    heroNumber
+) {
+
+    if (heroNumber === 1) {
+
+        selectedActor1 = actor;
+
+        search1.value =
+            actor.name;
+
+        results1.innerHTML = "";
+
+        selected1.innerHTML = `
+
+            <img
+                src="actor-images/${actor.photo}"
+                alt="${actor.name}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='actor-images/default-actor.png';"
+            >
+
+            <div class="selected-hero-name">
+                ${actor.name}
+            </div>
+
+            <button
+                class="remove-hero"
+                onclick="removeActor(1)"
+            >
+                Remove
+            </button>
+
+        `;
+
+        selected1.style.display =
+            "block";
+
+    }
+
+    if (heroNumber === 2) {
+
+        selectedActor2 = actor;
+
+        search2.value =
+            actor.name;
+
+        results2.innerHTML = "";
+
+        selected2.innerHTML = `
+
+            <img
+                src="actor-images/${actor.photo}"
+                alt="${actor.name}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='actor-images/default-actor.png';"
+            >
+
+            <div class="selected-hero-name">
+                ${actor.name}
+            </div>
+
+            <button
+                class="remove-hero"
+                onclick="removeActor(2)"
+            >
+                Remove
+            </button>
+
+        `;
+
+        selected2.style.display =
+            "block";
+
+    }
+
+    updateCompareButton();
+
+}
+
+
+function removeActor(
+    heroNumber
+) {
+
+    if (heroNumber === 1) {
+
+        selectedActor1 = null;
+
+        search1.value = "";
+
+        selected1.innerHTML = "";
+
+        selected1.style.display =
+            "none";
+
+    }
+
+    if (heroNumber === 2) {
+
+        selectedActor2 = null;
+
+        search2.value = "";
+
+        selected2.innerHTML = "";
+
+        selected2.style.display =
+            "none";
+
+    }
+
+    updateCompareButton();
+
+}
+
+
+function updateCompareButton() {
+
+    if (
+        selectedActor1 &&
+        selectedActor2
+    ) {
+
+        compareButton.disabled =
+            false;
+
+        message.innerText =
+            "Ready to compare!";
+
+    }
+    else {
+
+        compareButton.disabled =
+            true;
+
+        message.innerText =
+            "Select two heroes to compare.";
+
+    }
+
+}
+
+
+compareButton.addEventListener(
+    "click",
+    function () {
+
+        if (
+            !selectedActor1 ||
+            !selectedActor2
+        ) {
+            return;
+        }
+
+        if (
+            selectedActor1.id ===
+            selectedActor2.id
+        ) {
+
+            message.innerText =
+                "Please select two different heroes.";
+
+            return;
+
+        }
+
+        window.location.href =
+            "compare.html?hero1=" +
+            encodeURIComponent(
+                selectedActor1.name
+            ) +
+            "&hero2=" +
+            encodeURIComponent(
+                selectedActor2.name
+            );
+
+    }
+);
+
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        if (
+            !event.target.closest(
+                ".search-box"
+            )
+        ) {
+
+            results1.innerHTML = "";
+
+            results2.innerHTML = "";
+
+        }
+
+    }
+);
+
+
+
+function setSiteNewBadge(ids,visible){
+    ids.forEach(id=>{
+        const badge=document.getElementById(id);
+        if(badge) badge.classList.toggle("show",!!visible);
+    });
+}
+function parseSiteDate(value){
+    if(!value)return null;
+    const p=String(value).slice(0,10).split("-").map(Number);
+    if(p.length!==3||!p[0]||!p[1]||!p[2])return null;
+    return new Date(p[0],p[1]-1,p[2]);
+}
+async function updateSiteNewBadges(){
+    try{
+        const [mr,ar]=await Promise.all([
+            fetch(window.location.origin + "/movies/new-system",{cache:"no-store"}),
+            fetch(window.location.origin + "/articles/latest?limit=10",{cache:"no-store"})
+        ]);
+        if(mr.ok){
+            const d=await mr.json();
+            const all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];
+            const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+            const fresh=all.some(movie=>{
+                const dt=parseSiteDate(movie.release_date);
+                if(!dt)return false;
+                const days=Math.floor((dt-today)/86400000);
+                return days>=-7&&days<=7;
+            });
+            setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh);
+        }
+        if(ar.ok){
+            const d=await ar.json(),now=Date.now(),seven=7*86400000;
+            const fresh=(d.articles||[]).some(article=>{
+                const ts=new Date(article.published_at).getTime();
+                return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven;
+            });
+            setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh);
+        }
+    }catch(error){console.warn("Site NEW badge check failed:",error)}
+}
+updateSiteNewBadges();
+
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+ const b=document.getElementById("mobileMenuButton"),n=document.querySelector("header nav");
+ if(!b||!n)return;
+ function closeMenu(){n.classList.remove("mobile-menu-open");b.classList.remove("open");b.setAttribute("aria-expanded","false")}
+ b.addEventListener("click",e=>{e.stopPropagation();const o=!n.classList.contains("mobile-menu-open");n.classList.toggle("mobile-menu-open",o);b.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")});
+ n.addEventListener("click",e=>{if(e.target.closest("a"))closeMenu()});
+ document.addEventListener("click",e=>{if(!n.contains(e.target)&&!b.contains(e.target))closeMenu()});
+ window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
+});
+</script>
+</body>
+
+</html>

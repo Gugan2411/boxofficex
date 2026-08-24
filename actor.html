@@ -1,0 +1,3384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Actor Movies, Box Office Collection & Career | BoxOfficeX</title>
+
+    <meta
+        name="description"
+        content="Explore actor movies, box office collections, highest-grossing films, career overview, blockbusters, hits and verdicts on BoxOfficeX."
+    >
+
+    <meta name="robots" content="index, follow">
+
+    <link id="canonicalUrl" rel="canonical" href="">
+
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="BoxOfficeX">
+    <meta id="ogTitle" property="og:title" content="Actor Movies, Box Office Collection & Career | BoxOfficeX">
+    <meta id="ogDescription" property="og:description" content="Explore actor movies, box office collections, highest-grossing films, career overview and verdicts on BoxOfficeX.">
+    <meta id="ogUrl" property="og:url" content="">
+    <meta id="ogImage" property="og:image" content="">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta id="twitterTitle" name="twitter:title" content="Actor Movies, Box Office Collection & Career | BoxOfficeX">
+    <meta id="twitterDescription" name="twitter:description" content="Explore actor movies, box office collections, highest-grossing films, career overview and verdicts on BoxOfficeX.">
+    <meta id="twitterImage" name="twitter:image" content="">
+
+    <script id="actorStructuredData" type="application/ld+json"></script>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #080b14;
+
+            color: white;
+        }
+
+
+        /* ==========================================
+           HEADER
+        ========================================== */
+
+        header {
+
+            padding: 20px;
+
+            background: #101625;
+
+            border-bottom:
+                1px solid #29334d;
+
+            font-size: 28px;
+
+            font-weight: bold;
+        }
+
+
+        header span {
+            color: #ffcc33;
+        }
+
+
+        /* ==========================================
+           MAIN CONTAINER
+        ========================================== */
+
+        .container {
+
+            max-width: 1000px;
+
+            margin: 35px auto;
+
+            padding: 20px;
+        }
+
+
+        /* ==========================================
+           ACTOR PROFILE
+        ========================================== */
+
+        .actor {
+
+            background: #111827;
+
+            padding: 30px;
+
+            border-radius: 20px;
+
+            text-align: center;
+
+            border:
+                1px solid #202d4c;
+        }
+
+
+        #actorPhoto {
+
+            width: 220px;
+
+            height: 280px;
+
+            object-fit: cover;
+
+            border-radius: 15px;
+
+            display: block;
+
+            margin:
+                0 auto 25px;
+
+            background: #151d31;
+        }
+
+
+        #actorName {
+
+            font-size: 42px;
+
+            margin: 10px 0;
+        }
+
+
+        #profession {
+
+            color: #ffcc33;
+
+            font-size: 20px;
+
+            margin: 10px;
+        }
+
+
+        #bio {
+
+            color: #aeb8ce;
+
+            line-height: 1.7;
+
+            max-width: 750px;
+
+            margin:
+                20px auto 0;
+        }
+
+
+        /* ==========================================
+           GENERAL SECTION
+        ========================================== */
+
+        .section {
+
+            margin-top: 30px;
+
+            padding: 20px;
+
+            background: #111827;
+
+            border-radius: 18px;
+
+            border:
+                1px solid #202d4c;
+        }
+
+
+        .section h2 {
+
+            margin-top: 0;
+        }
+
+
+        /* ==========================================
+           CAREER OVERVIEW
+        ========================================== */
+
+        #overviewGrid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 15px;
+        }
+
+
+        .overview-card {
+
+            background: #151d31;
+
+            padding: 20px;
+
+            border-radius: 15px;
+
+            text-align: center;
+
+            border:
+                1px solid transparent;
+
+            transition:
+                0.2s;
+        }
+
+
+        .overview-card:hover {
+
+            transform:
+                translateY(-3px);
+
+            border-color:
+                #405687;
+        }
+
+
+        .overview-label {
+
+            color: #aeb8ce;
+
+            font-size: 14px;
+        }
+
+
+        .overview-value {
+
+            font-size: 23px;
+
+            font-weight: bold;
+
+            margin-top: 8px;
+        }
+
+
+        /* ==========================================
+           TOP MOVIES
+        ========================================== */
+
+        #topMovies {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(5, 1fr);
+
+            gap: 15px;
+        }
+
+
+        .top-movie-card {
+
+            background: #151d31;
+
+            padding: 12px;
+
+            border-radius: 14px;
+
+            text-align: center;
+
+            cursor: pointer;
+
+            transition:
+                0.2s;
+        }
+
+
+        .top-movie-card:hover {
+
+            transform:
+                translateY(-4px);
+
+            border-color:
+                #405687;
+        }
+
+
+        .top-movie-card img {
+
+            width: 100%;
+
+            height: 190px;
+
+            object-fit: cover;
+
+            border-radius: 10px;
+        }
+
+
+        .top-movie-title {
+
+            font-weight: bold;
+
+            margin-top: 10px;
+        }
+
+
+        .top-movie-collection {
+
+            color: #aeb8ce;
+
+            margin-top: 6px;
+
+            font-size: 14px;
+        }
+
+
+        /* ==========================================
+           MOVIE LIST
+        ========================================== */
+
+        .movie-item {
+
+            display: flex;
+
+            gap: 20px;
+
+            align-items: center;
+
+            margin-top: 18px;
+
+            padding: 18px;
+
+            background: #151d31;
+
+            border-radius: 15px;
+
+            cursor: pointer;
+
+            transition:
+                0.2s;
+
+            border:
+                1px solid transparent;
+        }
+
+
+        .movie-item:hover {
+
+            transform:
+                translateY(-2px);
+
+            border-color:
+                #35496f;
+        }
+
+
+        .movie-item img {
+
+            width: 90px;
+
+            height: 125px;
+
+            object-fit: cover;
+
+            border-radius: 10px;
+
+            background: #202b44;
+        }
+
+
+        .movie-details {
+            flex: 1;
+        }
+
+
+        .movie-title {
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            margin-bottom: 8px;
+        }
+
+
+        .movie-info {
+
+            color: #aeb8ce;
+
+            margin-top: 6px;
+
+            font-size: 15px;
+        }
+
+
+        .movie-verdict {
+
+            margin-top: 8px;
+
+            font-weight: bold;
+
+            color: #ffcc33;
+        }
+
+
+        /* ==========================================
+           VERDICT SECTION
+        ========================================== */
+
+        .verdict-section {
+
+            margin-top: 30px;
+
+            padding: 25px;
+
+            background: #111827;
+
+            border-radius: 18px;
+
+            border:
+                1px solid #202d4c;
+        }
+
+
+        .verdict-subtitle {
+
+            color: #aeb8ce;
+
+            margin-top: -5px;
+
+            margin-bottom: 22px;
+        }
+
+
+        .verdict-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+        }
+
+
+        .verdict-card {
+
+            background: #151d31;
+
+            padding: 22px 12px;
+
+            border-radius: 15px;
+
+            text-align: center;
+
+            cursor: pointer;
+
+            border:
+                1px solid #263656;
+
+            transition:
+                transform 0.2s,
+                border-color 0.2s,
+                background 0.2s;
+        }
+
+
+        .verdict-card:hover {
+
+            transform:
+                translateY(-5px);
+
+            background: #1b2947;
+
+            border-color:
+                #536b9d;
+        }
+
+
+        .verdict-icon {
+
+            font-size: 34px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .verdict-card h3 {
+
+            margin:
+                5px 0 7px;
+
+            font-size: 18px;
+        }
+
+
+        .verdict-card p {
+
+            margin: 0;
+
+            color: #aeb8ce;
+
+            font-size: 13px;
+        }
+
+
+        /* ==========================================
+           VERDICT MOVIES
+        ========================================== */
+
+        #verdictMovies {
+
+            margin-top: 25px;
+        }
+
+
+        .verdict-results-title {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .verdict-results-title h2 {
+
+            margin: 0;
+        }
+
+
+        .close-verdict {
+
+            border: none;
+
+            background: #293653;
+
+            color: white;
+
+            padding:
+                9px 14px;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+        }
+
+
+        .close-verdict:hover {
+
+            background: #3a4b70;
+        }
+
+
+        .verdict-movie-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 15px;
+        }
+
+
+        .verdict-movie-card {
+
+            background: #151d31;
+
+            padding: 12px;
+
+            border-radius: 14px;
+
+            cursor: pointer;
+
+            border:
+                1px solid transparent;
+
+            transition:
+                0.2s;
+        }
+
+
+        .verdict-movie-card:hover {
+
+            transform:
+                translateY(-4px);
+
+            border-color:
+                #405687;
+        }
+
+
+        .verdict-movie-card img {
+
+            width: 100%;
+
+            height: 260px;
+
+            object-fit: cover;
+
+            border-radius: 10px;
+        }
+
+
+        .verdict-movie-card h3 {
+
+            margin:
+                10px 0 6px;
+
+            font-size: 17px;
+        }
+
+
+        .verdict-movie-card p {
+
+            margin: 4px 0;
+
+            color: #aeb8ce;
+
+            font-size: 13px;
+        }
+
+
+        .verdict-movie-card .verdict-text {
+
+            color: #ffcc33;
+
+            font-weight: bold;
+        }
+
+
+        .loading-message {
+
+            color: #aeb8ce;
+
+            padding: 15px 0;
+        }
+
+
+        /* ==========================================
+           MOBILE
+        ========================================== */
+
+        @media (max-width: 700px) {
+
+            .container {
+
+                margin-top: 20px;
+
+                padding: 12px;
+            }
+
+
+            .actor {
+
+                padding: 22px 15px;
+            }
+
+
+            #actorPhoto {
+
+                width: 180px;
+
+                height: 230px;
+            }
+
+
+            #actorName {
+
+                font-size: 32px;
+            }
+
+
+            #overviewGrid {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            #topMovies {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+
+            .top-movie-card img {
+
+                height: 200px;
+            }
+
+
+            .verdict-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+
+            .verdict-movie-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+
+            .verdict-movie-card img {
+
+                height: 220px;
+            }
+
+
+            .movie-item {
+
+                gap: 12px;
+
+                padding: 12px;
+            }
+
+
+            .movie-item img {
+
+                width: 75px;
+
+                height: 105px;
+            }
+
+
+            .movie-title {
+
+                font-size: 18px;
+            }
+
+        }
+
+
+        @media (max-width: 420px) {
+
+            .verdict-movie-grid {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .verdict-movie-card img {
+
+                height: 300px;
+            }
+
+        }
+
+    
+
+        /* ==========================================
+           POLISHED BOXOFFICEX SHARED LAYOUT
+        ========================================== */
+
+        :root {
+            --bg: #080b14;
+            --panel: #111827;
+            --panel-2: #151d31;
+            --border: #29334d;
+            --muted: #8e99b3;
+            --blue: #4d8dff;
+            --blue-light: #79adff;
+            --gold: #ffcc33;
+            --red: #ff4655;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top, rgba(41,72,135,0.13), transparent 34%),
+                var(--bg);
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            padding: 0;
+            background: rgba(6,9,18,0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: initial;
+            font-weight: initial;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1280px;
+            min-height: 68px;
+            margin: auto;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: white;
+            text-decoration: none;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: .6px;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+            box-shadow: 0 8px 25px rgba(77,141,255,.24);
+        }
+
+        .logo span:last-child {
+            color: var(--gold);
+        }
+
+        header nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        header nav a {
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 12px;
+            border-radius: 10px;
+            color: #c7d1e6;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        header nav a:hover,
+        header nav a.active {
+            background: rgba(77,141,255,.10);
+            color: var(--blue-light);
+        }
+
+        header .nav-compare {
+            background: linear-gradient(135deg, var(--red), #d92e3d);
+            color: white !important;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 34px 18px 55px;
+        }
+
+        /* Global search */
+        .global-search {
+            position: relative;
+            width: 100%;
+            max-width: 760px;
+            margin: 0 auto 25px;
+        }
+
+        .search-form {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px;
+            background: rgba(15,22,39,.96);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,.28);
+        }
+
+        .search-form:focus-within {
+            border-color: rgba(77,141,255,.48);
+            box-shadow: 0 15px 35px rgba(0,0,0,.32), 0 0 0 3px rgba(77,141,255,.07);
+        }
+
+        .search-icon {
+            padding-left: 13px;
+            font-size: 18px;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 0;
+            height: 48px;
+            padding: 0 8px;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: white;
+            font-size: 15px;
+        }
+
+        .search-form input::placeholder {
+            color: #7f8ba5;
+        }
+
+        .search-form button {
+            min-width: 82px;
+            min-height: 46px;
+            padding: 0 18px;
+            border: 0;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--red), #d92f3d);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        #searchResults {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            display: none;
+            max-height: 370px;
+            overflow-y: auto;
+            background: rgba(15,23,42,.99);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            box-shadow: 0 18px 45px rgba(0,0,0,.42);
+            z-index: 2000;
+        }
+
+        body.search-active #searchResults {
+            display: block;
+        }
+
+        .search-result {
+            min-height: 62px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .search-result:last-child {
+            border-bottom: 0;
+        }
+
+        .search-result:hover {
+            background: rgba(77,141,255,.10);
+        }
+
+        .search-result-icon {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(77,141,255,.12);
+        }
+
+        .search-result-text {
+            min-width: 0;
+        }
+
+        .search-result strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .search-result small {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        body.search-active .actor,
+        body.search-active .section,
+        body.search-active .verdict-section,
+        body.search-active footer,
+        body.search-active .mobile-bottom-nav {
+            display: none;
+        }
+
+        /* Actor hero */
+        .actor {
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: linear-gradient(145deg, rgba(17,25,43,.98), rgba(10,16,29,.98));
+            box-shadow: 0 18px 45px rgba(0,0,0,.18);
+        }
+
+        #actorPhoto {
+            width: min(190px, 52vw);
+            height: auto;
+            aspect-ratio: 4 / 5;
+            object-fit: cover;
+            margin-bottom: 18px;
+        }
+
+        #actorName {
+            font-size: clamp(30px, 5vw, 42px);
+        }
+
+        #profession {
+            font-size: 17px;
+        }
+
+        .section,
+        .verdict-section {
+            border-color: rgba(255,255,255,.08);
+        }
+
+        #overviewGrid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .overview-card {
+            padding: 17px 12px;
+        }
+
+        .overview-value {
+            font-size: 20px;
+        }
+
+        .top-movie-card img,
+        .verdict-movie-card img {
+            height: auto;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+        }
+
+        .movie-item img {
+            width: 82px;
+            height: auto;
+            aspect-ratio: 2 / 3;
+            flex-shrink: 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 35px;
+            padding: 0;
+            border-top: 1px solid rgba(255,255,255,.08);
+            background: #080c16;
+            text-align: center;
+        }
+
+        .footer-inner {
+            width: 100%;
+            max-width: 1280px;
+            margin: auto;
+            padding: 32px 18px calc(35px + env(safe-area-inset-bottom));
+        }
+
+        .footer-brand {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .footer-brand-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+        }
+
+        .footer-brand strong span {
+            color: var(--gold);
+        }
+
+        .footer-tagline,
+        .footer-copy {
+            color: #73809a;
+            font-size: 12px;
+        }
+
+        .footer-tagline {
+            max-width: 620px;
+            margin: 0 auto 12px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            margin: 15px 0 10px;
+        }
+
+        .footer-links a {
+            color: var(--blue-light);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            #overviewGrid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #topMovies {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding-bottom: 68px;
+            }
+
+            .navbar {
+                min-height: 61px;
+                padding: 0 13px;
+            }
+
+            .logo {
+                font-size: 18px;
+            }
+
+            .logo-icon {
+                width: 31px;
+                height: 31px;
+            }
+
+            header nav {
+                display: none;
+            }
+
+            .container {
+                margin: 0 auto;
+                padding: 22px 13px 35px;
+            }
+
+            .global-search {
+                margin-bottom: 18px;
+            }
+
+            .search-form {
+                min-height: 54px;
+                padding: 4px;
+                border-radius: 14px;
+            }
+
+            .search-form input {
+                height: 45px;
+                font-size: 14px;
+            }
+
+            .search-form button {
+                min-width: 68px;
+                min-height: 43px;
+                padding: 0 13px;
+                font-size: 12px;
+            }
+
+            #searchResults {
+                max-height: calc(100vh - 145px);
+            }
+
+            .actor {
+                padding: 22px 15px;
+            }
+
+            #overviewGrid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            #topMovies {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 11px;
+            }
+
+            .verdict-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .verdict-movie-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 11px;
+            }
+
+            .movie-item {
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .mobile-bottom-nav {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 3000;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+                background: rgba(7,11,20,.96);
+                border-top: 1px solid rgba(255,255,255,.08);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+            }
+
+            .mobile-bottom-nav a {
+                min-width: 0;
+                min-height: 48px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                border-radius: 11px;
+                color: #8793a9;
+                text-decoration: none;
+                font-size: 8px;
+                font-weight: 700;
+            }
+
+            .mobile-bottom-nav a span:first-child {
+                font-size: 18px;
+            }
+
+            .mobile-bottom-nav a.active {
+                color: var(--blue-light);
+                background: rgba(77,141,255,.10);
+            }
+
+            body.search-active {
+                padding-bottom: 0;
+            }
+        }
+
+        @media (max-width: 420px) {
+            #overviewGrid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .overview-card {
+                padding: 14px 8px;
+            }
+
+            .overview-label {
+                font-size: 11px;
+            }
+
+            .overview-value {
+                font-size: 16px;
+                overflow-wrap: anywhere;
+            }
+
+            .verdict-movie-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+
+/* =========================================================
+   CAREER OVERVIEW VERDICT NAVIGATION
+   Verdict filters now live directly inside Career Overview.
+========================================================= */
+
+.career-overview-hint{
+    margin:-4px 0 15px;
+    color:#8e99b3;
+    font-size:11px;
+    line-height:1.55;
+}
+
+.overview-verdict-card{
+    position:relative;
+    cursor:pointer;
+    border-color:rgba(255,255,255,.09);
+}
+
+.overview-verdict-card::after{
+    content:"View movies →";
+    display:block;
+    margin-top:8px;
+    color:#79adff;
+    font-size:9px;
+    font-weight:800;
+    opacity:.78;
+}
+
+.overview-verdict-card:hover,
+.overview-verdict-card:focus-visible{
+    transform:translateY(-3px);
+    border-color:rgba(77,141,255,.48);
+    background:#192746;
+}
+
+.overview-verdict-card.active-verdict{
+    border-color:rgba(255,70,85,.72);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,70,85,.12),
+            rgba(21,29,49,.98)
+        );
+    box-shadow:
+        0 10px 26px
+        rgba(255,70,85,.10);
+}
+
+.overview-verdict-card.active-verdict::after{
+    content:"Selected";
+    color:#ff7a85;
+    opacity:1;
+}
+
+.career-verdict-results{
+    scroll-margin-top:85px;
+}
+
+.career-verdict-results .verdict-results-title{
+    margin-bottom:14px;
+}
+
+@media(max-width:700px){
+    .career-overview-hint{
+        font-size:10px;
+        margin-bottom:12px;
+    }
+
+    .overview-verdict-card::after{
+        font-size:8px;
+    }
+}
+
+
+/* BOXOFFICEX MASTER ACTOR PAGE POLISH */
+.navbar{min-height:66px;gap:12px}
+.logo{font-size:20px;letter-spacing:.45px}
+.logo-icon{width:33px;height:33px;border-radius:9px}
+header nav{gap:2px;flex-wrap:nowrap}
+header nav a{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+header .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+.nav-item-with-badge{position:relative}
+.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000}
+.nav-new-badge.show{display:inline-flex}
+
+.container{max-width:1120px;padding-top:28px}
+.actor{padding:24px;border-radius:18px}
+#actorPhoto{width:min(160px,46vw);height:auto;aspect-ratio:4/5;margin-bottom:14px;border-radius:13px}
+#actorName{font-size:clamp(30px,4.8vw,42px)}
+#profession{font-size:15px}
+#bio{max-width:700px;margin-top:13px;font-size:13px}
+
+.section,.verdict-section{margin-top:22px;padding:18px;border-radius:16px}
+.section h2,.verdict-section h2{font-size:clamp(18px,2.5vw,22px)}
+#overviewGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.overview-card{min-height:105px;padding:14px 10px;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.overview-label{font-size:11px;line-height:1.35}
+.overview-value{margin-top:6px;font-size:18px}
+
+.overview-highlight-card{cursor:pointer;border-color:rgba(255,204,51,.22);background:radial-gradient(circle at 100% 0%,rgba(255,204,51,.09),transparent 42%),#151d31}
+.overview-highlight-card::after{content:"Open movie →";display:block;margin-top:8px;color:#ffe477;font-size:8px;font-weight:900}
+.overview-highlight-card:hover,.overview-highlight-card:focus-visible{transform:translateY(-3px);border-color:rgba(255,204,51,.55)}
+
+#topMovies{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.top-movie-card{padding:8px;border-radius:12px}
+.top-movie-card img{height:auto;aspect-ratio:2/2.75;border-radius:9px}
+.top-movie-title{margin-top:7px;font-size:12px}
+.top-movie-collection{margin-top:4px;font-size:10px}
+
+.movie-item{gap:12px;margin-top:10px;padding:10px;border-radius:12px}
+.movie-item img{width:64px;height:auto;aspect-ratio:2/3;border-radius:8px}
+.movie-title{font-size:16px}
+.movie-info,.movie-verdict{font-size:11px}
+
+.verdict-movie-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.verdict-movie-card{padding:8px;border-radius:12px}
+.verdict-movie-card img{height:auto;aspect-ratio:2/2.75;border-radius:9px}
+.verdict-movie-card h3{margin-top:7px;font-size:12px}
+.verdict-movie-card p{font-size:10px}
+
+footer{margin-top:42px;background:linear-gradient(180deg,#080c16,#050810)}
+.footer-inner{max-width:1180px;padding-top:28px}
+.footer-links{gap:5px 16px}
+.footer-links a{color:#aebbd4}
+
+@media(max-width:1180px) and (min-width:701px){
+    .navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}
+    .navbar::-webkit-scrollbar{display:none}
+    .logo{font-size:17px}
+    .logo-icon{width:30px;height:30px}
+    header nav{min-width:max-content}
+    header nav a{padding-left:7px;padding-right:7px;font-size:10.5px}
+}
+@media(max-width:900px) and (min-width:701px){
+    #overviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    #topMovies{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .verdict-movie-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:700px){
+    body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+    .navbar{min-height:58px}
+    .container{padding:18px 11px 32px}
+    .actor{padding:18px 12px}
+    #actorPhoto{width:132px}
+    #actorName{font-size:28px}
+    #profession{font-size:14px}
+    #bio{font-size:12px;line-height:1.6}
+    .section{margin-top:16px;padding:13px}
+    #overviewGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    .overview-card{min-height:94px;padding:10px 7px}
+    .overview-label{font-size:9.5px}
+    .overview-value{font-size:15px}
+    #topMovies{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .verdict-movie-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .mobile-bottom-nav{grid-template-columns:repeat(5,1fr);min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px}
+    .mobile-bottom-nav a{min-height:50px;padding:4px 2px;font-size:7.5px}
+    .mobile-bottom-nav a span:first-child{font-size:17px}
+    .mobile-bottom-nav .nav-new-badge{top:2px;right:7px}
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL PUBLIC MOBILE STANDARD — ACTOR PROFILE
+========================================================= */
+.mobile-menu-button{display:none}
+
+.footer-brand,
+.footer-brand:hover,
+.footer-brand:visited{
+    text-decoration:none !important;
+    border-bottom:0 !important;
+    box-shadow:none !important;
+    color:white !important;
+}
+
+@media(max-width:700px){
+    body{
+        padding-top:61px !important;
+        padding-bottom:0 !important;
+        overflow-x:hidden !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        width:100% !important;
+        z-index:99999 !important;
+        padding:0 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto !important;
+        align-items:center !important;
+        gap:10px !important;
+        background:#070a12 !important;
+        overflow:visible !important;
+        position:relative !important;
+        z-index:100000 !important;
+    }
+
+    .logo{
+        font-size:18px !important;
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    .logo-icon{
+        width:31px !important;
+        height:31px !important;
+    }
+
+    .mobile-menu-button{
+        width:42px;
+        height:42px;
+        display:flex !important;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+        position:relative;
+        z-index:100001;
+    }
+
+    .mobile-menu-button span{
+        width:20px;
+        height:2px;
+        display:block;
+        border-radius:999px;
+        background:#fff;
+        transition:.2s;
+    }
+
+    .mobile-menu-button.open span:nth-child(1){
+        transform:translateY(7px) rotate(45deg);
+    }
+    .mobile-menu-button.open span:nth-child(2){opacity:0}
+    .mobile-menu-button.open span:nth-child(3){
+        transform:translateY(-7px) rotate(-45deg);
+    }
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;
+        left:10px !important;
+        right:10px !important;
+        width:auto !important;
+        display:none !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:5px !important;
+        padding:10px !important;
+        border:1px solid rgba(255,255,255,.09) !important;
+        border-radius:14px !important;
+        background:#0a0f1b !important;
+        box-shadow:0 18px 45px rgba(0,0,0,.42) !important;
+        z-index:100002 !important;
+    }
+
+    header nav.mobile-menu-open{display:flex !important}
+
+    header nav a{
+        width:100% !important;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start !important;
+        font-size:12px !important;
+    }
+
+    .mobile-bottom-nav{display:none !important}
+
+    .container{
+        margin:0 auto !important;
+        padding:18px 11px 34px !important;
+    }
+
+    .global-search{margin-bottom:18px !important}
+
+    .actor{
+        padding:18px 12px !important;
+        border-radius:16px !important;
+    }
+
+    #actorPhoto{
+        width:132px !important;
+        margin-bottom:13px !important;
+    }
+
+    #actorName{
+        font-size:28px !important;
+        line-height:1.08 !important;
+    }
+
+    #profession{font-size:14px !important}
+
+    #bio{
+        font-size:12px !important;
+        line-height:1.6 !important;
+    }
+
+    .section,
+    .verdict-section{
+        margin-top:16px !important;
+        padding:13px !important;
+        border-radius:14px !important;
+    }
+
+    #overviewGrid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:7px !important;
+    }
+
+    .overview-card{
+        min-height:94px !important;
+        padding:10px 7px !important;
+    }
+
+    .overview-label{font-size:9.5px !important}
+    .overview-value{font-size:15px !important}
+
+    #topMovies{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:8px !important;
+    }
+
+    .verdict-movie-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:8px !important;
+    }
+
+    .movie-item{
+        gap:10px !important;
+        padding:10px !important;
+    }
+
+    .movie-item img{
+        width:62px !important;
+    }
+
+    .movie-title{font-size:15px !important}
+
+    /* Exact compact index-style footer behavior */
+    footer{
+        margin-top:35px !important;
+        padding:0 !important;
+        background:#080c16 !important;
+    }
+
+    .footer-inner{
+        max-width:100% !important;
+        padding:32px 12px 28px !important;
+        text-align:center !important;
+    }
+
+    .footer-brand{
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:8px !important;
+        margin-bottom:13px !important;
+        font-size:18px !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+    }
+
+    .footer-brand-icon{
+        width:34px !important;
+        height:34px !important;
+    }
+
+    .footer-tagline{
+        max-width:290px !important;
+        margin:0 auto 20px !important;
+        font-size:11px !important;
+        line-height:1.65 !important;
+    }
+
+    .footer-links{
+        display:flex !important;
+        flex-wrap:nowrap !important;
+        justify-content:center !important;
+        align-items:center !important;
+        gap:0 !important;
+        width:100% !important;
+        margin:0 auto 22px !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-links a{
+        flex:0 0 auto !important;
+        padding:4px 8px !important;
+        color:#aebbd4 !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+        font-size:8px !important;
+        line-height:1.2 !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-copy{
+        font-size:10px !important;
+        line-height:1.4 !important;
+    }
+}
+
+@media(max-width:340px){
+    .footer-links a{
+        padding-left:6px !important;
+        padding-right:6px !important;
+        font-size:7.5px !important;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+            aria-label="BoxOfficeX Home"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
+            BOXOFFICE<span>X</span>
+
+        </a>
+        <button type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Open navigation menu"
+                aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+
+
+        <nav aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+        <a href="movie-rankings.html">Rankings</a>
+        <a href="actors.html" class="active">Actors</a>
+        <a href="articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+        <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+        <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+    </nav>
+
+    </div>
+
+</header>
+
+
+
+<div class="container">
+
+    <!-- ==========================================
+         GLOBAL BOXOFFICEX SEARCH
+    ========================================== -->
+
+    <div class="global-search">
+
+        <form
+            class="search-form"
+            id="searchForm"
+            role="search"
+        >
+            <span class="search-icon" aria-hidden="true">🔍</span>
+
+            <input
+                type="search"
+                id="globalSearch"
+                placeholder="Search movies or actors..."
+                autocomplete="off"
+                enterkeyhint="search"
+                aria-label="Search movies or actors"
+            >
+
+            <button type="submit">
+                Search
+            </button>
+        </form>
+
+        <div
+            id="searchResults"
+            role="listbox"
+            aria-label="Search results"
+        ></div>
+
+    </div>
+
+
+
+    <!-- ==========================================
+         ACTOR PROFILE
+    ========================================== -->
+
+    <div class="actor">
+
+        <img
+            id="actorPhoto"
+            src="actor-images/coming-soon.png"
+            alt="Actor"
+            onerror="this.onerror=null;this.src='actor-images/coming-soon.png';"
+        >
+
+
+        <h1 id="actorName">
+            Loading...
+        </h1>
+
+
+        <div id="profession">
+            Loading...
+        </div>
+
+
+        <p id="bio">
+            Loading...
+        </p>
+
+    </div>
+
+
+    <!-- ==========================================
+         CAREER OVERVIEW
+    ========================================== -->
+
+    <section class="section">
+
+        <h2>
+            📊 Career Overview
+        </h2>
+
+        <p class="career-overview-hint">
+            Tap Blockbusters, Hits, Average or Flops to instantly view those movies.
+        </p>
+
+
+        <div id="overviewGrid">
+
+            <div class="loading-message">
+                Loading overview...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         TOP 5 MOVIES
+    ========================================== -->
+
+    <section class="section">
+
+        <h2>
+            🏆 Top 5 Highest-Grossing Movies
+        </h2>
+
+
+        <div id="topMovies">
+
+            <div class="loading-message">
+                Loading top movies...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         CAREER VERDICT RESULTS
+    ========================================== -->
+
+    <section
+        class="section career-verdict-results"
+        id="careerVerdictResultsSection"
+        style="display:none;"
+    >
+        <div id="verdictMovies"></div>
+    </section>
+
+
+    <!-- ==========================================
+         ALL MOVIES
+    ========================================== -->
+
+    <section class="section">
+
+        <h2>
+            🎬 Movies
+        </h2>
+
+
+        <div id="movieList">
+
+            <div class="loading-message">
+                Loading movies...
+            </div>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+
+<footer>
+    <div class="footer-inner">
+        <a href="index.html" class="footer-brand" aria-label="BoxOfficeX Home">
+            <span class="footer-brand-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </a>
+
+        <p class="footer-tagline">
+            Movie box-office collections, latest releases, actors,
+            verdicts, rankings and hero comparisons.
+        </p>
+
+        <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="disclaimer.html">Disclaimer</a>
+        </div>
+
+        <p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
+    </div>
+</footer>
+
+<div class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <a href="index.html"><span>🏠</span><span>Home</span></a>
+    <a href="new-movies.html" class="nav-item-with-badge"><span>🆕</span><span>New</span><span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span></a>
+    <a href="articles.html" class="nav-item-with-badge"><span>📰</span><span>Articles</span><span id="mobileArticlesBadge" class="nav-new-badge">NEW</span></a>
+    <a href="compare-select.html"><span>⚔️</span><span>Actors</span></a>
+    <a href="movie-compare-select.html"><span>🎬</span><span>Movies</span></a>
+</div>
+
+<script>
+
+
+
+// ==========================================
+// GLOBAL MOVIE + ACTOR SEARCH
+// ==========================================
+
+let cachedSearchMovies = [];
+let cachedSearchActors = [];
+let globalSearchTimer = null;
+
+const globalSearchInput =
+    document.getElementById("globalSearch");
+
+const globalSearchResults =
+    document.getElementById("searchResults");
+
+
+function escapeSearchHTML(value) {
+
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
+    return div.innerHTML;
+}
+
+
+async function loadGlobalSearchData() {
+
+    try {
+
+        const [moviesResponse, actorsResponse] =
+            await Promise.all([
+                fetch("/movies"),
+                fetch("/actors")
+            ]);
+
+        if (!moviesResponse.ok || !actorsResponse.ok) {
+            throw new Error("Global search data could not be loaded");
+        }
+
+        const [moviesData, actorsData] =
+            await Promise.all([
+                moviesResponse.json(),
+                actorsResponse.json()
+            ]);
+
+        cachedSearchMovies =
+            Array.isArray(moviesData.movies)
+                ? moviesData.movies
+                : [];
+
+        cachedSearchActors =
+            Array.isArray(actorsData.actors)
+                ? actorsData.actors
+                : [];
+
+    } catch (error) {
+
+        console.error(
+            "Global search loading error:",
+            error
+        );
+    }
+}
+
+
+function exitGlobalSearchMode() {
+
+    document.body.classList.remove("search-active");
+    globalSearchResults.innerHTML = "";
+}
+
+
+function performGlobalSearch(query) {
+
+    const actorMatches =
+        cachedSearchActors
+            .filter(actor =>
+                String(actor.name || "")
+                    .toLowerCase()
+                    .includes(query)
+            )
+            .slice(0, 4);
+
+    const movieMatches =
+        cachedSearchMovies
+            .filter(movie =>
+                String(movie.title || "")
+                    .toLowerCase()
+                    .includes(query)
+            )
+            .slice(0, 4);
+
+    globalSearchResults.innerHTML = "";
+
+    if (
+        actorMatches.length === 0 &&
+        movieMatches.length === 0
+    ) {
+        globalSearchResults.innerHTML = `
+            <div class="search-result">
+                <div class="search-result-icon">🔎</div>
+                <div class="search-result-text">
+                    <strong>No results found</strong>
+                    <small>Try another movie or actor name</small>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    actorMatches.forEach(actor => {
+
+        const result = document.createElement("div");
+        result.className = "search-result";
+
+        result.innerHTML = `
+            <div class="search-result-icon">🎭</div>
+            <div class="search-result-text">
+                <strong>${escapeSearchHTML(actor.name)}</strong>
+                <small>
+                    Actor • ${escapeSearchHTML(actor.profession || "Actor")}
+                </small>
+            </div>
+        `;
+
+        result.onclick = function () {
+            window.location.href =
+                "actor.html?id=" +
+                encodeURIComponent(actor.id);
+        };
+
+        globalSearchResults.appendChild(result);
+    });
+
+    movieMatches.forEach(movie => {
+
+        const result = document.createElement("div");
+        result.className = "search-result";
+
+        result.innerHTML = `
+            <div class="search-result-icon">🎬</div>
+            <div class="search-result-text">
+                <strong>${escapeSearchHTML(movie.title)}</strong>
+                <small>
+                    Movie • ${escapeSearchHTML(movie.language || "Indian Cinema")}
+                </small>
+            </div>
+        `;
+
+        result.onclick = function () {
+            window.location.href =
+                "movie.html?id=" +
+                encodeURIComponent(movie.id);
+        };
+
+        globalSearchResults.appendChild(result);
+    });
+}
+
+
+globalSearchInput.addEventListener("input", function () {
+
+    const query =
+        globalSearchInput.value
+            .trim()
+            .toLowerCase();
+
+    clearTimeout(globalSearchTimer);
+
+    if (query.length < 2) {
+        exitGlobalSearchMode();
+        return;
+    }
+
+    document.body.classList.add("search-active");
+
+    globalSearchTimer =
+        setTimeout(
+            function () {
+                performGlobalSearch(query);
+            },
+            180
+        );
+});
+
+
+document
+    .getElementById("searchForm")
+    .addEventListener("submit", function (event) {
+
+        event.preventDefault();
+
+        const query =
+            globalSearchInput.value
+                .trim()
+                .toLowerCase();
+
+        if (!query) {
+            globalSearchInput.focus();
+            return;
+        }
+
+        document.body.classList.add("search-active");
+        performGlobalSearch(query);
+    });
+
+
+document.addEventListener("keydown", function (event) {
+
+    if (event.key === "Escape") {
+        globalSearchInput.value = "";
+        exitGlobalSearchMode();
+        globalSearchInput.blur();
+    }
+});
+
+
+loadGlobalSearchData();
+
+
+// ==========================================
+// DYNAMIC ACTOR SEO
+// ==========================================
+
+function updateActorSEO(actor) {
+
+    if (!actor || !actor.name) {
+        return;
+    }
+
+    const actorName = actor.name;
+    const profession = actor.profession || "Actor";
+
+    const title =
+        actorName +
+        " Movies, Box Office Collection & Career | BoxOfficeX";
+
+    const description =
+        "Explore " +
+        actorName +
+        " movies, box office collections, highest-grossing films, " +
+        "career statistics, blockbusters, hits and verdicts on BoxOfficeX.";
+
+    const canonical =
+        window.location.origin +
+        window.location.pathname +
+        "?id=" +
+        encodeURIComponent(actorId);
+
+    const photoUrl =
+        actor.photo
+            ? new URL(
+                "actor-images/" + encodeURIComponent(actor.photo),
+                window.location.href
+            ).href
+            : "";
+
+    document.title = title;
+
+    const descriptionMeta =
+        document.querySelector('meta[name="description"]');
+
+    if (descriptionMeta) {
+        descriptionMeta.setAttribute("content", description);
+    }
+
+    const canonicalTag =
+        document.getElementById("canonicalUrl");
+
+    if (canonicalTag) {
+        canonicalTag.href = canonical;
+    }
+
+    const values = {
+        ogTitle: title,
+        ogDescription: description,
+        ogUrl: canonical,
+        ogImage: photoUrl,
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: photoUrl
+    };
+
+    Object.entries(values).forEach(([id, value]) => {
+
+        const element =
+            document.getElementById(id);
+
+        if (element && value) {
+            element.setAttribute("content", value);
+        }
+    });
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": actorName,
+        "url": canonical,
+        "image": photoUrl || undefined,
+        "jobTitle": profession,
+        "description": actor.bio || description
+    };
+
+    Object.keys(structuredData).forEach(key => {
+        if (
+            structuredData[key] === undefined ||
+            structuredData[key] === null ||
+            structuredData[key] === ""
+        ) {
+            delete structuredData[key];
+        }
+    });
+
+    const jsonLd =
+        document.getElementById("actorStructuredData");
+
+    if (jsonLd) {
+        jsonLd.textContent =
+            JSON.stringify(structuredData);
+    }
+}
+
+
+// ==========================================
+// GET ACTOR ID
+// ==========================================
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const actorId =
+    params.get("id");
+
+let highestGrossingMovieId = null;
+
+
+console.log(
+    "Actor ID:",
+    actorId
+);
+
+
+// ==========================================
+// CHECK ACTOR ID
+// ==========================================
+
+if (!actorId) {
+
+    document.getElementById(
+        "actorName"
+    ).innerText =
+        "Select an Actor";
+
+    document.getElementById(
+        "profession"
+    ).innerText =
+        "Browse actor profiles";
+
+    document.getElementById(
+        "bio"
+    ).innerHTML =
+        'Open the <a href="actors.html" style="color:#79adff;font-weight:700;">Actors page</a> and choose an actor to view movies, box-office collections and career statistics.';
+
+    const actorPhoto =
+        document.getElementById(
+            "actorPhoto"
+        );
+
+    if (actorPhoto) {
+        actorPhoto.style.display =
+            "none";
+    }
+
+    document.getElementById(
+        "overviewGrid"
+    ).innerHTML =
+        '<div class="loading-message">Choose an actor to view career overview.</div>';
+
+    document.getElementById(
+        "topMovies"
+    ).innerHTML =
+        '<div class="loading-message">Choose an actor to view top movies.</div>';
+
+    document.getElementById(
+        "movieList"
+    ).innerHTML =
+        '<div class="loading-message">Choose an actor to view movies.</div>';
+
+}
+else {
+
+
+    // ==========================================
+    // ACTOR DETAILS
+    // ==========================================
+
+    fetch(
+        "/actors"
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Actors API error: " +
+                response.status
+            );
+
+        }
+
+        return response.json();
+
+    })
+
+    .then(data => {
+
+        const actors =
+            data.actors || [];
+
+
+        const actor =
+            actors.find(
+                a =>
+                    String(a.id) ===
+                    String(actorId)
+            );
+
+
+        if (!actor) {
+
+            document.getElementById(
+                "actorName"
+            ).innerText =
+                "Actor not found";
+
+            return;
+
+        }
+
+
+        updateActorSEO(actor);
+
+
+        document.getElementById(
+            "actorName"
+        ).innerText =
+            actor.name ||
+            "Unknown Actor";
+
+
+        document.getElementById(
+            "profession"
+        ).innerText =
+            actor.profession ||
+            "Actor";
+
+
+        document.getElementById(
+            "bio"
+        ).innerText =
+            actor.bio ||
+            "No biography available.";
+
+
+        if (actor.photo) {
+
+            document.getElementById(
+                "actorPhoto"
+            ).src =
+                "actor-images/" +
+                actor.photo;
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Actor details error:",
+            error
+        );
+
+
+        document.getElementById(
+            "actorName"
+        ).innerText =
+            "Details not found";
+
+    });
+
+
+    // ==========================================
+    // ACTOR MOVIES
+    // ==========================================
+
+    fetch(
+        "/actors/" +
+        actorId +
+        "/movies"
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Movies API error: " +
+                response.status
+            );
+
+        }
+
+        return response.json();
+
+    })
+
+    .then(data => {
+
+        const movieList =
+            document.getElementById(
+                "movieList"
+            );
+
+
+        movieList.innerHTML = "";
+
+
+        const movies =
+            data.movies || [];
+
+
+        if (movies.length === 0) {
+
+            movieList.innerHTML =
+                "<p>No movies found.</p>";
+
+            return;
+
+        }
+
+
+        movies.forEach(movie => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "movie-item";
+
+
+            item.onclick =
+                function () {
+
+                    window.location.href =
+                        "movie.html?id=" +
+                        movie.id;
+
+                };
+
+
+            item.innerHTML = `
+
+                <img
+                    src="${
+                        movie.poster
+                            ? "posters/" + movie.poster
+                            : "posters/coming-soon.png"
+                    }"
+                    alt="${movie.title}"
+                    onerror="this.onerror=null;this.src='posters/coming-soon.png';"
+                >
+
+                <div class="movie-details">
+
+                    <div class="movie-title">
+                        ${movie.title}
+                    </div>
+
+                    <div class="movie-info">
+                        📅 Release:
+                        ${movie.release_date || "N/A"}
+                    </div>
+
+                    <div class="movie-info">
+                        🌍 Worldwide:
+                        ₹${movie.worldwide_collection_crore || 0} Cr
+                    </div>
+
+                    <div class="movie-verdict">
+                        🎬 Verdict:
+                        ${movie.verdict || "N/A"}
+                    </div>
+
+                </div>
+
+            `;
+
+
+            movieList.appendChild(
+                item
+            );
+
+        });
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Actor movies error:",
+            error
+        );
+
+
+        document.getElementById(
+            "movieList"
+        ).innerHTML =
+            "Unable to load movies.";
+
+    });
+
+
+    // ==========================================
+    // ACTOR OVERVIEW
+    // ==========================================
+
+    fetch(
+        "/actors/" +
+        actorId +
+        "/overview"
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Overview API error: " +
+                response.status
+            );
+
+        }
+
+        return response.json();
+
+    })
+
+    .then(data => {
+
+        const grid =
+            document.getElementById(
+                "overviewGrid"
+            );
+
+
+        grid.innerHTML = `
+
+            <div class="overview-card">
+
+                <div class="overview-label">
+                    🎬 Total Movies
+                </div>
+
+                <div class="overview-value">
+                    ${data.movie_count || 0}
+                </div>
+
+            </div>
+
+
+            <div class="overview-card">
+
+                <div class="overview-label">
+                    🌍 Total Worldwide
+                </div>
+
+                <div class="overview-value">
+                    ₹${data.total_worldwide || 0} Cr
+                </div>
+
+            </div>
+
+
+            <div class="overview-card overview-highlight-card" role="button" tabindex="0"
+                onclick="openHighestGrossingMovie()" onkeydown="handleHighestMovieKey(event)">
+
+                <div class="overview-label">
+                    🏆 Highest Grossing Movie
+                </div>
+
+                <div class="overview-value">
+                    ${data.highest_movie || "N/A"}
+                </div>
+
+            </div>
+
+
+            <div class="overview-card overview-highlight-card" role="button" tabindex="0"
+                onclick="openHighestGrossingMovie()" onkeydown="handleHighestMovieKey(event)">
+
+                <div class="overview-label">
+                    💰 Highest Worldwide
+                </div>
+
+                <div class="overview-value">
+                    ₹${data.highest_worldwide || 0} Cr
+                </div>
+
+            </div>
+
+
+            <div
+                class="overview-card overview-verdict-card"
+                role="button"
+                tabindex="0"
+                data-verdict="Blockbuster"
+                onclick="openCareerVerdict('Blockbuster', this)"
+                onkeydown="handleCareerVerdictKey(event, 'Blockbuster', this)"
+            >
+
+                <div class="overview-label">
+                    🔥 Blockbusters
+                </div>
+
+                <div class="overview-value">
+                    ${data.blockbusters || 0}
+                </div>
+
+            </div>
+
+
+            <div
+                class="overview-card overview-verdict-card"
+                role="button"
+                tabindex="0"
+                data-verdict="Hit"
+                onclick="openCareerVerdict('Hit', this)"
+                onkeydown="handleCareerVerdictKey(event, 'Hit', this)"
+            >
+
+                <div class="overview-label">
+                    ⭐ Hits
+                </div>
+
+                <div class="overview-value">
+                    ${data.hits || 0}
+                </div>
+
+            </div>
+
+
+            <div
+                class="overview-card overview-verdict-card"
+                role="button"
+                tabindex="0"
+                data-verdict="Average"
+                onclick="openCareerVerdict('Average', this)"
+                onkeydown="handleCareerVerdictKey(event, 'Average', this)"
+            >
+
+                <div class="overview-label">
+                    📊 Average Movies
+                </div>
+
+                <div class="overview-value">
+                    ${data.average_movies || 0}
+                </div>
+
+            </div>
+
+
+            <div
+                class="overview-card overview-verdict-card"
+                role="button"
+                tabindex="0"
+                data-verdict="Flop"
+                onclick="openCareerVerdict('Flop', this)"
+                onkeydown="handleCareerVerdictKey(event, 'Flop', this)"
+            >
+
+                <div class="overview-label">
+                    ❌ Flops
+                </div>
+
+                <div class="overview-value">
+                    ${data.flops || 0}
+                </div>
+
+            </div>
+
+        `;
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Actor overview error:",
+            error
+        );
+
+
+        document.getElementById(
+            "overviewGrid"
+        ).innerHTML =
+            "Unable to load overview.";
+
+    });
+
+
+    // ==========================================
+    // TOP 5 MOVIES
+    // ==========================================
+
+    fetch(
+        "/actors/" +
+        actorId +
+        "/top-movies"
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Top movies API error: " +
+                response.status
+            );
+
+        }
+
+        return response.json();
+
+    })
+
+    .then(data => {
+
+        const container =
+            document.getElementById(
+                "topMovies"
+            );
+
+
+        container.innerHTML = "";
+
+
+        const movies =
+            data.movies || [];
+        if (movies.length > 0 && movies[0].id != null) {
+            highestGrossingMovieId = movies[0].id;
+        }
+
+
+        if (movies.length === 0) {
+
+            container.innerHTML =
+                "<p>No top movies found.</p>";
+
+            return;
+
+        }
+
+
+        movies.forEach(
+            (movie, index) => {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "top-movie-card";
+
+
+                card.innerHTML = `
+
+                    <img
+                        src="${
+                        movie.poster
+                            ? "posters/" + movie.poster
+                            : "posters/coming-soon.png"
+                    }"
+                        alt="${movie.title}"
+                        loading="lazy"
+                    >
+
+                    <div class="top-movie-title">
+
+                        #${index + 1}
+                        ${movie.title}
+
+                    </div>
+
+                    <div class="top-movie-collection">
+
+                        🌍 ₹${
+                            movie.worldwide_collection || 0
+                        } Cr
+
+                    </div>
+
+                `;
+
+
+                card.onclick =
+                    function () {
+
+                        window.location.href =
+                            "movie.html?id=" +
+                            movie.id;
+
+                    };
+
+
+                container.appendChild(
+                    card
+                );
+
+            }
+        );
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Top movies error:",
+            error
+        );
+
+
+        document.getElementById(
+            "topMovies"
+        ).innerHTML =
+            "Unable to load top movies.";
+
+    });
+
+}
+
+
+
+function handleHighestMovieKey(event) {
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openHighestGrossingMovie();
+    }
+}
+
+async function openHighestGrossingMovie() {
+    if (highestGrossingMovieId) {
+        window.location.href = "movie.html?id=" + encodeURIComponent(highestGrossingMovieId);
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/actors/" + actorId + "/top-movies"
+        );
+        if (!response.ok) throw new Error("Unable to load highest-grossing movie");
+
+        const data = await response.json();
+        const movies = data.movies || [];
+
+        if (movies.length > 0 && movies[0].id != null) {
+            highestGrossingMovieId = movies[0].id;
+            window.location.href = "movie.html?id=" + encodeURIComponent(highestGrossingMovieId);
+            return;
+        }
+
+        alert("Highest-grossing movie is not available yet.");
+    } catch (error) {
+        console.error("Highest-grossing movie error:", error);
+        alert("Unable to open the highest-grossing movie.");
+    }
+}
+
+// ==========================================
+// OPEN VERDICT
+// ==========================================
+
+
+let activeCareerVerdictCard = null;
+
+function handleCareerVerdictKey(event, verdict, card) {
+    if (
+        event.key === "Enter" ||
+        event.key === " "
+    ) {
+        event.preventDefault();
+        openCareerVerdict(verdict, card);
+    }
+}
+
+function openCareerVerdict(verdict, card) {
+
+    document
+        .querySelectorAll(".overview-verdict-card")
+        .forEach(item => {
+            item.classList.remove("active-verdict");
+        });
+
+    if (card) {
+        card.classList.add("active-verdict");
+        activeCareerVerdictCard = card;
+    }
+
+    const section =
+        document.getElementById(
+            "careerVerdictResultsSection"
+        );
+
+    if (section) {
+        section.style.display = "block";
+    }
+
+    openVerdict(verdict);
+
+    if (section) {
+        setTimeout(() => {
+            section.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 80);
+    }
+}
+
+
+function openVerdict(verdict) {
+
+    const results =
+        document.getElementById(
+            "verdictMovies"
+        );
+
+
+    results.innerHTML = `
+
+        <div class="verdict-results-title">
+
+            <h2>
+                Loading ${verdict} Movies...
+            </h2>
+
+        </div>
+
+    `;
+
+
+    fetch(
+        "/actors/" +
+        actorId +
+        "/movies/verdict/" +
+        encodeURIComponent(verdict)
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Verdict API error: " +
+                response.status
+            );
+
+        }
+
+        return response.json();
+
+    })
+
+    .then(data => {
+
+        const movies =
+            data.movies || [];
+
+
+        if (movies.length === 0) {
+
+            results.innerHTML = `
+
+                <div class="verdict-results-title">
+
+                    <h2>
+                        ${verdict} Movies
+                    </h2>
+
+                    <button
+                        class="close-verdict"
+                        onclick="closeVerdict()"
+                    >
+                        Close
+                    </button>
+
+                </div>
+
+                <p class="loading-message">
+                    No ${verdict.toLowerCase()} movies found.
+                </p>
+
+            `;
+
+            return;
+
+        }
+
+
+        results.innerHTML = `
+
+            <div class="verdict-results-title">
+
+                <h2>
+                    ${getVerdictIcon(verdict)}
+                    ${verdict} Movies
+                </h2>
+
+                <button
+                    class="close-verdict"
+                    onclick="closeVerdict()"
+                >
+                    Close
+                </button>
+
+            </div>
+
+
+            <div
+                class="verdict-movie-grid"
+                id="verdictMovieGrid"
+            ></div>
+
+        `;
+
+
+        const grid =
+            document.getElementById(
+                "verdictMovieGrid"
+            );
+
+
+        movies.forEach(movie => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "verdict-movie-card";
+
+
+            card.innerHTML = `
+
+                <img
+                    src="${
+                        movie.poster
+                            ? "posters/" + movie.poster
+                            : "posters/coming-soon.png"
+                    }"
+                    alt="${movie.title}"
+                    loading="lazy"
+                >
+
+
+                <h3>
+                    ${movie.title}
+                </h3>
+
+
+                <p>
+                    📅 ${movie.release_date || "N/A"}
+                </p>
+
+
+                <p>
+                    🌍 ₹${
+                        movie.worldwide_collection_crore ||
+                        0
+                    } Cr
+                </p>
+
+
+                <p class="verdict-text">
+                    🎬 ${movie.verdict || verdict}
+                </p>
+
+            `;
+
+
+            card.onclick =
+                function () {
+
+                    window.location.href =
+                        "movie.html?id=" +
+                        movie.id;
+
+                };
+
+
+            grid.appendChild(
+                card
+            );
+
+        });
+
+
+        results.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Verdict movies error:",
+            error
+        );
+
+
+        results.innerHTML = `
+
+            <div class="verdict-results-title">
+
+                <h2>
+                    ${verdict} Movies
+                </h2>
+
+                <button
+                    class="close-verdict"
+                    onclick="closeVerdict()"
+                >
+                    Close
+                </button>
+
+            </div>
+
+
+            <p class="loading-message">
+                Unable to load ${verdict.toLowerCase()} movies.
+            </p>
+
+        `;
+
+    });
+
+}
+
+
+// ==========================================
+// CLOSE VERDICT RESULTS
+// ==========================================
+
+function closeVerdict() {
+
+    const results =
+        document.getElementById(
+            "verdictMovies"
+        );
+
+    if (results) {
+        results.innerHTML = "";
+    }
+
+    const section =
+        document.getElementById(
+            "careerVerdictResultsSection"
+        );
+
+    if (section) {
+        section.style.display = "none";
+    }
+
+    document
+        .querySelectorAll(".overview-verdict-card")
+        .forEach(item => {
+            item.classList.remove("active-verdict");
+        });
+
+    activeCareerVerdictCard = null;
+}
+
+
+// ==========================================
+// VERDICT ICON
+// ==========================================
+
+function getVerdictIcon(verdict) {
+
+    if (verdict === "Blockbuster") {
+        return "🔥";
+    }
+
+    if (verdict === "Hit") {
+        return "⭐";
+    }
+
+    if (verdict === "Average") {
+        return "📊";
+    }
+
+    if (verdict === "Flop") {
+        return "❌";
+    }
+
+    return "🎬";
+
+}
+
+
+
+function setSiteNewBadge(ids,visible){
+    ids.forEach(id=>{
+        const badge=document.getElementById(id);
+        if(badge) badge.classList.toggle("show",!!visible);
+    });
+}
+function parseSiteDate(value){
+    if(!value)return null;
+    const p=String(value).slice(0,10).split("-").map(Number);
+    if(p.length!==3||!p[0]||!p[1]||!p[2])return null;
+    return new Date(p[0],p[1]-1,p[2]);
+}
+async function updateSiteNewBadges(){
+    try{
+        const [mr,ar]=await Promise.all([
+            fetch("/movies/new-system",{cache:"no-store"}),
+            fetch("/articles/latest?limit=10",{cache:"no-store"})
+        ]);
+        if(mr.ok){
+            const d=await mr.json();
+            const all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];
+            const n=new Date();
+            const today=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+            const fresh=all.some(movie=>{
+                const dt=parseSiteDate(movie.release_date);
+                if(!dt)return false;
+                const days=Math.floor((dt-today)/86400000);
+                return days>=-7&&days<=7;
+            });
+            setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh);
+        }
+        if(ar.ok){
+            const d=await ar.json();
+            const now=Date.now(),seven=7*86400000;
+            const fresh=(d.articles||[]).some(article=>{
+                const ts=new Date(article.published_at).getTime();
+                return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven;
+            });
+            setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh);
+        }
+    }catch(error){
+        console.warn("Site NEW badge check failed:",error);
+    }
+}
+updateSiteNewBadges();
+
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const button=document.getElementById("mobileMenuButton");
+    const nav=document.querySelector("header nav");
+    if(!button||!nav)return;
+
+    function closeMobileMenu(){
+        nav.classList.remove("mobile-menu-open");
+        button.classList.remove("open");
+        button.setAttribute("aria-expanded","false");
+    }
+
+    button.addEventListener("click",function(event){
+        event.stopPropagation();
+        const opening=!nav.classList.contains("mobile-menu-open");
+        nav.classList.toggle("mobile-menu-open",opening);
+        button.classList.toggle("open",opening);
+        button.setAttribute("aria-expanded",opening?"true":"false");
+    });
+
+    nav.addEventListener("click",function(event){
+        if(event.target.closest("a")) closeMobileMenu();
+    });
+
+    document.addEventListener("click",function(event){
+        if(!nav.contains(event.target)&&!button.contains(event.target)){
+            closeMobileMenu();
+        }
+    });
+
+    window.addEventListener("resize",function(){
+        if(window.innerWidth>700) closeMobileMenu();
+    });
+});
+</script>
+
+</body>
+
+</html>

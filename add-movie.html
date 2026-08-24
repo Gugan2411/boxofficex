@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#060912"
+    >
+
+    <title>Add Movie - BoxOfficeX</title>
+
+
+    <style>
+
+        :root {
+
+            --bg: #060912;
+            --surface: #101728;
+            --surface-2: #141d31;
+            --surface-3: #19243c;
+
+            --border: rgba(255,255,255,0.08);
+
+            --blue: #4d8dff;
+            --blue-light: #79adff;
+
+            --purple: #795cff;
+
+            --gold: #ffcc33;
+
+            --green: #69d27d;
+
+            --red: #ff4655;
+
+            --text: #ffffff;
+
+            --muted: #99a5bd;
+
+        }
+
+
+        * {
+
+            box-sizing: border-box;
+
+            margin: 0;
+
+            padding: 0;
+
+        }
+
+
+        body {
+
+            min-height: 100vh;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            color: var(--text);
+
+            background:
+
+                radial-gradient(
+                    circle at 50% -10%,
+                    rgba(77,141,255,0.18),
+                    transparent 32%
+                ),
+
+                linear-gradient(
+                    180deg,
+                    #070b15,
+                    #060912 60%,
+                    #080d18
+                );
+
+            overflow-x: hidden;
+
+        }
+
+
+        a {
+
+            color: inherit;
+
+            text-decoration: none;
+
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        header {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            background:
+                rgba(6,9,18,0.90);
+
+            backdrop-filter:
+                blur(18px);
+
+            border-bottom:
+                1px solid var(--border);
+
+        }
+
+
+        .navbar {
+
+            width: 100%;
+
+            max-width: 1280px;
+
+            min-height: 68px;
+
+            margin: auto;
+
+            padding: 0 18px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+        }
+
+
+        .logo {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            font-size: 21px;
+
+            font-weight: 900;
+
+        }
+
+
+        .logo-icon {
+
+            width: 35px;
+
+            height: 35px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--blue),
+                    var(--purple)
+                );
+
+        }
+
+
+        .logo span {
+
+            color: var(--gold);
+
+        }
+
+
+        .admin-badge {
+
+            padding: 7px 11px;
+
+            border:
+                1px solid
+                rgba(77,141,255,0.25);
+
+            border-radius: 999px;
+
+            background:
+                rgba(77,141,255,0.08);
+
+            color: var(--blue-light);
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+        }
+
+
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
+        .page {
+
+            width: 100%;
+
+            max-width: 1050px;
+
+            margin: auto;
+
+            padding: 28px 18px 60px;
+
+        }
+
+
+        .back {
+
+            display: inline-flex;
+
+            margin-bottom: 18px;
+
+            padding: 9px 13px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 10px;
+
+            background:
+                rgba(16,23,40,0.8);
+
+            color: #b9c5da;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+        }
+
+
+        .heading {
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .heading-label {
+
+            margin-bottom: 8px;
+
+            color: var(--blue-light);
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+        }
+
+
+        h1 {
+
+            font-size:
+                clamp(30px,5vw,45px);
+
+            letter-spacing: -1.5px;
+
+        }
+
+
+        .heading p {
+
+            margin-top: 8px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            line-height: 1.6;
+
+        }
+
+
+        /* =====================================================
+           FORM CARD
+        ===================================================== */
+
+        .form-card {
+
+            padding: 28px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17,25,43,0.98),
+                    rgba(10,16,29,0.98)
+                );
+
+            box-shadow:
+                0 20px 60px
+                rgba(0,0,0,0.35);
+
+        }
+
+
+        .section-title {
+
+            margin-bottom: 14px;
+
+            color: var(--blue-light);
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .form-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2,minmax(0,1fr));
+
+            gap: 15px;
+
+        }
+
+
+        .field {
+
+            min-width: 0;
+
+        }
+
+
+        .field.full {
+
+            grid-column:
+                1 / -1;
+
+        }
+
+
+        label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #b9c5da;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+        }
+
+
+        input,
+        select {
+
+            width: 100%;
+
+            padding: 13px 14px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 10px;
+
+            outline: none;
+
+            background:
+                #0d1526;
+
+            color: white;
+
+            font-family: inherit;
+
+            font-size: 13px;
+
+        }
+
+
+        input:focus,
+        select:focus {
+
+            border-color:
+                rgba(77,141,255,0.55);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(77,141,255,0.08);
+
+        }
+
+
+        option {
+
+            background: #101728;
+
+            color: white;
+
+        }
+
+
+        .help {
+
+            margin-top: 5px;
+
+            color: #73809a;
+
+            font-size: 10px;
+
+        }
+
+
+        /* =====================================================
+           BUTTONS
+        ===================================================== */
+
+        .buttons {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 25px;
+
+        }
+
+
+        button {
+
+            border: none;
+
+            cursor: pointer;
+
+            padding: 13px 18px;
+
+            border-radius: 10px;
+
+            font-family: inherit;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+        }
+
+
+        .submit {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--blue),
+                    var(--purple)
+                );
+
+            color: white;
+
+        }
+
+
+        .reset {
+
+            background:
+                var(--surface-3);
+
+            border:
+                1px solid var(--border);
+
+            color: #dce2f0;
+
+        }
+
+
+        button:disabled {
+
+            opacity: 0.55;
+
+            cursor: not-allowed;
+
+        }
+
+
+        /* =====================================================
+           MESSAGE
+        ===================================================== */
+
+        .message {
+
+            display: none;
+
+            margin-top: 18px;
+
+            padding: 15px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+
+            line-height: 1.6;
+
+        }
+
+
+        .message.show {
+
+            display: block;
+
+        }
+
+
+        .message.success {
+
+            background:
+                rgba(105,210,125,0.08);
+
+            border:
+                1px solid
+                rgba(105,210,125,0.25);
+
+            color: #a9edb3;
+
+        }
+
+
+        .message.error {
+
+            background:
+                rgba(255,70,85,0.08);
+
+            border:
+                1px solid
+                rgba(255,70,85,0.25);
+
+            color: #ff9aa2;
+
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 650px) {
+
+            .navbar {
+
+                min-height: 61px;
+
+                padding: 0 13px;
+
+            }
+
+
+            .logo {
+
+                font-size: 18px;
+
+            }
+
+
+            .page {
+
+                padding:
+                    20px 13px 40px;
+
+            }
+
+
+            .form-card {
+
+                padding: 18px;
+
+                border-radius: 18px;
+
+            }
+
+
+            .form-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .field.full {
+
+                grid-column:
+                    auto;
+
+            }
+
+
+            .buttons {
+
+                flex-direction: column;
+
+            }
+
+
+            button {
+
+                width: 100%;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
+            BOXOFFICE<span>X</span>
+
+        </a>
+
+
+        <div class="admin-badge">
+            Admin Portal
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="page">
+
+
+    <a
+        href="admin.html"
+        class="back"
+    >
+        ← Back to Admin
+    </a>
+
+
+    <div class="heading">
+
+        <div class="heading-label">
+            BOXOFFICEX ADMIN
+        </div>
+
+        <h1>
+            Add New Movie
+        </h1>
+
+        <p>
+            Add a new movie directly to the
+            BoxOfficeX PostgreSQL database.
+        </p>
+
+    </div>
+
+
+    <section class="form-card">
+
+
+        <div class="section-title">
+            Movie Information
+        </div>
+
+
+        <form id="movieForm">
+
+
+            <div class="form-grid">
+
+
+                <!-- TITLE -->
+
+                <div class="field full">
+
+                    <label for="title">
+                        Movie Title *
+                    </label>
+
+                    <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        placeholder="Example: Leo"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- LANGUAGE -->
+
+                <div class="field">
+
+                    <label for="language">
+                        Language *
+                    </label>
+
+                    <input
+                        id="language"
+                        name="language"
+                        type="text"
+                        placeholder="Tamil"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- INDUSTRY -->
+
+                <div class="field">
+
+                    <label for="industry">
+                        Industry *
+                    </label>
+
+                    <select
+                        id="industry"
+                        name="industry"
+                        required
+                    >
+
+                        <option value="">
+                            Select Industry
+                        </option>
+
+                        <option value="Kollywood">
+                            Kollywood
+                        </option>
+
+                        <option value="Tollywood">
+                            Tollywood
+                        </option>
+
+                        <option value="Bollywood">
+                            Bollywood
+                        </option>
+
+                        <option value="Sandalwood">
+                            Sandalwood
+                        </option>
+
+                        <option value="Mollywood">
+                            Mollywood
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- RELEASE DATE -->
+
+                <div class="field">
+
+                    <label for="release_date">
+                        Release Date *
+                    </label>
+
+                    <input
+                        id="release_date"
+                        name="release_date"
+                        type="date"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- GENRE -->
+
+                <div class="field">
+
+                    <label for="genre">
+                        Genre
+                    </label>
+
+                    <input
+                        id="genre"
+                        name="genre"
+                        type="text"
+                        placeholder="Action, Drama"
+                    >
+
+                </div>
+
+
+                <!-- DIRECTOR -->
+
+                <div class="field">
+
+                    <label for="director">
+                        Director
+                    </label>
+
+                    <input
+                        id="director"
+                        name="director"
+                        type="text"
+                        placeholder="Director name"
+                    >
+
+                </div>
+
+
+                <!-- VERDICT -->
+
+                <div class="field">
+
+                    <label for="verdict">
+                        Verdict
+                    </label>
+
+                    <select
+                        id="verdict"
+                        name="verdict"
+                    >
+
+                        <option value="">
+                            Select Verdict
+                        </option>
+
+                        <option value="Blockbuster">
+                            Blockbuster
+                        </option>
+
+                        <option value="Hit">
+                            Hit
+                        </option>
+
+                        <option value="Average">
+                            Average
+                        </option>
+
+                        <option value="Below Average">
+                            Below Average
+                        </option>
+
+                        <option value="Flop">
+                            Flop
+                        </option>
+
+                        <option value="Disaster">
+                            Disaster
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- BUDGET -->
+
+                <div class="field">
+
+                    <label for="budget">
+                        Budget (₹ Crore)
+                    </label>
+
+                    <input
+                        id="budget"
+                        name="budget"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="100"
+                    >
+
+                </div>
+
+
+                <!-- INDIA -->
+
+                <div class="field">
+
+                    <label for="india">
+                        India Collection (₹ Crore)
+                    </label>
+
+                    <input
+                        id="india"
+                        name="india"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value="0"
+                        placeholder="0"
+                    >
+
+                </div>
+
+
+                <!-- OVERSEAS -->
+
+                <div class="field">
+
+                    <label for="overseas">
+                        Overseas Collection (₹ Crore)
+                    </label>
+
+                    <input
+                        id="overseas"
+                        name="overseas"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value="0"
+                        placeholder="0"
+                    >
+
+                </div>
+
+
+                <!-- WORLDWIDE -->
+
+                <div class="field">
+
+                    <label for="worldwide">
+                        Worldwide Collection (₹ Crore)
+                    </label>
+
+                    <input
+                        id="worldwide"
+                        name="worldwide"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value="0"
+                        placeholder="0"
+                    >
+
+                </div>
+
+
+                <!-- POSTER -->
+
+                <div class="field full">
+
+                    <label for="poster">
+                        Poster Filename
+                    </label>
+
+                    <input
+                        id="poster"
+                        name="poster"
+                        type="text"
+                        placeholder="leo.jpg"
+                    >
+
+                    <div class="help">
+                        Put the poster inside
+                        C:\Users\gugan\boxofficex\posters
+                        and enter only the filename.
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    type="submit"
+                    class="submit"
+                    id="submitButton"
+                >
+                    🎬 Add Movie
+                </button>
+
+
+                <button
+                    type="reset"
+                    class="reset"
+                >
+                    Clear Form
+                </button>
+
+            </div>
+
+
+        </form>
+
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+
+    </section>
+
+</main>
+
+
+<script>
+
+
+    /* =====================================================
+       API
+    ===================================================== */
+
+    const API_BASE =
+        "http://127.0.0.1:8000";
+
+
+    /* =====================================================
+       FORM
+    ===================================================== */
+
+    const form =
+        document.getElementById(
+            "movieForm"
+        );
+
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    const submitButton =
+        document.getElementById(
+            "submitButton"
+        );
+
+
+    /* =====================================================
+       MESSAGE
+    ===================================================== */
+
+    function showMessage(
+        text,
+        type
+    ) {
+
+        message.textContent =
+            text;
+
+        message.className =
+            "message show " +
+            type;
+
+    }
+
+
+    /* =====================================================
+       SUBMIT
+    ===================================================== */
+
+    form.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            submitButton.disabled =
+                true;
+
+            submitButton.textContent =
+                "Adding Movie...";
+
+
+            showMessage(
+                "",
+                ""
+            );
+
+
+            const movie = {
+
+                title:
+                    document.getElementById(
+                        "title"
+                    ).value.trim(),
+
+                language:
+                    document.getElementById(
+                        "language"
+                    ).value.trim(),
+
+                industry:
+                    document.getElementById(
+                        "industry"
+                    ).value,
+
+                release_date:
+                    document.getElementById(
+                        "release_date"
+                    ).value,
+
+                genre:
+                    document.getElementById(
+                        "genre"
+                    ).value.trim(),
+
+                budget_crore:
+                    Number(
+                        document.getElementById(
+                            "budget"
+                        ).value || 0
+                    ),
+
+                india_collection_crore:
+                    Number(
+                        document.getElementById(
+                            "india"
+                        ).value || 0
+                    ),
+
+                overseas_collection_crore:
+                    Number(
+                        document.getElementById(
+                            "overseas"
+                        ).value || 0
+                    ),
+
+                worldwide_collection_crore:
+                    Number(
+                        document.getElementById(
+                            "worldwide"
+                        ).value || 0
+                    ),
+
+                verdict:
+                    document.getElementById(
+                        "verdict"
+                    ).value || "Pending",
+
+                director:
+                    document.getElementById(
+                        "director"
+                    ).value.trim(),
+
+                poster:
+                    document.getElementById(
+                        "poster"
+                    ).value.trim()
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        API_BASE + "/movies",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    movie
+                                )
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Add movie response:",
+                    data
+                );
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.error ||
+                        "Movie could not be added."
+                    );
+
+                }
+
+
+                showMessage(
+
+                    "Movie added successfully! " +
+                    "Movie ID: " +
+                    data.movie_id,
+
+                    "success"
+
+                );
+
+
+                form.reset();
+
+
+                /* =========================================
+                   OPEN NEW MOVIE
+                ========================================= */
+
+                setTimeout(
+                    function() {
+
+                        window.location.href =
+                            "movie.html?id=" +
+                            encodeURIComponent(
+                                data.movie_id
+                            );
+
+                    },
+                    1200
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Add movie error:",
+                    error
+                );
+
+
+                showMessage(
+
+                    "Error: " +
+                    error.message,
+
+                    "error"
+
+                );
+
+            }
+
+
+            finally {
+
+                submitButton.disabled =
+                    false;
+
+                submitButton.textContent =
+                    "🎬 Add Movie";
+
+            }
+
+        }
+    );
+
+
+</script>
+
+
+</body>
+
+</html>

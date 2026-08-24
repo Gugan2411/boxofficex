@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>BoxOfficeX - Actor Movies</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background:
+                radial-gradient(circle at top, #18213a 0%, #080b14 45%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* ==============================
+           HEADER
+        ============================== */
+
+        header {
+            background: rgba(16, 22, 37, 0.96);
+            padding: 20px 30px;
+            border-bottom: 1px solid #29334d;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        /* ==============================
+           MAIN
+        ============================== */
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 45px 20px 60px;
+        }
+
+        /* ==============================
+           PAGE TITLE
+        ============================== */
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 38px;
+        }
+
+        .page-title h1 {
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .page-title p {
+            color: #8e99b3;
+            font-size: 15px;
+        }
+
+        /* ==============================
+           MOVIE GRID
+        ============================== */
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 22px;
+        }
+
+        /* ==============================
+           MOVIE CARD
+        ============================== */
+
+        .movie-card {
+            position: relative;
+            background: #111827;
+            border: 1px solid #293653;
+            border-radius: 18px;
+            overflow: hidden;
+            cursor: pointer;
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.35);
+        }
+
+        .movie-card:hover {
+            transform: translateY(-8px);
+            border-color: #465a83;
+            box-shadow:
+                0 20px 45px rgba(0, 0, 0, 0.55);
+        }
+
+        /* ==============================
+           POSTER
+        ============================== */
+
+        .movie-card img {
+            width: 100%;
+            height: 310px;
+            object-fit: cover;
+            display: block;
+            background: #0d1322;
+            transition: transform 0.3s ease;
+        }
+
+        .movie-card:hover img {
+            transform: scale(1.035);
+        }
+
+        /* ==============================
+           MOVIE INFO
+        ============================== */
+
+        .movie-info {
+            padding: 18px;
+            background: linear-gradient(
+                180deg,
+                #111827,
+                #0f1627
+            );
+        }
+
+        .movie-title {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 11px;
+            line-height: 1.3;
+            color: #ffffff;
+        }
+
+        .movie-detail {
+            color: #aeb8ce;
+            margin-top: 7px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* ==============================
+           LOADING / ERROR / EMPTY
+        ============================== */
+
+        .loading,
+        .error,
+        .empty {
+            text-align: center;
+            padding: 55px 20px;
+            color: #8e99b3;
+            background: #111827;
+            border: 1px solid #293653;
+            border-radius: 18px;
+            grid-column: 1 / -1;
+        }
+
+        .error {
+            color: #d8a6a6;
+        }
+
+        /* ==============================
+           TABLET
+        ============================== */
+
+        @media (max-width: 900px) {
+
+            main {
+                padding: 35px 18px 50px;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+            }
+
+            .movie-card img {
+                height: 290px;
+            }
+
+        }
+
+        /* ==============================
+           MOBILE
+        ============================== */
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 18px 20px;
+            }
+
+            header h2 {
+                font-size: 24px;
+            }
+
+            main {
+                padding: 28px 12px 45px;
+            }
+
+            .page-title {
+                margin-bottom: 28px;
+            }
+
+            .page-title h1 {
+                font-size: 28px;
+                line-height: 1.2;
+            }
+
+            .page-title p {
+                font-size: 14px;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 13px;
+            }
+
+            .movie-card {
+                border-radius: 14px;
+            }
+
+            .movie-card img {
+                height: 235px;
+            }
+
+            .movie-info {
+                padding: 13px;
+            }
+
+            .movie-title {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+
+            .movie-detail {
+                font-size: 12px;
+                margin-top: 6px;
+            }
+
+        }
+
+        /* ==============================
+           SMALL MOBILE
+        ============================== */
+
+        @media (max-width: 380px) {
+
+            .movie-grid {
+                gap: 10px;
+            }
+
+            .movie-card img {
+                height: 210px;
+            }
+
+            .movie-info {
+                padding: 11px;
+            }
+
+            .movie-title {
+                font-size: 15px;
+            }
+
+            .movie-detail {
+                font-size: 11px;
+            }
+
+        }
+
+    
+/* BOXOFFICEX MASTER — ACTOR MOVIES */
+header{position:sticky;top:0;z-index:1000;padding:0;background:rgba(6,9,18,.92);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}
+.navbar{max-width:1280px;min-height:66px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font-size:20px;font-weight:900;letter-spacing:.45px;white-space:nowrap}.logo-icon{width:33px;height:33px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff)}.logo span:last-child{color:#ffcc33}
+header nav{display:flex;align-items:center;gap:2px}header nav a{min-height:38px;padding:8px 10px;display:inline-flex;align-items:center;border-radius:9px;color:#c7d1e6;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap}header nav a:hover,header nav a.active{color:#79adff;background:rgba(77,141,255,.1)}
+header nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+.nav-item-with-badge{position:relative}.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000}.nav-new-badge.show{display:inline-flex}
+main{max-width:1120px;padding:30px 18px 55px}.page-title{margin-bottom:24px}.page-title h1{font-size:clamp(29px,4vw,40px);margin-bottom:7px}.page-title p{font-size:12px}
+.movie-grid{grid-template-columns:repeat(5,1fr);gap:12px}.movie-card{border-radius:13px}.movie-card:hover{transform:translateY(-3px)}.movie-card img{height:auto;aspect-ratio:2/3;object-fit:cover}.movie-info{padding:11px}.movie-title{font-size:14px;margin-bottom:7px}.movie-detail{margin-top:5px;font-size:9.5px}
+.site-footer{margin-top:25px;border-top:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#080c16,#050810)}.footer-inner{max-width:1180px;margin:auto;padding:28px 18px;text-align:center}.footer-brand{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-size:17px}.footer-logo-icon{width:31px;height:31px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff)}.footer-brand strong span{color:#ffcc33}.site-footer p{max-width:650px;margin:9px auto;color:#73809a;font-size:10px;line-height:1.6}.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 15px;margin:13px 0}.footer-links a{color:#aebbd4;text-decoration:none;font-size:10px;font-weight:700}
+.mobile-bottom-nav{display:none}
+@media(max-width:1000px){.movie-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:800px) and (min-width:601px){.navbar{overflow-x:auto}.navbar nav{min-width:max-content}.movie-grid{grid-template-columns:repeat(3,1fr)}header nav a{font-size:10px;padding:7px}}
+@media(max-width:600px){body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}main{padding:20px 9px 38px}.page-title{margin-bottom:18px}.page-title h1{font-size:26px}.page-title p{font-size:10px}.movie-grid{grid-template-columns:repeat(3,1fr);gap:7px}.movie-card{border-radius:10px}.movie-info{padding:7px}.movie-title{font-size:10.5px;margin-bottom:5px}.movie-detail{font-size:7px;margin-top:3px}.loading,.error,.empty{padding:35px 10px}
+.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;background:rgba(7,11,20,.96);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}.mobile-bottom-nav a{position:relative;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:11px;color:#8793a9;text-decoration:none;font-size:7.5px;font-weight:700}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}}
+@media(max-width:390px){.movie-grid{grid-template-columns:repeat(2,1fr)}}
+
+
+/* BOXOFFICEX FINAL MOBILE STANDARD — ACTOR VERDICT MOVIES */
+.mobile-menu-button{display:none}
+.footer-brand,.footer-brand:hover,.footer-brand:visited{text-decoration:none!important;border-bottom:0!important;box-shadow:none!important}
+
+@media(max-width:700px){
+ body{padding-top:61px!important;padding-bottom:0!important;overflow-x:hidden!important}
+ header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:99999!important;padding:0!important;background:#070a12!important;border-bottom:1px solid #202a3d!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 8px 22px rgba(0,0,0,.28)!important;overflow:visible!important}
+ .navbar{min-height:61px!important;height:61px!important;padding:0 13px!important;display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;justify-content:initial!important;gap:10px!important;background:#070a12!important;position:relative!important;z-index:100000!important;overflow:visible!important}
+ .logo{font-size:18px!important;position:relative!important;z-index:100001!important}
+ .logo-icon{width:31px!important;height:31px!important}
+ .mobile-menu-button{width:42px;height:42px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#101728;cursor:pointer;position:relative;z-index:100001}
+ .mobile-menu-button span{width:20px;height:2px;display:block;background:#fff;border-radius:999px;transition:.2s}
+ .mobile-menu-button.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+ .mobile-menu-button.open span:nth-child(2){opacity:0}
+ .mobile-menu-button.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+ header nav{position:absolute!important;top:61px!important;left:10px!important;right:10px!important;width:auto!important;display:none!important;flex-direction:column!important;align-items:stretch!important;gap:5px!important;padding:10px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;background:#0a0f1b!important;box-shadow:0 18px 45px rgba(0,0,0,.42)!important;z-index:100002!important}
+ header nav.mobile-menu-open{display:flex!important}
+ header nav a{width:100%!important;min-height:42px!important;padding:10px 12px!important;justify-content:flex-start!important;font-size:12px!important}
+ .mobile-bottom-nav{display:none!important}
+
+ main{padding:22px 9px 38px!important}
+ .page-title{margin-bottom:18px!important}
+ .page-title h1{font-size:26px!important;line-height:1.15!important}
+ .page-title p{font-size:10px!important}
+
+ /* Keep movie results easy to scan: left-to-right, 2 columns on phones */
+ .movie-grid{
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   gap:9px!important;
+   direction:ltr!important;
+ }
+ .movie-card{border-radius:11px!important;direction:ltr!important}
+ .movie-card img{width:100%!important;height:auto!important;aspect-ratio:2/3!important;object-fit:cover!important}
+ .movie-info{padding:8px!important;text-align:left!important}
+ .movie-title{font-size:11px!important;margin-bottom:5px!important}
+ .movie-detail{font-size:8px!important;margin-top:3px!important}
+
+ .site-footer{margin-top:35px!important;background:linear-gradient(180deg,#080c16,#050810)!important}
+ .footer-inner{max-width:100%!important;padding:32px 12px 28px!important;text-align:center!important}
+ .footer-brand{display:inline-flex!important;justify-content:center!important;margin-bottom:13px!important;font-size:18px!important;text-decoration:none!important;border-bottom:0!important}
+ .footer-logo-icon{width:34px!important;height:34px!important}
+ .site-footer p{max-width:290px!important;margin:0 auto 20px!important;font-size:11px!important;line-height:1.65!important}
+ .footer-links{display:flex!important;flex-wrap:nowrap!important;justify-content:center!important;align-items:center!important;gap:0!important;width:100%!important;margin:0 auto 22px!important;white-space:nowrap!important}
+ .footer-links a{flex:0 0 auto!important;padding:4px 8px!important;color:#aebbd4!important;text-decoration:none!important;border-bottom:0!important;font-size:8px!important;line-height:1.2!important;white-space:nowrap!important}
+ .footer-inner>p:last-child{margin-bottom:0!important;font-size:10px!important}
+}
+@media(max-width:340px){.footer-links a{padding-left:6px!important;padding-right:6px!important;font-size:7.5px!important}}
+
+
+/* PAGE BACK BUTTON */
+.page-back-row{
+    display:flex;
+    justify-content:flex-start;
+    margin-bottom:16px;
+}
+
+.page-back-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    min-height:38px;
+    padding:8px 13px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:10px;
+    background:#101728;
+    color:#cbd6eb;
+    font:inherit;
+    font-size:11px;
+    font-weight:800;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.page-back-button:hover{
+    color:#fff;
+    border-color:#4d8dff;
+    background:#16213a;
+}
+
+.back-arrow{
+    color:#79adff;
+    font-size:17px;
+    line-height:1;
+}
+
+@media(max-width:700px){
+    .page-back-row{
+        margin-bottom:12px !important;
+    }
+
+    .page-back-button{
+        min-height:35px !important;
+        padding:7px 11px !important;
+        border-radius:9px !important;
+        font-size:10px !important;
+    }
+
+    .back-arrow{
+        font-size:16px !important;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+<div class="navbar">
+<a href="/index.html" class="logo" aria-label="BoxOfficeX Home"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a><button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
+<nav aria-label="Main navigation">
+<a href="/index.html">Home</a>
+<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/movie-rankings.html">Rankings</a>
+<a href="/actors.html" class="active">Actors</a>
+<a href="/articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+<a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+</nav>
+</div>
+</header>
+
+
+<main>
+
+
+    <div class="page-back-row">
+    <button type="button" class="page-back-button" onclick="goBackToPreviousPage()" aria-label="Go back">
+        <span class="back-arrow">←</span>
+        <span>Back</span>
+    </button>
+</div>
+
+<div class="page-title">
+
+        <h1 id="pageTitle">
+            Loading...
+        </h1>
+
+        <p id="pageSubtitle">
+            Loading movies...
+        </p>
+
+    </div>
+
+
+    <div
+        id="movieGrid"
+        class="movie-grid"
+    >
+
+        <div class="loading">
+            Loading movies...
+        </div>
+
+    </div>
+
+
+</main>
+
+
+<footer class="site-footer">
+<div class="footer-inner">
+<a href="/index.html" class="footer-brand"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
+<p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
+<div class="footer-links">
+<a href="/about.html">About</a>
+<a href="/contact.html">Contact</a>
+<a href="/privacy.html">Privacy</a>
+<a href="/terms.html">Terms</a>
+<a href="/disclaimer.html">Disclaimer</a>
+</div>
+<p>© 2026 BoxOfficeX. All rights reserved.</p>
+</div>
+</footer>
+
+
+<script>
+
+
+// ==========================================
+// GET URL PARAMETERS
+// ==========================================
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const actorId =
+    params.get("actorId") || params.get("id");
+
+
+const verdict =
+    params.get("verdict");
+
+
+// ==========================================
+// CHECK PARAMETERS
+// ==========================================
+
+if (!actorId || !verdict) {
+
+    document.getElementById(
+        "movieGrid"
+    ).innerHTML =
+        '<div class="error">Invalid movie request.</div>';
+
+}
+else {
+
+    loadActorMovies();
+
+}
+
+
+// ==========================================
+// LOAD ACTOR MOVIES
+// ==========================================
+
+async function loadActorMovies() {
+
+    try {
+
+
+        // ==============================
+        // GET ACTOR DETAILS
+        // ==============================
+
+        const actorsResponse =
+            await fetch(
+                "/actors"
+            );
+
+
+        if (!actorsResponse.ok) {
+
+            throw new Error(
+                "Actors API error"
+            );
+
+        }
+
+
+        const actorsData =
+            await actorsResponse.json();
+
+
+        const actor =
+            actorsData.actors.find(
+                a =>
+                    String(a.id) ===
+                    String(actorId)
+            );
+
+
+        if (!actor) {
+
+            throw new Error(
+                "Actor not found"
+            );
+
+        }
+
+
+        // ==============================
+        // GET VERDICT MOVIES
+        // ==============================
+
+        const moviesResponse =
+            await fetch(
+
+                "/actors/" +
+                actorId +
+                "/movies/verdict/" +
+                encodeURIComponent(verdict)
+
+            );
+
+
+        if (!moviesResponse.ok) {
+
+            throw new Error(
+                "Movies API error"
+            );
+
+        }
+
+
+        const moviesData =
+            await moviesResponse.json();
+
+
+        const movies =
+            moviesData.movies || [];
+
+
+        // ==============================
+        // PAGE TITLE
+        // ==============================
+
+        document.getElementById(
+            "pageTitle"
+        ).innerText =
+            actor.name +
+            " — " +
+            verdict +
+            " Movies";
+
+
+        document.getElementById(
+            "pageSubtitle"
+        ).innerText =
+            movies.length +
+            " " +
+            verdict +
+            " movie(s)";
+
+
+        const grid =
+            document.getElementById(
+                "movieGrid"
+            );
+
+
+        grid.innerHTML = "";
+
+
+        // ==============================
+        // NO MOVIES
+        // ==============================
+
+        if (movies.length === 0) {
+
+            grid.innerHTML =
+                '<div class="empty">No ' +
+                verdict +
+                ' movies found.</div>';
+
+            return;
+
+        }
+
+
+        // ==============================
+        // DISPLAY MOVIES
+        // ==============================
+
+        movies.forEach(movie => {
+
+
+            const card =
+                document.createElement("div");
+
+
+            card.className =
+                "movie-card";
+
+
+            card.innerHTML = `
+
+                <img
+                    src="posters/${movie.poster}"
+                    alt="${movie.title}" loading="lazy" onerror="this.onerror=null;this.src='/posters/coming-soon.png'"
+                >
+
+                <div class="movie-info">
+
+                    <div class="movie-title">
+                        ${movie.title}
+                    </div>
+
+                    <div class="movie-detail">
+                        📅 ${movie.release_date}
+                    </div>
+
+                    <div class="movie-detail">
+                        🌍 ₹${movie.worldwide_collection_crore} Cr
+                    </div>
+
+                    <div class="movie-detail">
+                        🎬 ${movie.verdict}
+                    </div>
+
+                </div>
+
+            `;
+
+
+            // ==============================
+            // OPEN MOVIE PAGE
+            // ==============================
+
+            card.onclick = function () {
+
+                window.location.href =
+                    "movie.html?id=" +
+                    movie.id;
+
+            };
+
+
+            grid.appendChild(card);
+
+        });
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "Actor movies error:",
+            error
+        );
+
+
+        document.getElementById(
+            "movieGrid"
+        ).innerHTML =
+            '<div class="error">' +
+            'Unable to load movies.' +
+            '</div>';
+
+    }
+
+}
+
+
+
+function setSiteNewBadge(ids,visible){ids.forEach(id=>{const b=document.getElementById(id);if(b)b.classList.toggle("show",!!visible)})}
+async function updateSiteNewBadges(){try{const [mr,ar]=await Promise.all([fetch("/movies/new-system",{cache:"no-store"}),fetch("/articles/latest?limit=10",{cache:"no-store"})]);if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])],now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const fresh=all.some(m=>{if(!m.release_date)return false;const p=String(m.release_date).slice(0,10).split("-").map(Number),dt=new Date(p[0],p[1]-1,p[2]),days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}if(ar.ok){const d=await ar.json(),now=Date.now(),fresh=(d.articles||[]).some(a=>{const t=new Date(a.published_at).getTime();return Number.isFinite(t)&&t<=now&&now-t<=604800000});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}}catch(e){console.warn("Badge check failed",e)}}
+updateSiteNewBadges();
+
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+ const b=document.getElementById("mobileMenuButton"),n=document.querySelector("header nav");
+ if(!b||!n)return;
+ function closeMenu(){n.classList.remove("mobile-menu-open");b.classList.remove("open");b.setAttribute("aria-expanded","false")}
+ b.addEventListener("click",e=>{e.stopPropagation();const o=!n.classList.contains("mobile-menu-open");n.classList.toggle("mobile-menu-open",o);b.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")});
+ n.addEventListener("click",e=>{if(e.target.closest("a"))closeMenu()});
+ document.addEventListener("click",e=>{if(!n.contains(e.target)&&!b.contains(e.target))closeMenu()});
+ window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
+});
+</script>
+
+<script>
+function goBackToPreviousPage(){
+    if(window.history.length > 1){
+        window.history.back();
+    }else{
+        window.location.href="/actors.html";
+    }
+}
+</script>
+
+</body>
+
+</html>

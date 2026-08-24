@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Movie Admin | BoxOfficeX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:rgba(255,255,255,.08);--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--red:#ff4655;--green:#3ac47d}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#17213a 0,#080b14 35%,#070a12 72%);color:var(--text);min-height:100vh}
+header{position:sticky;top:0;z-index:1000;background:rgba(6,9,18,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(18px)}
+.navbar{max-width:1280px;min-height:68px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{display:flex;align-items:center;gap:9px;color:white;font-size:21px;font-weight:900;text-decoration:none}
+.logo-icon{width:35px;height:35px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff)}
+.logo span:last-child{color:var(--gold)}
+header nav{display:flex;gap:4px}header nav a{padding:9px 12px;border-radius:10px;color:#c7d1e6;font-size:13px;font-weight:700;text-decoration:none}
+header nav a:hover,header nav a.active{background:rgba(77,141,255,.1);color:#79adff}
+main{width:min(1280px,calc(100% - 36px));margin:auto;padding:32px 0 70px}
+.page-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-end;flex-wrap:wrap}
+.page-head h1{font-size:clamp(30px,4vw,44px);letter-spacing:-1px}
+.page-head p{margin-top:7px;color:var(--muted);font-size:13px}
+.layout{display:grid;grid-template-columns:380px minmax(0,1fr);gap:22px;margin-top:24px}
+.panel{background:rgba(15,21,34,.96);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.panel-head{padding:16px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel-head h2{font-size:17px}
+.panel-body{padding:17px}
+.search{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:#0a101c;color:white;outline:none}
+.movie-list{display:grid;gap:8px;margin-top:12px;max-height:calc(100vh - 250px);overflow:auto}
+.movie-item{padding:11px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:#0c1220;cursor:pointer}
+.movie-item.active{border-color:#4d8dff;background:rgba(77,141,255,.08)}
+.movie-item strong{display:block;font-size:13px;line-height:1.3}.movie-item small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.dot-running{background:#3ac47d}.dot-upcoming{background:#4d8dff}.dot-final{background:#ffcc33}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.full{grid-column:1/-1}
+label{display:block;margin-bottom:6px;color:#aeb9cb;font-size:11px;font-weight:800}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:#0a101c;color:white;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#4d8dff}
+textarea{min-height:82px;resize:vertical}
+.quick-status{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer}
+.btn-running{background:rgba(58,196,125,.15);color:#74e1aa;border:1px solid rgba(58,196,125,.3)}
+.btn-upcoming{background:rgba(77,141,255,.15);color:#79adff;border:1px solid rgba(77,141,255,.3)}
+.btn-final{background:rgba(255,204,51,.12);color:#ffcc33;border:1px solid rgba(255,204,51,.25)}
+.save-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.save{background:linear-gradient(135deg,#4d8dff,#795cff);color:white;min-width:170px}
+.open{background:#151d31;color:#d7deec;border:1px solid var(--border)}
+.summary{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:13px;border:1px solid var(--border);border-radius:12px;background:#0c1220;text-align:center}
+.stat b{display:block;font-size:20px}.stat span{display:block;margin-top:3px;color:var(--muted);font-size:9px;text-transform:uppercase}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.toast{position:fixed;right:18px;bottom:18px;padding:12px 15px;border:1px solid var(--border);border-radius:12px;background:#101725;display:none;z-index:3000}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.movie-list{max-height:280px}.form-grid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:650px){header nav{display:none}.navbar{min-height:61px;padding:0 13px}.logo{font-size:18px}main{width:min(94%,1280px);padding-top:22px}.summary{grid-template-columns:1fr}.save-row>*{flex:1}}
+.navbar{max-width:1500px;min-height:66px;gap:12px}.admin-nav{display:flex;align-items:center;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:thin}.admin-nav a{display:inline-flex;align-items:center;min-height:38px;padding:8px 10px!important;white-space:nowrap;font-size:11px!important}.admin-nav a.active{background:rgba(77,141,255,.14)!important;color:#8db5ff!important}@media(max-width:1100px){.navbar{align-items:flex-start;flex-direction:column;padding-top:10px;padding-bottom:9px}.admin-nav{width:100%}}@media(max-width:650px){header nav.admin-nav{display:flex}.navbar{align-items:flex-start}.admin-nav a{font-size:10px!important;padding:7px 9px!important}}
+/* BOXOFFICEX ADMIN ACCOUNT CONTROLS */
+.admin-account-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.admin-user-chip{padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:#101725;color:#aebbd4;font-size:10px;font-weight:800;white-space:nowrap}
+.admin-account-btn{border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 10px;background:#151d31;color:#dce5f5;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}
+.admin-account-btn:hover{background:#202b44}
+.admin-account-btn.logout{border-color:#703535;background:#351919;color:#ff9a9a}
+.account-modal{display:none;position:fixed;inset:0;z-index:5000;padding:20px;background:rgba(0,0,0,.78);overflow:auto}
+.account-modal-card{max-width:460px;margin:8vh auto;padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#101725}
+.account-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.account-modal-head h2{font-size:20px}
+.account-close{width:34px;height:34px;border-radius:50%;border:0;background:#29334d;color:#fff;font-size:20px;cursor:pointer}
+.account-field{margin-top:13px}
+.account-field label{display:block;margin-bottom:6px;color:#aeb9cb;font-size:11px;font-weight:800}
+.account-field input{width:100%;padding:11px 12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#0a101c;color:#fff;outline:none}
+.account-save{width:100%;margin-top:17px;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff);color:#fff;font-weight:900;cursor:pointer}
+.account-message{display:none;margin-top:12px;padding:10px;border-radius:9px;font-size:11px;font-weight:800;text-align:center}
+.account-message.ok{display:block;background:#142c22;color:#7de2bb;border:1px solid #2e6b4f}
+.account-message.bad{display:block;background:#351919;color:#ff9a9a;border:1px solid #703535}
+@media(max-width:1100px){.admin-account-actions{width:100%;overflow-x:auto}.admin-user-chip{margin-left:auto}}
+@media(max-width:650px){.admin-account-actions{justify-content:flex-start}.admin-user-chip{margin-left:0}}
+
+</style>
+</head>
+<body>
+<header>
+<div class="navbar">
+<a href="/index.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a>
+<nav class="admin-nav">
+<a href="/admin.html">🏠 Admin Home</a>
+<a href="/admin.html#movies">🎬 Movies</a>
+<a href="/admin-new-movies.html" class="active">🆕 New Movies</a>
+<a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
+<a href="/admin-regional-boxoffice.html">📍 Regional</a>
+<a href="/admin-articles.html">📰 Articles</a>
+<a href="/admin.html#actors">👤 Actors</a>
+<a href="/admin.html#actor-links">🔗 Actor Links</a>
+<a href="/admin.html#collections">📊 Collections</a>
+<a href="/new-movies.html" target="_blank">🌐 Public</a>
+</nav>
+<div class="admin-account-actions">
+    <div id="adminUserChip" class="admin-user-chip">Loading account...</div>
+    <button type="button" class="admin-account-btn" onclick="openOwnPasswordModal()">🔑 Password</button>
+    <button type="button" class="admin-account-btn logout" onclick="logoutCurrentAdmin()">🚪 Logout</button>
+</div>
+
+</div>
+</header>
+
+<main>
+<div class="page-head">
+<div>
+<h1>New Movie Manager</h1>
+<p>Move films between Upcoming, Running and Final, and update collections without pgAdmin.</p>
+</div>
+</div>
+
+<div class="layout">
+<section class="panel">
+<div class="panel-head"><h2>Movies</h2><span id="movieCount"></span></div>
+<div class="panel-body">
+<input id="search" class="search" placeholder="Search movie...">
+<div class="summary">
+<div class="stat"><b id="runCount">0</b><span>Running</span></div>
+<div class="stat"><b id="upCount">0</b><span>Upcoming</span></div>
+<div class="stat"><b id="finalCount">0</b><span>Final</span></div>
+</div>
+<div id="movieList" class="movie-list"></div>
+</div>
+</section>
+
+<section class="panel">
+<div class="panel-head"><h2 id="editorTitle">Select a movie</h2><span id="currentStatus"></span></div>
+<div class="panel-body">
+<div id="editorEmpty" class="empty">Choose a movie from the left.</div>
+
+<div id="editor" style="display:none">
+<div class="form-grid">
+<div class="full"><label>Title</label><input id="title"></div>
+<div><label>Release Date</label><input id="releaseDate" type="date"></div>
+<div><label>Status</label>
+<select id="status">
+<option value="upcoming">Upcoming</option>
+<option value="running">Running</option>
+<option value="final">Final</option>
+</select>
+</div>
+<div><label>Language</label><input id="language"></div>
+<div><label>Industry</label><input id="industry"></div>
+<div><label>Genre</label><input id="genre"></div>
+<div><label>Director</label><input id="director"></div>
+<div><label>Budget (Cr)</label><input id="budget" type="number" step="0.01"></div>
+<div><label>India Gross (Cr)</label><input id="india" type="number" step="0.01"></div>
+<div><label>Overseas Gross (Cr)</label><input id="overseas" type="number" step="0.01"></div>
+<div><label>Worldwide Gross (Cr)</label><input id="worldwide" type="number" step="0.01"></div>
+<div><label>Verdict</label>
+<select id="verdict">
+<option value="">Not Rated</option>
+<option>Blockbuster</option>
+<option>Hit</option>
+<option>Average</option>
+<option>Flop</option>
+</select>
+</div>
+<div><label>Poster filename</label><input id="poster"></div>
+</div>
+
+<div class="quick-status">
+<button class="btn-upcoming" data-status="upcoming">📅 Mark Upcoming</button>
+<button class="btn-running" data-status="running">🔥 Mark Running</button>
+<button class="btn-final" data-status="final">✅ Mark Final</button>
+</div>
+
+<div class="save-row">
+<button id="saveBtn" class="save">💾 Save Movie</button>
+<button id="openPublicBtn" class="open">Open Movie Page</button>
+<button id="openNewBtn" class="open">Open New Movies</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let movies=[];
+let statusMap=new Map();
+let selected=null;
+
+const $=id=>document.getElementById(id);
+function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",1800)}
+function numberOrZero(id){const v=$(id).value.trim();return v===""?0:Number(v)}
+function statusDot(status){return `<span class="status-dot dot-${status||"final"}"></span>`}
+function filteredMovies(){
+const q=$("search").value.trim().toLowerCase();
+return movies.filter(m=>!q||String(m.title||"").toLowerCase().includes(q));
+}
+
+async function loadStatusMap(){
+try{
+const r=await fetch("/movies/new-system");
+const d=await r.json();
+statusMap=new Map();
+(d.running||[]).forEach(m=>statusMap.set(Number(m.id),"running"));
+(d.upcoming||[]).forEach(m=>statusMap.set(Number(m.id),"upcoming"));
+(d.recent||[]).forEach(m=>statusMap.set(Number(m.id),"final"));
+}catch{}
+}
+
+async function loadMovies(){
+await loadStatusMap();
+const r=await fetch("/admin/movies");
+if(r.status===401){location.href="/admin-login.html";return}
+const d=await r.json();
+movies=Array.isArray(d.movies)?d.movies:[];
+renderList();
+}
+
+function renderList(){
+const list=filteredMovies();
+$("movieCount").textContent=list.length+" shown";
+let running=0,upcoming=0,final=0;
+movies.forEach(m=>{
+const s=statusMap.get(Number(m.id)) || ((m.release_date && new Date(m.release_date)>new Date())?"upcoming":"final");
+if(s==="running")running++;else if(s==="upcoming")upcoming++;else final++;
+});
+$("runCount").textContent=running;$("upCount").textContent=upcoming;$("finalCount").textContent=final;
+
+$("movieList").innerHTML=list.length?"":"<div class='empty'>No movies found.</div>";
+list.forEach(m=>{
+const s=statusMap.get(Number(m.id)) || ((m.release_date && new Date(m.release_date)>new Date())?"upcoming":"final");
+const el=document.createElement("div");
+el.className="movie-item"+(selected&&selected.id===m.id?" active":"");
+el.innerHTML=`<strong>${statusDot(s)}${m.title}</strong><small>${m.release_date||"No date"} • ${m.language||"N/A"} • ${s}</small>`;
+el.onclick=()=>selectMovie(m,s);
+$("movieList").appendChild(el);
+});
+}
+
+function selectMovie(m,status){
+selected=m;
+$("editorEmpty").style.display="none";$("editor").style.display="block";
+$("editorTitle").textContent="Edit #"+m.id+" — "+m.title;
+$("title").value=m.title||"";$("releaseDate").value=m.release_date||"";$("status").value=status||"final";
+$("language").value=m.language||"";$("industry").value=m.industry||"";$("genre").value=m.genre||"";$("director").value=m.director||"";
+$("budget").value=m.budget_crore??0;$("india").value=m.india_collection_crore??0;$("overseas").value=m.overseas_collection_crore??0;$("worldwide").value=m.worldwide_collection_crore??0;
+$("verdict").value=m.verdict||"";$("poster").value=m.poster||"";
+$("currentStatus").textContent=(status||"final").toUpperCase();
+renderList();
+}
+
+async function saveStatus(){
+const status=$("status").value;
+const r=await fetch(`/admin/movies/${selected.id}/boxoffice-status`,{
+method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({status})
+});
+const d=await r.json();
+if(!r.ok)throw new Error(d.detail||"Status update failed");
+statusMap.set(Number(selected.id),status);
+}
+
+async function saveMovie(){
+if(!selected)return;
+const payload={
+title:$("title").value.trim(),
+release_date:$("releaseDate").value||null,
+language:$("language").value.trim()||null,
+industry:$("industry").value.trim()||null,
+genre:$("genre").value.trim()||null,
+director:$("director").value.trim()||null,
+budget_crore:numberOrZero("budget"),
+india_collection_crore:numberOrZero("india"),
+overseas_collection_crore:numberOrZero("overseas"),
+worldwide_collection_crore:numberOrZero("worldwide"),
+verdict:$("verdict").value||null,
+poster:$("poster").value.trim()||null
+};
+
+try{
+const r=await fetch(`/admin/movies/${selected.id}`,{
+method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)
+});
+const d=await r.json();
+if(!r.ok)throw new Error(d.detail||d.error||"Movie update failed");
+await saveStatus();
+toast("Movie updated");
+await loadMovies();
+const fresh=movies.find(x=>Number(x.id)===Number(selected.id));
+if(fresh)selectMovie(fresh,statusMap.get(Number(fresh.id))||"final");
+}catch(e){toast(e.message)}
+}
+
+$("search").oninput=renderList;
+$("saveBtn").onclick=saveMovie;
+
+async function markMovieStatus(status){
+    if(!selected){
+        toast("Select a movie first");
+        return;
+    }
+
+    try{
+        const r = await fetch(
+            `/admin/movies/${selected.id}/boxoffice-status`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: status
+                })
+            }
+        );
+
+        const d = await r.json();
+
+        if(!r.ok){
+            throw new Error(
+                d.detail ||
+                "Status update failed"
+            );
+        }
+
+        statusMap.set(
+            Number(selected.id),
+            status
+        );
+
+        $("status").value = status;
+
+        $("currentStatus").textContent =
+            status.toUpperCase();
+
+        toast(
+            status === "running"
+                ? "Marked as Running"
+                : status === "upcoming"
+                    ? "Marked as Upcoming"
+                    : "Marked as Final"
+        );
+
+        renderList();
+
+    }catch(e){
+
+        console.error(
+            "Movie status update error:",
+            e
+        );
+
+        toast(
+            e.message ||
+            "Unable to update status"
+        );
+    }
+}
+
+document
+    .querySelectorAll("[data-status]")
+    .forEach(
+        button => {
+
+            button.onclick = function(){
+
+                markMovieStatus(
+                    button.dataset.status
+                );
+
+            };
+
+        }
+    );
+
+$("status").onchange = function(){
+
+    if(selected){
+
+        markMovieStatus(
+            $("status").value
+        );
+
+    }
+
+};
+
+$("openPublicBtn").onclick=()=>{if(selected)window.open(`/movie.html?id=${selected.id}`,"_blank")};
+$("openNewBtn").onclick=()=>window.open("/new-movies.html","_blank");
+loadMovies();
+</script>
+
+<div id="ownPasswordModal" class="account-modal">
+    <div class="account-modal-card">
+        <div class="account-modal-head">
+            <h2>🔑 Change My Password</h2>
+            <button type="button" class="account-close" onclick="closeOwnPasswordModal()">×</button>
+        </div>
+
+        <div class="account-field">
+            <label>Current Password</label>
+            <input id="ownCurrentPassword" type="password" autocomplete="current-password">
+        </div>
+
+        <div class="account-field">
+            <label>New Password</label>
+            <input id="ownNewPassword" type="password" minlength="10" autocomplete="new-password">
+        </div>
+
+        <div class="account-field">
+            <label>Confirm New Password</label>
+            <input id="ownConfirmPassword" type="password" minlength="10" autocomplete="new-password">
+        </div>
+
+        <button type="button" class="account-save" onclick="changeOwnPassword()">
+            💾 CHANGE PASSWORD
+        </button>
+
+        <div id="ownPasswordMessage" class="account-message"></div>
+    </div>
+</div>
+
+
+<script>
+// ============================================================
+// ADMIN SELF ACCOUNT CONTROLS
+// ============================================================
+async function loadAdminAccountChip(){
+    try{
+        const r=await fetch("/admin/session",{credentials:"include"});
+        const d=await r.json();
+
+        if(!r.ok || !d.logged_in || !d.admin){
+            location.href="/admin-login.html";
+            return;
+        }
+
+        const role=String(d.admin.role||"admin").replaceAll("_"," ").toUpperCase();
+        const chip=document.getElementById("adminUserChip");
+        if(chip){
+            chip.textContent=(d.admin.display_name||d.admin.email)+" • "+role;
+        }
+    }catch(e){
+        console.error("Admin account check failed:",e);
+    }
+}
+
+function openOwnPasswordModal(){
+    document.getElementById("ownCurrentPassword").value="";
+    document.getElementById("ownNewPassword").value="";
+    document.getElementById("ownConfirmPassword").value="";
+    const msg=document.getElementById("ownPasswordMessage");
+    msg.className="account-message";
+    msg.textContent="";
+    document.getElementById("ownPasswordModal").style.display="block";
+}
+
+function closeOwnPasswordModal(){
+    document.getElementById("ownPasswordModal").style.display="none";
+}
+
+async function changeOwnPassword(){
+    const currentPassword=document.getElementById("ownCurrentPassword").value;
+    const newPassword=document.getElementById("ownNewPassword").value;
+    const confirmPassword=document.getElementById("ownConfirmPassword").value;
+    const msg=document.getElementById("ownPasswordMessage");
+
+    if(!currentPassword){
+        msg.className="account-message bad";
+        msg.textContent="Enter your current password.";
+        return;
+    }
+
+    if(newPassword.length<10){
+        msg.className="account-message bad";
+        msg.textContent="New password must be at least 10 characters.";
+        return;
+    }
+
+    if(newPassword!==confirmPassword){
+        msg.className="account-message bad";
+        msg.textContent="New passwords do not match.";
+        return;
+    }
+
+    try{
+        const r=await fetch("/admin/change-password",{
+            method:"PUT",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                current_password:currentPassword,
+                new_password:newPassword
+            })
+        });
+
+        const d=await r.json();
+
+        if(!r.ok){
+            throw new Error(d.detail||"Unable to change password");
+        }
+
+        msg.className="account-message ok";
+        msg.textContent="Password changed successfully.";
+
+        setTimeout(closeOwnPasswordModal,900);
+
+    }catch(e){
+        msg.className="account-message bad";
+        msg.textContent=e.message;
+    }
+}
+
+async function logoutCurrentAdmin(){
+    try{
+        await fetch("/admin/logout",{
+            method:"POST",
+            credentials:"include"
+        });
+    }finally{
+        location.href="/admin-login.html";
+    }
+}
+
+document.addEventListener("DOMContentLoaded",loadAdminAccountChip);
+</script>
+
+</body>
+</html>

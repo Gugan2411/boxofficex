@@ -1,0 +1,4914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta id="metaDescription" name="description" content="Movie box office collection, budget, India and overseas collection, worldwide gross, verdict, release date and complete details on BoxOfficeX.">
+
+    <meta name="robots" content="index, follow">
+
+    <!-- Dynamic SEO / Social Sharing -->
+    <link id="canonicalUrl" rel="canonical" href="">
+
+    <meta id="ogType" property="og:type" content="website">
+    <meta id="ogSiteName" property="og:site_name" content="BoxOfficeX">
+    <meta id="ogTitle" property="og:title" content="Movie Box Office Collection, Budget & Verdict | BoxOfficeX">
+    <meta id="ogDescription" property="og:description" content="Movie box office collection, budget, worldwide gross, verdict, release date and complete details on BoxOfficeX.">
+    <meta id="ogUrl" property="og:url" content="">
+    <meta id="ogImage" property="og:image" content="">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta id="twitterTitle" name="twitter:title" content="Movie Box Office Collection, Budget & Verdict | BoxOfficeX">
+    <meta id="twitterDescription" name="twitter:description" content="Movie box office collection, budget, worldwide gross and verdict on BoxOfficeX.">
+    <meta id="twitterImage" name="twitter:image" content="">
+
+    <script id="movieStructuredData" type="application/ld+json"></script>
+
+    <meta
+        name="theme-color"
+        content="#060912"
+    >
+
+    <title>Movie Box Office Collection, Budget & Verdict | BoxOfficeX</title>
+
+
+    <style>
+
+        /* =====================================================
+           BOXOFFICEX MOVIE PAGE
+           MASTER DESIGN SYSTEM
+        ===================================================== */
+
+        :root {
+
+            --bg: #060912;
+            --surface: #101728;
+            --surface-2: #141d31;
+            --surface-3: #19243c;
+
+            --border:
+                rgba(255,255,255,0.08);
+
+            --border-strong:
+                rgba(93,143,255,0.28);
+
+            --text: #ffffff;
+
+            --muted: #99a5bd;
+            --muted-2: #73809a;
+
+            --blue: #4d8dff;
+            --blue-light: #79adff;
+
+            --purple: #795cff;
+
+            --gold: #ffcc33;
+
+            --green: #69d27d;
+
+            --red: #ff4655;
+
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+        }
+
+
+        * {
+
+            box-sizing: border-box;
+
+            margin: 0;
+
+            padding: 0;
+
+        }
+
+
+        html {
+
+            scroll-behavior: smooth;
+
+        }
+
+
+        body {
+
+            min-height: 100vh;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+
+                radial-gradient(
+                    circle at 50% -10%,
+                    rgba(77,141,255,0.20),
+                    transparent 32%
+                ),
+
+                radial-gradient(
+                    circle at 100% 30%,
+                    rgba(121,92,255,0.10),
+                    transparent 25%
+                ),
+
+                linear-gradient(
+                    180deg,
+                    #070b15 0%,
+                    #060912 45%,
+                    #080d18 100%
+                );
+
+            color:
+                var(--text);
+
+            overflow-x:
+                hidden;
+
+        }
+
+
+        body::before {
+
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+
+                linear-gradient(
+                    rgba(255,255,255,0.012) 1px,
+                    transparent 1px
+                );
+
+            background-size:
+                100% 4px;
+
+            opacity:
+                0.15;
+
+            z-index:
+                -1;
+
+        }
+
+
+        a {
+
+            color: inherit;
+
+            text-decoration: none;
+
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        header {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            width: 100%;
+
+            background:
+                rgba(6,9,18,0.88);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            border-bottom:
+                1px solid
+                var(--border);
+
+        }
+
+
+        .navbar {
+
+            width: 100%;
+
+            max-width: 1280px;
+
+            min-height: 68px;
+
+            margin: auto;
+
+            padding:
+                0 18px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+        }
+
+
+        .logo {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            font-size: 21px;
+
+            font-weight: 900;
+
+            letter-spacing: 0.6px;
+
+            white-space: nowrap;
+
+        }
+
+
+        .logo-icon {
+
+            width: 35px;
+
+            height: 35px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    var(--blue),
+                    var(--purple)
+                );
+
+        }
+
+
+        .logo span {
+
+            color:
+                var(--gold);
+
+        }
+
+
+        nav {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 4px;
+
+        }
+
+
+        nav a {
+
+            padding:
+                9px 12px;
+
+            border-radius:
+                10px;
+
+            color:
+                #c7d1e6;
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+
+        }
+
+
+        nav a:hover {
+
+            background:
+                rgba(77,141,255,0.10);
+
+            color:
+                var(--blue-light);
+
+        }
+
+
+        .nav-compare {
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    #ff4655,
+                    #d92e3d
+                );
+
+            color:
+                white !important;
+
+        }
+
+
+
+        /* =====================================================
+           GLOBAL SEARCH — SAME BEHAVIOR AS INDEX / NEW MOVIES
+        ===================================================== */
+
+        .global-search {
+            position: relative;
+            width: 100%;
+            max-width: 760px;
+            margin: 0 auto 22px;
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-height: 58px;
+            padding: 5px;
+            background: rgba(15,22,39,0.95);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.28);
+        }
+
+        .search-form:focus-within {
+            border-color: var(--border-strong);
+            box-shadow:
+                0 15px 35px rgba(0,0,0,0.32),
+                0 0 0 3px rgba(77,141,255,0.07);
+        }
+
+        .search-icon {
+            padding-left: 13px;
+            font-size: 18px;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 0;
+            height: 48px;
+            padding: 0 8px;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: white;
+            font-size: 15px;
+        }
+
+        .search-form input::placeholder {
+            color: #7f8ba5;
+        }
+
+        .search-form button {
+            min-width: 82px;
+            min-height: 46px;
+            padding: 0 18px;
+            border: none;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--red), #d92f3d);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        #searchResults {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            display: none;
+            max-height: 370px;
+            overflow-y: auto;
+            background: rgba(15,23,42,0.99);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.42);
+            z-index: 2000;
+        }
+
+        body.search-active #searchResults {
+            display: block;
+        }
+
+        .search-result {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 62px;
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .search-result:hover {
+            background: rgba(77,141,255,0.10);
+        }
+
+        .search-result-icon {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(77,141,255,0.12);
+        }
+
+        .search-result-text {
+            min-width: 0;
+        }
+
+        .search-result strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .search-result small {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        body.search-active .back-row,
+        body.search-active .movie-card,
+        body.search-active footer,
+        body.search-active .mobile-bottom-nav {
+            display: none;
+        }
+
+        body.search-active .page {
+            min-height: calc(100vh - 68px);
+            padding-top: 35px;
+        }
+
+        @media (max-width: 700px) {
+            .global-search {
+                margin-bottom: 17px;
+            }
+
+            .search-form {
+                min-height: 54px;
+                padding: 4px;
+                border-radius: 14px;
+            }
+
+            .search-form input {
+                height: 45px;
+                font-size: 14px;
+            }
+
+            .search-icon {
+                padding-left: 10px;
+            }
+
+            .search-form button {
+                min-width: 68px;
+                min-height: 43px;
+                padding: 0 13px;
+                font-size: 12px;
+            }
+
+            #searchResults {
+                max-height: calc(100vh - 145px);
+            }
+
+            body.search-active {
+                padding-bottom: 0;
+            }
+
+            body.search-active .page {
+                min-height: calc(100vh - 61px);
+                padding: 24px 13px 20px;
+            }
+        }
+
+
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
+        .page {
+
+            width: 100%;
+
+            max-width: 1280px;
+
+            margin: auto;
+
+            padding:
+                25px 18px
+                50px;
+
+        }
+
+
+        /* =====================================================
+           BACK
+        ===================================================== */
+
+        .back-row {
+
+            margin-bottom:
+                18px;
+
+        }
+
+
+        .back-button {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            padding:
+                9px 13px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                10px;
+
+            background:
+                rgba(16,23,40,0.80);
+
+            color:
+                #b9c5da;
+
+            font-size:
+                12px;
+
+            font-weight:
+                700;
+
+        }
+
+
+        /* =====================================================
+           MAIN CARD
+        ===================================================== */
+
+        .movie-card {
+
+            position: relative;
+
+            overflow: hidden;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                var(--radius-lg);
+
+            background:
+
+                linear-gradient(
+                    145deg,
+                    rgba(17,25,43,0.98),
+                    rgba(10,16,29,0.98)
+                );
+
+            box-shadow:
+                0 20px 60px
+                rgba(0,0,0,0.38);
+
+        }
+
+
+        .movie-content {
+
+            position: relative;
+
+            z-index: 2;
+
+            padding:
+                34px;
+
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .movie-hero {
+
+            display: grid;
+
+            grid-template-columns:
+                230px
+                minmax(0,1fr);
+
+            gap:
+                34px;
+
+            align-items:
+                center;
+
+            margin-bottom:
+                30px;
+
+        }
+
+
+        .poster-box {
+
+            width:
+                230px;
+
+        }
+
+
+        .movie-poster {
+
+            width:
+                100%;
+
+            aspect-ratio:
+                2 / 3;
+
+            display:
+                block;
+
+            object-fit:
+                cover;
+
+            border-radius:
+                17px;
+
+            background:
+                #172139;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            box-shadow:
+                0 18px 45px
+                rgba(0,0,0,0.48);
+
+        }
+
+
+        .hero-details {
+
+            min-width:
+                0;
+
+        }
+
+
+        .movie-label {
+
+            display:
+                inline-flex;
+
+            padding:
+                7px 11px;
+
+            margin-bottom:
+                13px;
+
+            border:
+                1px solid
+                rgba(77,141,255,0.20);
+
+            border-radius:
+                999px;
+
+            background:
+                rgba(77,141,255,0.09);
+
+            color:
+                var(--blue-light);
+
+            font-size:
+                10px;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+        }
+
+
+        .movie-title {
+
+            max-width:
+                850px;
+
+            margin:
+                0 0 10px;
+
+            font-size:
+                clamp(35px, 5vw, 62px);
+
+            line-height:
+                1.03;
+
+            letter-spacing:
+                -2px;
+
+            word-break:
+                break-word;
+
+        }
+
+
+        .hero-subtitle {
+
+            margin:
+                0 0 20px;
+
+            color:
+                var(--muted);
+
+            font-size:
+                14px;
+
+            line-height:
+                1.6;
+
+        }
+
+
+        .hero-tags {
+
+            display:
+                flex;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                8px;
+
+        }
+
+
+        .hero-tags span {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            min-height:
+                34px;
+
+            padding:
+                7px 11px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                999px;
+
+            background:
+                rgba(25,34,56,0.80);
+
+            color:
+                #dce2f0;
+
+            font-size:
+                11px;
+
+            font-weight:
+                700;
+
+        }
+
+
+        /* =====================================================
+           WORLDWIDE
+        ===================================================== */
+
+        .worldwide {
+
+            padding:
+                24px 26px;
+
+            margin-bottom:
+                18px;
+
+            border:
+                1px solid
+                rgba(255,204,51,0.28);
+
+            border-radius:
+                18px;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    #332807,
+                    #17130a
+                );
+
+        }
+
+
+        .worldwide-label {
+
+            display:
+                block;
+
+            color:
+                #b6aa84;
+
+            font-size:
+                10px;
+
+            font-weight:
+                800;
+
+            letter-spacing:
+                1.1px;
+
+            text-transform:
+                uppercase;
+
+        }
+
+
+        .worldwide-value {
+
+            margin-top:
+                6px;
+
+            color:
+                #ffe477;
+
+            font-size:
+                clamp(30px, 5vw, 42px);
+
+            font-weight:
+                1000;
+
+        }
+
+
+        /* =====================================================
+           SECTION HEADING
+        ===================================================== */
+
+        .section-heading {
+
+            margin:
+                27px 0 13px;
+
+            color:
+                var(--blue-light);
+
+            font-size:
+                10px;
+
+            font-weight:
+                800;
+
+            letter-spacing:
+                1px;
+
+            text-transform:
+                uppercase;
+
+        }
+
+
+        /* =====================================================
+           INFO
+        ===================================================== */
+
+        .movie-info {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0,1fr));
+
+            gap:
+                12px;
+
+        }
+
+
+        .info-box {
+
+            min-width:
+                0;
+
+            padding:
+                17px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                15px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(25,34,56,0.94),
+                    rgba(16,23,40,0.94)
+                );
+
+        }
+
+
+        .info-label {
+
+            display:
+                block;
+
+            margin-bottom:
+                7px;
+
+            color:
+                var(--muted);
+
+            font-size:
+                9px;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+        }
+
+
+        .info-value {
+
+            display:
+                block;
+
+            color:
+                #edf2fb;
+
+            font-size:
+                16px;
+
+            font-weight:
+                800;
+
+            line-height:
+                1.35;
+
+            overflow-wrap:
+                anywhere;
+
+        }
+
+
+        /* =====================================================
+           VERDICT
+        ===================================================== */
+
+        .verdict {
+
+            margin-top:
+                18px;
+
+            padding:
+                20px 22px;
+
+            border:
+                1px solid
+                rgba(105,210,125,0.22);
+
+            border-radius:
+                16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #182315,
+                    #101810
+                );
+
+        }
+
+
+        .verdict-label {
+
+            display:
+                block;
+
+            color:
+                #9da891;
+
+            font-size:
+                10px;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+        }
+
+
+        .verdict-value {
+
+            display:
+                block;
+
+            margin-top:
+                6px;
+
+            color:
+                #b9f0c1;
+
+            font-size:
+                25px;
+
+            font-weight:
+                1000;
+
+        }
+
+
+        /* =====================================================
+           WEEKLY STATE WISE
+        ===================================================== */
+
+        .weekly-section {
+
+            margin-top:
+                30px;
+
+        }
+
+
+        .weekly-card {
+
+            overflow-x:
+                auto;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                16px;
+
+            background:
+                rgba(16,23,40,0.92);
+
+        }
+
+
+        .weekly-table {
+
+            width:
+                100%;
+
+            min-width:
+                600px;
+
+            border-collapse:
+                collapse;
+
+        }
+
+
+        .weekly-table th {
+
+            padding:
+                15px;
+
+            text-align:
+                left;
+
+            background:
+                #151f35;
+
+            color:
+                var(--blue-light);
+
+            font-size:
+                11px;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                0.7px;
+
+        }
+
+
+        .weekly-table td {
+
+            padding:
+                14px 15px;
+
+            border-top:
+                1px solid
+                var(--border);
+
+            color:
+                #dce2f0;
+
+            font-size:
+                13px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        .weekly-table tr:hover td {
+
+            background:
+                rgba(77,141,255,0.05);
+
+        }
+
+
+        .week-number {
+
+            color:
+                var(--blue-light);
+
+            font-weight:
+                900;
+
+        }
+
+
+        .territory {
+
+            font-weight:
+                800;
+
+        }
+
+
+        .weekly-collection {
+
+            color:
+                #ffe477;
+
+            font-weight:
+                900;
+
+        }
+
+
+        .no-data {
+
+            padding:
+                30px;
+
+            text-align:
+                center;
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+        }
+
+
+        /* =====================================================
+           DAILY DATA
+        ===================================================== */
+
+        .daily-section {
+
+            margin-top:
+                30px;
+
+        }
+
+
+        .daily-card {
+
+            overflow-x:
+                auto;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                16px;
+
+            background:
+                rgba(16,23,40,0.92);
+
+        }
+
+
+        .daily-table {
+
+            width:
+                100%;
+
+            min-width:
+                650px;
+
+            border-collapse:
+                collapse;
+
+        }
+
+
+        .daily-table th {
+
+            padding:
+                15px;
+
+            text-align:
+                left;
+
+            background:
+                #151f35;
+
+            color:
+                var(--blue-light);
+
+            font-size:
+                11px;
+
+            text-transform:
+                uppercase;
+
+        }
+
+
+        .daily-table td {
+
+            padding:
+                14px 15px;
+
+            border-top:
+                1px solid
+                var(--border);
+
+            color:
+                #dce2f0;
+
+            font-size:
+                13px;
+
+        }
+
+
+        .daily-collection {
+
+            color:
+                #b9f0c1;
+
+            font-weight:
+                900;
+
+        }
+
+
+        /* =====================================================
+           LOADING
+        ===================================================== */
+
+        .loading {
+
+            animation:
+                pulse 1.3s
+                ease-in-out
+                infinite;
+
+        }
+
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity:
+                    0.45;
+            }
+
+            50% {
+                opacity:
+                    1;
+            }
+
+        }
+
+
+
+        /* =====================================================
+           NO MOVIE SELECTED
+        ===================================================== */
+
+        .select-movie-box {
+            padding: 38px 22px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17,25,43,0.98),
+                    rgba(10,16,29,0.98)
+                );
+        }
+
+        .select-movie-icon {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(77,141,255,0.20),
+                    rgba(121,92,255,0.20)
+                );
+            font-size: 30px;
+        }
+
+        .select-movie-box h2 {
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .select-movie-box p {
+            max-width: 560px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .select-movie-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .select-movie-action {
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: rgba(25,34,56,0.86);
+            color: #dce5f8;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .select-movie-action.primary {
+            border-color: rgba(77,141,255,0.28);
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(77,141,255,0.22),
+                    rgba(121,92,255,0.22)
+                );
+            color: var(--blue-light);
+        }
+
+        @media (max-width: 700px) {
+            .select-movie-box {
+                padding: 30px 16px;
+            }
+
+            .select-movie-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .select-movie-action {
+                width: 100%;
+            }
+        }
+
+
+        /* =====================================================
+           ERROR
+        ===================================================== */
+
+        .error-box {
+
+            padding:
+                35px 20px;
+
+            text-align:
+                center;
+
+            border:
+                1px solid
+                rgba(255,70,85,0.20);
+
+            border-radius:
+                16px;
+
+            background:
+                rgba(255,70,85,0.06);
+
+        }
+
+
+        .error-box-icon {
+
+            font-size:
+                35px;
+
+            margin-bottom:
+                10px;
+
+        }
+
+
+        .error-box h2 {
+
+            margin-bottom:
+                7px;
+
+            font-size:
+                21px;
+
+        }
+
+
+        .error-box p {
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            line-height:
+                1.6;
+
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+
+            margin-top:
+                35px;
+
+            border-top:
+                1px solid
+                var(--border);
+
+            background:
+                #080c16;
+
+        }
+
+
+        .footer-inner {
+
+            max-width:
+                1280px;
+
+            margin:
+                auto;
+
+            padding:
+                30px 18px
+                calc(
+                    35px +
+                    env(safe-area-inset-bottom)
+                );
+
+            text-align:
+                center;
+
+        }
+
+
+        .footer-inner h3 {
+
+            margin-bottom:
+                7px;
+
+            font-size:
+                18px;
+
+        }
+
+
+        .footer-inner h3 span {
+
+            color:
+                var(--gold);
+
+        }
+
+
+        .footer-inner p {
+
+            margin:
+                6px 0;
+
+            color:
+                var(--muted-2);
+
+            font-size:
+                11px;
+
+            line-height:
+                1.6;
+
+        }
+
+
+        /* =====================================================
+           MOBILE NAV
+        ===================================================== */
+
+        .mobile-bottom-nav {
+
+            display:
+                none;
+
+        }
+
+
+        /* =====================================================
+           TABLET
+        ===================================================== */
+
+        @media (max-width: 950px) {
+
+            .movie-info {
+
+                grid-template-columns:
+                    repeat(2, minmax(0,1fr));
+
+            }
+
+
+            .movie-hero {
+
+                grid-template-columns:
+                    190px
+                    minmax(0,1fr);
+
+                gap:
+                    25px;
+
+            }
+
+
+            .poster-box {
+
+                width:
+                    190px;
+
+            }
+
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            body {
+
+                padding-bottom:
+                    70px;
+
+            }
+
+
+            .navbar {
+
+                min-height:
+                    61px;
+
+                padding:
+                    0 13px;
+
+            }
+
+
+            .logo {
+
+                font-size:
+                    18px;
+
+            }
+
+
+            nav {
+
+                display:
+                    none;
+
+            }
+
+
+            .page {
+
+                padding:
+                    15px 13px
+                    35px;
+
+            }
+
+
+            .movie-card {
+
+                border-radius:
+                    18px;
+
+            }
+
+
+            .movie-content {
+
+                padding:
+                    18px;
+
+            }
+
+
+            .movie-hero {
+
+                display:
+                    flex;
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    center;
+
+                gap:
+                    19px;
+
+                text-align:
+                    center;
+
+            }
+
+
+            .poster-box {
+
+                width:
+                    170px;
+
+            }
+
+
+            .hero-details {
+
+                width:
+                    100%;
+
+            }
+
+
+            .movie-title {
+
+                font-size:
+                    clamp(29px, 9vw, 39px);
+
+            }
+
+
+            .hero-tags {
+
+                justify-content:
+                    center;
+
+            }
+
+
+            .worldwide {
+
+                padding:
+                    19px;
+
+            }
+
+
+            .worldwide-value {
+
+                font-size:
+                    30px;
+
+            }
+
+
+            .movie-info {
+
+                grid-template-columns:
+                    repeat(2, minmax(0,1fr));
+
+                gap:
+                    9px;
+
+            }
+
+
+            .info-box {
+
+                padding:
+                    13px;
+
+            }
+
+
+            .info-value {
+
+                font-size:
+                    13px;
+
+            }
+
+
+            .weekly-table,
+            .daily-table {
+
+                min-width:
+                    600px;
+
+            }
+
+
+            .mobile-bottom-nav {
+
+                position:
+                    fixed;
+
+                left:
+                    0;
+
+                right:
+                    0;
+
+                bottom:
+                    0;
+
+                z-index:
+                    1500;
+
+                display:
+                    grid;
+
+                grid-template-columns:
+                    repeat(4,1fr);
+
+                padding:
+                    8px;
+
+                background:
+                    rgba(7,11,20,0.96);
+
+                border-top:
+                    1px solid
+                    var(--border);
+
+                backdrop-filter:
+                    blur(18px);
+
+            }
+
+
+            .mobile-bottom-nav a {
+
+                display:
+                    flex;
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    center;
+
+                justify-content:
+                    center;
+
+                gap:
+                    3px;
+
+                min-height:
+                    48px;
+
+                color:
+                    #8793a9;
+
+                font-size:
+                    9px;
+
+                font-weight:
+                    700;
+
+            }
+
+
+            .mobile-bottom-nav a span:first-child {
+
+                font-size:
+                    18px;
+
+            }
+
+        }
+
+
+        /* =====================================================
+           DAY-WISE STATE BREAKDOWN
+        ===================================================== */
+
+        .day-state-section {
+            margin-top: 30px;
+        }
+
+        .day-block {
+            margin-top: 18px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(16,23,40,0.92);
+        }
+
+        .day-block-title {
+            padding: 14px 16px;
+            background: #151f35;
+            color: var(--blue-light);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .day-state-table {
+            width: 100%;
+            min-width: 620px;
+            border-collapse: collapse;
+        }
+
+        .day-state-table th,
+        .day-state-table td {
+            padding: 13px 15px;
+            text-align: left;
+        }
+
+        .day-state-table th {
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .day-state-table td {
+            border-top: 1px solid var(--border);
+            color: #dce2f0;
+            font-size: 13px;
+        }
+
+        .day-total-row td {
+            background: rgba(255,204,51,0.07);
+            color: #ffe477;
+            font-weight: 900;
+        }
+
+        .week-total-row td {
+            background: rgba(77,141,255,0.10);
+            color: #cfe0ff;
+            font-weight: 900;
+        }
+
+        .week1-summary {
+            margin-top: 28px;
+        }
+
+        @media (max-width: 700px) {
+            .day-state-table {
+                min-width: 540px;
+            }
+        }
+
+
+        .day-state-matrix {
+            min-width: 900px;
+        }
+
+        .day-state-matrix th,
+        .day-state-matrix td {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .day-state-matrix th:first-child,
+        .day-state-matrix td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background: #151f35;
+        }
+
+        .day-state-matrix th:nth-child(2),
+        .day-state-matrix td:nth-child(2) {
+            position: sticky;
+            left: 78px;
+            z-index: 2;
+            background: #151f35;
+        }
+
+        .day-state-matrix tbody td:first-child,
+        .day-state-matrix tbody td:nth-child(2) {
+            background: #101728;
+        }
+
+        .day-state-matrix .day-label {
+            font-weight: 1000;
+            color: var(--blue-light);
+        }
+
+        .day-state-matrix .day-value {
+            color: #b9f0c1;
+            font-weight: 800;
+        }
+
+        .day-state-matrix .overall-value {
+            color: #ffe477;
+            font-weight: 1000;
+        }
+
+        .day-state-matrix .week-summary-row td {
+            background: rgba(77,141,255,0.12);
+            color: #cfe0ff;
+            font-weight: 1000;
+        }
+
+        .day-state-matrix .week-summary-row td:first-child,
+        .day-state-matrix .week-summary-row td:nth-child(2) {
+            background: #17213a;
+        }
+
+    
+/* =====================================================
+   BOXOFFICEX SITE-WIDE MASTER SHELL
+===================================================== */
+.navbar{
+    min-height:66px;
+    gap:12px;
+}
+
+.logo{
+    font-size:20px;
+    letter-spacing:.45px;
+}
+
+.logo-icon{
+    width:33px;
+    height:33px;
+    border-radius:9px;
+}
+
+nav{
+    gap:2px;
+    flex-wrap:nowrap;
+}
+
+nav a{
+    min-height:38px;
+    display:inline-flex;
+    align-items:center;
+    padding:8px 10px;
+    border-radius:9px;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+nav .nav-compare{
+    background:linear-gradient(135deg,#ff4655,#d92e3d);
+    color:#fff !important;
+    box-shadow:0 8px 20px rgba(255,70,85,.16);
+}
+
+nav .nav-compare:hover{
+    background:linear-gradient(135deg,#ff5967,#e83b49);
+    color:#fff !important;
+    transform:translateY(-1px);
+}
+
+.nav-item-with-badge{
+    position:relative;
+}
+
+.nav-new-badge{
+    position:absolute;
+    top:-5px;
+    right:-1px;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    min-width:25px;
+    height:13px;
+    padding:0 4px;
+    border-radius:999px;
+    background:#ff4655;
+    color:#fff;
+    font-size:6.5px;
+    font-weight:1000;
+    letter-spacing:.35px;
+    pointer-events:none;
+}
+
+.nav-new-badge.show{
+    display:inline-flex;
+}
+
+/* Movie page: smaller poster and tighter premium layout */
+.page{
+    max-width:1180px;
+}
+
+.movie-content{
+    padding:28px;
+}
+
+.movie-hero{
+    grid-template-columns:180px minmax(0,1fr);
+    gap:28px;
+}
+
+.poster-box{
+    width:180px;
+}
+
+.movie-poster{
+    border-radius:14px;
+}
+
+.movie-title{
+    font-size:clamp(32px,4.5vw,54px);
+}
+
+.worldwide{
+    padding:20px 22px;
+}
+
+.movie-info{
+    gap:10px;
+}
+
+.info-box{
+    padding:15px;
+}
+
+/* Master footer */
+footer{
+    margin-top:42px;
+    background:linear-gradient(180deg,#080c16,#050810);
+}
+
+.footer-inner{
+    max-width:1180px;
+    padding-top:28px;
+}
+
+.footer-brand{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:8px;
+    font-size:18px;
+    font-weight:900;
+}
+
+.footer-brand-icon{
+    width:32px;
+    height:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+}
+
+.footer-brand strong span{
+    color:var(--gold);
+}
+
+.footer-links{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:5px 16px;
+    margin:15px 0 10px;
+}
+
+.footer-links a{
+    color:#aebbd4;
+    font-size:11px;
+    font-weight:700;
+}
+
+.footer-links a:hover{
+    color:var(--blue-light);
+}
+
+/* Tablet header remains usable */
+@media(max-width:1180px) and (min-width:701px){
+    .navbar{
+        padding-left:14px;
+        padding-right:14px;
+        overflow-x:auto;
+        scrollbar-width:none;
+    }
+
+    .navbar::-webkit-scrollbar{
+        display:none;
+    }
+
+    .logo{
+        font-size:17px;
+    }
+
+    .logo-icon{
+        width:30px;
+        height:30px;
+    }
+
+    nav{
+        min-width:max-content;
+    }
+
+    nav a{
+        padding-left:7px;
+        padding-right:7px;
+        font-size:10.5px;
+    }
+}
+
+@media(max-width:950px) and (min-width:701px){
+    .movie-hero{
+        grid-template-columns:160px minmax(0,1fr);
+        gap:22px;
+    }
+
+    .poster-box{
+        width:160px;
+    }
+}
+
+/* Master phone navigation + compact poster */
+@media(max-width:700px){
+    body{
+        padding-bottom:calc(68px + env(safe-area-inset-bottom));
+    }
+
+    .navbar{
+        min-height:58px;
+    }
+
+    .movie-content{
+        padding:16px;
+    }
+
+    .movie-hero{
+        gap:16px;
+    }
+
+    .poster-box{
+        width:138px;
+    }
+
+    .movie-title{
+        font-size:clamp(27px,8.5vw,37px);
+        letter-spacing:-1.2px;
+    }
+
+    .hero-subtitle{
+        font-size:12px;
+    }
+
+    .worldwide{
+        padding:17px;
+    }
+
+    .movie-info{
+        gap:8px;
+    }
+
+    .info-box{
+        padding:12px;
+    }
+
+    .mobile-bottom-nav{
+        grid-template-columns:repeat(5,1fr);
+        min-height:calc(68px + env(safe-area-inset-bottom));
+        padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+        gap:2px;
+        box-shadow:0 -8px 24px rgba(0,0,0,.28);
+    }
+
+    .mobile-bottom-nav a{
+        min-height:50px;
+        padding:4px 2px;
+        font-size:7.5px;
+    }
+
+    .mobile-bottom-nav a span:first-child{
+        font-size:17px;
+    }
+
+    .mobile-bottom-nav .nav-new-badge{
+        top:2px;
+        right:7px;
+    }
+}
+
+
+/* =====================================================
+   BOXOFFICEX PUBLIC MOBILE STANDARD
+   Fixed solid header + hamburger + no bottom navigation
+===================================================== */
+.mobile-menu-button{
+    display:none;
+}
+
+@media(max-width:700px){
+
+    body{
+        padding-top:61px !important;
+        padding-bottom:0 !important;
+        overflow-x:hidden !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        width:100% !important;
+        z-index:99999 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto !important;
+        align-items:center !important;
+        gap:10px !important;
+        position:relative !important;
+        z-index:100000 !important;
+        background:#070a12 !important;
+        overflow:visible !important;
+    }
+
+    .logo{
+        font-size:18px !important;
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    .mobile-menu-button{
+        width:42px;
+        height:42px;
+        display:flex !important;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+        position:relative;
+        z-index:100001;
+    }
+
+    .mobile-menu-button span{
+        width:20px;
+        height:2px;
+        display:block;
+        border-radius:999px;
+        background:#fff;
+        transition:transform .2s ease,opacity .2s ease;
+    }
+
+    .mobile-menu-button.open span:nth-child(1){
+        transform:translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-button.open span:nth-child(2){
+        opacity:0;
+    }
+
+    .mobile-menu-button.open span:nth-child(3){
+        transform:translateY(-7px) rotate(-45deg);
+    }
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;
+        left:10px !important;
+        right:10px !important;
+        width:auto !important;
+        display:none !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:5px !important;
+        padding:10px !important;
+        border:1px solid rgba(255,255,255,.09) !important;
+        border-radius:14px !important;
+        background:#0a0f1b !important;
+        box-shadow:0 18px 45px rgba(0,0,0,.42) !important;
+        overflow:visible !important;
+        z-index:100002 !important;
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+
+    header nav a{
+        width:100% !important;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start !important;
+        font-size:12px !important;
+    }
+
+    .mobile-bottom-nav{
+        display:none !important;
+    }
+
+    .page{
+        padding:16px 12px 34px !important;
+    }
+
+    .global-search{
+        margin-bottom:15px !important;
+    }
+
+    .movie-content{
+        padding:15px !important;
+    }
+
+    .movie-hero{
+        gap:15px !important;
+    }
+
+    .poster-box{
+        width:138px !important;
+    }
+
+    .movie-title{
+        font-size:clamp(27px,8.5vw,37px) !important;
+        letter-spacing:-1.1px !important;
+    }
+
+    .movie-info{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:8px !important;
+    }
+
+    .info-box{
+        padding:12px !important;
+    }
+
+    .weekly-card,
+    .daily-card{
+        max-width:100%;
+        overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    footer{
+        position:relative;
+        z-index:1;
+    }
+}
+
+
+/* =====================================================
+   MOBILE DAY-WISE MATRIX:
+   Keep DAY fixed; DATE + STATE COLUMNS scroll sideways
+===================================================== */
+@media(max-width:700px){
+
+    .day-state-matrix{
+        min-width:900px !important;
+    }
+
+    .day-state-matrix th:first-child,
+    .day-state-matrix td:first-child{
+        position:sticky !important;
+        left:0 !important;
+        z-index:5 !important;
+        min-width:62px !important;
+        width:62px !important;
+        background:#151f35 !important;
+        box-shadow:6px 0 12px rgba(0,0,0,.20);
+    }
+
+    .day-state-matrix tbody td:first-child{
+        background:#101728 !important;
+    }
+
+    /* DATE must scroll with Tamil Nadu, Kerala, Karnataka, etc. */
+    .day-state-matrix th:nth-child(2),
+    .day-state-matrix td:nth-child(2){
+        position:static !important;
+        left:auto !important;
+        z-index:auto !important;
+        min-width:105px !important;
+    }
+
+    .day-state-matrix tbody td:nth-child(2){
+        background:transparent !important;
+    }
+
+    .weekly-card{
+        overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:thin;
+    }
+}
+
+
+/* =====================================================
+   MOBILE TABLE SCROLL HINT
+===================================================== */
+.mobile-scroll-hint{
+    display:none;
+}
+
+@media(max-width:700px){
+    .mobile-scroll-hint{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+        width:100%;
+        margin:0 0 9px;
+        padding:8px 10px;
+        border:1px solid rgba(77,141,255,.16);
+        border-radius:10px;
+        background:rgba(77,141,255,.07);
+        color:#9fc0ff;
+        font-size:10px;
+        font-weight:800;
+        letter-spacing:.15px;
+        text-align:center;
+    }
+
+    .mobile-scroll-hint span{
+        color:#ffcc33;
+        font-size:17px;
+        line-height:1;
+        animation:boxofficexSwipeHint 1.4s ease-in-out infinite;
+    }
+
+    @keyframes boxofficexSwipeHint{
+        0%,100%{transform:translateX(-3px)}
+        50%{transform:translateX(3px)}
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <div class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
+            BOXOFFICE<span>X</span>
+
+        </a>
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+
+
+        <nav aria-label="Main navigation">
+            <a href="index.html">Home</a>
+
+            <a href="new-movies.html" class="nav-item-with-badge">
+                New Movies
+                <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
+            </a>
+
+            <a href="movie-rankings.html">Rankings</a>
+            <a href="actors.html">Actors</a>
+
+            <a href="articles.html" class="nav-item-with-badge">
+                Articles
+                <span id="articlesBadge" class="nav-new-badge">NEW</span>
+            </a>
+
+            <a href="compare-select.html" class="nav-compare">
+                ⚔️ Actor Compare
+            </a>
+
+            <a href="movie-compare-select.html" class="nav-compare">
+                🎬 Movie Compare
+            </a>
+        </nav>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="page">
+
+
+    <!-- SAME GLOBAL SEARCH ENGINE USED ACROSS BOXOFFICEX -->
+    <div class="global-search">
+
+        <form
+            class="search-form"
+            id="searchForm"
+            role="search"
+        >
+
+            <span class="search-icon" aria-hidden="true">
+                🔍
+            </span>
+
+            <input
+                type="search"
+                id="globalSearch"
+                placeholder="Search movies or actors..."
+                autocomplete="off"
+                enterkeyhint="search"
+                aria-label="Search movies or actors"
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </form>
+
+        <div
+            id="searchResults"
+            role="listbox"
+            aria-label="Search results"
+        ></div>
+
+    </div>
+
+
+    <div class="back-row">
+
+        <a
+            href="javascript:history.back()"
+            class="back-button"
+        >
+            ← Back
+        </a>
+
+    </div>
+
+
+    <div class="movie-card">
+
+        <div class="movie-content">
+
+
+            <!-- =================================================
+                 MOVIE HERO
+            ================================================= -->
+
+            <section class="movie-hero">
+
+                <div class="poster-box">
+
+                    <img
+                        id="moviePoster"
+                        src="posters/coming-soon.png"
+                        alt="Movie poster"
+                        class="movie-poster"
+                    >
+
+                </div>
+
+
+                <div class="hero-details">
+
+                    <div class="movie-label">
+                        🎬 BOXOFFICEX MOVIE
+                    </div>
+
+
+                    <h1
+                        id="movieTitle"
+                        class="movie-title"
+                    >
+                        <span class="loading">
+                            Loading movie...
+                        </span>
+                    </h1>
+
+
+                    <p class="hero-subtitle">
+                        Complete movie details,
+                        box-office collections and
+                        verdict.
+                    </p>
+
+
+                    <div class="hero-tags">
+
+                        <span id="language">
+                            Loading...
+                        </span>
+
+                        <span id="genre">
+                            Loading...
+                        </span>
+
+                        <span id="release_date">
+                            Loading...
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 WORLDWIDE
+            ================================================= -->
+
+            <section class="worldwide">
+
+                <span class="worldwide-label">
+                    🌍 Worldwide Collection
+                </span>
+
+                <div
+                    id="worldwide"
+                    class="worldwide-value loading"
+                >
+                    Loading...
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 BOX OFFICE DETAILS
+            ================================================= -->
+
+            <div class="section-heading">
+                BOX OFFICE DETAILS
+            </div>
+
+
+            <section class="movie-info">
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        Budget
+                    </span>
+
+                    <span
+                        id="budget"
+                        class="info-value"
+                    >
+                        Loading...
+                    </span>
+
+                </div>
+
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        India Collection
+                    </span>
+
+                    <span
+                        id="india"
+                        class="info-value"
+                    >
+                        Loading...
+                    </span>
+
+                </div>
+
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        Overseas Collection
+                    </span>
+
+                    <span
+                        id="overseas"
+                        class="info-value"
+                    >
+                        Loading...
+                    </span>
+
+                </div>
+
+
+                <div class="info-box">
+
+                    <span class="info-label">
+                        Director
+                    </span>
+
+                    <span
+                        id="director"
+                        class="info-value"
+                    >
+                        Loading...
+                    </span>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 VERDICT
+            ================================================= -->
+
+            <section class="verdict">
+
+                <span class="verdict-label">
+                    🏆 Box Office Verdict
+                </span>
+
+                <span
+                    id="verdict"
+                    class="verdict-value"
+                >
+                    Loading...
+                </span>
+
+            </section>
+
+
+            <!-- =================================================
+                 DAY-WISE COLLECTION MATRIX
+                 DAYS = ROWS / STATES = COLUMNS
+            ================================================= -->
+
+            <section class="day-state-section">
+
+                <div class="section-heading">
+                    📊 DAY-WISE STATE BOX OFFICE COLLECTION
+                </div>
+
+                <div class="mobile-scroll-hint" aria-hidden="true">
+                    <span>↔</span>
+                    Swipe sideways to view Date &amp; State collections
+                </div>
+
+                <div class="weekly-card">
+
+                    <table class="weekly-table day-state-matrix">
+
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Date</th>
+                                <th>Tamil Nadu</th>
+                                <th>Kerala</th>
+                                <th>Karnataka</th>
+                                <th>Telugu States</th>
+                                <th>Rest of India</th>
+                                <th>India Total</th>
+                                <th>Overseas</th>
+                                <th>Worldwide Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="dayStateMatrixBody">
+
+                            <tr>
+                                <td
+                                    colspan="10"
+                                    class="no-data"
+                                >
+                                    Loading day-wise state collections...
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+    <div class="footer-inner">
+        <a href="index.html" class="footer-brand" aria-label="BoxOfficeX Home">
+            <span class="footer-brand-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </a>
+
+        <p>
+            Movie box-office collections, latest releases, actors,
+            articles, rankings and actor/movie comparisons.
+        </p>
+
+        <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms &amp; Conditions</a>
+            <a href="disclaimer.html">Disclaimer</a>
+        </div>
+
+        <p>© 2026 BoxOfficeX. All rights reserved.</p>
+    </div>
+</footer>
+
+
+<!-- =====================================================
+     MOBILE NAV
+===================================================== -->
+
+<div class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <a href="index.html">
+        <span>🏠</span>
+        <span>Home</span>
+    </a>
+
+    <a href="new-movies.html" class="nav-item-with-badge">
+        <span>🆕</span>
+        <span>New</span>
+        <span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span>
+    </a>
+
+    <a href="articles.html" class="nav-item-with-badge">
+        <span>📰</span>
+        <span>Articles</span>
+        <span id="mobileArticlesBadge" class="nav-new-badge">NEW</span>
+    </a>
+
+    <a href="compare-select.html">
+        <span>⚔️</span>
+        <span>Actors</span>
+    </a>
+
+    <a href="movie-compare-select.html">
+        <span>🎬</span>
+        <span>Movies</span>
+    </a>
+</div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script>
+
+    /* =====================================================
+       BOXOFFICEX MOVIE PAGE JAVASCRIPT
+       NEW DAILY + STATE COLLECTION SYSTEM
+    ===================================================== */
+
+
+    const API_BASE = window.location.origin;
+
+
+    /* =====================================================
+       GLOBAL MOVIE + ACTOR SEARCH
+       SAME SEARCH PATTERN AS INDEX / NEW MOVIES
+    ===================================================== */
+
+    let cachedSearchMovies = [];
+    let cachedSearchActors = [];
+    let globalSearchTimer = null;
+
+    const globalSearchInput =
+        document.getElementById("globalSearch");
+
+    const globalSearchResults =
+        document.getElementById("searchResults");
+
+
+    function escapeSearchHTML(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value ?? "";
+
+        return div.innerHTML;
+    }
+
+
+    async function loadGlobalSearchData() {
+
+        try {
+
+            const [moviesResponse, actorsResponse] =
+                await Promise.all([
+                    fetch(API_BASE + "/movies"),
+                    fetch(API_BASE + "/actors")
+                ]);
+
+            if (
+                !moviesResponse.ok ||
+                !actorsResponse.ok
+            ) {
+                throw new Error(
+                    "Global search data could not be loaded"
+                );
+            }
+
+            const [moviesData, actorsData] =
+                await Promise.all([
+                    moviesResponse.json(),
+                    actorsResponse.json()
+                ]);
+
+            cachedSearchMovies =
+                Array.isArray(moviesData.movies)
+                    ? moviesData.movies
+                    : [];
+
+            cachedSearchActors =
+                Array.isArray(actorsData.actors)
+                    ? actorsData.actors
+                    : [];
+
+        } catch (error) {
+
+            console.error(
+                "Global search loading error:",
+                error
+            );
+        }
+    }
+
+
+    function enterGlobalSearchMode() {
+
+        document.body.classList.add(
+            "search-active"
+        );
+    }
+
+
+    function exitGlobalSearchMode() {
+
+        document.body.classList.remove(
+            "search-active"
+        );
+
+        globalSearchResults.innerHTML =
+            "";
+    }
+
+
+    function performGlobalSearch(query) {
+
+        const actorMatches =
+            cachedSearchActors
+                .filter(actor =>
+                    String(actor.name || "")
+                        .toLowerCase()
+                        .includes(query)
+                )
+                .slice(0, 4);
+
+        const movieMatches =
+            cachedSearchMovies
+                .filter(movie =>
+                    String(movie.title || "")
+                        .toLowerCase()
+                        .includes(query)
+                )
+                .slice(0, 4);
+
+        globalSearchResults.innerHTML =
+            "";
+
+        if (
+            actorMatches.length === 0 &&
+            movieMatches.length === 0
+        ) {
+
+            globalSearchResults.innerHTML = `
+                <div class="search-result">
+                    <div class="search-result-icon">
+                        🔎
+                    </div>
+                    <div class="search-result-text">
+                        <strong>No results found</strong>
+                        <small>Try another movie or actor name</small>
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+        actorMatches.forEach(actor => {
+
+            const result =
+                document.createElement("div");
+
+            result.className =
+                "search-result";
+
+            result.setAttribute(
+                "role",
+                "option"
+            );
+
+            result.innerHTML = `
+                <div class="search-result-icon">
+                    🎭
+                </div>
+
+                <div class="search-result-text">
+                    <strong>
+                        ${escapeSearchHTML(actor.name)}
+                    </strong>
+
+                    <small>
+                        Actor • ${
+                            escapeSearchHTML(
+                                actor.profession || "Actor"
+                            )
+                        }
+                    </small>
+                </div>
+            `;
+
+            result.addEventListener(
+                "click",
+                function() {
+                    window.location.href =
+                        "actor.html?id=" +
+                        encodeURIComponent(actor.id);
+                }
+            );
+
+            globalSearchResults.appendChild(
+                result
+            );
+        });
+
+
+        movieMatches.forEach(movie => {
+
+            const result =
+                document.createElement("div");
+
+            result.className =
+                "search-result";
+
+            result.setAttribute(
+                "role",
+                "option"
+            );
+
+            result.innerHTML = `
+                <div class="search-result-icon">
+                    🎬
+                </div>
+
+                <div class="search-result-text">
+                    <strong>
+                        ${escapeSearchHTML(movie.title)}
+                    </strong>
+
+                    <small>
+                        Movie • ${
+                            escapeSearchHTML(
+                                movie.language || "Indian Cinema"
+                            )
+                        }
+                    </small>
+                </div>
+            `;
+
+            result.addEventListener(
+                "click",
+                function() {
+                    window.location.href =
+                        "movie.html?id=" +
+                        encodeURIComponent(movie.id);
+                }
+            );
+
+            globalSearchResults.appendChild(
+                result
+            );
+        });
+    }
+
+
+    globalSearchInput.addEventListener(
+        "input",
+        function() {
+
+            const query =
+                globalSearchInput.value
+                    .trim()
+                    .toLowerCase();
+
+            clearTimeout(
+                globalSearchTimer
+            );
+
+            if (query.length < 2) {
+
+                exitGlobalSearchMode();
+                return;
+            }
+
+            enterGlobalSearchMode();
+
+            globalSearchTimer =
+                setTimeout(
+                    function() {
+                        performGlobalSearch(query);
+                    },
+                    180
+                );
+        }
+    );
+
+
+    document
+        .getElementById("searchForm")
+        .addEventListener(
+            "submit",
+            function(event) {
+
+                event.preventDefault();
+
+                const query =
+                    globalSearchInput.value
+                        .trim()
+                        .toLowerCase();
+
+                if (!query) {
+
+                    globalSearchInput.focus();
+                    return;
+                }
+
+                enterGlobalSearchMode();
+                performGlobalSearch(query);
+            }
+        );
+
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Escape") {
+
+                globalSearchInput.value =
+                    "";
+
+                exitGlobalSearchMode();
+
+                globalSearchInput.blur();
+            }
+        }
+    );
+
+
+    loadGlobalSearchData();
+
+
+
+    /* =====================================================
+       MOVIE ID
+    ===================================================== */
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const movieId =
+        params.get("id");
+
+    let currentMovieReleaseDate = null;
+
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    function setText(
+        id,
+        value,
+        fallback = "—"
+    ) {
+
+        const element =
+            document.getElementById(id);
+
+        if (!element) {
+            return;
+        }
+
+        if (
+            value !== null &&
+            value !== undefined &&
+            String(value).trim() !== ""
+        ) {
+
+            element.textContent =
+                value;
+
+        } else {
+
+            element.textContent =
+                fallback;
+
+        }
+
+        element.classList.remove(
+            "loading"
+        );
+    }
+
+
+    /* =====================================================
+       FORMAT CRORE
+    ===================================================== */
+
+    function formatCrore(value) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+
+            return "—";
+
+        }
+
+        const number =
+            Number(value);
+
+        if (Number.isNaN(number)) {
+
+            return "₹" +
+                value +
+                " Cr";
+
+        }
+
+        return (
+            "₹" +
+            number.toLocaleString(
+                "en-IN",
+                {
+                    maximumFractionDigits: 2
+                }
+            ) +
+            " Cr"
+        );
+
+    }
+
+
+    /* =====================================================
+       POSTER
+    ===================================================== */
+
+    const poster =
+        document.getElementById(
+            "moviePoster"
+        );
+
+
+    if (poster) {
+
+        poster.addEventListener(
+            "error",
+            function () {
+
+                const defaultPoster =
+                    "posters/coming-soon.png";
+
+                if (
+                    !poster.src.endsWith(
+                        defaultPoster
+                    )
+                ) {
+
+                    poster.src =
+                        defaultPoster;
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       ERROR
+    ===================================================== */
+
+    function showSelectMovieState() {
+
+        const content =
+            document.querySelector(
+                ".movie-content"
+            );
+
+        if (!content) {
+            return;
+        }
+
+        content.innerHTML = `
+
+            <div class="select-movie-box">
+
+                <div class="select-movie-icon">
+                    🎬
+                </div>
+
+                <h2>
+                    Select a movie
+                </h2>
+
+                <p>
+                    Search for a movie above or browse the latest releases
+                    and rankings to open its full BoxOfficeX details.
+                </p>
+
+                <div class="select-movie-actions">
+
+                    <button
+                        type="button"
+                        class="select-movie-action primary"
+                        id="focusMovieSearch"
+                    >
+                        🔍 Search Movies
+                    </button>
+
+                    <a
+                        href="new-movies.html"
+                        class="select-movie-action"
+                    >
+                        🆕 New Movies
+                    </a>
+
+                    <a
+                        href="movie-rankings.html"
+                        class="select-movie-action"
+                    >
+                        🏆 Rankings
+                    </a>
+
+                </div>
+
+            </div>
+
+        `;
+
+        const focusButton =
+            document.getElementById(
+                "focusMovieSearch"
+            );
+
+        if (focusButton) {
+
+            focusButton.addEventListener(
+                "click",
+                function() {
+
+                    globalSearchInput.focus();
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+
+                }
+            );
+
+        }
+
+    }
+
+
+    function showError(message) {
+
+        const content =
+            document.querySelector(
+                ".movie-content"
+            );
+
+        if (!content) {
+            return;
+        }
+
+        content.innerHTML = `
+
+            <div class="error-box">
+
+                <div class="error-box-icon">
+                    🎬
+                </div>
+
+                <h2>
+                    Movie details not found
+                </h2>
+
+                <p>
+                    ${message}
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* =====================================================
+       STATE-WISE COLLECTION
+    ===================================================== */
+
+    function loadStateCollections(
+        collections
+    ) {
+
+        const body =
+            document.getElementById(
+                "weeklyBody"
+            );
+
+        if (!body) {
+            return;
+        }
+
+        body.innerHTML = "";
+
+
+        if (
+            !collections ||
+            collections.length === 0
+        ) {
+
+            body.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="3"
+                        class="no-data"
+                    >
+                        No state-wise collection
+                        data available.
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        collections.forEach(
+            item => {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td class="week-number">
+                        🇮🇳
+                    </td>
+
+                    <td class="territory">
+                        ${item.state || "Unknown"}
+                    </td>
+
+                    <td class="weekly-collection">
+                        ${formatCrore(
+                            item.collection_crore
+                        )}
+                    </td>
+
+                `;
+
+
+                body.appendChild(row);
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       DAY-WISE COLLECTION
+    ===================================================== */
+
+    function loadDailyCollections(
+        collections
+    ) {
+
+        const body =
+            document.getElementById(
+                "dailyBody"
+            );
+
+        if (!body) {
+            return;
+        }
+
+        body.innerHTML = "";
+
+
+        if (
+            !collections ||
+            collections.length === 0
+        ) {
+
+            body.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="no-data"
+                    >
+                        No daily box-office
+                        data available.
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        collections.forEach(
+            (item, index) => {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td>
+                        Day ${index + 1}
+                    </td>
+
+                    <td>
+                        ${item.date || "—"}
+                    </td>
+
+                    <td>
+                        India
+                    </td>
+
+                    <td class="daily-collection">
+                        ${formatCrore(
+                            item.collection_crore
+                        )}
+                    </td>
+
+                `;
+
+
+                body.appendChild(row);
+
+            }
+        );
+
+    }
+
+
+
+    /* =====================================================
+       DAY 1-7 STATE BREAKDOWN + WEEK 1 TOTALS
+    ===================================================== */
+
+    const preferredStateOrder = [
+        "Tamil Nadu",
+        "Kerala",
+        "Karnataka",
+        "Andhra Pradesh",
+        "Telangana",
+        "Maharashtra",
+        "West Bengal",
+        "Delhi",
+        "Rest of India"
+    ];
+
+
+    function stateSortIndex(state) {
+
+        const index =
+            preferredStateOrder.indexOf(state);
+
+        return index === -1
+            ? 999
+            : index;
+    }
+
+
+    function fetchCollectionBreakdown() {
+
+        return fetch(
+            API_BASE +
+            "/movies/" +
+            encodeURIComponent(movieId) +
+            "/collection-breakdown"
+        )
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Collection breakdown API returned HTTP " +
+                    response.status
+                );
+            }
+
+            return response.json();
+        })
+
+        .then(data => {
+
+            renderDayStateBreakdown(
+                data.records || []
+            );
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Collection breakdown error:",
+                error
+            );
+
+            document.getElementById(
+                "dayStateBreakdown"
+            ).innerHTML = `
+                <div class="no-data">
+                    Unable to load day-wise state collections.
+                </div>
+            `;
+
+            document.getElementById(
+                "week1StateTotalsBody"
+            ).innerHTML = `
+                <tr>
+                    <td colspan="2" class="no-data">
+                        Unable to load Week 1 totals.
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+
+    function calculateActualDayNumber(collectionDate) {
+
+        if (
+            !currentMovieReleaseDate ||
+            !collectionDate
+        ) {
+            return null;
+        }
+
+        const release =
+            new Date(
+                currentMovieReleaseDate +
+                "T00:00:00"
+            );
+
+        const collection =
+            new Date(
+                collectionDate +
+                "T00:00:00"
+            );
+
+        if (
+            Number.isNaN(release.getTime()) ||
+            Number.isNaN(collection.getTime())
+        ) {
+            return null;
+        }
+
+        const difference =
+            Math.floor(
+                (collection - release) /
+                86400000
+            );
+
+        return difference >= 0
+            ? difference + 1
+            : null;
+    }
+
+
+    function renderDayStateBreakdown(records) {
+
+        const body =
+            document.getElementById(
+                "dayStateMatrixBody"
+            );
+
+        body.innerHTML = "";
+
+        if (!records.length) {
+
+            body.innerHTML = `
+                <tr>
+                    <td
+                        colspan="10"
+                        class="no-data"
+                    >
+                        No day-wise state collection data available.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        const groupedByDate = {};
+
+        records.forEach(record => {
+
+            const date =
+                record.date || "Unknown";
+
+            if (!groupedByDate[date]) {
+
+                groupedByDate[date] = {
+                    dailyOverall: null,
+                    states: {}
+                };
+            }
+
+            if (
+                record.state === null ||
+                record.state === undefined ||
+                record.state === ""
+            ) {
+
+                groupedByDate[date].dailyOverall =
+                    Number(
+                        record.collection_crore || 0
+                    );
+
+            } else {
+
+                groupedByDate[date].states[
+                    record.state
+                ] =
+                    Number(
+                        record.collection_crore || 0
+                    );
+            }
+        });
+
+
+        const dates =
+            Object.keys(groupedByDate)
+                .sort();
+
+
+        const indiaRegions = [
+            "Tamil Nadu",
+            "Kerala",
+            "Karnataka",
+            "Telugu States",
+            "Rest of India"
+        ];
+
+
+        function getRegionValue(day, region) {
+
+            if (region === "Telugu States") {
+
+                const hasCombined =
+                    day.states["Telugu States"] !== undefined;
+
+                if (hasCombined) {
+                    return Number(
+                        day.states["Telugu States"] || 0
+                    );
+                }
+
+                const hasAP =
+                    day.states["Andhra Pradesh"] !== undefined;
+
+                const hasTelangana =
+                    day.states["Telangana"] !== undefined;
+
+                if (hasAP || hasTelangana) {
+
+                    return (
+                        Number(
+                            day.states["Andhra Pradesh"] || 0
+                        ) +
+                        Number(
+                            day.states["Telangana"] || 0
+                        )
+                    );
+                }
+
+                return undefined;
+            }
+
+            return day.states[region];
+        }
+
+
+        function hasRegionValue(day, region) {
+
+            if (region === "Telugu States") {
+
+                return (
+                    day.states["Telugu States"] !== undefined ||
+                    day.states["Andhra Pradesh"] !== undefined ||
+                    day.states["Telangana"] !== undefined
+                );
+            }
+
+            return (
+                day.states[region] !== undefined &&
+                day.states[region] !== null
+            );
+        }
+
+
+        let currentWeekNumber = null;
+        let weekStartDay = null;
+        let weekEndDay = null;
+
+        let weekRegionTotals = {};
+        let weekIndiaTotal = 0;
+        let weekOverseasTotal = 0;
+        let weekWorldwideTotal = 0;
+
+
+        function resetWeekTotals() {
+
+            weekRegionTotals = {};
+
+            indiaRegions.forEach(region => {
+                weekRegionTotals[region] = 0;
+            });
+
+            weekIndiaTotal = 0;
+            weekOverseasTotal = 0;
+            weekWorldwideTotal = 0;
+        }
+
+
+        function appendWeekSummary() {
+
+            if (currentWeekNumber === null) {
+                return;
+            }
+
+            const row =
+                document.createElement("tr");
+
+            row.className =
+                "week-summary-row";
+
+            row.innerHTML = `
+                <td>
+                    Week ${currentWeekNumber}
+                </td>
+
+                <td>
+                    Day ${weekStartDay}
+                    -
+                    Day ${weekEndDay}
+                </td>
+
+                ${
+                    indiaRegions.map(region => `
+                        <td>
+                            ${formatCrore(
+                                weekRegionTotals[region] || 0
+                            )}
+                        </td>
+                    `).join("")
+                }
+
+                <td>
+                    ${formatCrore(
+                        weekIndiaTotal
+                    )}
+                </td>
+
+                <td>
+                    ${formatCrore(
+                        weekOverseasTotal
+                    )}
+                </td>
+
+                <td>
+                    ${formatCrore(
+                        weekWorldwideTotal
+                    )}
+                </td>
+            `;
+
+            body.appendChild(row);
+        }
+
+
+        resetWeekTotals();
+
+
+        dates.forEach((date, index) => {
+
+            const day =
+                groupedByDate[date];
+
+            const actualDayNumber =
+                calculateActualDayNumber(date);
+
+            if (actualDayNumber === null) {
+                return;
+            }
+
+            const weekNumber =
+                Math.floor(
+                    (actualDayNumber - 1) / 7
+                ) + 1;
+
+
+            if (
+                currentWeekNumber !== null &&
+                weekNumber !== currentWeekNumber
+            ) {
+
+                appendWeekSummary();
+                resetWeekTotals();
+            }
+
+
+            if (weekNumber !== currentWeekNumber) {
+
+                currentWeekNumber =
+                    weekNumber;
+
+                weekStartDay =
+                    actualDayNumber;
+            }
+
+            weekEndDay =
+                actualDayNumber;
+
+
+            let indiaTotal = 0;
+            let hasAnyIndiaValue = false;
+
+
+            const stateCells =
+                indiaRegions.map(region => {
+
+                    const value =
+                        getRegionValue(
+                            day,
+                            region
+                        );
+
+                    const hasValue =
+                        hasRegionValue(
+                            day,
+                            region
+                        );
+
+                    if (hasValue) {
+
+                        const numericValue =
+                            Number(value || 0);
+
+                        indiaTotal +=
+                            numericValue;
+
+                        hasAnyIndiaValue =
+                            true;
+
+                        weekRegionTotals[region] =
+                            (
+                                weekRegionTotals[region] ||
+                                0
+                            ) +
+                            numericValue;
+
+                        return `
+                            <td class="day-value">
+                                ${formatCrore(
+                                    numericValue
+                                )}
+                            </td>
+                        `;
+                    }
+
+                    return `
+                        <td class="day-value">
+                            —
+                        </td>
+                    `;
+                });
+
+
+            const hasOverseas =
+                day.states["Overseas"] !== undefined &&
+                day.states["Overseas"] !== null;
+
+            const overseas =
+                hasOverseas
+                    ? Number(
+                        day.states["Overseas"] || 0
+                    )
+                    : 0;
+
+
+            const worldwideTotal =
+                indiaTotal + overseas;
+
+
+            if (hasAnyIndiaValue) {
+
+                weekIndiaTotal +=
+                    indiaTotal;
+            }
+
+            if (hasOverseas) {
+
+                weekOverseasTotal +=
+                    overseas;
+            }
+
+            if (
+                hasAnyIndiaValue ||
+                hasOverseas
+            ) {
+
+                weekWorldwideTotal +=
+                    worldwideTotal;
+            }
+
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+                <td class="day-label">
+                    Day ${actualDayNumber}
+                </td>
+
+                <td>
+                    ${escapeHtmlText(date)}
+                </td>
+
+                ${stateCells.join("")}
+
+                <td class="overall-value">
+                    ${
+                        hasAnyIndiaValue
+                            ? formatCrore(
+                                indiaTotal
+                            )
+                            : "—"
+                    }
+                </td>
+
+                <td class="day-value">
+                    ${
+                        hasOverseas
+                            ? formatCrore(
+                                overseas
+                            )
+                            : "—"
+                    }
+                </td>
+
+                <td class="overall-value">
+                    ${
+                        hasAnyIndiaValue ||
+                        hasOverseas
+                            ? formatCrore(
+                                worldwideTotal
+                            )
+                            : "—"
+                    }
+                </td>
+            `;
+
+
+            body.appendChild(row);
+
+
+            const nextDate =
+                dates[index + 1];
+
+            const nextDayNumber =
+                nextDate
+                    ? calculateActualDayNumber(
+                        nextDate
+                    )
+                    : null;
+
+            const nextWeekNumber =
+                nextDayNumber !== null
+                    ? Math.floor(
+                        (nextDayNumber - 1) / 7
+                    ) + 1
+                    : null;
+
+
+            if (
+                index === dates.length - 1 ||
+                nextWeekNumber !== currentWeekNumber
+            ) {
+
+                appendWeekSummary();
+                resetWeekTotals();
+                currentWeekNumber = null;
+            }
+        });
+    }
+
+
+    function escapeHtmlText(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value ?? "";
+
+        return div.innerHTML;
+    }
+
+
+
+    /* =====================================================
+       LOAD DAILY COLLECTION API
+    ===================================================== */
+
+    function fetchDailyCollections() {
+
+        return fetch(
+            API_BASE +
+            "/movies/" +
+            encodeURIComponent(movieId) +
+            "/daily-collections"
+        )
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Daily collection API returned HTTP " +
+                    response.status
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            console.log(
+                "Daily Collections:",
+                data
+            );
+
+            loadDailyCollections(
+                data.collections || []
+            );
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Daily collection error:",
+                error
+            );
+
+            loadDailyCollections([]);
+
+        });
+
+    }
+
+
+    /* =====================================================
+       LOAD STATE COLLECTION API
+    ===================================================== */
+
+    function fetchStateCollections() {
+
+        return fetch(
+            API_BASE +
+            "/movies/" +
+            encodeURIComponent(movieId) +
+            "/state-collections"
+        )
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "State collection API returned HTTP " +
+                    response.status
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            console.log(
+                "State Collections:",
+                data
+            );
+
+            loadStateCollections(
+                data.collections || []
+            );
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "State collection error:",
+                error
+            );
+
+            loadStateCollections([]);
+
+        });
+
+    }
+
+
+    /* =====================================================
+       DYNAMIC MOVIE SEO
+    ===================================================== */
+
+    function updateMovieSEO(movie) {
+
+        if (!movie || !movie.title) {
+            return;
+        }
+
+        const title =
+            movie.title +
+            " Box Office Collection, Budget & Verdict | BoxOfficeX";
+
+        const worldwide =
+            movie.worldwide_collection_crore !== null &&
+            movie.worldwide_collection_crore !== undefined
+                ? formatCrore(movie.worldwide_collection_crore)
+                : null;
+
+        const descriptionParts = [
+            movie.title + " box office collection",
+            movie.language ? movie.language + " movie" : null,
+            worldwide ? "worldwide collection " + worldwide : null,
+            movie.budget_crore !== null &&
+            movie.budget_crore !== undefined
+                ? "budget " + formatCrore(movie.budget_crore)
+                : null,
+            movie.verdict ? "verdict " + movie.verdict : null,
+            movie.director ? "directed by " + movie.director : null
+        ].filter(Boolean);
+
+        const description =
+            descriptionParts.join(", ") +
+            ". View day-wise and state-wise box office details on BoxOfficeX.";
+
+        const canonical =
+            window.location.origin +
+            window.location.pathname +
+            "?id=" +
+            encodeURIComponent(movieId);
+
+        const posterUrl =
+            movie.poster
+                ? new URL(
+                    "posters/" + encodeURIComponent(movie.poster),
+                    window.location.href
+                ).href
+                : new URL(
+                    "posters/coming-soon.png",
+                    window.location.href
+                ).href;
+
+        document.title = title;
+
+        const descriptionMeta =
+            document.getElementById("metaDescription");
+
+        if (descriptionMeta) {
+            descriptionMeta.setAttribute(
+                "content",
+                description
+            );
+        }
+
+        const canonicalTag =
+            document.getElementById("canonicalUrl");
+
+        if (canonicalTag) {
+            canonicalTag.href = canonical;
+        }
+
+        const metaValues = {
+            ogTitle: title,
+            ogDescription: description,
+            ogUrl: canonical,
+            ogImage: posterUrl,
+            twitterTitle: title,
+            twitterDescription: description,
+            twitterImage: posterUrl
+        };
+
+        Object.entries(metaValues).forEach(
+            ([id, value]) => {
+
+                const element =
+                    document.getElementById(id);
+
+                if (element) {
+                    element.setAttribute(
+                        "content",
+                        value
+                    );
+                }
+            }
+        );
+
+        const structuredData = {
+            "@context": "https://schema.org",
+            "@type": "Movie",
+            "name": movie.title,
+            "url": canonical,
+            "image": posterUrl,
+            "dateCreated": movie.release_date || undefined,
+            "genre": movie.genre
+                ? String(movie.genre)
+                    .split(",")
+                    .map(item => item.trim())
+                    .filter(Boolean)
+                : undefined,
+            "inLanguage": movie.language || undefined,
+            "director": movie.director
+                ? {
+                    "@type": "Person",
+                    "name": movie.director
+                }
+                : undefined
+        };
+
+        Object.keys(structuredData).forEach(
+            key => {
+                if (
+                    structuredData[key] === undefined ||
+                    structuredData[key] === null ||
+                    structuredData[key] === ""
+                ) {
+                    delete structuredData[key];
+                }
+            }
+        );
+
+        const jsonLd =
+            document.getElementById(
+                "movieStructuredData"
+            );
+
+        if (jsonLd) {
+            jsonLd.textContent =
+                JSON.stringify(structuredData);
+        }
+    }
+
+
+    /* =====================================================
+       LOAD MOVIE DETAILS
+    ===================================================== */
+
+    if (!movieId) {
+
+        showSelectMovieState();
+
+    } else {
+
+        const apiUrl =
+            API_BASE +
+            "/movies/" +
+            encodeURIComponent(
+                movieId
+            );
+
+
+        console.log(
+            "Loading movie:",
+            apiUrl
+        );
+
+
+        fetch(apiUrl)
+
+            .then(response => {
+
+                console.log(
+                    "Movie API status:",
+                    response.status
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Movie API returned HTTP " +
+                        response.status
+                    );
+
+                }
+
+
+                return response.json();
+
+            })
+
+
+            .then(movie => {
+
+                console.log(
+                    "Movie JSON:",
+                    movie
+                );
+
+
+                if (
+                    !movie ||
+                    typeof movie !== "object"
+                ) {
+
+                    throw new Error(
+                        "Invalid movie JSON."
+                    );
+
+                }
+
+
+                /* =====================================
+                   POSTER
+                ===================================== */
+
+                if (
+                    poster &&
+                    movie.poster
+                ) {
+
+                    poster.src =
+                        "posters/" +
+                        encodeURIComponent(
+                            movie.poster
+                        );
+
+                    poster.alt =
+                        movie.title +
+                        " poster";
+
+                }
+
+
+                /* =====================================
+                   MOVIE DETAILS
+                ===================================== */
+
+                setText(
+                    "movieTitle",
+                    movie.title,
+                    "Movie"
+                );
+
+
+                setText(
+                    "language",
+                    movie.language,
+                    "Indian Cinema"
+                );
+
+
+                setText(
+                    "genre",
+                    movie.genre,
+                    "Genre unavailable"
+                );
+
+
+                setText(
+                    "release_date",
+                    movie.release_date,
+                    "Release date unavailable"
+                );
+
+                currentMovieReleaseDate =
+                    movie.release_date || null;
+
+
+                /* =====================================
+                   COLLECTIONS
+                ===================================== */
+
+                setText(
+                    "budget",
+                    formatCrore(
+                        movie.budget_crore
+                    )
+                );
+
+
+                setText(
+                    "india",
+                    formatCrore(
+                        movie.india_collection_crore
+                    )
+                );
+
+
+                setText(
+                    "overseas",
+                    formatCrore(
+                        movie.overseas_collection_crore
+                    )
+                );
+
+
+                setText(
+                    "worldwide",
+                    formatCrore(
+                        movie.worldwide_collection_crore
+                    )
+                );
+
+
+                /* =====================================
+                   DIRECTOR
+                ===================================== */
+
+                setText(
+                    "director",
+                    movie.director,
+                    "Not available"
+                );
+
+
+                /* =====================================
+                   VERDICT
+                ===================================== */
+
+                setText(
+                    "verdict",
+                    movie.verdict,
+                    "Box Office"
+                );
+
+
+                /* =====================================
+                   DYNAMIC SEO
+                ===================================== */
+
+                updateMovieSEO(movie);
+
+
+                /* =====================================
+                   LOAD NEW COLLECTION SYSTEM
+                ===================================== */
+
+                fetchCollectionBreakdown();
+
+            })
+
+
+            .catch(error => {
+
+                console.error(
+                    "Movie loading error:",
+                    error
+                );
+
+
+                showError(
+                    "We couldn't load this movie. " +
+                    "Check that FastAPI is running " +
+                    "and the movie exists in PostgreSQL."
+                );
+
+            });
+
+    }
+
+
+
+/* =====================================================
+   SITE-WIDE AUTOMATIC NEW BADGES
+===================================================== */
+function setSiteNewBadge(ids,visible){
+    ids.forEach(id=>{
+        const badge=document.getElementById(id);
+        if(badge) badge.classList.toggle("show",!!visible);
+    });
+}
+
+function parseSiteLocalDate(value){
+    if(!value)return null;
+    const p=String(value).slice(0,10).split("-").map(Number);
+    if(p.length!==3||!p[0]||!p[1]||!p[2])return null;
+    return new Date(p[0],p[1]-1,p[2]);
+}
+
+async function updateSiteNewBadges(){
+    try{
+        const [moviesResponse,articlesResponse]=await Promise.all([
+            fetch(API_BASE + "/movies/new-system",{cache:"no-store"}),
+            fetch(API_BASE + "/articles/latest?limit=10",{cache:"no-store"})
+        ]);
+
+        if(moviesResponse.ok){
+            const data=await moviesResponse.json();
+            const all=[
+                ...(data.running||[]),
+                ...(data.upcoming||[]),
+                ...(data.recent||[])
+            ];
+            const now=new Date();
+            const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+
+            const hasNew=all.some(movie=>{
+                const release=parseSiteLocalDate(movie.release_date);
+                if(!release)return false;
+                const days=Math.floor((release-today)/86400000);
+                return days>=-7 && days<=7;
+            });
+
+            setSiteNewBadge(
+                ["newMoviesBadge","mobileNewMoviesBadge"],
+                hasNew
+            );
+        }
+
+        if(articlesResponse.ok){
+            const data=await articlesResponse.json();
+            const now=Date.now();
+            const sevenDays=7*86400000;
+
+            const hasNew=(data.articles||[]).some(article=>{
+                const published=new Date(article.published_at).getTime();
+                return Number.isFinite(published) &&
+                    published<=now &&
+                    (now-published)<=sevenDays;
+            });
+
+            setSiteNewBadge(
+                ["articlesBadge","mobileArticlesBadge"],
+                hasNew
+            );
+        }
+    }catch(error){
+        console.warn("Site NEW badge check failed:",error);
+    }
+}
+
+updateSiteNewBadges();
+
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("mobileMenuButton");
+    const nav = document.querySelector("header nav");
+
+    if (!button || !nav) return;
+
+    function closeMobileMenu() {
+        nav.classList.remove("mobile-menu-open");
+        button.classList.remove("open");
+        button.setAttribute("aria-expanded", "false");
+    }
+
+    button.addEventListener("click", function (event) {
+        event.stopPropagation();
+
+        const opening =
+            !nav.classList.contains("mobile-menu-open");
+
+        nav.classList.toggle("mobile-menu-open", opening);
+        button.classList.toggle("open", opening);
+
+        button.setAttribute(
+            "aria-expanded",
+            opening ? "true" : "false"
+        );
+    });
+
+    nav.addEventListener("click", function (event) {
+        if (event.target.closest("a")) {
+            closeMobileMenu();
+        }
+    });
+
+    document.addEventListener("click", function (event) {
+        if (
+            !nav.contains(event.target) &&
+            !button.contains(event.target)
+        ) {
+            closeMobileMenu();
+        }
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 700) {
+            closeMobileMenu();
+        }
+    });
+});
+</script>
+
+</body>
+
+</html>

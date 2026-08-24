@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta name="theme-color" content="#060912">
+
+    <meta
+        name="description"
+        content="Explore BoxOfficeX actor rankings by worldwide box office collections, movie count and blockbusters across Tamil, Telugu, Hindi, Kannada, Malayalam and English cinema."
+    >
+
+    <meta name="robots" content="index, follow">
+
+    <title>Actor Box Office Rankings - Indian & Global Cinema | BoxOfficeX</title>
+
+    <link id="canonicalUrl" rel="canonical" href="">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BoxOfficeX">
+
+    <meta
+        property="og:title"
+        content="Actor Box Office Rankings - Indian & Global Cinema | BoxOfficeX"
+    >
+
+    <meta
+        property="og:description"
+        content="Explore actor rankings by worldwide box office collections, movie count and blockbusters across major film industries on BoxOfficeX."
+    >
+
+    <meta id="ogUrl" property="og:url" content="">
+
+    <meta name="twitter:card" content="summary">
+
+    <meta
+        name="twitter:title"
+        content="Actor Box Office Rankings - Indian & Global Cinema | BoxOfficeX"
+    >
+
+    <meta
+        name="twitter:description"
+        content="Explore actor rankings by worldwide box office collections, movie count and blockbusters across major film industries on BoxOfficeX."
+    >
+
+    <script
+        id="actorRankingsStructuredData"
+        type="application/ld+json"
+    ></script>
+
+    <style>
+
+        :root {
+
+            --bg: #060912;
+            --bg-soft: #0b1020;
+            --surface: #101728;
+            --surface-2: #141d31;
+            --surface-3: #19243c;
+
+            --border: rgba(255,255,255,0.08);
+            --border-strong: rgba(93,143,255,0.28);
+
+            --text: #ffffff;
+            --muted: #99a5bd;
+            --muted-2: #73809a;
+
+            --blue: #4d8dff;
+            --blue-light: #79adff;
+            --purple: #795cff;
+            --gold: #ffcc33;
+            --red: #ff4655;
+
+            --shadow:
+                0 15px 40px rgba(0,0,0,0.34);
+
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+        }
+
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+
+            min-height: 100vh;
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+
+                radial-gradient(
+                    circle at 50% -10%,
+                    rgba(77,141,255,0.20),
+                    transparent 32%
+                ),
+
+                radial-gradient(
+                    circle at 100% 30%,
+                    rgba(121,92,255,0.10),
+                    transparent 25%
+                ),
+
+                linear-gradient(
+                    180deg,
+                    #070b15 0%,
+                    #060912 45%,
+                    #080d18 100%
+                );
+
+            color: var(--text);
+
+            overflow-x: hidden;
+
+            padding-bottom: 0;
+        }
+
+
+        body::before {
+
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                linear-gradient(
+                    rgba(255,255,255,0.012) 1px,
+                    transparent 1px
+                );
+
+            background-size: 100% 4px;
+
+            opacity: 0.15;
+
+            z-index: -1;
+        }
+
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+
+        /* ==========================================
+           HEADER
+        ========================================== */
+
+        header {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            width: 100%;
+
+            background:
+                rgba(6,9,18,0.88);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            border-bottom:
+                1px solid var(--border);
+        }
+
+
+        .navbar {
+
+            width: 100%;
+
+            max-width: 1280px;
+
+            min-height: 68px;
+
+            margin: auto;
+
+            padding:
+                0 18px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+        }
+
+
+        .logo {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 21px;
+
+            font-weight: 900;
+
+            letter-spacing: 0.6px;
+
+            white-space: nowrap;
+        }
+
+
+        .logo-icon {
+
+            width: 35px;
+
+            height: 35px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--blue),
+                    var(--purple)
+                );
+
+            box-shadow:
+                0 8px 25px
+                rgba(77,141,255,0.24);
+        }
+
+
+        .logo span:last-child {
+            color: var(--gold);
+        }
+
+
+        nav {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 4px;
+        }
+
+
+        nav a {
+
+            padding:
+                9px 12px;
+
+            border-radius: 10px;
+
+            color: #c7d1e6;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            text-decoration: none;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+        }
+
+
+        nav a:hover {
+
+            background:
+                rgba(77,141,255,0.10);
+
+            color:
+                var(--blue-light);
+        }
+
+
+        nav a.active {
+
+            background:
+                rgba(77,141,255,0.14);
+
+            color:
+                var(--blue-light);
+        }
+
+
+        .nav-compare {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ff4655,
+                    #d92e3d
+                );
+
+            color: white !important;
+
+            box-shadow:
+                0 8px 20px
+                rgba(255,70,85,0.16);
+        }
+
+
+        .nav-compare:hover {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ff5967,
+                    #e83b49
+                );
+        }
+
+
+        /* ==========================================
+           MAIN CONTAINER
+        ========================================== */
+
+        .container {
+
+            width: 100%;
+
+            max-width: 1050px;
+
+            margin:
+                0 auto;
+
+            padding:
+                48px 18px 35px;
+        }
+
+
+        /* ==========================================
+           PAGE TITLE
+        ========================================== */
+
+        h1 {
+
+            text-align: center;
+
+            margin:
+                0 0 30px;
+
+            font-size:
+                clamp(30px, 6vw, 46px);
+
+            line-height: 1.1;
+
+            letter-spacing:
+                -1.5px;
+
+            font-weight: 900;
+
+            text-shadow:
+                0 10px 30px
+                rgba(0,0,0,0.28);
+        }
+
+
+        /* ==========================================
+           FILTER BUTTONS
+        ========================================== */
+
+        .buttons {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 10px;
+
+            justify-content: center;
+
+            margin:
+                0 auto 30px;
+
+            padding:
+                6px;
+        }
+
+
+        button {
+
+            min-height: 42px;
+
+            padding:
+                10px 18px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                11px;
+
+            cursor: pointer;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #151e33,
+                    #101727
+                );
+
+            color:
+                #cbd5e8;
+
+            font-size:
+                13px;
+
+            font-weight:
+                800;
+
+            box-shadow:
+                0 7px 20px
+                rgba(0,0,0,0.18);
+
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        button:hover {
+
+            transform:
+                translateY(-2px);
+
+            background:
+                rgba(77,141,255,0.14);
+
+            border-color:
+                var(--border-strong);
+
+            color:
+                var(--blue-light);
+
+            box-shadow:
+                0 10px 25px
+                rgba(0,0,0,0.25);
+        }
+
+
+        button:active {
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* ==========================================
+           RANKINGS
+        ========================================== */
+
+        #rankings {
+
+            width: 100%;
+
+            min-height: 150px;
+        }
+
+
+        .rank {
+
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 17px;
+
+            width: 100%;
+
+            min-height: 105px;
+
+            padding:
+                14px 18px;
+
+            margin-bottom:
+                12px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                var(--radius-md);
+
+            background:
+
+                linear-gradient(
+                    145deg,
+                    rgba(18,27,47,0.98),
+                    rgba(11,17,30,0.98)
+                );
+
+            box-shadow:
+                0 10px 30px
+                rgba(0,0,0,0.18);
+
+            cursor:
+                pointer;
+
+            overflow:
+                hidden;
+
+            transition:
+                transform 0.22s ease,
+                border-color 0.22s ease,
+                box-shadow 0.22s ease,
+                background 0.22s ease;
+        }
+
+
+        .rank::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+
+            bottom: 0;
+
+            left: 0;
+
+            width: 3px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    var(--blue),
+                    var(--purple)
+                );
+
+            opacity:
+                0.65;
+        }
+
+
+        .rank::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 130px;
+
+            height: 130px;
+
+            right: -70px;
+
+            top: -60px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(77,141,255,0.06);
+
+            pointer-events:
+                none;
+        }
+
+
+        .rank:hover {
+
+            transform:
+                translateY(-3px);
+
+            border-color:
+                var(--border-strong);
+
+            background:
+
+                linear-gradient(
+                    145deg,
+                    rgba(21,32,55,0.99),
+                    rgba(12,19,33,0.99)
+                );
+
+            box-shadow:
+                var(--shadow);
+        }
+
+
+        /* ==========================================
+           RANK NUMBER
+        ========================================== */
+
+        .rank-number {
+
+            position: relative;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            width: 50px;
+
+            height: 50px;
+
+            border-radius:
+                14px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--gold),
+                    #e9b300
+                );
+
+            color:
+                #10151f;
+
+            font-size:
+                17px;
+
+            font-weight:
+                1000;
+
+            box-shadow:
+                0 8px 20px
+                rgba(0,0,0,0.35);
+        }
+
+
+        .rank:nth-child(1)
+        .rank-number {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fff0a6,
+                    #ffcc33
+                );
+        }
+
+
+        /* ==========================================
+           ACTOR IMAGE
+        ========================================== */
+
+        .rank img {
+
+            position: relative;
+
+            z-index: 2;
+
+            width:
+                68px;
+
+            height:
+                84px;
+
+            flex-shrink: 0;
+
+            object-fit:
+                cover;
+
+            border-radius:
+                11px;
+
+            display:
+                block;
+
+            background:
+                #172139;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            box-shadow:
+                0 10px 25px
+                rgba(0,0,0,0.35);
+
+            transition:
+                transform 0.25s ease;
+        }
+
+
+        .rank:hover img {
+
+            transform:
+                scale(1.035);
+        }
+
+
+        /* ==========================================
+           ACTOR DETAILS
+        ========================================== */
+
+        .rank > div:last-child {
+
+            position: relative;
+
+            z-index: 2;
+
+            min-width: 0;
+        }
+
+
+        .name {
+
+            font-size:
+                20px;
+
+            font-weight:
+                900;
+
+            line-height:
+                1.25;
+
+            color:
+                #ffffff;
+
+            white-space:
+                nowrap;
+
+            overflow:
+                hidden;
+
+            text-overflow:
+                ellipsis;
+        }
+
+
+        .stats {
+
+            color:
+                var(--muted);
+
+            margin-top:
+                7px;
+
+            font-size:
+                13px;
+
+            line-height:
+                1.5;
+        }
+
+
+        /* ==========================================
+           LOADING / EMPTY / ERROR TEXT
+        ========================================== */
+
+        #rankings:not(:has(.rank)) {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 140px;
+
+            padding:
+                25px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius:
+                var(--radius-md);
+
+            background:
+                rgba(17,25,43,0.80);
+
+            color:
+                var(--muted);
+
+            text-align:
+                center;
+        }
+
+
+        /* ==========================================
+           MOBILE BOTTOM NAV
+        ========================================== */
+
+        .mobile-bottom-nav {
+
+            display:
+                none;
+        }
+
+
+        /* ==========================================
+           TABLET
+        ========================================== */
+
+        @media (max-width: 800px) {
+
+            .container {
+
+                max-width:
+                    760px;
+
+                padding-top:
+                    38px;
+            }
+
+        }
+
+
+        /* ==========================================
+           MOBILE
+        ========================================== */
+
+        @media (max-width: 700px) {
+
+            body {
+
+                padding-bottom:
+                    70px;
+            }
+
+
+            .navbar {
+
+                min-height:
+                    61px;
+
+                padding:
+                    0 13px;
+            }
+
+
+            .logo {
+
+                font-size:
+                    18px;
+            }
+
+
+            .logo-icon {
+
+                width:
+                    31px;
+
+                height:
+                    31px;
+            }
+
+
+            nav {
+
+                display:
+                    none;
+            }
+
+
+            .container {
+
+                margin:
+                    0 auto;
+
+                padding:
+                    34px 13px 25px;
+            }
+
+
+            h1 {
+
+                margin-bottom:
+                    22px;
+
+                font-size:
+                    clamp(28px, 9vw, 38px);
+
+                letter-spacing:
+                    -1px;
+            }
+
+
+            .buttons {
+
+                justify-content:
+                    flex-start;
+
+                flex-wrap:
+                    nowrap;
+
+                overflow-x:
+                    auto;
+
+                padding:
+                    2px 1px 9px;
+
+                margin-bottom:
+                    18px;
+
+                gap:
+                    8px;
+
+                scrollbar-width:
+                    none;
+            }
+
+
+            .buttons::-webkit-scrollbar {
+                display:
+                    none;
+            }
+
+
+            button {
+
+                flex:
+                    0 0 auto;
+
+                min-height:
+                    40px;
+
+                padding:
+                    9px 14px;
+
+                font-size:
+                    12px;
+
+                border-radius:
+                    10px;
+            }
+
+
+            .rank {
+
+                min-height:
+                    92px;
+
+                gap:
+                    11px;
+
+                padding:
+                    11px 12px;
+
+                margin-bottom:
+                    10px;
+
+                border-radius:
+                    14px;
+            }
+
+
+            .rank-number {
+
+                width:
+                    38px;
+
+                height:
+                    38px;
+
+                border-radius:
+                    10px;
+
+                font-size:
+                    13px;
+            }
+
+
+            .rank img {
+
+                width:
+                    55px;
+
+                height:
+                    70px;
+
+                border-radius:
+                    9px;
+            }
+
+
+            .name {
+
+                font-size:
+                    15px;
+            }
+
+
+            .stats {
+
+                margin-top:
+                    5px;
+
+                font-size:
+                    10px;
+
+                line-height:
+                    1.45;
+            }
+
+
+            /* ======================================
+               MOBILE BOTTOM NAV
+            ====================================== */
+
+            .mobile-bottom-nav {
+
+                position:
+                    fixed;
+
+                left:
+                    0;
+
+                right:
+                    0;
+
+                bottom:
+                    0;
+
+                z-index:
+                    1500;
+
+                display:
+                    grid;
+
+                grid-template-columns:
+                    repeat(5, 1fr);
+
+                padding:
+                    8px 8px
+                    calc(
+                        8px +
+                        env(safe-area-inset-bottom)
+                    );
+
+                background:
+                    rgba(7,11,20,0.96);
+
+                border-top:
+                    1px solid
+                    var(--border);
+
+                backdrop-filter:
+                    blur(18px);
+
+                -webkit-backdrop-filter:
+                    blur(18px);
+            }
+
+
+            .mobile-bottom-nav a {
+
+                display:
+                    flex;
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    center;
+
+                justify-content:
+                    center;
+
+                gap:
+                    3px;
+
+                min-height:
+                    48px;
+
+                border-radius:
+                    11px;
+
+                color:
+                    #8793a9;
+
+                font-size:
+                    9px;
+
+                font-weight:
+                    700;
+
+                text-decoration:
+                    none;
+            }
+
+
+            .mobile-bottom-nav a span:first-child {
+
+                font-size:
+                    18px;
+            }
+
+
+            .mobile-bottom-nav a.active {
+
+                color:
+                    var(--blue-light);
+
+                background:
+                    rgba(77,141,255,0.10);
+            }
+
+        }
+
+
+        /* ==========================================
+           SMALL PHONES
+        ========================================== */
+
+        @media (max-width: 380px) {
+
+            .logo {
+
+                font-size:
+                    16px;
+            }
+
+
+            .logo-icon {
+
+                width:
+                    29px;
+
+                height:
+                    29px;
+            }
+
+
+            .container {
+
+                padding:
+                    30px 10px 20px;
+            }
+
+
+            .rank {
+
+                gap:
+                    8px;
+
+                padding:
+                    10px;
+            }
+
+
+            .rank-number {
+
+                width:
+                    34px;
+
+                height:
+                    34px;
+
+                font-size:
+                    12px;
+            }
+
+
+            .rank img {
+
+                width:
+                    50px;
+
+                height:
+                    64px;
+            }
+
+
+            .name {
+
+                font-size:
+                    14px;
+            }
+
+
+            .stats {
+
+                font-size:
+                    9px;
+            }
+
+        }
+
+    
+        /* ==========================================
+           SHARED SITE FOOTER
+        ========================================== */
+
+        .site-footer {
+            margin-top: 25px;
+            border-top: 1px solid var(--border);
+            background: #080c16;
+        }
+
+        .footer-inner {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 18px 35px;
+            text-align: center;
+        }
+
+        .footer-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .footer-logo-icon {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+        }
+
+        .footer-brand strong > span {
+            color: var(--gold);
+        }
+
+        .site-footer p {
+            color: var(--muted-2);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 15px;
+            margin: 13px 0;
+        }
+
+        .footer-links a {
+            color: var(--blue-light);
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- ==========================================
+     HEADER
+========================================== -->
+
+<header>
+
+    <div class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
+            BOXOFFICE<span>X</span>
+
+        </a>
+
+
+        <nav>
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="new-movies.html">
+                New Movies
+            </a>
+
+            <a
+                href="movie-rankings.html"
+                class="active"
+            >
+                Rankings
+            </a>
+
+            <a href="actors.html">
+                Actors
+            </a>
+
+            <a
+                href="compare-select.html"
+                class="nav-compare"
+            >
+                ⚔️ Compare
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<!-- ==========================================
+     MAIN
+========================================== -->
+
+<div class="container">
+
+
+    <h1>
+        🏆 Actor Rankings
+    </h1>
+
+
+    <div class="buttons">
+
+
+        <button onclick="loadRankings('All')">
+            🌍 Global
+        </button>
+
+
+        <button onclick="loadRankings('Tamil')">
+            Tamil
+        </button>
+
+
+        <button onclick="loadRankings('Telugu')">
+            Telugu
+        </button>
+
+
+        <button onclick="loadRankings('Hindi')">
+            Hindi
+        </button>
+
+
+        <button onclick="loadRankings('Kannada')">
+            Kannada
+        </button>
+
+
+        <button onclick="loadRankings('Malayalam')">
+            Malayalam
+        </button>
+
+
+        <button onclick="loadRankings('English')">
+            English
+        </button>
+
+
+    </div>
+
+
+    <div id="rankings">
+        Loading...
+    </div>
+
+
+</div>
+
+
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer class="site-footer">
+    <div class="footer-inner">
+
+        <div class="footer-brand">
+            <span class="footer-logo-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </div>
+
+        <p>
+            Movie box-office collections, latest releases, actors,
+            verdicts, rankings and hero comparisons.
+        </p>
+
+        <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="disclaimer.html">Disclaimer</a>
+        </div>
+
+        <p>© 2026 BoxOfficeX. All rights reserved.</p>
+
+    </div>
+</footer>
+
+<!-- ==========================================
+     MOBILE BOTTOM NAV
+========================================== -->
+
+<div class="mobile-bottom-nav">
+
+    <a href="index.html">
+        <span>🏠</span>
+        <span>Home</span>
+    </a>
+
+    <a href="new-movies.html">
+        <span>🆕</span>
+        <span>New</span>
+    </a>
+
+    <a href="movie-rankings.html" class="active">
+        <span>🏆</span>
+        <span>Rankings</span>
+    </a>
+
+    <a href="actors.html">
+        <span>🎭</span>
+        <span>Actors</span>
+    </a>
+
+    <a href="compare-select.html">
+        <span>⚔️</span>
+        <span>Compare</span>
+    </a>
+
+</div>
+
+
+<script>
+
+// ==========================================
+// ACTOR RANKINGS SEO
+// ==========================================
+
+(function setupActorRankingsSEO() {
+
+    const canonical =
+        window.location.origin +
+        window.location.pathname;
+
+    const canonicalTag =
+        document.getElementById(
+            "canonicalUrl"
+        );
+
+    if (canonicalTag) {
+        canonicalTag.href = canonical;
+    }
+
+    const ogUrl =
+        document.getElementById(
+            "ogUrl"
+        );
+
+    if (ogUrl) {
+        ogUrl.setAttribute(
+            "content",
+            canonical
+        );
+    }
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Actor Box Office Rankings | BoxOfficeX",
+        "url": canonical,
+        "description":
+            "Explore BoxOfficeX actor rankings by worldwide box office collections, movie count and blockbusters across Tamil, Telugu, Hindi, Kannada, Malayalam and English cinema."
+    };
+
+    const jsonLd =
+        document.getElementById(
+            "actorRankingsStructuredData"
+        );
+
+    if (jsonLd) {
+        jsonLd.textContent =
+            JSON.stringify(
+                structuredData
+            );
+    }
+
+})();
+
+
+function loadRankings(language) {
+
+    const container =
+        document.getElementById("rankings");
+
+    container.innerHTML = "Loading...";
+
+    fetch(
+        "http://127.0.0.1:8000/rankings/actors?language="
+        + encodeURIComponent(language)
+    )
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        container.innerHTML = "";
+
+        data.rankings.forEach(actor => {
+
+            const div =
+                document.createElement("div");
+
+            div.className = "rank";
+
+            div.innerHTML = `
+
+                <div class="rank-number">
+                    #${actor.rank}
+                </div>
+
+                <img
+                    src="actor-images/${actor.photo}"
+                    alt="${actor.name}"
+                >
+
+                <div>
+
+                    <div class="name">
+                        ${actor.name}
+                    </div>
+
+                    <div class="stats">
+                        ${actor.movie_count} movies
+                        |
+                        ₹${actor.total_worldwide} Cr
+                        |
+                        ${actor.blockbusters} Blockbusters
+                    </div>
+
+                </div>
+
+            `;
+
+            div.onclick = function () {
+
+                window.location.href =
+                    "actor.html?id=" + actor.id;
+
+            };
+
+            container.appendChild(div);
+
+        });
+
+        if (data.rankings.length === 0) {
+
+            container.innerHTML =
+                "No actors found for " + language;
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        container.innerHTML =
+            "Unable to load rankings.";
+
+    });
+
+}
+
+loadRankings("All");
+
+</script>
+
+
+</body>
+
+</html>

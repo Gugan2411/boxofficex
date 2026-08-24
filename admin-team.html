@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Team | BoxOfficeX</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:#29334d;
+--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;
+--red:#ff4655;--green:#43d19e
+}
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:radial-gradient(circle at top,#17213a 0,#080b14 35%,#070a12 72%);
+color:var(--text);min-height:100vh
+}
+header{
+position:sticky;top:0;z-index:1000;
+background:rgba(6,9,18,.94);
+border-bottom:1px solid rgba(255,255,255,.08);
+backdrop-filter:blur(18px)
+}
+.navbar{
+max-width:1500px;min-height:68px;margin:auto;padding:0 18px;
+display:flex;align-items:center;gap:14px
+}
+.logo{
+display:flex;align-items:center;gap:9px;color:#fff;font-size:19px;
+font-weight:900;text-decoration:none;white-space:nowrap
+}
+.logo-icon{
+width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff)
+}
+.logo span:last-child{color:var(--gold)}
+nav{display:flex;gap:3px;overflow-x:auto;min-width:0;flex:1}
+nav a{
+padding:9px 10px;border-radius:10px;color:#c7d1e6;font-size:11px;
+font-weight:800;text-decoration:none;white-space:nowrap
+}
+nav a:hover,nav a.active{background:rgba(77,141,255,.12);color:#8db5ff}
+.account{
+display:flex;align-items:center;gap:7px;white-space:nowrap
+}
+.user-chip{
+padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;
+background:#101725;color:#aebbd4;font-size:10px;font-weight:800
+}
+.account button{
+border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 10px;
+background:#351919;color:#ff9a9a;font-size:10px;font-weight:900;cursor:pointer
+}
+main{width:min(1320px,calc(100% - 32px));margin:auto;padding:34px 0 70px}
+.eyebrow{color:#79adff;font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+h1{margin-top:7px;font-size:clamp(30px,4vw,48px)}
+.intro{margin-top:10px;color:#9ba7bd;line-height:1.6;max-width:850px}
+.card{
+margin-top:22px;background:var(--panel);border:1px solid rgba(255,255,255,.08);
+border-radius:18px;padding:20px
+}
+.card h2{font-size:18px}
+.filters{
+display:grid;grid-template-columns:1.3fr .8fr auto;gap:12px;align-items:end;margin-top:16px
+}
+label{display:block;margin-bottom:6px;color:#aeb8ce;font-size:11px;font-weight:800}
+select,input{
+width:100%;padding:11px 12px;border:1px solid rgba(255,255,255,.1);
+border-radius:10px;background:#0a101c;color:#fff;outline:none
+}
+.btn{
+border:0;border-radius:10px;padding:12px 16px;background:linear-gradient(135deg,#4d8dff,#795cff);
+color:#fff;font-size:11px;font-weight:900;cursor:pointer
+}
+.summary{
+display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-top:18px
+}
+.stat{
+padding:15px;border:1px solid var(--border);border-radius:14px;background:var(--panel2)
+}
+.stat span{display:block;color:#8e99b3;font-size:10px;font-weight:900}
+.stat strong{display:block;margin-top:7px;font-size:19px}
+.admin-meta{
+display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;color:#aeb8ce;font-size:11px
+}
+.badge{
+display:inline-flex;padding:5px 8px;border-radius:999px;background:#202b44;color:#8db5ff;
+font-size:10px;font-weight:900;text-transform:uppercase
+}
+.table-wrap{margin-top:16px;overflow:auto;border:1px solid var(--border);border-radius:13px}
+table{width:100%;min-width:900px;border-collapse:collapse}
+th,td{padding:12px 11px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:11px}
+th{background:#111a2b;color:#8e99b3;font-size:10px;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+.status-open{color:#ffcc66;font-weight:900}
+.status-closed{color:#7de2bb;font-weight:900}
+.empty{text-align:center;color:#7f8aa3;padding:26px!important}
+.team-grid{
+display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px
+}
+.team-card{
+padding:15px;border:1px solid var(--border);border-radius:14px;background:var(--panel2);
+cursor:pointer
+}
+.team-card:hover{border-color:#526a9d}
+.team-card.active{outline:2px solid rgba(77,141,255,.35)}
+.team-card strong{display:block;font-size:13px}
+.team-card small{display:block;color:#8e99b3;margin-top:5px;font-size:10px}
+@media(max-width:900px){
+.navbar{align-items:flex-start;flex-direction:column;padding-top:10px;padding-bottom:10px}
+nav,.account{width:100%}
+.account{overflow:auto}
+.filters{grid-template-columns:1fr}
+.summary{grid-template-columns:repeat(2,1fr)}
+.team-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+.summary,.team-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<header>
+<div class="navbar">
+<a href="/admin.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a>
+
+<nav>
+<a href="/admin.html">🏠 Admin Home</a>
+<a href="/admin.html#movies">🎬 Movies</a>
+<a href="/admin-new-movies.html">🆕 New Movies</a>
+<a href="/admin-daily-boxoffice.html">📅 Daily</a>
+<a href="/admin-regional-boxoffice.html">📍 Regional</a>
+<a href="/admin-articles.html">📰 Articles</a>
+<a class="active" href="/admin-team.html">👥 Admin Team</a>
+</nav>
+
+<div class="account">
+<div id="adminUser" class="user-chip">Owner</div>
+<button type="button" onclick="logoutAdmin()">🚪 Logout</button>
+</div>
+</div>
+</header>
+
+<main>
+<div class="eyebrow">Owner Control Center</div>
+<h1>Admin Team Work Report</h1>
+<p class="intro">
+Select an admin and a date to see only that person's work for that day:
+first login, last logout, total working hours, number of sessions, and every login/logout session separately.
+</p>
+
+<section class="card">
+<h2>👤 Select Admin</h2>
+<div id="teamGrid" class="team-grid"></div>
+</section>
+
+<section class="card">
+<h2>📅 Date-wise Work Report</h2>
+
+<div class="filters">
+<div>
+<label>Admin</label>
+<select id="adminSelect"></select>
+</div>
+
+<div>
+<label>Work Date</label>
+<input id="workDate" type="date">
+</div>
+
+<button class="btn" type="button" onclick="loadReport()">VIEW REPORT</button>
+</div>
+
+<div id="selectedAdminMeta" class="admin-meta"></div>
+
+<div class="summary">
+<div class="stat"><span>WORK DATE</span><strong id="sumDate">—</strong></div>
+<div class="stat"><span>TOTAL WORK</span><strong id="sumHours">0 hr</strong></div>
+<div class="stat"><span>SESSIONS</span><strong id="sumSessions">0</strong></div>
+<div class="stat"><span>FIRST LOGIN</span><strong id="sumFirst">—</strong></div>
+<div class="stat"><span>LAST LOGOUT</span><strong id="sumLast">—</strong></div>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Session</th>
+<th>Login Time</th>
+<th>Last Activity</th>
+<th>Logout Time</th>
+<th>Worked</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="sessionBody">
+<tr><td colspan="6" class="empty">Select an admin and date.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+
+<script>
+let admins=[];
+
+function esc(v){
+const d=document.createElement("div");
+d.textContent=v??"";
+return d.innerHTML;
+}
+
+function fmtDateTime(v){
+if(!v)return "—";
+const d=new Date(v);
+return Number.isNaN(d.getTime())?"—":d.toLocaleString();
+}
+
+function fmtTime(v){
+if(!v)return "—";
+const d=new Date(v);
+return Number.isNaN(d.getTime())?"—":d.toLocaleTimeString([],{
+hour:"2-digit",
+minute:"2-digit"
+});
+}
+
+function fmtHours(seconds){
+const n=Number(seconds||0);
+if(n<60)return `${Math.round(n)} sec`;
+if(n<3600)return `${Math.round(n/60)} min`;
+return `${(n/3600).toFixed(2)} hr`;
+}
+
+async function verifyOwner(){
+const r=await fetch("/admin/session",{credentials:"include",cache:"no-store"});
+const d=await r.json();
+
+if(!r.ok||!d.logged_in||!d.admin){
+location.href="/admin-login.html";
+return false;
+}
+
+if(d.admin.role!=="owner"){
+location.href="/admin.html";
+return false;
+}
+
+document.getElementById("adminUser").textContent=
+`${d.admin.display_name||d.admin.email} • OWNER`;
+
+return true;
+}
+
+async function loadAdmins(){
+const r=await fetch("/admin/team",{credentials:"include",cache:"no-store"});
+const d=await r.json();
+
+if(!r.ok)throw new Error(d.detail||"Unable to load admins");
+
+admins=Array.isArray(d.admins)?d.admins:[];
+
+const select=document.getElementById("adminSelect");
+select.innerHTML=admins.map(a=>`
+<option value="${a.id}">
+${esc(a.display_name)} — ${esc(a.role.replaceAll("_"," "))}
+</option>`).join("");
+
+const grid=document.getElementById("teamGrid");
+grid.innerHTML=admins.map(a=>`
+<div class="team-card" data-id="${a.id}" onclick="selectAdmin(${a.id})">
+<strong>${esc(a.display_name)}</strong>
+<small>${esc(a.email)}</small>
+<small>${esc(a.role.replaceAll("_"," ").toUpperCase())} • ${a.is_active?"ACTIVE":"DISABLED"}</small>
+</div>`).join("");
+
+if(admins.length){
+select.value=admins[0].id;
+highlightAdmin(admins[0].id);
+}
+}
+
+function highlightAdmin(id){
+document.querySelectorAll(".team-card").forEach(card=>{
+card.classList.toggle("active",Number(card.dataset.id)===Number(id));
+});
+}
+
+function selectAdmin(id){
+document.getElementById("adminSelect").value=id;
+highlightAdmin(id);
+loadReport();
+}
+
+async function loadReport(){
+const adminId=Number(document.getElementById("adminSelect").value);
+const workDate=document.getElementById("workDate").value;
+
+if(!adminId||!workDate)return;
+
+highlightAdmin(adminId);
+
+const body=document.getElementById("sessionBody");
+body.innerHTML='<tr><td colspan="6" class="empty">Loading report...</td></tr>';
+
+try{
+const r=await fetch(
+`/admin/team/work-report?admin_id=${encodeURIComponent(adminId)}&work_date=${encodeURIComponent(workDate)}&timezone_name=Asia%2FKolkata`,
+{credentials:"include",cache:"no-store"}
+);
+
+const d=await r.json();
+if(!r.ok)throw new Error(d.detail||"Unable to load work report");
+
+const a=d.admin;
+document.getElementById("selectedAdminMeta").innerHTML=`
+<span><strong>${esc(a.display_name)}</strong></span>
+<span>${esc(a.email)}</span>
+<span class="badge">${esc(a.role.replaceAll("_"," "))}</span>
+<span>${a.is_active?"ACTIVE":"DISABLED"}</span>`;
+
+document.getElementById("sumDate").textContent=d.work_date||"—";
+document.getElementById("sumHours").textContent=fmtHours(d.summary.total_worked_seconds);
+document.getElementById("sumSessions").textContent=d.summary.session_count||0;
+document.getElementById("sumFirst").textContent=fmtTime(d.summary.first_login_at);
+document.getElementById("sumLast").textContent=fmtTime(d.summary.last_logout_at);
+
+const rows=Array.isArray(d.sessions)?d.sessions:[];
+
+if(!rows.length){
+body.innerHTML='<tr><td colspan="6" class="empty">No work sessions recorded for this admin on this date.</td></tr>';
+return;
+}
+
+body.innerHTML=rows.map((s,i)=>`
+<tr>
+<td>#${i+1}</td>
+<td>${fmtDateTime(s.login_at)}</td>
+<td>${fmtDateTime(s.last_activity_at)}</td>
+<td>${fmtDateTime(s.logout_at)}</td>
+<td><strong>${fmtHours(s.worked_seconds)}</strong></td>
+<td class="${s.logout_at?"status-closed":"status-open"}">
+${s.logout_at?"LOGGED OUT":"NO LOGOUT / OPEN"}
+</td>
+</tr>`).join("");
+
+}catch(e){
+body.innerHTML=`<tr><td colspan="6" class="empty">${esc(e.message)}</td></tr>`;
+}
+}
+
+async function logoutAdmin(){
+try{
+await fetch("/admin/logout",{method:"POST",credentials:"include"});
+}finally{
+location.href="/admin-login.html";
+}
+}
+
+document.getElementById("adminSelect").addEventListener("change",e=>{
+highlightAdmin(e.target.value);
+});
+
+document.addEventListener("DOMContentLoaded",async()=>{
+if(!await verifyOwner())return;
+
+const today=new Date();
+const yyyy=today.getFullYear();
+const mm=String(today.getMonth()+1).padStart(2,"0");
+const dd=String(today.getDate()).padStart(2,"0");
+document.getElementById("workDate").value=`${yyyy}-${mm}-${dd}`;
+
+try{
+await loadAdmins();
+await loadReport();
+}catch(e){
+document.getElementById("sessionBody").innerHTML=
+`<tr><td colspan="6" class="empty">${esc(e.message)}</td></tr>`;
+}
+});
+</script>
+</body>
+</html>

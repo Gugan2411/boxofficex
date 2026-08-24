@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RRR - BoxOfficeX</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="logo">
+        BoxOffice<span>X</span>
+    </div>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="#">Movies</a>
+        <a href="#">Actors</a>
+        <a href="#">Rankings</a>
+        <a href="#">Comparisons</a>
+    </nav>
+
+</header>
+
+
+<main>
+
+    <section class="movie-header">
+
+        <div class="movie-poster">
+            🎬
+        </div>
+
+        <div class="movie-info">
+
+            <h1 id="movieTitle">RRR</h1>
+
+            <p>Language: <span id="movieLanguage">Loading...</span></p>
+
+<p>Release Date: <span id="movieDate">Loading...</span></p>
+
+<p>Genre: <span id="movieGenre">Loading...</span></p>
+
+<p>Budget: <span id="movieBudget">Loading...</span></p>
+
+<p>India Collection: <span id="movieIndia">Loading...</span></p>
+
+<p>Overseas Collection: <span id="movieOverseas">Loading...</span></p>
+
+<p>Worldwide Collection: <span id="movieWorldwide">Loading...</span></p>
+
+<p>Verdict: <span id="movieVerdict">Loading...</span></p>
+
+<p>Director: <span id="movieDirector">Loading...</span></p>
+            
+        </div>
+
+    </section>
+
+
+    <section class="cast">
+
+        <h2>⭐ Cast</h2>
+
+        <div class="cast-grid">
+
+            <div class="cast-card">
+                <div class="person">👤</div>
+                <h3>Ram Charan</h3>
+                <p>Alluri Sitarama Raju</p>
+            </div>
+
+            <div class="cast-card">
+                <div class="person">👤</div>
+                <h3>Jr NTR</h3>
+                <p>Komaram Bheem</p>
+            </div>
+
+            <div class="cast-card">
+                <div class="person">👤</div>
+                <h3>Alia Bhatt</h3>
+                <p>Sita</p>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <h2>BoxOfficeX</h2>
+
+    <p>Worldwide movie box-office information.</p>
+
+    <p>© 2026 BoxOfficeX</p>
+
+</footer>
+
+<script>
+async function loadMovie() {
+    try {
+        const response = await fetch("http://127.0.0.1:8000/movies/4");
+        const movie = await response.json();
+
+        document.getElementById("movieTitle").textContent = movie.title;
+        document.getElementById("movieLanguage").textContent = movie.language;
+        document.getElementById("movieDate").textContent = movie.release_date;
+        document.getElementById("movieGenre").textContent = movie.genre;
+
+        document.getElementById("movieBudget").textContent =
+            "₹" + movie.budget_crore + " Cr";
+
+        document.getElementById("movieIndia").textContent =
+            "₹" + movie.india_collection_crore + " Cr";
+
+        document.getElementById("movieOverseas").textContent =
+            "₹" + movie.overseas_collection_crore + " Cr";
+
+        document.getElementById("movieWorldwide").textContent =
+            "₹" + movie.worldwide_collection_crore + " Cr";
+
+        document.getElementById("movieVerdict").textContent = movie.verdict;
+        document.getElementById("movieDirector").textContent = movie.director;
+
+    } catch (error) {
+        console.error("Movie loading error:", error);
+    }
+}
+
+loadMovie();
+</script>
+
+</body>
+</html>

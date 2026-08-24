@@ -1,0 +1,16 @@
+Library
+/
+robots.txt
+
+
+User-agent: *
+Allow: /
+
+# Keep private/admin areas out of search results.
+Disallow: /admin
+Disallow: /admin/
+Disallow: /docs
+Disallow: /redoc
+Disallow: /openapi.json
+
+Sitemap: https://boxoffice-x.com/sitemap.xml

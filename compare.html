@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Actor Box Office Comparison | BoxOfficeX</title>
+
+    <meta
+        name="description"
+        content="Compare actors by movies, worldwide box office collections, averages, blockbusters, hits, flops and highest-grossing films on BoxOfficeX."
+    >
+
+    <meta name="robots" content="index, follow">
+
+    <link id="canonicalUrl" rel="canonical" href="">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BoxOfficeX">
+    <meta id="ogTitle" property="og:title" content="Actor Box Office Comparison | BoxOfficeX">
+    <meta id="ogDescription" property="og:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">
+    <meta id="ogUrl" property="og:url" content="">
+    <meta id="ogImage" property="og:image" content="">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta id="twitterTitle" name="twitter:title" content="Actor Box Office Comparison | BoxOfficeX">
+    <meta id="twitterDescription" name="twitter:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">
+    <meta id="twitterImage" name="twitter:image" content="">
+
+    <script id="compareStructuredData" type="application/ld+json"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #080d1c;
+            color: white;
+        }
+
+        header {
+            background: #101a35;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        /* ==============================
+           COMPARISON HEADER
+        ============================== */
+
+        .comparison-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .comparison-header h1 {
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+        .comparison-header p {
+            color: #aeb8ce;
+        }
+
+
+        /* ==============================
+           HERO CARDS
+        ============================== */
+
+        .heroes {
+            display: grid;
+            grid-template-columns: 1fr 120px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .hero-card {
+            background: #162653;
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .comparison-photo {
+            width: 180px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 14px;
+            display: block;
+            margin: 0 auto 18px;
+        }
+
+        .hero-card h2 {
+            font-size: 28px;
+            margin: 0 0 8px;
+        }
+
+        .hero-card p {
+            color: #b8c2d6;
+            margin: 0;
+        }
+
+        .vs {
+            text-align: center;
+            font-size: 34px;
+            font-weight: bold;
+        }
+
+
+        /* ==============================
+           STATISTICS
+        ============================== */
+
+        .stats {
+            margin-top: 35px;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: 1fr 180px 1fr;
+            align-items: center;
+            margin-bottom: 12px;
+            background: #111a31;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .stat-value {
+            padding: 18px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            background: #202c4d;
+            padding: 18px 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+
+        /* ==============================
+           CLICKABLE VALUES
+        ============================== */
+
+        .clickable-stat {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .clickable-stat:hover {
+            transform: scale(1.08);
+        }
+
+
+        /* ==============================
+           HIGHEST GROSSING
+        ============================== */
+
+        .highest-section {
+            margin-top: 40px;
+        }
+
+        .highest-section-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .highest-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .highest-card {
+            background: #162653;
+            border-radius: 18px;
+            padding: 22px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .highest-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .highest-card img {
+            width: 160px;
+            height: 230px;
+            object-fit: cover;
+            border-radius: 12px;
+            display: block;
+            margin: 15px auto;
+        }
+
+        .highest-card h3 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .highest-card h2 {
+            margin: 10px 0;
+            font-size: 24px;
+        }
+
+        .highest-card p {
+            color: #c0c9dc;
+            margin: 7px 0;
+        }
+
+
+        /* ==============================
+           WINNER
+        ============================== */
+
+        .winner-card {
+            margin-top: 35px;
+            background: #162653;
+            border-radius: 18px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .winner-card h2 {
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        .winner-photo {
+            width: 160px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 14px;
+            display: block;
+            margin: 15px auto;
+        }
+
+        .winner-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .winner-score {
+            color: #b8c2d6;
+            margin-top: 8px;
+        }
+
+        .tie-message {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+
+        /* ==============================
+           LOADING / ERROR
+        ============================== */
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 30px;
+        }
+
+
+        /* ==============================
+           MOBILE
+        ============================== */
+
+        @media (max-width: 700px) {
+
+            main {
+                padding: 20px 12px;
+            }
+
+            .heroes {
+                grid-template-columns: 1fr;
+            }
+
+            .vs {
+                margin: 5px 0;
+            }
+
+            .comparison-photo {
+                width: 150px;
+                height: 190px;
+            }
+
+            .stat-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-label {
+                order: 2;
+            }
+
+            .highest-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .highest-card img {
+                width: 150px;
+                height: 220px;
+            }
+
+            .winner-photo {
+                width: 140px;
+                height: 180px;
+            }
+
+        }
+
+    
+        /* BOXOFFICEX STANDARD HEADER */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0;
+            text-align: initial;
+            background: rgba(6, 9, 18, 0.90);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1280px;
+            min-height: 68px;
+            margin: 0 auto;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: white;
+            text-decoration: none;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+            box-shadow: 0 8px 25px rgba(77,141,255,0.24);
+        }
+
+        .logo span:last-child { color: #ffcc33; }
+
+        header nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        header nav a {
+            min-height: 40px;
+            padding: 9px 12px;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 10px;
+            color: #c7d1e6;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        header nav a:hover {
+            color: #79adff;
+            background: rgba(77,141,255,0.10);
+        }
+
+        header nav .nav-compare {
+            color: white;
+            background: linear-gradient(135deg, #ff4655, #d92e3d);
+        }
+
+        /* POLISH */
+        body {
+            background:
+                radial-gradient(circle at 50% -10%, rgba(77,141,255,0.15), transparent 34%),
+                #080d1c;
+        }
+
+        .hero-card,
+        .highest-card,
+        .winner-card {
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.16);
+        }
+
+        /* FOOTER */
+        .site-footer {
+            margin-top: 28px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: #080c16;
+        }
+
+        .footer-inner {
+            max-width: 1280px;
+            margin: auto;
+            padding: 32px 18px 35px;
+            text-align: center;
+        }
+
+        .footer-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .footer-logo-icon {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+        }
+
+        .footer-brand strong > span { color: #ffcc33; }
+
+        .site-footer p {
+            margin: 5px 0;
+            color: #73809a;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 15px;
+            margin: 13px 0;
+        }
+
+        .footer-links a {
+            color: #79adff;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .mobile-bottom-nav { display: none; }
+
+        @media (max-width: 700px) {
+            body { padding-bottom: 68px; }
+
+            .navbar {
+                min-height: 61px;
+                padding: 0 13px;
+                justify-content: center;
+            }
+
+            .logo { font-size: 18px; }
+
+            .logo-icon {
+                width: 31px;
+                height: 31px;
+                border-radius: 9px;
+            }
+
+            header nav { display: none; }
+
+            .comparison-header h1 { font-size: 28px; }
+
+            .hero-card { padding: 18px 14px; }
+
+            .stat-value,
+            .stat-label { padding: 14px 10px; }
+
+            .mobile-bottom-nav {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1500;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+                background: rgba(7,11,20,0.96);
+                border-top: 1px solid rgba(255,255,255,0.08);
+            }
+
+            .mobile-bottom-nav a {
+                min-height: 48px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                border-radius: 11px;
+                color: #8793a9;
+                text-decoration: none;
+                font-size: 8px;
+                font-weight: 700;
+            }
+
+            .mobile-bottom-nav a span:first-child { font-size: 18px; }
+
+            .mobile-bottom-nav a.active {
+                color: #79adff;
+                background: rgba(77,141,255,0.10);
+            }
+        }
+
+
+/* BOXOFFICEX MASTER POLISH — ACTOR COMPARISON */
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{overflow-x:hidden;background:radial-gradient(circle at 50% -10%,rgba(77,141,255,.17),transparent 34%),linear-gradient(180deg,#070b15,#080d1c 58%,#070a12)}
+header{background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.navbar{min-height:66px;gap:12px}.logo{font-size:20px;letter-spacing:.45px}.logo-icon{width:33px;height:33px;border-radius:9px}
+header nav{gap:2px;flex-wrap:nowrap}header nav a{min-height:38px;display:inline-flex;align-items:center;padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+header nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+header nav .nav-compare:hover{background:linear-gradient(135deg,#ff5967,#e83b49);color:#fff!important;transform:translateY(-1px)}
+header nav .nav-compare.active{box-shadow:0 0 0 1px rgba(255,255,255,.16),0 9px 24px rgba(255,70,85,.24)}
+.nav-item-with-badge{position:relative}.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none}.nav-new-badge.show{display:inline-flex}
+
+main{width:min(980px,calc(100% - 36px));padding:28px 0 55px}
+.comparison-header{margin-bottom:24px}.comparison-header h1{margin:0;font-size:clamp(31px,5vw,43px);letter-spacing:-.8px}.comparison-header p{max-width:620px;margin:9px auto 0;font-size:12px;line-height:1.55}
+.heroes{grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);gap:14px}
+.hero-card{padding:16px;border-radius:15px;background:linear-gradient(145deg,#111a31,#0d1528)}
+.comparison-photo{width:105px;height:135px;margin:0 auto 10px;border-radius:10px}.hero-card h2{font-size:17px;margin-bottom:5px}.hero-card p{font-size:9.5px}.vs{width:52px;height:52px;margin:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#ff4655,#d92e3d);font-size:14px;box-shadow:0 10px 25px rgba(255,70,85,.22)}
+.stats{margin-top:18px}.stat-row{grid-template-columns:1fr 160px 1fr;min-height:58px;margin-bottom:7px;border:1px solid rgba(255,255,255,.06);border-radius:11px}.stat-value{padding:12px;font-size:14px}.stat-label{padding:12px 8px;font-size:10px}.clickable-stat:hover{transform:none;background:rgba(77,141,255,.10);color:#79adff}
+.highest-section{margin-top:28px}.highest-section-title{font-size:20px;margin-bottom:13px}.highest-grid{gap:12px}.highest-card{padding:14px;border-radius:14px;background:linear-gradient(145deg,#111a31,#0d1528)}.highest-card img{width:92px;height:138px;margin:10px auto;border-radius:9px}.highest-card h3{font-size:13px}.highest-card h2{font-size:16px;margin:7px 0}.highest-card p{font-size:9.5px;margin:5px 0}.highest-card:hover{transform:translateY(-2px)}
+.winner-card{margin-top:20px;padding:18px;border-radius:15px;background:linear-gradient(145deg,#111a31,#0d1528)}.winner-card h2{font-size:20px}.winner-photo{width:88px;height:112px;margin:10px auto;border-radius:10px}.winner-name{font-size:22px}.winner-score{font-size:10px}.tie-message{font-size:20px}
+.loading,.error{padding:45px 15px;color:#9ba7bd}
+
+.site-footer{margin-top:30px;background:linear-gradient(180deg,#080c16,#050810)}.footer-inner{max-width:1180px;padding:28px 18px}.footer-brand{color:#fff;text-decoration:none;font-size:17px}.footer-logo-icon{width:31px;height:31px}.site-footer p{max-width:650px;margin:9px auto 0;font-size:10px}.footer-links{gap:6px 15px}.footer-links a{color:#aebbd4;font-size:10px}.footer-links a:hover{color:#79adff}
+.mobile-bottom-nav{display:none}
+
+@media(max-width:1180px) and (min-width:701px){.navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}.navbar::-webkit-scrollbar{display:none}.logo{font-size:17px}.logo-icon{width:30px;height:30px}header nav{min-width:max-content}header nav a{padding-left:7px;padding-right:7px;font-size:10.5px}}
+@media(max-width:700px){
+body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}
+main{width:100%;padding:20px 9px 38px}.comparison-header{margin-bottom:18px}.comparison-header h1{font-size:27px}.comparison-header p{font-size:10px}
+.heroes{grid-template-columns:1fr 38px 1fr;gap:6px}.hero-card{padding:9px 5px;border-radius:11px}.comparison-photo{width:70px;height:90px;margin-bottom:7px}.hero-card h2{font-size:12px;overflow-wrap:anywhere}.hero-card p{font-size:7.5px}.vs{width:34px;height:34px;font-size:9px}
+.stats{margin-top:12px}.stat-row{grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);min-height:53px;margin-bottom:5px}.stat-value{padding:9px 4px;font-size:10px;overflow-wrap:anywhere}.stat-label{padding:9px 3px;font-size:7px}
+.highest-section{margin-top:21px}.highest-section-title{font-size:17px}.highest-grid{grid-template-columns:1fr 1fr;gap:7px}.highest-card{padding:9px 5px}.highest-card img{width:67px;height:100px}.highest-card h3{font-size:9px}.highest-card h2{font-size:12px}.highest-card p{font-size:7.5px}
+.winner-card{padding:14px 8px}.winner-card h2{font-size:17px}.winner-photo{width:70px;height:90px}.winner-name{font-size:18px}.winner-score{font-size:9px}.tie-message{font-size:16px}
+.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;background:rgba(7,11,20,.96);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px);box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+.mobile-bottom-nav a{position:relative;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:11px;color:#8793a9;text-decoration:none;font-size:7.5px;font-weight:700}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav a.active{color:#fff;background:rgba(255,70,85,.11)}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE STANDARD — ACTOR COMPARISON
+========================================================= */
+.mobile-menu-button{display:none}
+
+.footer-brand,
+.footer-brand:hover,
+.footer-brand:visited{
+    text-decoration:none !important;
+    border-bottom:0 !important;
+    box-shadow:none !important;
+}
+
+@media(max-width:700px){
+    body{
+        padding-top:61px !important;
+        padding-bottom:0 !important;
+        overflow-x:hidden !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        width:100% !important;
+        z-index:99999 !important;
+        padding:0 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto !important;
+        align-items:center !important;
+        justify-content:initial !important;
+        gap:10px !important;
+        background:#070a12 !important;
+        position:relative !important;
+        z-index:100000 !important;
+        overflow:visible !important;
+    }
+
+    .logo{
+        font-size:18px !important;
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    .logo-icon{
+        width:31px !important;
+        height:31px !important;
+    }
+
+    .mobile-menu-button{
+        width:42px;
+        height:42px;
+        display:flex !important;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+        position:relative;
+        z-index:100001;
+    }
+
+    .mobile-menu-button span{
+        width:20px;
+        height:2px;
+        display:block;
+        border-radius:999px;
+        background:#fff;
+        transition:.2s;
+    }
+
+    .mobile-menu-button.open span:nth-child(1){
+        transform:translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-button.open span:nth-child(2){
+        opacity:0;
+    }
+
+    .mobile-menu-button.open span:nth-child(3){
+        transform:translateY(-7px) rotate(-45deg);
+    }
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;
+        left:10px !important;
+        right:10px !important;
+        width:auto !important;
+        display:none !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:5px !important;
+        padding:10px !important;
+        border:1px solid rgba(255,255,255,.09) !important;
+        border-radius:14px !important;
+        background:#0a0f1b !important;
+        box-shadow:0 18px 45px rgba(0,0,0,.42) !important;
+        z-index:100002 !important;
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+
+    header nav a{
+        width:100% !important;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start !important;
+        font-size:12px !important;
+    }
+
+    .mobile-bottom-nav{
+        display:none !important;
+    }
+
+    main{
+        width:100% !important;
+        padding:20px 9px 38px !important;
+    }
+
+    /* Preserve useful side-by-side mobile comparison */
+    .heroes{
+        grid-template-columns:1fr 38px 1fr !important;
+        gap:6px !important;
+    }
+
+    .hero-card{
+        padding:9px 5px !important;
+        border-radius:11px !important;
+    }
+
+    .comparison-photo{
+        width:70px !important;
+        height:90px !important;
+        margin-bottom:7px !important;
+    }
+
+    .hero-card h2{
+        font-size:12px !important;
+        overflow-wrap:anywhere !important;
+    }
+
+    .hero-card p{
+        font-size:7.5px !important;
+    }
+
+    .vs{
+        width:34px !important;
+        height:34px !important;
+        font-size:9px !important;
+    }
+
+    .stats{
+        margin-top:12px !important;
+    }
+
+    .stat-row{
+        grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr) !important;
+        min-height:53px !important;
+        margin-bottom:5px !important;
+    }
+
+    .stat-value{
+        padding:9px 4px !important;
+        font-size:10px !important;
+        overflow-wrap:anywhere !important;
+    }
+
+    .stat-label{
+        padding:9px 3px !important;
+        font-size:7px !important;
+    }
+
+    .highest-grid{
+        grid-template-columns:1fr 1fr !important;
+        gap:7px !important;
+    }
+
+    .highest-card{
+        padding:9px 5px !important;
+    }
+
+    .highest-card img{
+        width:67px !important;
+        height:100px !important;
+    }
+
+    .winner-card{
+        padding:14px 8px !important;
+    }
+
+    .winner-photo{
+        width:70px !important;
+        height:90px !important;
+    }
+
+    .site-footer{
+        margin-top:35px !important;
+        background:linear-gradient(180deg,#080c16,#050810) !important;
+    }
+
+    .footer-inner{
+        max-width:100% !important;
+        padding:32px 12px 28px !important;
+        text-align:center !important;
+    }
+
+    .footer-brand{
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:8px !important;
+        margin-bottom:13px !important;
+        font-size:18px !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+    }
+
+    .footer-logo-icon{
+        width:34px !important;
+        height:34px !important;
+    }
+
+    .site-footer p{
+        max-width:290px !important;
+        margin:0 auto 20px !important;
+        font-size:11px !important;
+        line-height:1.65 !important;
+    }
+
+    .footer-links{
+        display:flex !important;
+        flex-wrap:nowrap !important;
+        justify-content:center !important;
+        align-items:center !important;
+        gap:0 !important;
+        width:100% !important;
+        margin:0 auto 22px !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-links a{
+        flex:0 0 auto !important;
+        padding:4px 8px !important;
+        color:#aebbd4 !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+        font-size:8px !important;
+        line-height:1.2 !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-inner>p:last-child{
+        margin-bottom:0 !important;
+        font-size:10px !important;
+    }
+}
+
+@media(max-width:340px){
+    .footer-links a{
+        padding-left:6px !important;
+        padding-right:6px !important;
+        font-size:7.5px !important;
+    }
+}
+
+
+/* =========================================================
+   COMPARE STATS — LEFT TO RIGHT READING ORDER
+   Label | Hero 1 | Hero 2
+========================================================= */
+.stat-row{
+    grid-template-columns:84px minmax(0,1fr) minmax(0,1fr) !important;
+}
+
+.stat-row .stat-label{
+    grid-column:1 !important;
+    grid-row:1 !important;
+}
+
+.stat-row .stat-value:nth-child(1){
+    grid-column:2 !important;
+    grid-row:1 !important;
+}
+
+.stat-row .stat-value:nth-child(2){
+    grid-column:3 !important;
+    grid-row:1 !important;
+}
+
+@media(max-width:700px){
+    .stat-row{
+        grid-template-columns:84px minmax(0,1fr) minmax(0,1fr) !important;
+    }
+}
+
+
+/* Clickable comparison stats hint */
+.compare-click-hint{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    margin:14px 0 8px;
+    padding:9px 12px;
+    border:1px solid rgba(79,140,255,.22);
+    border-radius:10px;
+    background:rgba(31,54,101,.22);
+    color:#a9c5ff;
+    font-size:11px;
+    font-weight:700;
+    text-align:center;
+}
+
+.compare-click-hint span{
+    font-size:15px;
+}
+
+@media(max-width:700px){
+    .compare-click-hint{
+        margin:12px 0 8px !important;
+        padding:8px 7px !important;
+        font-size:8.5px !important;
+        line-height:1.4 !important;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+    <div class="navbar">
+        <a href="index.html" class="logo" aria-label="BoxOfficeX Home">
+            <span class="logo-icon">🎬</span>
+            BOXOFFICE<span>X</span>
+        </a>
+        <button type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Open navigation menu"
+                aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+
+        <nav aria-label="Main navigation">
+<a href="/index.html">Home</a>
+<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/movie-rankings.html">Rankings</a>
+<a href="/actors.html">Actors</a>
+<a href="/articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/compare-select.html" class="nav-compare active">⚔️ Actor Compare</a>
+<a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+</nav>
+    </div>
+</header>
+
+
+<main>
+
+
+    <!-- ==============================
+         HEADER
+    ============================== -->
+
+    <div class="comparison-header">
+
+        <h1>
+            ⚔️ Hero vs Hero
+        </h1>
+
+        <p>
+            Compare your favourite heroes and discover their box-office journey.
+        </p>
+
+    </div>
+
+
+    <!-- ==============================
+         CONTENT
+    ============================== -->
+
+    <div id="comparisonContent">
+
+        <div class="loading">
+            Loading comparison...
+        </div>
+
+    </div>
+
+
+</main>
+
+
+
+<footer class="site-footer">
+<div class="footer-inner">
+<a href="/index.html" class="footer-brand"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
+<p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
+<div class="footer-links">
+<a href="/about.html">About</a>
+<a href="/contact.html">Contact</a>
+<a href="/privacy.html">Privacy</a>
+<a href="/terms.html">Terms</a>
+<a href="/disclaimer.html">Disclaimer</a>
+</div>
+<p>© 2026 BoxOfficeX. All rights reserved.</p>
+</div>
+</footer>
+
+
+
+<script>
+
+
+// ==========================================
+// GET HERO NAMES FROM URL
+// ==========================================
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const hero1 =
+    params.get("hero1");
+
+
+const hero2 =
+    params.get("hero2");
+
+
+// ==========================================
+// DYNAMIC COMPARISON SEO
+// ==========================================
+
+function updateComparisonSEO(actor1, actor2) {
+
+    const name1 = actor1.name;
+    const name2 = actor2.name;
+
+    const title =
+        name1 + " vs " + name2 +
+        " Box Office Comparison | BoxOfficeX";
+
+    const description =
+        "Compare " + name1 + " vs " + name2 +
+        " by total movies, worldwide box office collections, averages, " +
+        "blockbusters, hits, flops and highest-grossing films on BoxOfficeX.";
+
+    const canonicalUrl = new URL(
+        window.location.pathname,
+        window.location.origin
+    );
+
+    canonicalUrl.searchParams.set("hero1", name1);
+    canonicalUrl.searchParams.set("hero2", name2);
+
+    const canonical = canonicalUrl.href;
+
+    const image =
+        actor1.photo
+            ? new URL(
+                "actor-images/" + encodeURIComponent(actor1.photo),
+                window.location.href
+            ).href
+            : "";
+
+    document.title = title;
+
+    const metaDescription =
+        document.querySelector('meta[name="description"]');
+
+    if (metaDescription) {
+        metaDescription.setAttribute("content", description);
+    }
+
+    const canonicalTag =
+        document.getElementById("canonicalUrl");
+
+    if (canonicalTag) {
+        canonicalTag.href = canonical;
+    }
+
+    const values = {
+        ogTitle: title,
+        ogDescription: description,
+        ogUrl: canonical,
+        ogImage: image,
+        twitterTitle: title,
+        twitterDescription: description,
+        twitterImage: image
+    };
+
+    Object.entries(values).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element && value) {
+            element.setAttribute("content", value);
+        }
+    });
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": name1 + " vs " + name2 + " Box Office Comparison",
+        "url": canonical,
+        "description": description,
+        "about": [
+            {
+                "@type": "Person",
+                "name": name1
+            },
+            {
+                "@type": "Person",
+                "name": name2
+            }
+        ]
+    };
+
+    const jsonLd =
+        document.getElementById("compareStructuredData");
+
+    if (jsonLd) {
+        jsonLd.textContent =
+            JSON.stringify(structuredData);
+    }
+}
+
+
+// ==========================================
+// CHECK URL
+// ==========================================
+
+if (!hero1 || !hero2) {
+
+    document.getElementById(
+        "comparisonContent"
+    ).innerHTML = `
+
+        <div class="error">
+            Invalid comparison.
+        </div>
+
+    `;
+
+}
+else {
+
+    loadComparison();
+
+}
+
+
+// ==========================================
+// LOAD COMPARISON
+// ==========================================
+
+async function loadComparison() {
+
+    try {
+
+
+        // ==================================
+        // GET ACTORS
+        // ==================================
+
+        const actorsResponse =
+            await fetch(
+                "/actors"
+            );
+
+
+        if (!actorsResponse.ok) {
+
+            throw new Error(
+                "Actors API failed"
+            );
+
+        }
+
+
+        const actorsData =
+            await actorsResponse.json();
+
+
+        const actors =
+            actorsData.actors || [];
+
+
+
+        // ==================================
+        // FLEXIBLE ACTOR NAME MATCHING
+        // ==================================
+
+        function normalizeActorName(value) {
+
+            return String(value || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, "")
+                .replace(/\s+/g, " ");
+        }
+
+
+        function findActorByName(
+            actorList,
+            requestedName
+        ) {
+
+            const requested =
+                normalizeActorName(
+                    requestedName
+                );
+
+
+            // 1) Exact normalized match
+            const exact =
+                actorList.find(actor =>
+                    normalizeActorName(
+                        actor.name
+                    ) === requested
+                );
+
+            if (exact) {
+                return exact;
+            }
+
+
+            // 2) Actor name starts with requested name
+            const startsWith =
+                actorList.find(actor => {
+
+                    const actorName =
+                        normalizeActorName(
+                            actor.name
+                        );
+
+                    return (
+                        actorName.startsWith(
+                            requested + " "
+                        ) ||
+                        requested.startsWith(
+                            actorName + " "
+                        )
+                    );
+                });
+
+            if (startsWith) {
+                return startsWith;
+            }
+
+
+            // 3) Whole-word match
+            const wordMatch =
+                actorList.find(actor => {
+
+                    const actorName =
+                        normalizeActorName(
+                            actor.name
+                        );
+
+                    const actorWords =
+                        actorName.split(" ");
+
+                    const requestedWords =
+                        requested.split(" ");
+
+                    return requestedWords.every(
+                        word =>
+                            actorWords.includes(
+                                word
+                            )
+                    );
+                });
+
+            if (wordMatch) {
+                return wordMatch;
+            }
+
+
+            // 4) Partial fallback
+            return actorList.find(actor => {
+
+                const actorName =
+                    normalizeActorName(
+                        actor.name
+                    );
+
+                return (
+                    actorName.includes(
+                        requested
+                    ) ||
+                    requested.includes(
+                        actorName
+                    )
+                );
+            }) || null;
+        }
+
+
+        // ==================================
+        // FIND HERO 1
+        // ==================================
+
+        const actor1 =
+            findActorByName(
+                actors,
+                hero1
+            );
+
+
+        // ==================================
+        // FIND HERO 2
+        // ==================================
+
+        const actor2 =
+            findActorByName(
+                actors,
+                hero2
+            );
+
+
+        if (!actor1 || !actor2) {
+
+            const missingActors = [];
+
+            if (!actor1) {
+                missingActors.push(
+                    hero1
+                );
+            }
+
+            if (!actor2) {
+                missingActors.push(
+                    hero2
+                );
+            }
+
+            document.getElementById(
+                "comparisonContent"
+            ).innerHTML = `
+
+                <div class="error">
+
+                    Actor not found:
+                    <strong>
+                        ${missingActors.join(", ")}
+                    </strong>
+
+                    <br><br>
+
+                    Please choose actors from the
+                    Hero vs Hero selector.
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        updateComparisonSEO(
+            actor1,
+            actor2
+        );
+
+
+        // ==================================
+        // GET STATS
+        // ==================================
+
+        const stats1Response =
+            await fetch(
+                "/actors/" +
+                actor1.id +
+                "/stats"
+            );
+
+
+        const stats2Response =
+            await fetch(
+                "/actors/" +
+                actor2.id +
+                "/stats"
+            );
+
+
+        if (
+            !stats1Response.ok ||
+            !stats2Response.ok
+        ) {
+
+            throw new Error(
+                "Statistics API failed"
+            );
+
+        }
+
+
+        const stats1 =
+            await stats1Response.json();
+
+
+        const stats2 =
+            await stats2Response.json();
+
+
+        // ==================================
+        // GET HIGHEST GROSSING MOVIES
+        // ==================================
+
+        const highest1Response =
+            await fetch(
+                "/actors/" +
+                actor1.id +
+                "/highest-grossing"
+            );
+
+
+        const highest2Response =
+            await fetch(
+                "/actors/" +
+                actor2.id +
+                "/highest-grossing"
+            );
+
+
+        if (
+            !highest1Response.ok ||
+            !highest2Response.ok
+        ) {
+
+            throw new Error(
+                "Highest grossing API failed"
+            );
+
+        }
+
+
+        const highest1 =
+            await highest1Response.json();
+
+
+        const highest2 =
+            await highest2Response.json();
+
+
+        // ==================================
+        // CALCULATE WINNER
+        // ==================================
+
+        let score1 = 0;
+
+        let score2 = 0;
+
+
+        // Total Movies
+
+        if (
+            stats1.movie_count >
+            stats2.movie_count
+        ) {
+
+            score1++;
+
+        }
+        else if (
+            stats2.movie_count >
+            stats1.movie_count
+        ) {
+
+            score2++;
+
+        }
+
+
+        // Total Worldwide
+
+        if (
+            stats1.total_worldwide >
+            stats2.total_worldwide
+        ) {
+
+            score1++;
+
+        }
+        else if (
+            stats2.total_worldwide >
+            stats1.total_worldwide
+        ) {
+
+            score2++;
+
+        }
+
+
+        // Average Worldwide
+
+        if (
+            stats1.average_worldwide >
+            stats2.average_worldwide
+        ) {
+
+            score1++;
+
+        }
+        else if (
+            stats2.average_worldwide >
+            stats1.average_worldwide
+        ) {
+
+            score2++;
+
+        }
+
+
+        // Highest Grossing Movie
+
+        if (
+            highest1.movie &&
+            highest2.movie
+        ) {
+
+            if (
+                highest1.movie.worldwide_collection_crore >
+                highest2.movie.worldwide_collection_crore
+            ) {
+
+                score1++;
+
+            }
+            else if (
+                highest2.movie.worldwide_collection_crore >
+                highest1.movie.worldwide_collection_crore
+            ) {
+
+                score2++;
+
+            }
+
+        }
+
+
+        // Blockbusters
+
+        if (
+            stats1.blockbusters >
+            stats2.blockbusters
+        ) {
+
+            score1++;
+
+        }
+        else if (
+            stats2.blockbusters >
+            stats1.blockbusters
+        ) {
+
+            score2++;
+
+        }
+
+
+        // Hits
+
+        if (
+            stats1.hits >
+            stats2.hits
+        ) {
+
+            score1++;
+
+        }
+        else if (
+            stats2.hits >
+            stats1.hits
+        ) {
+
+            score2++;
+
+        }
+
+
+        // Fewer Flops Wins
+
+        if (
+            stats1.flops <
+            stats2.flops
+        ) {
+
+            score1++;
+
+        }
+        else if (
+            stats2.flops <
+            stats1.flops
+        ) {
+
+            score2++;
+
+        }
+
+
+        // ==================================
+        // WINNER CARD
+        // ==================================
+
+        let winnerHTML = "";
+
+
+        if (score1 > score2) {
+
+            winnerHTML = `
+
+                <div class="winner-card">
+
+                    <h2>
+                        🏆 Overall Winner
+                    </h2>
+
+                    <img
+                        src="actor-images/${actor1.photo}"
+                        alt="${actor1.name}"
+                        class="winner-photo"
+                        loading="lazy"
+                    >
+
+                    <div class="winner-name">
+                        ${actor1.name}
+                    </div>
+
+                    <div class="winner-score">
+                        Score: ${score1} - ${score2}
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+        else if (score2 > score1) {
+
+            winnerHTML = `
+
+                <div class="winner-card">
+
+                    <h2>
+                        🏆 Overall Winner
+                    </h2>
+
+                    <img
+                        src="actor-images/${actor2.photo}"
+                        alt="${actor2.name}"
+                        class="winner-photo"
+                        loading="lazy"
+                    >
+
+                    <div class="winner-name">
+                        ${actor2.name}
+                    </div>
+
+                    <div class="winner-score">
+                        Score: ${score2} - ${score1}
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+        else {
+
+            winnerHTML = `
+
+                <div class="winner-card">
+
+                    <h2>
+                        🤝 It's a Tie!
+                    </h2>
+
+                    <div class="tie-message">
+
+                        ${actor1.name}
+                        VS
+                        ${actor2.name}
+
+                    </div>
+
+                    <div class="winner-score">
+
+                        Both scored
+                        ${score1}
+                        points.
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+
+
+        // ==================================
+        // DISPLAY EVERYTHING
+        // ==================================
+
+        document.getElementById(
+            "comparisonContent"
+        ).innerHTML = `
+
+
+            <!-- ==========================
+                 HEROES
+            =========================== -->
+
+            <div class="heroes">
+
+
+                <div class="hero-card">
+
+                    <img
+                        src="actor-images/${actor1.photo}"
+                        alt="${actor1.name}"
+                        class="comparison-photo"
+                        loading="lazy"
+                    >
+
+                    <h2>
+                        ${actor1.name}
+                    </h2>
+
+                    <p>
+                        ${actor1.profession || "Actor"}
+                    </p>
+
+                </div>
+
+
+                <div class="vs">
+                    VS
+                </div>
+
+
+                <div class="hero-card">
+
+                    <img
+                        src="actor-images/${actor2.photo}"
+                        alt="${actor2.name}"
+                        class="comparison-photo"
+                        loading="lazy"
+                    >
+
+                    <h2>
+                        ${actor2.name}
+                    </h2>
+
+                    <p>
+                        ${actor2.profession || "Actor"}
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ==========================
+                 STATISTICS
+            =========================== -->
+
+            <div class="compare-click-hint">
+    <span>👆</span>
+    Tap Blockbusters, Hits, Average or Flops counts to view the movies
+</div>
+
+<div class="stats">
+
+
+                <!-- TOTAL MOVIES -->
+
+                ${createMovieCountRow(
+                    actor1,
+                    stats1.movie_count,
+                    actor2,
+                    stats2.movie_count
+                )}
+
+
+                <!-- TOTAL WORLDWIDE -->
+
+                ${createRow(
+                    "₹" +
+                    Number(
+                        stats1.total_worldwide
+                    ).toFixed(2) +
+                    " Cr",
+
+                    "🌍 Total Worldwide",
+
+                    "₹" +
+                    Number(
+                        stats2.total_worldwide
+                    ).toFixed(2) +
+                    " Cr"
+                )}
+
+
+                <!-- AVERAGE WORLDWIDE -->
+
+                ${createRow(
+                    "₹" +
+                    Number(
+                        stats1.average_worldwide
+                    ).toFixed(2) +
+                    " Cr",
+
+                    "💰 Average Worldwide",
+
+                    "₹" +
+                    Number(
+                        stats2.average_worldwide
+                    ).toFixed(2) +
+                    " Cr"
+                )}
+
+
+                <!-- BLOCKBUSTERS -->
+
+                ${createVerdictRow(
+                    actor1,
+                    stats1.blockbusters,
+                    "🔥 Blockbusters",
+                    actor2,
+                    stats2.blockbusters,
+                    "Blockbuster"
+                )}
+
+
+                <!-- HITS -->
+
+                ${createVerdictRow(
+                    actor1,
+                    stats1.hits,
+                    "⭐ Hits",
+                    actor2,
+                    stats2.hits,
+                    "Hit"
+                )}
+
+
+                <!-- AVERAGE -->
+
+                ${createVerdictRow(
+                    actor1,
+                    stats1.average_movies,
+                    "➖ Average",
+                    actor2,
+                    stats2.average_movies,
+                    "Average"
+                )}
+
+
+                <!-- FLOPS -->
+
+                ${createVerdictRow(
+                    actor1,
+                    stats1.flops,
+                    "❌ Flops",
+                    actor2,
+                    stats2.flops,
+                    "Flop"
+                )}
+
+
+            </div>
+
+
+            <!-- ==========================
+                 HIGHEST GROSSING
+            =========================== -->
+
+            <div class="highest-section">
+
+                <h2 class="highest-section-title">
+
+                    🏆 Highest-Grossing Movies
+
+                </h2>
+
+
+                <div class="highest-grid">
+
+
+                    ${createHighestGrossingCard(
+                        actor1,
+                        highest1
+                    )}
+
+
+                    ${createHighestGrossingCard(
+                        actor2,
+                        highest2
+                    )}
+
+
+                </div>
+
+            </div>
+
+
+            <!-- ==========================
+                 WINNER
+            =========================== -->
+
+            ${winnerHTML}
+
+
+        `;
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "Comparison error:",
+            error
+        );
+
+
+        document.getElementById(
+            "comparisonContent"
+        ).innerHTML = `
+
+            <div class="error">
+
+                Unable to load comparison.
+
+                <br><br>
+
+                Check the browser console
+                for details.
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// NORMAL STAT ROW
+// ==========================================
+
+function createRow(
+    value1,
+    label,
+    value2
+) {
+
+    return `
+
+        <div class="stat-row">
+
+            <div class="stat-value">
+
+                ${value1}
+
+            </div>
+
+
+            <div class="stat-label">
+
+                ${label}
+
+            </div>
+
+
+            <div class="stat-value">
+
+                ${value2}
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+// ==========================================
+// TOTAL MOVIES ROW
+// ==========================================
+
+function createMovieCountRow(
+    actor1,
+    value1,
+    actor2,
+    value2
+) {
+
+    return `
+
+        <div class="stat-row">
+
+
+            <div
+                class="stat-value clickable-stat"
+                onclick="openAllActorMovies(
+                    ${actor1.id}
+                )"
+            >
+
+                ${value1}
+
+            </div>
+
+
+            <div class="stat-label">
+
+                🎬 Total Movies
+
+            </div>
+
+
+            <div
+                class="stat-value clickable-stat"
+                onclick="openAllActorMovies(
+                    ${actor2.id}
+                )"
+            >
+
+                ${value2}
+
+            </div>
+
+
+        </div>
+
+    `;
+
+}
+
+
+// ==========================================
+// OPEN ALL ACTOR MOVIES
+// ==========================================
+
+function openAllActorMovies(
+    actorId
+) {
+
+    window.location.href =
+        "actor.html?id=" +
+        actorId;
+
+}
+
+
+// ==========================================
+// CLICKABLE VERDICT ROW
+// ==========================================
+
+function createVerdictRow(
+    actor1,
+    value1,
+    label,
+    actor2,
+    value2,
+    verdict
+) {
+
+    return `
+
+        <div class="stat-row">
+
+
+            <div
+                class="stat-value clickable-stat"
+                onclick="openActorMovies(
+                    ${actor1.id},
+                    '${verdict}'
+                )"
+            >
+
+                ${value1}
+
+            </div>
+
+
+            <div class="stat-label">
+
+                ${label}
+
+            </div>
+
+
+            <div
+                class="stat-value clickable-stat"
+                onclick="openActorMovies(
+                    ${actor2.id},
+                    '${verdict}'
+                )"
+            >
+
+                ${value2}
+
+            </div>
+
+
+        </div>
+
+    `;
+
+}
+
+
+// ==========================================
+// OPEN VERDICT MOVIES
+// ==========================================
+
+function openActorMovies(
+    actorId,
+    verdict
+) {
+
+    window.location.href =
+        "actor-movies.html?id=" +
+        actorId +
+        "&verdict=" +
+        encodeURIComponent(verdict);
+
+}
+
+
+// ==========================================
+// HIGHEST GROSSING CARD
+// ==========================================
+
+function createHighestGrossingCard(
+    actor,
+    data
+) {
+
+    if (
+        !data ||
+        !data.movie
+    ) {
+
+        return `
+
+            <div class="highest-card">
+
+                <h3>
+                    🏆 ${actor.name}'s Highest Grosser
+                </h3>
+
+                <p>
+                    No movie data available.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    const movie =
+        data.movie;
+
+
+    return `
+
+        <div
+            class="highest-card"
+            onclick="openMovie(
+                ${movie.id}
+            )"
+        >
+
+            <h3>
+
+                🏆 ${actor.name}'s Highest Grosser
+
+            </h3>
+
+
+            <img
+                src="posters/${movie.poster}"
+                alt="${movie.title}"
+                loading="lazy"
+            >
+
+
+            <h2>
+
+                ${movie.title}
+
+            </h2>
+
+
+            <p>
+
+                🌍 ₹${Number(
+                    movie.worldwide_collection_crore
+                ).toFixed(2)} Cr
+
+            </p>
+
+
+            <p>
+
+                🎬 ${movie.verdict}
+
+            </p>
+
+
+            <p>
+
+                👆 Click to view movie
+
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+// ==========================================
+// OPEN MOVIE PAGE
+// ==========================================
+
+function openMovie(
+    movieId
+) {
+
+    window.location.href =
+        "movie.html?id=" +
+        movieId;
+
+}
+
+
+
+
+function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
+function parseSiteDate(value){if(!value)return null;const p=String(value).slice(0,10).split("-").map(Number);if(p.length!==3||!p[0]||!p[1]||!p[2])return null;return new Date(p[0],p[1]-1,p[2])}
+async function updateSiteNewBadges(){
+try{
+const [mr,ar]=await Promise.all([fetch("/movies/new-system",{cache:"no-store"}),fetch("/articles/latest?limit=10",{cache:"no-store"})]);
+if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());const fresh=all.some(movie=>{const dt=parseSiteDate(movie.release_date);if(!dt)return false;const days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}
+if(ar.ok){const d=await ar.json(),now=Date.now(),seven=7*86400000;const fresh=(d.articles||[]).some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}
+}catch(error){console.warn("Site NEW badge check failed:",error)}
+}
+updateSiteNewBadges();
+
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const b=document.getElementById("mobileMenuButton");
+    const n=document.querySelector("header nav");
+    if(!b||!n)return;
+
+    function closeMenu(){
+        n.classList.remove("mobile-menu-open");
+        b.classList.remove("open");
+        b.setAttribute("aria-expanded","false");
+    }
+
+    b.addEventListener("click",function(e){
+        e.stopPropagation();
+        const open=!n.classList.contains("mobile-menu-open");
+        n.classList.toggle("mobile-menu-open",open);
+        b.classList.toggle("open",open);
+        b.setAttribute("aria-expanded",open?"true":"false");
+    });
+
+    n.addEventListener("click",e=>{
+        if(e.target.closest("a"))closeMenu();
+    });
+
+    document.addEventListener("click",e=>{
+        if(!n.contains(e.target)&&!b.contains(e.target))closeMenu();
+    });
+
+    window.addEventListener("resize",()=>{
+        if(innerWidth>700)closeMenu();
+    });
+});
+</script>
+
+</body>
+
+</html>

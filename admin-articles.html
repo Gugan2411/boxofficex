@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Article Editor | BoxOfficeX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:#29334d;--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--red:#ff4655;--green:#3ac47d}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#17213a 0,#080b14 35%,#070a12 72%);color:var(--text);min-height:100vh}
+header{position:sticky;top:0;z-index:1000;background:rgba(6,9,18,.92);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}
+.navbar{max-width:1280px;min-height:68px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{display:flex;align-items:center;gap:9px;color:#fff;font-size:21px;font-weight:900;text-decoration:none}
+.logo-icon{width:35px;height:35px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff)}
+.logo span:last-child{color:var(--gold)}
+header nav{display:flex;align-items:center;gap:4px}
+header nav a{padding:9px 12px;border-radius:10px;color:#c7d1e6;font-size:13px;font-weight:700;text-decoration:none}
+header nav a:hover,header nav a.active{background:rgba(77,141,255,.1);color:#79adff}
+main{width:min(1280px,calc(100% - 36px));margin:auto;padding:32px 0 70px}
+.topbar{display:flex;justify-content:space-between;gap:15px;align-items:flex-end;flex-wrap:wrap}
+.topbar h1{font-size:clamp(30px,4vw,44px);letter-spacing:-1px}
+.topbar p{margin-top:8px;color:var(--muted);font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn-primary{background:linear-gradient(135deg,#4d8dff,#795cff);color:white}
+.btn-green{background:var(--green);color:#05150d}
+.btn-red{background:var(--red);color:white}
+.btn-dark{background:#151d31;color:#d7deec;border:1px solid rgba(255,255,255,.08)}
+.layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:22px;margin-top:24px}
+.panel{background:rgba(15,21,34,.95);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden}
+.panel-head{padding:16px 17px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.panel-head h2{font-size:17px}
+.panel-body{padding:17px}
+.article-list{display:grid;gap:9px;max-height:calc(100vh - 210px);overflow:auto;padding-right:4px}
+.article-item{padding:12px;border-radius:12px;background:#0c1220;border:1px solid rgba(255,255,255,.07);cursor:pointer}
+.article-item.active{border-color:#4d8dff;background:rgba(77,141,255,.08)}
+.article-item strong{display:block;font-size:13px;line-height:1.3}.article-item small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.full{grid-column:1/-1}
+label{display:block;margin-bottom:6px;color:#aeb9cb;font-size:11px;font-weight:800}
+input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.09);background:#0a101c;color:white;border-radius:10px;padding:11px 12px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:#4d8dff}
+textarea{min-height:92px;resize:vertical}
+.hero-tools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.status-pill{padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase}
+.status-draft{background:rgba(255,204,51,.1);color:#ffcc33}.status-published{background:rgba(58,196,125,.1);color:#73e2aa}.status-archived{background:rgba(255,70,85,.1);color:#ff7a85}
+.blocks-head{margin-top:22px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.block-add{display:flex;gap:7px;flex-wrap:wrap}
+.block-add button{padding:8px 10px;background:#151d31;color:#d9e0ec;border:1px solid rgba(255,255,255,.08);font-size:11px}
+.blocks{display:grid;gap:12px;margin-top:12px}
+.block-card{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0c1220;overflow:hidden}
+.block-top{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.block-type{font-size:11px;font-weight:900;text-transform:uppercase;color:#79adff}
+.block-controls{display:flex;gap:6px}.block-controls button{padding:6px 8px;background:#151d31;color:white;font-size:10px;border:1px solid rgba(255,255,255,.07)}
+.block-body{padding:12px}.block-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.note{margin-top:8px;color:#69758e;font-size:10px}
+.preview-bar{margin-top:16px;padding:13px;border:1px dashed rgba(77,141,255,.3);border-radius:12px;background:rgba(77,141,255,.04);color:#8aa8df;font-size:11px}
+.media-preview{margin-top:10px;min-height:90px;border:1px dashed rgba(255,255,255,.10);border-radius:12px;background:#0a101c;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.media-preview img{display:block;max-width:100%;max-height:260px;object-fit:contain}
+.media-preview.empty{color:#66738b;font-size:11px}
+.block-card[draggable="true"]{cursor:grab}.block-card.dragging{opacity:.45}.block-card.drop-target{border-color:#4d8dff;box-shadow:0 0 0 2px rgba(77,141,255,.12)}
+.gallery-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.gallery-preview img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.08)}
+.autosave-note{margin-left:8px;color:#6f7c95;font-size:10px}
+.toast{position:fixed;right:18px;bottom:18px;z-index:3000;padding:12px 15px;border-radius:12px;background:#101725;border:1px solid rgba(255,255,255,.1);display:none;max-width:320px}
+@media(max-width:950px){.layout{grid-template-columns:1fr}.article-list{max-height:260px}.form-grid,.block-row{grid-template-columns:1fr}}
+@media(max-width:650px){main{width:min(94%,1280px);padding-top:22px}.navbar{min-height:60px;padding:0 12px}.logo{font-size:18px}header nav{display:none}.actions{width:100%}.actions>*{flex:1}.panel-body{padding:13px}}
+.navbar{max-width:1500px;min-height:66px;gap:12px}.admin-nav{display:flex;align-items:center;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:thin}.admin-nav a{display:inline-flex;align-items:center;min-height:38px;padding:8px 10px!important;white-space:nowrap;font-size:11px!important}.admin-nav a.active{background:rgba(77,141,255,.14)!important;color:#8db5ff!important}@media(max-width:1100px){.navbar{align-items:flex-start;flex-direction:column;padding-top:10px;padding-bottom:9px}.admin-nav{width:100%}}@media(max-width:650px){header nav.admin-nav{display:flex}.navbar{align-items:flex-start}.admin-nav a{font-size:10px!important;padding:7px 9px!important}}
+/* BOXOFFICEX ADMIN ACCOUNT CONTROLS */
+.admin-account-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.admin-user-chip{padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:#101725;color:#aebbd4;font-size:10px;font-weight:800;white-space:nowrap}
+.admin-account-btn{border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 10px;background:#151d31;color:#dce5f5;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}
+.admin-account-btn:hover{background:#202b44}
+.admin-account-btn.logout{border-color:#703535;background:#351919;color:#ff9a9a}
+.account-modal{display:none;position:fixed;inset:0;z-index:5000;padding:20px;background:rgba(0,0,0,.78);overflow:auto}
+.account-modal-card{max-width:460px;margin:8vh auto;padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#101725}
+.account-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.account-modal-head h2{font-size:20px}
+.account-close{width:34px;height:34px;border-radius:50%;border:0;background:#29334d;color:#fff;font-size:20px;cursor:pointer}
+.account-field{margin-top:13px}
+.account-field label{display:block;margin-bottom:6px;color:#aeb9cb;font-size:11px;font-weight:800}
+.account-field input{width:100%;padding:11px 12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#0a101c;color:#fff;outline:none}
+.account-save{width:100%;margin-top:17px;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#795cff);color:#fff;font-weight:900;cursor:pointer}
+.account-message{display:none;margin-top:12px;padding:10px;border-radius:9px;font-size:11px;font-weight:800;text-align:center}
+.account-message.ok{display:block;background:#142c22;color:#7de2bb;border:1px solid #2e6b4f}
+.account-message.bad{display:block;background:#351919;color:#ff9a9a;border:1px solid #703535}
+@media(max-width:1100px){.admin-account-actions{width:100%;overflow-x:auto}.admin-user-chip{margin-left:auto}}
+@media(max-width:650px){.admin-account-actions{justify-content:flex-start}.admin-user-chip{margin-left:0}}
+
+
+/* =====================================================
+   ARTICLE LINK SEARCH + SELECTED CHIPS
+===================================================== */
+.link-picker{
+    position:relative;
+    padding:14px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    background:#0c1220;
+}
+.link-picker + .link-picker{margin-top:12px}
+.link-picker-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.link-picker-row input{min-width:0}
+.link-add-btn{
+    border:1px solid rgba(77,141,255,.3);
+    border-radius:10px;
+    padding:0 14px;
+    background:rgba(77,141,255,.12);
+    color:#9fc0ff;
+    font-weight:900;
+    cursor:pointer;
+}
+.link-results{
+    display:none;
+    position:absolute;
+    left:14px;
+    right:14px;
+    top:72px;
+    z-index:1500;
+    max-height:260px;
+    overflow:auto;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:12px;
+    background:#0a101c;
+    box-shadow:0 18px 45px rgba(0,0,0,.35);
+}
+.link-result{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 11px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    cursor:pointer;
+}
+.link-result:last-child{border-bottom:0}
+.link-result:hover{background:rgba(77,141,255,.08)}
+.link-result strong{font-size:12px}
+.link-result small{display:block;margin-top:3px;color:#7e8aa3;font-size:10px}
+.link-id{
+    flex:0 0 auto;
+    padding:4px 7px;
+    border-radius:999px;
+    background:#151d31;
+    color:#ffcc33;
+    font-size:10px;
+    font-weight:900;
+}
+.selected-links{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:10px;
+}
+.selected-link-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:7px 9px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:999px;
+    background:#151d31;
+    color:#dce5f5;
+    font-size:10px;
+    font-weight:800;
+}
+.selected-link-chip button{
+    width:20px;
+    height:20px;
+    padding:0;
+    border-radius:50%;
+    background:#351919;
+    color:#ff9a9a;
+    font-size:11px;
+}
+.link-id-output{
+    margin-top:9px;
+    padding:8px 10px;
+    border:1px dashed rgba(255,255,255,.08);
+    border-radius:9px;
+    color:#8490a8;
+    font-size:10px;
+    word-break:break-word;
+}
+.block-search-result{
+    margin-top:8px;
+    padding:8px 9px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:9px;
+    background:#101725;
+    color:#9fc0ff;
+    font-size:10px;
+}
+
+
+/* =====================================================
+   ARTICLE AUTHOR + HERO REFRESH CONTROLS
+===================================================== */
+.author-tools{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    align-items:end;
+}
+.author-use-btn,
+.hero-refresh-btn{
+    border:1px solid rgba(77,141,255,.28);
+    border-radius:10px;
+    padding:10px 12px;
+    background:rgba(77,141,255,.10);
+    color:#9fc0ff;
+    font-size:10px;
+    font-weight:900;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.author-use-btn:hover,
+.hero-refresh-btn:hover{
+    background:rgba(77,141,255,.18);
+}
+.hero-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+@media(max-width:650px){
+    .author-tools{grid-template-columns:1fr}
+    .author-use-btn{width:100%}
+    .hero-actions{width:100%}
+    .hero-actions button{flex:1}
+}
+
+</style>
+</head>
+<body>
+<header>
+<div class="navbar">
+<a href="/index.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a>
+<nav class="admin-nav">
+<a href="/admin.html">🏠 Admin Home</a>
+<a href="/admin.html#movies">🎬 Movies</a>
+<a href="/admin-new-movies.html">🆕 New Movies</a>
+<a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
+<a href="/admin-regional-boxoffice.html">📍 Regional</a>
+<a href="/admin-articles.html" class="active">📰 Articles</a>
+<a href="/admin.html#actors">👤 Actors</a>
+<a href="/admin.html#actor-links">🔗 Actor Links</a>
+<a href="/admin.html#collections">📊 Collections</a>
+<a href="/articles.html" target="_blank">🌐 Public Articles</a>
+</nav>
+<div class="admin-account-actions">
+    <div id="adminUserChip" class="admin-user-chip">Loading account...</div>
+    <button type="button" class="admin-account-btn" onclick="openOwnPasswordModal()">🔑 Password</button>
+    <button type="button" class="admin-account-btn logout" onclick="logoutCurrentAdmin()">🚪 Logout</button>
+</div>
+
+</div>
+</header>
+
+<main>
+<div class="topbar">
+<div><h1>Article Editor</h1><p>Create, arrange, preview and publish BoxOfficeX editorial stories.</p></div>
+<div class="actions">
+<button class="btn btn-dark" id="newBtn">＋ New</button>
+<button class="btn btn-primary" id="saveBtn">💾 Save</button>
+<button class="btn btn-dark" id="previewBtn">👁 Preview</button>
+<button class="btn btn-green" id="publishBtn">Publish</button>
+<button class="btn btn-red" id="deleteBtn">Delete</button>
+</div>
+</div>
+
+<div class="layout">
+<section class="panel">
+<div class="panel-head"><h2>Articles</h2><span id="countLabel"></span></div>
+<div class="panel-body"><div id="articleList" class="article-list">Loading...</div></div>
+</section>
+
+<section class="panel">
+<div class="panel-head"><h2 id="editorTitle">New Article</h2><span id="statusBadge" class="status-pill status-draft">Draft</span></div>
+<div class="panel-body">
+
+<div class="form-grid">
+<div class="full"><label>Headline</label><input id="title"></div>
+<div class="full"><label>Slug</label><input id="slug" placeholder="article-clean-url"></div>
+<div class="full"><label>Subtitle / Deck</label><textarea id="subtitle"></textarea></div>
+<div><label>Category</label><input id="category" value="News"></div>
+<div class="full author-tools">
+    <div>
+        <label>Author</label>
+        <input
+            id="author"
+            list="authorSuggestions"
+            placeholder="Author name"
+            autocomplete="off"
+        >
+        <datalist id="authorSuggestions"></datalist>
+    </div>
+
+    <button
+        type="button"
+        class="author-use-btn"
+        id="useMyAuthorNameBtn"
+    >
+        👤 Use My Name
+    </button>
+</div>
+
+<div class="full hero-tools">
+<div><label>Hero image filename</label><input id="heroImage" placeholder="example.jpg"></div>
+<div class="hero-actions">
+    <input
+        id="heroUpload"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+    >
+    <button class="btn btn-dark" id="heroUploadBtn">Upload Hero</button>
+    <button
+        type="button"
+        class="hero-refresh-btn"
+        id="heroRefreshBtn"
+    >
+        🔄 Refresh Image
+    </button>
+</div>
+</div>
+<div class="full"><div id="heroPreview" class="media-preview empty">Hero preview will appear here</div></div>
+<div><label>Hero caption</label><input id="heroCaption"></div>
+<div><label>Hero credit</label><input id="heroCredit"></div>
+<div class="full"><label>Meta title</label><input id="metaTitle"></div>
+<div class="full"><label>Meta description</label><textarea id="metaDescription"></textarea></div>
+<div class="full">
+    <div class="link-picker">
+        <label>🎬 Linked Movies</label>
+        <div class="link-picker-row">
+            <input id="movieLinkSearch" placeholder="Search movie name..." autocomplete="off">
+            <button type="button" class="link-add-btn" id="movieLinkAddBtn">＋ Add</button>
+        </div>
+        <div id="movieLinkResults" class="link-results"></div>
+        <div id="selectedMovieLinks" class="selected-links"></div>
+        <input id="movieIds" type="hidden">
+        <div id="movieIdsDisplay" class="link-id-output">Movie IDs: none</div>
+    </div>
+</div>
+
+<div class="full">
+    <div class="link-picker">
+        <label>👤 Linked Actors / Heroes</label>
+        <div class="link-picker-row">
+            <input id="actorLinkSearch" placeholder="Search actor / hero name..." autocomplete="off">
+            <button type="button" class="link-add-btn" id="actorLinkAddBtn">＋ Add</button>
+        </div>
+        <div id="actorLinkResults" class="link-results"></div>
+        <div id="selectedActorLinks" class="selected-links"></div>
+        <input id="actorIds" type="hidden">
+        <div id="actorIdsDisplay" class="link-id-output">Actor IDs: none</div>
+    </div>
+</div>
+</div>
+
+<div class="blocks-head">
+<h2>Content Blocks</h2>
+<div class="block-add">
+<button data-add="paragraph">Paragraph</button>
+<button data-add="heading">Heading</button>
+<button data-add="image">Image</button>
+<button data-add="quote">Quote</button>
+<button data-add="boxoffice">Box Office</button>
+<button data-add="gallery">Gallery</button>
+<button data-add="movie">Movie</button>
+<button data-add="actor">Actor</button>
+<button data-add="video">Video</button>
+</div>
+</div>
+
+<div id="blocks" class="blocks"></div>
+<div class="preview-bar">Blocks are saved in the order shown here. Use ↑ and ↓ to move them. Image blocks can be placed anywhere in the story.</div>
+</div>
+</section>
+</div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let currentArticleId=null;
+let currentStatus="draft";
+let articles=[];
+let blocks=[];
+let CURRENT_ARTICLE_ADMIN=null;
+
+const $=id=>document.getElementById(id);
+function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2200)}
+const ARTICLE_FALLBACK="/posters/coming-soon.png";
+function mediaUrl(filename, fresh=false){
+if(!filename)return ARTICLE_FALLBACK;
+const base="/article-images/"+encodeURIComponent(filename);
+return fresh?base+"?v="+Date.now():base;
+}
+function updateHeroPreview(forceFresh=true){
+const box=$("heroPreview");
+const filename=$("heroImage").value.trim();
+
+if(!filename){
+box.classList.add("empty");
+box.innerHTML="Hero preview will appear here";
+return;
+}
+
+box.classList.remove("empty");
+
+const src=mediaUrl(filename,forceFresh);
+
+box.innerHTML=`
+<img
+    src="${src}"
+    alt="Hero preview"
+    onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}?v=${Date.now()}'"
+>
+`;
+}
+function galleryPreviewHTML(images){
+if(!Array.isArray(images)||!images.length)return "";
+return `<div class="gallery-preview">${images.map(x=>`<img src="${mediaUrl(x)}" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}'">`).join("")}</div>`;
+}
+function slugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
+function parseIds(v){return [...new Set(String(v||"").split(",").map(x=>Number(x.trim())).filter(Number.isInteger))]}
+
+async function loadCurrentArticleAdmin(){
+try{
+const r=await fetch("/admin/session",{
+credentials:"include",
+cache:"no-store"
+});
+const d=await r.json();
+
+if(!r.ok||!d.logged_in||!d.admin){
+return;
+}
+
+CURRENT_ARTICLE_ADMIN=d.admin;
+
+const name=String(
+d.admin.display_name||
+d.admin.email||
+""
+).trim();
+
+const email=String(
+d.admin.email||
+""
+).trim();
+
+const list=$("authorSuggestions");
+if(list){
+const values=[name,email].filter(Boolean);
+list.innerHTML=[...new Set(values)]
+.map(v=>`<option value="${lookupEsc(v)}"></option>`)
+.join("");
+}
+
+if(!$("author").value.trim()&&name){
+$("author").value=name;
+}
+}catch(e){
+console.error("Unable to load current admin for author:",e);
+}
+}
+
+function useCurrentAdminAsAuthor(){
+const name=String(
+CURRENT_ARTICLE_ADMIN?.display_name||
+CURRENT_ARTICLE_ADMIN?.email||
+""
+).trim();
+
+if(!name){
+toast("Admin name is not available yet");
+return;
+}
+
+$("author").value=name;
+toast("Author set to "+name);
+}
+
+function refreshHeroImageNow(){
+const filename=$("heroImage").value.trim();
+
+if(!filename){
+toast("Enter or upload a hero image first");
+return;
+}
+
+updateHeroPreview(true);
+toast("Hero image refreshed");
+}
+
+
+let articleMovieLookup=[];
+let articleActorLookup=[];
+let selectedMovieLinkIds=[];
+let selectedActorLinkIds=[];
+let pendingMovieLink=null;
+let pendingActorLink=null;
+
+function lookupEsc(v){
+const d=document.createElement("div");d.textContent=v??"";return d.innerHTML;
+}
+
+async function loadArticleLinkLookups(){
+try{
+const [mr,ar]=await Promise.all([
+fetch("/movies",{cache:"no-store"}),
+fetch("/actors",{cache:"no-store"})
+]);
+const md=await mr.json(),ad=await ar.json();
+articleMovieLookup=Array.isArray(md.movies)?md.movies:[];
+articleActorLookup=Array.isArray(ad.actors)?ad.actors:[];
+renderSelectedArticleLinks();
+}catch(e){console.error("Article link lookup error:",e)}
+}
+
+function setSelectedLinks(movieIds=[],actorIds=[]){
+selectedMovieLinkIds=[...new Set((movieIds||[]).map(Number).filter(Number.isInteger))];
+selectedActorLinkIds=[...new Set((actorIds||[]).map(Number).filter(Number.isInteger))];
+syncLinkIdInputs();
+renderSelectedArticleLinks();
+}
+
+function syncLinkIdInputs(){
+$("movieIds").value=selectedMovieLinkIds.join(", ");
+$("actorIds").value=selectedActorLinkIds.join(", ");
+$("movieIdsDisplay").textContent="Movie IDs: "+(selectedMovieLinkIds.join(", ")||"none");
+$("actorIdsDisplay").textContent="Actor IDs: "+(selectedActorLinkIds.join(", ")||"none");
+}
+
+function movieNameById(id){
+const m=articleMovieLookup.find(x=>Number(x.id)===Number(id));
+return m?.title||("Movie #"+id);
+}
+function actorNameById(id){
+const a=articleActorLookup.find(x=>Number(x.id)===Number(id));
+return a?.name||("Actor #"+id);
+}
+
+function renderSelectedArticleLinks(){
+const mb=$("selectedMovieLinks"),ab=$("selectedActorLinks");
+if(mb)mb.innerHTML=selectedMovieLinkIds.map(id=>`
+<span class="selected-link-chip">🎬 ${lookupEsc(movieNameById(id))} <span class="link-id">#${id}</span>
+<button type="button" onclick="removeArticleMovieLink(${id})">×</button></span>`).join("");
+if(ab)ab.innerHTML=selectedActorLinkIds.map(id=>`
+<span class="selected-link-chip">👤 ${lookupEsc(actorNameById(id))} <span class="link-id">#${id}</span>
+<button type="button" onclick="removeArticleActorLink(${id})">×</button></span>`).join("");
+syncLinkIdInputs();
+}
+
+function removeArticleMovieLink(id){
+selectedMovieLinkIds=selectedMovieLinkIds.filter(x=>Number(x)!==Number(id));renderSelectedArticleLinks();
+}
+function removeArticleActorLink(id){
+selectedActorLinkIds=selectedActorLinkIds.filter(x=>Number(x)!==Number(id));renderSelectedArticleLinks();
+}
+
+function showMovieLinkResults(){
+const q=$("movieLinkSearch").value.trim().toLowerCase(),box=$("movieLinkResults");
+pendingMovieLink=null;
+if(!q){box.style.display="none";box.innerHTML="";return}
+const rows=articleMovieLookup.filter(x=>String(x.title||"").toLowerCase().includes(q)).slice(0,8);
+box.innerHTML=rows.length?rows.map(x=>`
+<div class="link-result" data-id="${x.id}">
+<div><strong>${lookupEsc(x.title)}</strong><small>${lookupEsc(x.language||"")} ${x.release_date?"• "+lookupEsc(x.release_date):""}</small></div>
+<span class="link-id">ID ${x.id}</span></div>`).join(""):`<div class="link-result"><small>No movie found</small></div>`;
+box.style.display="block";
+box.querySelectorAll("[data-id]").forEach(el=>el.onclick=()=>{
+pendingMovieLink=articleMovieLookup.find(x=>Number(x.id)===Number(el.dataset.id));
+$("movieLinkSearch").value=pendingMovieLink?.title||"";
+box.style.display="none";
+});
+}
+
+function showActorLinkResults(){
+const q=$("actorLinkSearch").value.trim().toLowerCase(),box=$("actorLinkResults");
+pendingActorLink=null;
+if(!q){box.style.display="none";box.innerHTML="";return}
+const rows=articleActorLookup.filter(x=>String(x.name||"").toLowerCase().includes(q)).slice(0,8);
+box.innerHTML=rows.length?rows.map(x=>`
+<div class="link-result" data-id="${x.id}">
+<div><strong>${lookupEsc(x.name)}</strong><small>${lookupEsc(x.profession||"Actor")}</small></div>
+<span class="link-id">ID ${x.id}</span></div>`).join(""):`<div class="link-result"><small>No actor found</small></div>`;
+box.style.display="block";
+box.querySelectorAll("[data-id]").forEach(el=>el.onclick=()=>{
+pendingActorLink=articleActorLookup.find(x=>Number(x.id)===Number(el.dataset.id));
+$("actorLinkSearch").value=pendingActorLink?.name||"";
+box.style.display="none";
+});
+}
+
+function addPendingMovieLink(){
+if(!pendingMovieLink){
+const q=$("movieLinkSearch").value.trim().toLowerCase();
+pendingMovieLink=articleMovieLookup.find(x=>String(x.title||"").toLowerCase()===q)||null;
+}
+if(!pendingMovieLink){toast("Choose a movie from search results");return}
+if(!selectedMovieLinkIds.includes(Number(pendingMovieLink.id)))selectedMovieLinkIds.push(Number(pendingMovieLink.id));
+pendingMovieLink=null;$("movieLinkSearch").value="";renderSelectedArticleLinks();
+}
+function addPendingActorLink(){
+if(!pendingActorLink){
+const q=$("actorLinkSearch").value.trim().toLowerCase();
+pendingActorLink=articleActorLookup.find(x=>String(x.name||"").toLowerCase()===q)||null;
+}
+if(!pendingActorLink){toast("Choose an actor from search results");return}
+if(!selectedActorLinkIds.includes(Number(pendingActorLink.id)))selectedActorLinkIds.push(Number(pendingActorLink.id));
+pendingActorLink=null;$("actorLinkSearch").value="";renderSelectedArticleLinks();
+}
+
+function updateBadge(){
+const b=$("statusBadge");b.textContent=currentStatus;b.className="status-pill status-"+currentStatus;
+}
+function resetEditor(){
+currentArticleId=null;currentStatus="draft";blocks=[];
+["title","slug","subtitle","heroImage","heroCaption","heroCredit","metaTitle","metaDescription"].forEach(id=>$(id).value="");
+setSelectedLinks([],[]);
+$("category").value="News";
+$("author").value=
+    CURRENT_ARTICLE_ADMIN?.display_name||
+    CURRENT_ARTICLE_ADMIN?.email||
+    "";
+$("editorTitle").textContent="New Article";renderBlocks();updateBadge();
+document.querySelectorAll(".article-item").forEach(x=>x.classList.remove("active"));updateHeroPreview();
+}
+function blockTemplate(type){
+const base={id:null,block_order:blocks.length+1,block_type:type,content:"",image:"",image_caption:"",image_credit:"",extra_data:{}};
+if(type==="boxoffice")base.extra_data={india:null,overseas:null,worldwide:null,verdict:""};
+if(type==="gallery")base.extra_data={images:[]};
+if(type==="movie")base.extra_data={movie_id:null};
+if(type==="actor")base.extra_data={actor_id:null};
+if(type==="video")base.extra_data={url:""};
+return base;
+}
+function addBlock(type){blocks.push(blockTemplate(type));renumber();renderBlocks()}
+function renumber(){blocks.forEach((b,i)=>b.block_order=i+1)}
+function moveBlock(i,d){const n=i+d;if(n<0||n>=blocks.length)return;[blocks[i],blocks[n]]=[blocks[n],blocks[i]];renumber();renderBlocks()}
+function removeBlock(i){blocks.splice(i,1);renumber();renderBlocks()}
+function updateBlock(i,key,val){blocks[i][key]=val}
+function updateExtra(i,key,val){blocks[i].extra_data=blocks[i].extra_data||{};blocks[i].extra_data[key]=val}
+
+function renderBlocks(){
+const box=$("blocks");box.innerHTML="";
+blocks.forEach((b,i)=>{
+const card=document.createElement("div");card.className="block-card";card.draggable=true;
+card.addEventListener("dragstart",e=>{card.classList.add("dragging");e.dataTransfer.setData("text/plain",String(i))});
+card.addEventListener("dragend",()=>document.querySelectorAll(".block-card").forEach(x=>x.classList.remove("dragging","drop-target")));
+card.addEventListener("dragover",e=>{e.preventDefault();card.classList.add("drop-target")});
+card.addEventListener("dragleave",()=>card.classList.remove("drop-target"));
+card.addEventListener("drop",e=>{e.preventDefault();const from=Number(e.dataTransfer.getData("text/plain"));if(Number.isInteger(from)&&from!==i){const [moved]=blocks.splice(from,1);blocks.splice(i,0,moved);renumber();renderBlocks()}});
+
+let body="";
+if(["paragraph","heading","quote"].includes(b.block_type)){
+body=`<label>Content</label><textarea data-field="content">${b.content??""}</textarea>`;
+}
+if(b.block_type==="image"){
+body=`<div class="block-row"><div><label>Image filename</label><input data-field="image" value="${b.image??""}"></div><div><label>Upload</label><input type="file" data-upload accept="image/jpeg,image/png,image/webp"></div></div><div class="block-row" style="margin-top:9px"><div><label>Caption</label><input data-field="image_caption" value="${b.image_caption??""}"></div><div><label>Credit</label><input data-field="image_credit" value="${b.image_credit??""}"></div></div><div class="media-preview"><img src="${mediaUrl(b.image)}" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}'"></div>`;
+}
+if(b.block_type==="boxoffice"){
+const e=b.extra_data||{};
+body=`<div class="block-row"><div><label>India</label><input data-extra="india" value="${e.india??""}"></div><div><label>Overseas</label><input data-extra="overseas" value="${e.overseas??""}"></div><div><label>Worldwide</label><input data-extra="worldwide" value="${e.worldwide??""}"></div><div><label>Verdict</label><input data-extra="verdict" value="${e.verdict??""}"></div></div>`;
+}
+if(b.block_type==="gallery"){
+body=`<label>Gallery images</label><textarea data-extra="images">${Array.isArray(b.extra_data?.images)?b.extra_data.images.join(", "):""}</textarea><div style="margin-top:8px"><input type="file" data-gallery-upload multiple accept="image/jpeg,image/png,image/webp"></div><div class="note">Select multiple images to upload them together. You can still edit filenames manually.</div>${galleryPreviewHTML(b.extra_data?.images||[])}`;
+}
+if(b.block_type==="movie"){
+const mid=b.extra_data?.movie_id??"";
+body=`<label>Movie ID</label><input data-extra="movie_id" value="${mid}" placeholder="Enter ID from Linked Movies above"><div class="block-search-result">${mid?lookupEsc(movieNameById(mid))+" • ID "+mid:"Use the Linked Movies search above to find the ID."}</div>`;
+}
+if(b.block_type==="actor"){
+const aid=b.extra_data?.actor_id??"";
+body=`<label>Actor / Hero ID</label><input data-extra="actor_id" value="${aid}" placeholder="Enter ID from Linked Actors above"><div class="block-search-result">${aid?lookupEsc(actorNameById(aid))+" • ID "+aid:"Use the Linked Actors search above to find the ID."}</div>`;
+}
+if(b.block_type==="video")body=`<label>Video URL</label><input data-extra="url" value="${b.extra_data?.url??""}">`;
+
+card.innerHTML=`<div class="block-top"><span class="block-type">${b.block_order}. ${b.block_type}</span><div class="block-controls"><button data-up>↑</button><button data-down>↓</button><button data-remove>✕</button></div></div><div class="block-body">${body}</div>`;
+card.querySelector("[data-up]").onclick=()=>moveBlock(i,-1);
+card.querySelector("[data-down]").onclick=()=>moveBlock(i,1);
+card.querySelector("[data-remove]").onclick=()=>removeBlock(i);
+card.querySelectorAll("[data-field]").forEach(el=>el.oninput=()=>updateBlock(i,el.dataset.field,el.value));
+card.querySelectorAll("[data-extra]").forEach(el=>el.oninput=()=>{
+let v=el.value;const k=el.dataset.extra;
+if(k==="images")v=v.split(",").map(x=>x.trim()).filter(Boolean);
+if(["india","overseas","worldwide","movie_id","actor_id"].includes(k))v=v===""?null:Number(v);
+updateExtra(i,k,v);
+});
+const upload=card.querySelector("[data-upload]");
+if(upload)upload.onchange=async()=>{if(!upload.files[0])return;const filename=await uploadImage(upload.files[0]);if(filename){b.image=filename;renderBlocks()}};
+const galleryUpload=card.querySelector("[data-gallery-upload]");
+if(galleryUpload)galleryUpload.onchange=async()=>{
+const names=[];
+for(const file of galleryUpload.files){const filename=await uploadImage(file);if(filename)names.push(filename)}
+if(names.length){b.extra_data=b.extra_data||{};b.extra_data.images=[...(b.extra_data.images||[]),...names];renderBlocks()}
+};
+box.appendChild(card);
+});
+}
+
+async function uploadImage(file){
+const fd=new FormData();fd.append("file",file);
+const r=await fetch("/admin/article-images/upload",{method:"POST",credentials:"include",body:fd});
+const d=await r.json();if(!r.ok){toast(d.detail||"Upload failed");return null}
+toast("Image uploaded");return d.filename;
+}
+async function loadArticles(){
+const r=await fetch("/admin/articles");if(r.status===401){location.href="/admin-login.html";return}
+const d=await r.json();articles=d.articles||[];$("countLabel").textContent=articles.length+" total";
+$("articleList").innerHTML=articles.length?"":"No articles yet.";
+articles.forEach(a=>{
+const el=document.createElement("div");el.className="article-item"+(a.id===currentArticleId?" active":"");
+el.innerHTML=`<strong>${a.title}</strong><small>${a.status} • ${a.category||"News"}</small>`;
+el.onclick=()=>loadArticle(a.id);$("articleList").appendChild(el);
+});
+}
+async function loadArticle(id){
+const r=await fetch("/admin/articles/"+id);const d=await r.json();if(!r.ok){toast(d.detail||"Unable to load");return}
+const a=d.article;currentArticleId=a.id;currentStatus=a.status;blocks=a.blocks||[];
+$("editorTitle").textContent="Edit Article #"+a.id;
+$("title").value=a.title||"";$("slug").value=a.slug||"";$("subtitle").value=a.subtitle||"";$("category").value=a.category||"News";$("author").value=a.author||"BoxOfficeX";$("heroImage").value=a.hero_image||"";$("heroCaption").value=a.hero_caption||"";$("heroCredit").value=a.hero_credit||"";$("metaTitle").value=a.meta_title||"";$("metaDescription").value=a.meta_description||"";
+setSelectedLinks(a.movie_ids||[],a.actor_ids||[]);
+renumber();renderBlocks();updateBadge();updateHeroPreview();loadArticles();
+}
+function articlePayload(){
+return {title:$("title").value.trim(),slug:slugify($("slug").value||$("title").value),subtitle:$("subtitle").value||null,category:$("category").value.trim()||"News",author:$("author").value.trim()||
+CURRENT_ARTICLE_ADMIN?.display_name||
+CURRENT_ARTICLE_ADMIN?.email||
+"BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null};
+}
+async function saveArticle(){
+const payload=articlePayload();if(!payload.title){toast("Headline is required");return}
+let r;
+if(currentArticleId)r=await fetch("/admin/articles/"+currentArticleId,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+else r=await fetch("/admin/articles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+const d=await r.json();if(!r.ok){toast(d.detail||"Save failed");return}
+currentArticleId=d.article_id;
+await saveLinks();await saveBlocks();
+toast("Article saved");await loadArticles();await loadArticle(currentArticleId);
+}
+async function saveLinks(){
+if(!currentArticleId)return;
+await fetch(`/admin/articles/${currentArticleId}/links`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({movie_ids:selectedMovieLinkIds,actor_ids:selectedActorLinkIds})});
+}
+async function saveBlocks(){
+if(!currentArticleId)return;
+const current=await fetch("/admin/articles/"+currentArticleId).then(r=>r.json());
+for(const old of (current.article?.blocks||[]))await fetch("/admin/article-blocks/"+old.id,{method:"DELETE"});
+for(let i=0;i<blocks.length;i++){
+const b=blocks[i];
+await fetch(`/admin/articles/${currentArticleId}/blocks`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({block_order:i+1,block_type:b.block_type,content:b.content||null,image:b.image||null,image_caption:b.image_caption||null,image_credit:b.image_credit||null,extra_data:b.extra_data||{}})});
+}
+}
+async function setStatus(status){
+if(!currentArticleId){await saveArticle();if(!currentArticleId)return}
+const endpoint=status==="published"?"publish":"draft";
+const r=await fetch(`/admin/articles/${currentArticleId}/${endpoint}`,{method:"POST"});const d=await r.json();if(!r.ok){toast(d.detail||"Status failed");return}
+currentStatus=status;updateBadge();toast(status==="published"?"Published":"Moved to draft");await loadArticles();
+}
+async function deleteArticle(){
+if(!currentArticleId)return;if(!confirm("Delete this article permanently?"))return;
+const r=await fetch("/admin/articles/"+currentArticleId,{method:"DELETE"});if(r.ok){resetEditor();await loadArticles();toast("Article deleted")}
+}
+$("title").addEventListener("input",()=>{if(!$("slug").dataset.touched)$("slug").value=slugify($("title").value)});
+$("slug").addEventListener("input",()=>{$("slug").dataset.touched="1"});
+document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addBlock(b.dataset.add));
+$("newBtn").onclick=resetEditor;$("saveBtn").onclick=saveArticle;$("publishBtn").onclick=()=>setStatus("published");$("deleteBtn").onclick=deleteArticle;
+$("previewBtn").onclick=()=>{if(currentArticleId){window.open("/article.html?admin_preview="+encodeURIComponent(currentArticleId),"_blank")}else toast("Save the article first")};
+$("heroUploadBtn").onclick=()=>$("heroUpload").click();
+$("heroImage").addEventListener("input",updateHeroPreview);
+$("heroUpload").onchange=async()=>{
+if(!$("heroUpload").files[0])return;
+const f=await uploadImage($("heroUpload").files[0]);
+if(f){
+$("heroImage").value=f;
+updateHeroPreview(true);
+toast("Hero image updated");
+}
+};
+updateHeroPreview();
+
+$("useMyAuthorNameBtn").onclick=useCurrentAdminAsAuthor;
+$("heroRefreshBtn").onclick=refreshHeroImageNow;
+loadCurrentArticleAdmin();
+
+$("movieLinkSearch").addEventListener("input",showMovieLinkResults);
+$("actorLinkSearch").addEventListener("input",showActorLinkResults);
+$("movieLinkAddBtn").onclick=addPendingMovieLink;
+$("actorLinkAddBtn").onclick=addPendingActorLink;
+document.addEventListener("click",e=>{
+if(!e.target.closest(".link-picker")){
+$("movieLinkResults").style.display="none";
+$("actorLinkResults").style.display="none";
+}
+});
+loadArticleLinkLookups();
+
+loadArticles();
+</script>
+
+<div id="ownPasswordModal" class="account-modal">
+    <div class="account-modal-card">
+        <div class="account-modal-head">
+            <h2>🔑 Change My Password</h2>
+            <button type="button" class="account-close" onclick="closeOwnPasswordModal()">×</button>
+        </div>
+
+        <div class="account-field">
+            <label>Current Password</label>
+            <input id="ownCurrentPassword" type="password" autocomplete="current-password">
+        </div>
+
+        <div class="account-field">
+            <label>New Password</label>
+            <input id="ownNewPassword" type="password" minlength="10" autocomplete="new-password">
+        </div>
+
+        <div class="account-field">
+            <label>Confirm New Password</label>
+            <input id="ownConfirmPassword" type="password" minlength="10" autocomplete="new-password">
+        </div>
+
+        <button type="button" class="account-save" onclick="changeOwnPassword()">
+            💾 CHANGE PASSWORD
+        </button>
+
+        <div id="ownPasswordMessage" class="account-message"></div>
+    </div>
+</div>
+
+
+<script>
+// ============================================================
+// ADMIN SELF ACCOUNT CONTROLS
+// ============================================================
+async function loadAdminAccountChip(){
+    try{
+        const r=await fetch("/admin/session",{credentials:"include"});
+        const d=await r.json();
+
+        if(!r.ok || !d.logged_in || !d.admin){
+            location.href="/admin-login.html";
+            return;
+        }
+
+        const role=String(d.admin.role||"admin").replaceAll("_"," ").toUpperCase();
+        const chip=document.getElementById("adminUserChip");
+        if(chip){
+            chip.textContent=(d.admin.display_name||d.admin.email)+" • "+role;
+        }
+    }catch(e){
+        console.error("Admin account check failed:",e);
+    }
+}
+
+function openOwnPasswordModal(){
+    document.getElementById("ownCurrentPassword").value="";
+    document.getElementById("ownNewPassword").value="";
+    document.getElementById("ownConfirmPassword").value="";
+    const msg=document.getElementById("ownPasswordMessage");
+    msg.className="account-message";
+    msg.textContent="";
+    document.getElementById("ownPasswordModal").style.display="block";
+}
+
+function closeOwnPasswordModal(){
+    document.getElementById("ownPasswordModal").style.display="none";
+}
+
+async function changeOwnPassword(){
+    const currentPassword=document.getElementById("ownCurrentPassword").value;
+    const newPassword=document.getElementById("ownNewPassword").value;
+    const confirmPassword=document.getElementById("ownConfirmPassword").value;
+    const msg=document.getElementById("ownPasswordMessage");
+
+    if(!currentPassword){
+        msg.className="account-message bad";
+        msg.textContent="Enter your current password.";
+        return;
+    }
+
+    if(newPassword.length<10){
+        msg.className="account-message bad";
+        msg.textContent="New password must be at least 10 characters.";
+        return;
+    }
+
+    if(newPassword!==confirmPassword){
+        msg.className="account-message bad";
+        msg.textContent="New passwords do not match.";
+        return;
+    }
+
+    try{
+        const r=await fetch("/admin/change-password",{
+            method:"PUT",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                current_password:currentPassword,
+                new_password:newPassword
+            })
+        });
+
+        const d=await r.json();
+
+        if(!r.ok){
+            throw new Error(d.detail||"Unable to change password");
+        }
+
+        msg.className="account-message ok";
+        msg.textContent="Password changed successfully.";
+
+        setTimeout(closeOwnPasswordModal,900);
+
+    }catch(e){
+        msg.className="account-message bad";
+        msg.textContent=e.message;
+    }
+}
+
+async function logoutCurrentAdmin(){
+    try{
+        await fetch("/admin/logout",{
+            method:"POST",
+            credentials:"include"
+        });
+    }finally{
+        location.href="/admin-login.html";
+    }
+}
+
+document.addEventListener("DOMContentLoaded",loadAdminAccountChip);
+</script>
+
+</body>
+</html>

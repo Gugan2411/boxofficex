@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title id="pageTitle">Article | BoxOfficeX</title>
+
+    <meta id="metaDescription" name="description" content="Read the latest movie, box office and entertainment stories on BoxOfficeX.">
+    <meta name="robots" content="index, follow">
+    <link id="canonicalUrl" rel="canonical" href="">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="BoxOfficeX">
+    <meta id="ogTitle" property="og:title" content="BoxOfficeX Article">
+    <meta id="ogDescription" property="og:description" content="">
+    <meta id="ogImage" property="og:image" content="">
+    <meta id="ogUrl" property="og:url" content="">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta id="twitterTitle" name="twitter:title" content="BoxOfficeX Article">
+    <meta id="twitterDescription" name="twitter:description" content="">
+    <meta id="twitterImage" name="twitter:image" content="">
+
+    <script id="articleStructuredData" type="application/ld+json"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #070a12;
+            --panel: #0f1522;
+            --panel-2: #151d31;
+            --border: #29334d;
+            --muted: #8e99b3;
+            --text: #f4f7fb;
+            --blue: #4d8dff;
+            --gold: #ffcc33;
+            --red: #ff4655;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, #17213a 0%, #080b14 36%, #070a12 70%);
+            line-height: 1.65;
+        }
+
+        /* =========================================================
+           STANDARD BOXOFFICEX HEADER
+        ========================================================= */
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            background: rgba(6, 9, 18, 0.88);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1280px;
+            min-height: 68px;
+            margin: auto;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: white;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: .6px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4d8dff, #795cff);
+            box-shadow: 0 8px 25px rgba(77,141,255,.24);
+        }
+
+        .logo span:last-child {
+            color: var(--gold);
+        }
+
+        header nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        header nav a {
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 12px;
+            border-radius: 10px;
+            color: #c7d1e6;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        header nav a:hover,
+        header nav a.active {
+            background: rgba(77,141,255,.10);
+            color: #79adff;
+        }
+
+        .nav-compare {
+            background: linear-gradient(135deg, var(--red), #d92e3d);
+            color: white !important;
+        }
+
+        /* =========================================================
+           ARTICLE SHELL
+        ========================================================= */
+
+        .article-shell {
+            width: min(1180px, calc(100% - 36px));
+            margin: 0 auto;
+            padding: 40px 0 70px;
+        }
+
+        .article-top {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .category {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 5px 10px;
+            border: 1px solid rgba(77,141,255,.28);
+            border-radius: 999px;
+            background: rgba(77,141,255,.10);
+            color: #8db8ff;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        h1 {
+            max-width: 1000px;
+            margin-top: 16px;
+            color: white;
+            font-size: clamp(36px, 6vw, 68px);
+            line-height: 1.02;
+            letter-spacing: -2px;
+            font-weight: 900;
+        }
+
+        .subtitle {
+            max-width: 900px;
+            margin-top: 20px;
+            color: #b7c1d5;
+            font-size: clamp(18px, 2.4vw, 24px);
+            line-height: 1.5;
+        }
+
+        .byline-row {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .byline {
+            color: #aab5c9;
+            font-size: 13px;
+        }
+
+        .byline strong {
+            color: white;
+        }
+
+        .share-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .share-button {
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.04);
+            color: #d7deec;
+            border-radius: 10px;
+            padding: 8px 11px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .share-button:hover {
+            border-color: rgba(77,141,255,.40);
+            background: rgba(77,141,255,.10);
+        }
+
+        .hero-wrap {
+            margin-top: 30px;
+        }
+
+        .hero-wrap img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+            border-radius: 20px;
+            background: #0d1322;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+
+        .media-caption {
+            margin-top: 8px;
+            color: #7f8ba5;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .media-credit {
+            color: #5f6d88;
+        }
+
+        /* =========================================================
+           ARTICLE CONTENT
+        ========================================================= */
+
+        .article-layout {
+            max-width: 960px;
+            margin: 34px auto 0;
+        }
+
+        .article-content {
+            width: min(100%, 760px);
+            margin: 0 auto;
+        }
+
+        .article-content p {
+            margin: 0 0 24px;
+            color: #d9e0ec;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(19px, 2.2vw, 22px);
+            line-height: 1.82;
+        }
+
+        .article-content h2 {
+            margin: 44px 0 18px;
+            color: white;
+            font-size: clamp(27px, 4vw, 38px);
+            line-height: 1.15;
+            letter-spacing: -.6px;
+        }
+
+        .article-image {
+            margin: 34px 0;
+        }
+
+        .article-image img {
+            width: 100%;
+            max-height: 720px;
+            object-fit: cover;
+            display: block;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: #0d1322;
+        }
+
+        blockquote {
+            margin: 38px 0;
+            padding: 24px 24px 24px 28px;
+            border-left: 4px solid var(--gold);
+            border-radius: 0 14px 14px 0;
+            background: rgba(255,204,51,.06);
+            color: white;
+            font-size: clamp(22px, 3vw, 30px);
+            line-height: 1.45;
+            font-weight: 800;
+        }
+
+        .boxoffice-block {
+            margin: 34px 0;
+            padding: 22px;
+            border: 1px solid rgba(77,141,255,.22);
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(20,29,49,.94), rgba(10,16,29,.94));
+        }
+
+        .boxoffice-title {
+            margin-bottom: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .boxoffice-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .bo-card {
+            padding: 15px 12px;
+            border-radius: 13px;
+            background: rgba(255,255,255,.035);
+            border: 1px solid rgba(255,255,255,.07);
+        }
+
+        .bo-label {
+            color: #7f8ba5;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .bo-value {
+            margin-top: 4px;
+            color: white;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .gallery-block {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 34px 0;
+        }
+
+        .gallery-block img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 13px;
+            border: 1px solid rgba(255,255,255,.07);
+            background: #0d1322;
+        }
+
+        .related-card {
+            margin: 32px 0;
+            padding: 14px;
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            gap: 14px;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 15px;
+            background: #101725;
+            cursor: pointer;
+        }
+
+        .related-card:hover {
+            border-color: rgba(77,141,255,.35);
+        }
+
+        .related-card img {
+            width: 110px;
+            aspect-ratio: 4 / 5;
+            object-fit: cover;
+            border-radius: 11px;
+            background: #0d1322;
+        }
+
+        .related-card strong {
+            display: block;
+            color: white;
+            font-size: 17px;
+            line-height: 1.3;
+        }
+
+        .related-card small {
+            display: block;
+            margin-top: 5px;
+            color: #8e99b3;
+            font-size: 12px;
+        }
+
+        .video-link {
+            display: block;
+            margin: 30px 0;
+            padding: 18px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            background: #101725;
+            color: #79adff;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .article-end {
+            margin-top: 50px;
+            padding-top: 22px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            color: #73809a;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .loading-state,
+        .error-state {
+            max-width: 760px;
+            margin: 100px auto;
+            padding: 28px;
+            border-radius: 16px;
+            text-align: center;
+            background: #101725;
+            border: 1px solid rgba(255,255,255,.08);
+            color: #aab5c9;
+        }
+
+        .error-state strong {
+            color: white;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        footer {
+            margin-top: 35px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            background: #080c16;
+        }
+
+        .footer-inner {
+            width: 100%;
+            max-width: 1280px;
+            margin: auto;
+            padding: 32px 18px 35px;
+            text-align: center;
+        }
+
+        .footer-brand {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .footer-brand span {
+            color: var(--gold);
+        }
+
+        .footer-tagline,
+        .footer-copy {
+            color: #73809a;
+            font-size: 12px;
+        }
+
+        .footer-tagline {
+            margin: 10px auto 12px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .footer-links a {
+            color: #79adff;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding-bottom: 68px;
+            }
+
+            .navbar {
+                min-height: 61px;
+                padding: 0 13px;
+            }
+
+            .logo {
+                font-size: 18px;
+            }
+
+            .logo-icon {
+                width: 31px;
+                height: 31px;
+            }
+
+            header nav {
+                display: none;
+            }
+
+            .article-shell {
+                width: min(94%, 1180px);
+                padding-top: 28px;
+            }
+
+            h1 {
+                letter-spacing: -1px;
+            }
+
+            .hero-wrap img {
+                border-radius: 14px;
+            }
+
+            .article-content p {
+                font-size: 19px;
+                line-height: 1.75;
+            }
+
+            .boxoffice-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .gallery-block {
+                grid-template-columns: 1fr;
+            }
+
+            .related-card {
+                grid-template-columns: 85px 1fr;
+            }
+
+            .related-card img {
+                width: 85px;
+            }
+
+            .mobile-bottom-nav {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1500;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+                background: rgba(7,11,20,.96);
+                border-top: 1px solid rgba(255,255,255,.08);
+                backdrop-filter: blur(18px);
+            }
+
+            .mobile-bottom-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 48px;
+                gap: 3px;
+                border-radius: 11px;
+                color: #8793a9;
+                font-size: 8px;
+                font-weight: 700;
+                text-decoration: none;
+            }
+
+            .mobile-bottom-nav a span:first-child {
+                font-size: 18px;
+            }
+        }
+    
+/* BOXOFFICEX MASTER ARTICLE POLISH */
+html{-webkit-text-size-adjust:100%}
+body{overflow-x:hidden;background:radial-gradient(circle at 50% -10%,rgba(77,141,255,.17),transparent 34%),linear-gradient(180deg,#070b15,#080d1c 58%,#070a12)}
+header{background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.navbar{min-height:66px;gap:12px}.logo{font-size:20px;letter-spacing:.45px}.logo-icon{width:33px;height:33px;border-radius:9px}
+header nav{gap:2px;flex-wrap:nowrap}header nav a{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+header nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+header nav .nav-compare:hover{background:linear-gradient(135deg,#ff5967,#e83b49);color:#fff!important;transform:translateY(-1px)}
+.nav-item-with-badge{position:relative}.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none}.nav-new-badge.show{display:inline-flex}
+
+.article-shell{width:min(1040px,calc(100% - 36px));padding:30px 0 58px}.article-top{max-width:860px}.category{min-height:25px;padding:4px 9px;font-size:9px}
+h1{margin-top:12px;font-size:clamp(31px,5vw,50px);letter-spacing:-1.2px}.subtitle{margin-top:13px;font-size:clamp(14px,2vw,18px)}
+.byline-row{margin-top:17px;padding-top:13px}.byline{font-size:10px}.share-button{padding:7px 9px;font-size:9px;border-radius:8px}
+.hero-wrap{margin-top:22px}.hero-wrap img{max-height:470px;border-radius:15px}.media-caption{font-size:9px}
+.article-layout{max-width:860px;margin-top:27px}.article-content{width:min(100%,700px)}
+.article-content p{margin-bottom:19px;font-size:clamp(16px,1.8vw,18px);line-height:1.78}.article-content h2{margin:34px 0 14px;font-size:clamp(23px,3vw,30px)}
+.article-image{margin:27px 0}.article-image img{max-height:560px;border-radius:13px}blockquote{margin:28px 0;padding:18px 19px 18px 22px;font-size:clamp(18px,2.5vw,24px)}
+.boxoffice-block{margin:27px 0;padding:16px;border-radius:14px}.boxoffice-title{font-size:15px}.bo-card{padding:11px 9px}.bo-label{font-size:8px}.bo-value{font-size:14px}
+.gallery-block{margin:27px 0;gap:8px}.related-card{margin:25px 0;padding:10px;grid-template-columns:82px 1fr;gap:11px}.related-card img{width:82px}.related-card strong{font-size:14px}.related-card small{font-size:9px}.video-link{margin:25px 0;padding:14px;font-size:12px}.article-end{margin-top:37px;font-size:10px}
+
+footer{background:linear-gradient(180deg,#080c16,#050810)}.footer-inner{max-width:1180px;padding:28px 18px}.footer-brand{font-size:17px}.footer-tagline,.footer-copy{font-size:10px}.footer-links a{font-size:10px;color:#aebbd4}
+
+@media(max-width:1180px) and (min-width:701px){.navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}.navbar::-webkit-scrollbar{display:none}.logo{font-size:17px}.logo-icon{width:30px;height:30px}header nav{min-width:max-content}header nav a{padding-left:7px;padding-right:7px;font-size:10.5px}}
+@media(max-width:700px){
+body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.article-shell{width:100%;padding:20px 11px 38px}.category{font-size:7px;min-height:22px}h1{font-size:29px;line-height:1.08;letter-spacing:-.7px}.subtitle{font-size:13px;line-height:1.5}.byline-row{gap:10px}.share-row{gap:5px}.hero-wrap{margin-top:17px}.hero-wrap img{border-radius:11px}.article-layout{margin-top:21px}.article-content p{font-size:16px;line-height:1.72;margin-bottom:17px}.article-content h2{font-size:22px;margin-top:28px}.boxoffice-grid{grid-template-columns:repeat(2,1fr);gap:7px}.gallery-block{grid-template-columns:1fr}.related-card{grid-template-columns:70px 1fr}.related-card img{width:70px}
+.mobile-bottom-nav{min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+.mobile-bottom-nav a{position:relative;min-height:50px;font-size:7.5px}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav a.active{color:#fff;background:rgba(77,141,255,.11)}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE STANDARD — ARTICLE READING PAGE
+========================================================= */
+.mobile-menu-button{display:none}
+
+.footer-brand,
+.footer-brand:hover,
+.footer-brand:visited{
+    text-decoration:none !important;
+    border-bottom:0 !important;
+    box-shadow:none !important;
+}
+
+@media(max-width:700px){
+    body{
+        padding-top:61px !important;
+        padding-bottom:0 !important;
+        overflow-x:hidden !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        width:100% !important;
+        z-index:99999 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto !important;
+        align-items:center !important;
+        justify-content:initial !important;
+        gap:10px !important;
+        background:#070a12 !important;
+        position:relative !important;
+        z-index:100000 !important;
+        overflow:visible !important;
+    }
+
+    .logo{
+        font-size:18px !important;
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    .logo-icon{
+        width:31px !important;
+        height:31px !important;
+    }
+
+    .mobile-menu-button{
+        width:42px;
+        height:42px;
+        display:flex !important;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+        position:relative;
+        z-index:100001;
+    }
+
+    .mobile-menu-button span{
+        width:20px;
+        height:2px;
+        display:block;
+        border-radius:999px;
+        background:#fff;
+        transition:.2s;
+    }
+
+    .mobile-menu-button.open span:nth-child(1){
+        transform:translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-button.open span:nth-child(2){
+        opacity:0;
+    }
+
+    .mobile-menu-button.open span:nth-child(3){
+        transform:translateY(-7px) rotate(-45deg);
+    }
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;
+        left:10px !important;
+        right:10px !important;
+        width:auto !important;
+        display:none !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:5px !important;
+        padding:10px !important;
+        border:1px solid rgba(255,255,255,.09) !important;
+        border-radius:14px !important;
+        background:#0a0f1b !important;
+        box-shadow:0 18px 45px rgba(0,0,0,.42) !important;
+        z-index:100002 !important;
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+
+    header nav a{
+        width:100% !important;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start !important;
+        font-size:12px !important;
+    }
+
+    .mobile-bottom-nav{
+        display:none !important;
+    }
+
+    .article-shell{
+        width:100% !important;
+        padding:22px 11px 40px !important;
+    }
+
+    h1{
+        font-size:29px !important;
+        line-height:1.08 !important;
+        letter-spacing:-.7px !important;
+    }
+
+    .subtitle{
+        font-size:13px !important;
+        line-height:1.5 !important;
+    }
+
+    .byline-row{
+        align-items:flex-start !important;
+        gap:10px !important;
+    }
+
+    .share-row{
+        gap:5px !important;
+    }
+
+    .share-button{
+        min-height:34px !important;
+    }
+
+    .hero-wrap{
+        margin-top:17px !important;
+    }
+
+    .hero-wrap img{
+        width:100% !important;
+        height:auto !important;
+        max-height:none !important;
+        aspect-ratio:16/9 !important;
+        border-radius:11px !important;
+    }
+
+    .article-layout{
+        margin-top:21px !important;
+    }
+
+    .article-content{
+        width:100% !important;
+    }
+
+    .article-content p{
+        font-size:16px !important;
+        line-height:1.72 !important;
+        margin-bottom:17px !important;
+    }
+
+    .article-content h2{
+        font-size:22px !important;
+        line-height:1.2 !important;
+        margin-top:28px !important;
+    }
+
+    .article-image img{
+        width:100% !important;
+        height:auto !important;
+        max-height:none !important;
+    }
+
+    .boxoffice-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:7px !important;
+    }
+
+    .gallery-block{
+        grid-template-columns:1fr !important;
+    }
+
+    .related-card{
+        grid-template-columns:70px minmax(0,1fr) !important;
+    }
+
+    .related-card img{
+        width:70px !important;
+    }
+
+    blockquote{
+        padding:16px 15px 16px 18px !important;
+        font-size:18px !important;
+    }
+
+    footer{
+        margin-top:35px !important;
+        padding:0 !important;
+        background:linear-gradient(180deg,#080c16,#050810) !important;
+    }
+
+    .footer-inner{
+        max-width:100% !important;
+        padding:32px 12px 28px !important;
+        text-align:center !important;
+    }
+
+    .footer-brand{
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:8px !important;
+        margin-bottom:13px !important;
+        font-size:18px !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+    }
+
+    .footer-tagline{
+        max-width:290px !important;
+        margin:0 auto 20px !important;
+        font-size:11px !important;
+        line-height:1.65 !important;
+    }
+
+    .footer-links{
+        display:flex !important;
+        flex-wrap:nowrap !important;
+        justify-content:center !important;
+        align-items:center !important;
+        gap:0 !important;
+        width:100% !important;
+        margin:0 auto 22px !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-links a{
+        flex:0 0 auto !important;
+        padding:4px 8px !important;
+        color:#aebbd4 !important;
+        text-decoration:none !important;
+        border-bottom:0 !important;
+        font-size:8px !important;
+        line-height:1.2 !important;
+        white-space:nowrap !important;
+    }
+
+    .footer-copy{
+        font-size:10px !important;
+        line-height:1.4 !important;
+    }
+}
+
+@media(max-width:340px){
+    .footer-links a{
+        padding-left:6px !important;
+        padding-right:6px !important;
+        font-size:7.5px !important;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="navbar">
+        <a href="/index.html" class="logo" aria-label="BoxOfficeX Home">
+            <span class="logo-icon">🎬</span>
+            BOXOFFICE<span>X</span>
+        </a>
+        <button type="button" class="mobile-menu-button" id="mobileMenuButton"
+                aria-label="Open navigation menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+        <nav aria-label="Main navigation">
+<a href="/index.html">Home</a>
+<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/movie-rankings.html">Rankings</a>
+<a href="/actors.html">Actors</a>
+<a href="/articles.html" class="active nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+<a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+</nav>
+    </div>
+</header>
+
+<main id="app">
+    <div class="loading-state">Loading article...</div>
+</main>
+
+<footer>
+    <div class="footer-inner">
+        <a href="/index.html" class="footer-brand">🎬 BOXOFFICE<span>X</span></a>
+        <p class="footer-tagline">Movie box-office collections, latest releases, actors, verdicts, rankings and entertainment stories.</p>
+
+        <nav class="footer-links" aria-label="Footer navigation">
+            <a href="/about.html">About</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/privacy.html">Privacy</a>
+            <a href="/terms.html">Terms</a>
+            <a href="/disclaimer.html">Disclaimer</a>
+        </nav>
+
+        <p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
+    </div>
+</footer>
+
+<div class="mobile-bottom-nav" aria-label="Mobile navigation">
+<a href="/index.html"><span>🏠</span><span>Home</span></a>
+<a href="/new-movies.html" class="nav-item-with-badge"><span>🆕</span><span>New</span><span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/articles.html" class="active nav-item-with-badge"><span>📰</span><span>Articles</span><span id="mobileArticlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/compare-select.html"><span>⚔️</span><span>Actors</span></a>
+<a href="/movie-compare-select.html"><span>🎬</span><span>Movies</span></a>
+</div>
+
+<script>
+const API_BASE = "";
+const ARTICLE_FALLBACK_IMAGE = "/posters/coming-soon.png";
+const ACTOR_FALLBACK_IMAGE = "/actor-images/default-actor.png";
+
+function esc(value) {
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
+    return div.innerHTML;
+}
+
+function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+}
+
+function getSlug() {
+    const querySlug = new URLSearchParams(window.location.search).get("slug");
+    if (querySlug) return querySlug;
+
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    const articleIndex = parts.indexOf("article");
+
+    if (articleIndex !== -1 && parts[articleIndex + 1]) {
+        return decodeURIComponent(parts[articleIndex + 1]);
+    }
+
+    return "";
+}
+
+function imageUrl(filename) {
+    return filename
+        ? `/article-images/${encodeURIComponent(filename)}`
+        : ARTICLE_FALLBACK_IMAGE;
+}
+
+function setSEO(article) {
+    const rawTitle = article.meta_title || article.title || "Article";
+    const title = rawTitle.includes("BoxOfficeX")
+        ? rawTitle
+        : `${rawTitle} | BoxOfficeX`;
+
+    const description =
+        article.meta_description ||
+        article.subtitle ||
+        `Read ${article.title || "this entertainment story"} on BoxOfficeX.`;
+
+    const canonical =
+        window.location.origin +
+        "/article/" +
+        encodeURIComponent(article.slug || getSlug());
+
+    const hero = article.hero_image
+        ? window.location.origin + `/article-images/${encodeURIComponent(article.hero_image)}`
+        : window.location.origin + ARTICLE_FALLBACK_IMAGE;
+
+    document.title = title;
+    document.getElementById("metaDescription").setAttribute("content", description);
+    document.getElementById("canonicalUrl").setAttribute("href", canonical);
+
+    document.getElementById("ogTitle").setAttribute("content", title);
+    document.getElementById("ogDescription").setAttribute("content", description);
+    document.getElementById("ogUrl").setAttribute("content", canonical);
+    document.getElementById("ogImage").setAttribute("content", hero);
+
+    document.getElementById("twitterTitle").setAttribute("content", title);
+    document.getElementById("twitterDescription").setAttribute("content", description);
+    document.getElementById("twitterImage").setAttribute("content", hero);
+
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": article.title || rawTitle,
+        "description": description,
+        "url": canonical,
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": canonical
+        },
+        "image": [hero],
+        "author": {
+            "@type": "Organization",
+            "name": article.author || "BoxOfficeX"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "BoxOfficeX",
+            "url": window.location.origin + "/"
+        }
+    };
+
+    if (article.published_at) {
+        schema.datePublished = article.published_at;
+    }
+
+    if (article.updated_at) {
+        schema.dateModified = article.updated_at;
+    } else if (article.published_at) {
+        schema.dateModified = article.published_at;
+    }
+
+    document.getElementById("articleStructuredData").textContent =
+        JSON.stringify(schema);
+}
+
+function renderBoxOffice(data) {
+    const money = value =>
+        value !== null && value !== undefined
+            ? `₹${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })} Cr`
+            : "N/A";
+
+    return `
+        <div class="boxoffice-block">
+            <div class="boxoffice-title">Box Office Snapshot</div>
+            <div class="boxoffice-grid">
+                <div class="bo-card">
+                    <div class="bo-label">India</div>
+                    <div class="bo-value">${money(data.india)}</div>
+                </div>
+                <div class="bo-card">
+                    <div class="bo-label">Overseas</div>
+                    <div class="bo-value">${money(data.overseas)}</div>
+                </div>
+                <div class="bo-card">
+                    <div class="bo-label">Worldwide</div>
+                    <div class="bo-value">${money(data.worldwide)}</div>
+                </div>
+                <div class="bo-card">
+                    <div class="bo-label">Verdict</div>
+                    <div class="bo-value">${esc(data.verdict || "N/A")}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function renderMovieBlock(data) {
+    if (!data || !data.movie_id) return "";
+
+    try {
+        const response = await fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}`);
+        const movie = await response.json();
+
+        if (!response.ok || movie.error) return "";
+
+        const poster = movie.poster
+            ? `/posters/${encodeURIComponent(movie.poster)}`
+            : ARTICLE_FALLBACK_IMAGE;
+
+        return `
+            <div class="related-card" onclick="window.location.href='/movie.html?id=${movie.id}'">
+                <img
+                    src="${poster}"
+                    alt="${esc(movie.title)}"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                >
+                <div>
+                    <strong>${esc(movie.title)}</strong>
+                    <small>
+                        Movie • ${esc(movie.language || "")}
+                        ${movie.verdict ? ` • ${esc(movie.verdict)}` : ""}
+                    </small>
+                </div>
+            </div>
+        `;
+    } catch {
+        return "";
+    }
+}
+
+async function renderActorBlock(data) {
+    if (!data || !data.actor_id) return "";
+
+    try {
+        const response = await fetch(`${API_BASE}/actors/${encodeURIComponent(data.actor_id)}`);
+        const actor = await response.json();
+
+        if (!response.ok || actor.error) return "";
+
+        const photo = actor.photo
+            ? `/actor-images/${encodeURIComponent(actor.photo)}`
+            : ACTOR_FALLBACK_IMAGE;
+
+        return `
+            <div class="related-card" onclick="window.location.href='/actor.html?id=${actor.id}'">
+                <img
+                    src="${photo}"
+                    alt="${esc(actor.name)}"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.src='${ACTOR_FALLBACK_IMAGE}'"
+                >
+                <div>
+                    <strong>${esc(actor.name)}</strong>
+                    <small>${esc(actor.profession || "Actor")}</small>
+                </div>
+            </div>
+        `;
+    } catch {
+        return "";
+    }
+}
+
+async function renderBlock(block) {
+    const type = block.block_type;
+    const data = block.extra_data || {};
+
+    if (type === "paragraph") {
+        return `<p>${esc(block.content || "")}</p>`;
+    }
+
+    if (type === "heading") {
+        return `<h2>${esc(block.content || "")}</h2>`;
+    }
+
+    if (type === "image") {
+        return `
+            <figure class="article-image">
+                <img
+                    src="${imageUrl(block.image)}"
+                    alt="${esc(block.image_caption || "Article image")}"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                >
+                ${(block.image_caption || block.image_credit) ? `
+                    <figcaption class="media-caption">
+                        ${esc(block.image_caption || "")}
+                        ${block.image_credit ? `<span class="media-credit"> • ${esc(block.image_credit)}</span>` : ""}
+                    </figcaption>
+                ` : ""}
+            </figure>
+        `;
+    }
+
+    if (type === "quote") {
+        return `<blockquote>${esc(block.content || "")}</blockquote>`;
+    }
+
+    if (type === "boxoffice") {
+        return renderBoxOffice(data);
+    }
+
+    if (type === "gallery") {
+        const images = Array.isArray(data.images) ? data.images : [];
+        if (!images.length) return "";
+
+        return `
+            <div class="gallery-block">
+                ${images.map(name => `
+                    <img
+                        src="${imageUrl(name)}"
+                        alt="Article gallery image"
+                        loading="lazy"
+                        onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                    >
+                `).join("")}
+            </div>
+        `;
+    }
+
+    if (type === "movie") {
+        return await renderMovieBlock(data);
+    }
+
+    if (type === "actor") {
+        return await renderActorBlock(data);
+    }
+
+    if (type === "video") {
+        if (!data.url) return "";
+        return `
+            <a
+                class="video-link"
+                href="${esc(data.url)}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                ▶ Watch Video
+            </a>
+        `;
+    }
+
+    return "";
+}
+
+async function renderArticle(article) {
+    setSEO(article);
+
+    const blockHTML = [];
+    for (const block of (article.blocks || [])) {
+        blockHTML.push(await renderBlock(block));
+    }
+
+    const app = document.getElementById("app");
+
+    app.innerHTML = `
+        <article class="article-shell">
+            <div class="article-top">
+
+                <span class="category">${esc(article.category || "News")}</span>
+
+                <h1>${esc(article.title || "")}</h1>
+
+                ${article.subtitle ? `
+                    <div class="subtitle">${esc(article.subtitle)}</div>
+                ` : ""}
+
+                <div class="byline-row">
+                    <div class="byline">
+                        By <strong>${esc(article.author || "BoxOfficeX")}</strong>
+                        ${article.published_at ? ` • ${formatDate(article.published_at)}` : ""}
+                    </div>
+
+                    <div class="share-row">
+                        <button class="share-button" id="copyLink">🔗 Copy Link</button>
+                        <button class="share-button" id="shareArticle">↗ Share</button>
+                    </div>
+                </div>
+
+                <figure class="hero-wrap">
+                    <img
+                        src="${imageUrl(article.hero_image)}"
+                        alt="${esc(article.hero_caption || article.title || "Article image")}"
+                        loading="lazy"
+                        onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                    >
+                    ${(article.hero_caption || article.hero_credit) ? `
+                        <figcaption class="media-caption">
+                            ${esc(article.hero_caption || "")}
+                            ${article.hero_credit ? `<span class="media-credit"> • ${esc(article.hero_credit)}</span>` : ""}
+                        </figcaption>
+                    ` : ""}
+                </figure>
+
+            </div>
+
+            <div class="article-layout">
+                <div class="article-content">
+                    ${blockHTML.join("")}
+
+                    <div class="article-end">
+                        BoxOfficeX • Movie box office, entertainment news and career data
+                    </div>
+                </div>
+            </div>
+        </article>
+    `;
+
+    const copy = document.getElementById("copyLink");
+    if (copy) {
+        copy.onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                copy.textContent = "✓ Copied";
+                setTimeout(() => copy.textContent = "🔗 Copy Link", 1400);
+            } catch {}
+        };
+    }
+
+    const share = document.getElementById("shareArticle");
+    if (share) {
+        share.onclick = async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: article.title,
+                        text: article.subtitle || "",
+                        url: window.location.href
+                    });
+                } catch {}
+            } else {
+                copy?.click();
+            }
+        };
+    }
+}
+
+async function loadArticle() {
+    const slug = getSlug();
+
+    const adminPreviewId =
+        new URLSearchParams(window.location.search).get("admin_preview");
+
+    if (!slug && !adminPreviewId) {
+        document.getElementById("app").innerHTML = `
+            <div class="error-state">
+                <strong>Article not found</strong>
+                No article slug was provided.
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        const adminPreviewId =
+            new URLSearchParams(window.location.search).get("admin_preview");
+
+        const endpoint = adminPreviewId
+            ? `${API_BASE}/admin/articles/${encodeURIComponent(adminPreviewId)}`
+            : `${API_BASE}/articles/${encodeURIComponent(slug)}`;
+
+        const response = await fetch(endpoint);
+
+        if (response.status === 401 && adminPreviewId) {
+            window.location.href = "/admin-login.html";
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok || data.error || !data.article) {
+            throw new Error(data.detail || data.error || "Article not found");
+        }
+
+        await renderArticle(data.article);
+
+    } catch (error) {
+        console.error(error);
+
+        document.getElementById("app").innerHTML = `
+            <div class="error-state">
+                <strong>Unable to load article</strong>
+                Please try again later.
+            </div>
+        `;
+    }
+}
+
+loadArticle();
+
+
+function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
+function parseSiteDate(value){if(!value)return null;const p=String(value).slice(0,10).split("-").map(Number);if(p.length!==3||!p[0]||!p[1]||!p[2])return null;return new Date(p[0],p[1]-1,p[2])}
+async function updateSiteNewBadges(){
+try{
+const [mr,ar]=await Promise.all([fetch("/movies/new-system",{cache:"no-store"}),fetch("/articles/latest?limit=10",{cache:"no-store"})]);
+if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());const fresh=all.some(movie=>{const dt=parseSiteDate(movie.release_date);if(!dt)return false;const days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}
+if(ar.ok){const d=await ar.json(),now=Date.now(),seven=7*86400000;const fresh=(d.articles||[]).some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}
+}catch(error){console.warn("Site NEW badge check failed:",error)}
+}
+updateSiteNewBadges();
+
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const button=document.getElementById("mobileMenuButton");
+    const nav=document.querySelector("header nav");
+
+    if(!button||!nav)return;
+
+    function closeMobileMenu(){
+        nav.classList.remove("mobile-menu-open");
+        button.classList.remove("open");
+        button.setAttribute("aria-expanded","false");
+    }
+
+    button.addEventListener("click",function(event){
+        event.stopPropagation();
+        const opening=!nav.classList.contains("mobile-menu-open");
+        nav.classList.toggle("mobile-menu-open",opening);
+        button.classList.toggle("open",opening);
+        button.setAttribute("aria-expanded",opening?"true":"false");
+    });
+
+    nav.addEventListener("click",function(event){
+        if(event.target.closest("a"))closeMobileMenu();
+    });
+
+    document.addEventListener("click",function(event){
+        if(!nav.contains(event.target)&&!button.contains(event.target)){
+            closeMobileMenu();
+        }
+    });
+
+    window.addEventListener("resize",function(){
+        if(window.innerWidth>700)closeMobileMenu();
+    });
+});
+</script>
+
+</body>
+</html>

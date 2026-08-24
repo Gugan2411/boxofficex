@@ -1,0 +1,49 @@
+# BoxOfficeX - Git ignore
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Python cache / build files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local logs / temporary files
+*.log
+*.tmp
+*.temp
+
+# Local database dumps / backups
+*.sql
+*.dump
+*.backup
+
+# Local-only config
+.python-version
+backend/

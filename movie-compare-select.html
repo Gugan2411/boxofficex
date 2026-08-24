@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#080b14">
+<meta name="description" content="Compare any two movies on BoxOfficeX by budget, India gross, overseas gross, worldwide box office collection and verdict.">
+<meta name="robots" content="index, follow">
+
+<link id="canonicalUrl" rel="canonical" href="">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BoxOfficeX">
+<meta property="og:title" content="Compare Movies - Box Office, Budget & Verdict | BoxOfficeX">
+<meta property="og:description" content="Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.">
+<meta id="ogUrl" property="og:url" content="">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Compare Movies - Box Office, Budget & Verdict | BoxOfficeX">
+<meta name="twitter:description" content="Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.">
+
+<script id="compareSelectStructuredData" type="application/ld+json"></script>
+
+<title>Compare Movies - Box Office, Budget & Verdict | BoxOfficeX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:rgba(255,255,255,.08);--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--blue-light:#79adff;--purple:#795cff;--gold:#ffcc33;--red:#ff4655;--content-width:1180px}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at 50% -10%,rgba(77,141,255,.18),transparent 34%),radial-gradient(circle at 100% 28%,rgba(121,92,255,.09),transparent 26%),linear-gradient(180deg,#070b15 0%,#080d1c 55%,#070a12 100%);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}button,input{font:inherit}:focus-visible{outline:2px solid var(--blue-light);outline-offset:3px}
+header{position:sticky;top:0;z-index:1000;background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));border-bottom:1px solid var(--border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.navbar{width:100%;max-width:1280px;min-height:66px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:9px;color:#fff;font-size:20px;font-weight:900;letter-spacing:.45px;white-space:nowrap;flex-shrink:0}
+.logo-icon{width:33px;height:33px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,var(--blue),var(--purple));box-shadow:0 8px 25px rgba(77,141,255,.24)}
+.logo span:last-child{color:var(--gold)}
+nav{display:flex;align-items:center;gap:2px;flex-wrap:nowrap}
+nav a{min-height:38px;display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:9px;color:#c7d1e6;font-size:12px;font-weight:700;white-space:nowrap;transition:.2s ease}
+nav a:hover{background:rgba(77,141,255,.10);color:var(--blue-light)}
+nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+nav .nav-compare:hover{background:linear-gradient(135deg,#ff5967,#e83b49);transform:translateY(-1px)}
+nav .nav-compare.active{box-shadow:0 0 0 1px rgba(255,255,255,.16),0 9px 24px rgba(255,70,85,.24)}
+.nav-item-with-badge{position:relative}
+.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none}
+.nav-new-badge.show{display:inline-flex}
+main{width:min(980px,calc(100% - 36px));margin:auto;padding:28px 0 58px}
+.page-header{text-align:center;margin-bottom:25px}
+.eyebrow{display:inline-flex;padding:6px 10px;border:1px solid rgba(77,141,255,.25);border-radius:999px;background:rgba(77,141,255,.08);color:var(--blue-light);font-size:8px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+h1{margin-top:9px;font-size:clamp(31px,5vw,43px);letter-spacing:-.9px;line-height:1.08}
+.intro{max-width:650px;margin:9px auto 0;color:#98a6c0;line-height:1.6;font-size:12px}
+.compare-grid{display:grid;grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);gap:14px;align-items:start;margin-top:28px}
+.selector{min-height:250px;background:linear-gradient(145deg,#111a31,#0d1528);border:1px solid var(--border);border-radius:15px;padding:18px;position:relative;box-shadow:0 18px 45px rgba(0,0,0,.18)}
+.selector h2{font-size:17px;margin-bottom:13px;text-align:center}
+.search-wrap{position:relative}
+.search-wrap input{width:100%;min-height:44px;padding:11px 13px;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:#0a101c;color:#fff;outline:none;font-size:13px}
+.search-wrap input:focus{border-color:rgba(77,141,255,.48);box-shadow:0 0 0 3px rgba(77,141,255,.07)}
+.search-wrap input::placeholder{color:#77839a}
+.results{position:absolute;left:0;right:0;top:calc(100% + 7px);z-index:100;background:#0d1421;border:1px solid rgba(255,255,255,.1);border-radius:11px;max-height:300px;overflow:auto;display:none;box-shadow:0 16px 36px rgba(0,0,0,.35)}
+.result-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}
+.result-item:last-child{border-bottom:0}.result-item:hover{background:rgba(77,141,255,.08)}
+.result-item img{width:40px;height:56px;object-fit:cover;border-radius:6px;background:#0a101c}
+.result-item strong{display:block;font-size:12px}.result-item small{display:block;margin-top:3px;color:#7f8ba5;font-size:9px}
+.selected{margin-top:14px;min-height:205px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px dashed rgba(255,255,255,.1);border-radius:13px;background:#0b111d;padding:13px}
+.selected img{width:95px;aspect-ratio:2/3;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:#0a101c}
+.selected h3{margin-top:9px;font-size:15px}.selected p{margin-top:4px;color:#8e99b3;font-size:9.5px}
+.vs{align-self:center;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff4655,#d92e3d);font-size:14px;font-weight:900;box-shadow:0 10px 25px rgba(255,70,85,.22)}
+.action-row{display:flex;justify-content:center;margin-top:24px}
+.compare-btn{min-width:200px;padding:13px 22px;border:0;border-radius:10px;background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(255,70,85,.18);transition:.2s ease}
+.compare-btn:hover:not(:disabled){transform:translateY(-1px)}.compare-btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+.note{margin-top:10px;text-align:center;color:#69758e;font-size:10px}
+.site-footer{margin-top:30px;border-top:1px solid var(--border);background:linear-gradient(180deg,#080c16,#050810)}
+.footer-inner{max-width:1180px;margin:auto;padding:28px 18px calc(30px + env(safe-area-inset-bottom));text-align:center}
+.footer-brand{display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:900}
+.footer-logo-icon{width:31px;height:31px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff)}
+.footer-brand strong>span{color:#ffcc33}.site-footer p{max-width:650px;margin:9px auto 0;color:#73809a;font-size:10px;line-height:1.6}
+.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 15px;margin:13px 0 4px}.footer-links a{color:#aebbd4;font-size:10px;font-weight:700}.footer-links a:hover{color:#79adff}
+.mobile-bottom-nav{display:none}
+@media(max-width:1180px) and (min-width:701px){.navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}.navbar::-webkit-scrollbar{display:none}.logo{font-size:17px}.logo-icon{width:30px;height:30px}nav{min-width:max-content}nav a{padding-left:7px;padding-right:7px;font-size:10.5px}}
+@media(max-width:760px){body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;padding:0 13px;justify-content:center}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}main{width:100%;padding:20px 10px 38px}.page-header{margin-bottom:18px}.eyebrow{font-size:7px;padding:5px 8px}h1{font-size:27px}.intro{font-size:10px;line-height:1.55}.compare-grid{grid-template-columns:1fr;gap:9px;margin-top:20px}.selector{min-height:0;padding:13px;border-radius:13px}.selector h2{font-size:14px;margin-bottom:10px}.search-wrap input{min-height:41px;padding:10px 11px;font-size:12px}.results{max-height:240px}.result-item{padding:8px}.result-item img{width:36px;height:50px}.selected{min-height:165px;margin-top:10px;padding:10px}.selected img{width:72px}.selected h3{font-size:13px}.selected p{font-size:8.5px}.vs{width:38px;height:38px;font-size:11px;margin:auto}.action-row{margin-top:16px}.compare-btn{width:100%;max-width:none;padding:12px 16px;font-size:12px}.note{font-size:9px}.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;background:rgba(7,11,20,.96);border-top:1px solid var(--border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -8px 24px rgba(0,0,0,.28)}.mobile-bottom-nav a{min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:11px;color:#8793a9;font-size:7.5px;font-weight:700}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav a.active{color:#fff;background:rgba(255,70,85,.11)}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}}
+
+/* BOXOFFICEX FINAL MOBILE STANDARD — MOVIE COMPARE SELECT */
+.mobile-menu-button{display:none}
+.footer-brand,.footer-brand:hover,.footer-brand:visited{text-decoration:none!important;border-bottom:0!important;box-shadow:none!important}
+
+@media(max-width:700px){
+ body{padding-top:61px!important;padding-bottom:0!important;overflow-x:hidden!important}
+ header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:99999!important;padding:0!important;background:#070a12!important;border-bottom:1px solid #202a3d!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 8px 22px rgba(0,0,0,.28)!important;overflow:visible!important}
+ .navbar{min-height:61px!important;height:61px!important;padding:0 13px!important;display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;justify-content:initial!important;gap:10px!important;background:#070a12!important;position:relative!important;z-index:100000!important;overflow:visible!important}
+ .logo{font-size:18px!important;position:relative!important;z-index:100001!important}
+ .logo-icon{width:31px!important;height:31px!important}
+ .mobile-menu-button{width:42px;height:42px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#101728;cursor:pointer;position:relative;z-index:100001}
+ .mobile-menu-button span{width:20px;height:2px;display:block;background:#fff;border-radius:999px;transition:.2s}
+ .mobile-menu-button.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+ .mobile-menu-button.open span:nth-child(2){opacity:0}
+ .mobile-menu-button.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+ header nav{position:absolute!important;top:61px!important;left:10px!important;right:10px!important;width:auto!important;display:none!important;flex-direction:column!important;align-items:stretch!important;gap:5px!important;padding:10px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;background:#0a0f1b!important;box-shadow:0 18px 45px rgba(0,0,0,.42)!important;z-index:100002!important}
+ header nav.mobile-menu-open{display:flex!important}
+ header nav a{width:100%!important;min-height:42px!important;padding:10px 12px!important;justify-content:flex-start!important;font-size:12px!important}
+ .mobile-bottom-nav{display:none!important}
+
+ main{width:100%!important;padding:20px 10px 38px!important}
+ .page-header{margin-bottom:18px!important}
+ h1{font-size:27px!important}
+ .intro{font-size:10px!important;line-height:1.55!important}
+ .compare-grid{grid-template-columns:1fr!important;gap:9px!important;margin-top:20px!important}
+ .selector{min-height:0!important;padding:13px!important;border-radius:13px!important}
+ .selector h2{font-size:14px!important;margin-bottom:10px!important}
+ .search-wrap input{min-height:41px!important;padding:10px 11px!important;font-size:12px!important}
+ .results{max-height:240px!important;z-index:100003!important}
+ .selected{min-height:165px!important;margin-top:10px!important;padding:10px!important}
+ .selected img{width:72px!important}
+ .selected h3{font-size:13px!important}
+ .selected p{font-size:8.5px!important}
+ .vs{width:38px!important;height:38px!important;font-size:11px!important;margin:auto!important}
+ .action-row{margin-top:16px!important}
+ .compare-btn{width:100%!important;max-width:none!important;padding:12px 16px!important;font-size:12px!important}
+ .note{font-size:9px!important}
+
+ .site-footer{margin-top:35px!important;background:linear-gradient(180deg,#080c16,#050810)!important}
+ .footer-inner{max-width:100%!important;padding:32px 12px 28px!important;text-align:center!important}
+ .footer-brand{display:inline-flex!important;justify-content:center!important;margin-bottom:13px!important;font-size:18px!important;text-decoration:none!important;border-bottom:0!important}
+ .footer-logo-icon{width:34px!important;height:34px!important}
+ .site-footer p{max-width:290px!important;margin:0 auto 20px!important;font-size:11px!important;line-height:1.65!important}
+ .footer-links{display:flex!important;flex-wrap:nowrap!important;justify-content:center!important;align-items:center!important;gap:0!important;width:100%!important;margin:0 auto 22px!important;white-space:nowrap!important}
+ .footer-links a{flex:0 0 auto!important;padding:4px 8px!important;color:#aebbd4!important;text-decoration:none!important;border-bottom:0!important;font-size:8px!important;line-height:1.2!important;white-space:nowrap!important}
+ .footer-inner>p:last-child{margin-bottom:0!important;font-size:10px!important}
+}
+@media(max-width:340px){.footer-links a{padding-left:6px!important;padding-right:6px!important;font-size:7.5px!important}}
+
+</style>
+</head>
+<body>
+
+<header>
+<div class="navbar">
+<a href="index.html" class="logo" aria-label="BoxOfficeX Home"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a><button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
+<nav aria-label="Main navigation">
+<a href="index.html">Home</a>
+<a href="new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="movie-rankings.html">Rankings</a>
+<a href="actors.html">Actors</a>
+<a href="articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+<a href="movie-compare-select.html" class="nav-compare active">🎬 Movie Compare</a>
+</nav>
+</div>
+</header>
+
+<main>
+<div class="page-header">
+<div class="eyebrow">BoxOfficeX Compare</div>
+<h1>🎬 Movies vs Movies</h1>
+<p class="intro">Search any two movies and compare their budget, India gross, overseas gross, worldwide collection and verdict.</p>
+</div>
+
+<section class="compare-grid">
+<div class="selector">
+<h2>Movie A</h2>
+<div class="search-wrap"><input id="searchA" placeholder="🔍 Search first movie..." autocomplete="off" aria-label="Search first movie"><div id="resultsA" class="results"></div></div>
+<div id="selectedA" class="selected"><p>No movie selected</p></div>
+</div>
+
+<div class="vs">VS</div>
+
+<div class="selector">
+<h2>Movie B</h2>
+<div class="search-wrap"><input id="searchB" placeholder="🔍 Search second movie..." autocomplete="off" aria-label="Search second movie"><div id="resultsB" class="results"></div></div>
+<div id="selectedB" class="selected"><p>No movie selected</p></div>
+</div>
+</section>
+
+<div class="action-row"><button id="compareBtn" class="compare-btn" disabled>🎬 COMPARE MOVIES</button></div>
+<div class="note">Choose two different movies to continue.</div>
+</main>
+
+<footer class="site-footer">
+<div class="footer-inner">
+<a href="index.html" class="footer-brand" aria-label="BoxOfficeX Home"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
+<p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
+<div class="footer-links">
+<a href="about.html">About</a>
+<a href="contact.html">Contact</a>
+<a href="privacy.html">Privacy</a>
+<a href="terms.html">Terms</a>
+<a href="disclaimer.html">Disclaimer</a>
+</div>
+<p>© 2026 BoxOfficeX. All rights reserved.</p>
+</div>
+</footer>
+
+
+
+
+<script>
+(function setupMovieCompareSelectSEO(){
+    const canonical = window.location.origin + window.location.pathname;
+
+    const canonicalTag = document.getElementById("canonicalUrl");
+    if(canonicalTag) canonicalTag.href = canonical;
+
+    const ogUrl = document.getElementById("ogUrl");
+    if(ogUrl) ogUrl.setAttribute("content", canonical);
+
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Compare Movies - Box Office, Budget & Verdict | BoxOfficeX",
+        "url": canonical,
+        "description": "Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "BoxOfficeX",
+            "url": window.location.origin + "/"
+        }
+    };
+
+    const jsonLd = document.getElementById("compareSelectStructuredData");
+    if(jsonLd) jsonLd.textContent = JSON.stringify(schema);
+})();
+</script>
+
+<script>
+const FALLBACK="posters/coming-soon.png";
+let movies=[];
+let selectedA=null,selectedB=null;
+
+function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+function poster(m){return m.poster?"posters/"+encodeURIComponent(m.poster):FALLBACK}
+function renderSelected(target,m){
+const box=document.getElementById(target);
+if(!m){box.innerHTML="<p>No movie selected</p>";return}
+box.innerHTML=`<img src="${poster(m)}" alt="${esc(m.title)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"><h3>${esc(m.title)}</h3><p>${esc(m.language||"")} ${m.release_date?"• "+esc(String(m.release_date)):""}</p>`;
+}
+function updateButton(){document.getElementById("compareBtn").disabled=!(selectedA&&selectedB&&selectedA.id!==selectedB.id)}
+function showResults(inputId,resultId,side){
+const q=document.getElementById(inputId).value.trim().toLowerCase();
+const box=document.getElementById(resultId);
+if(q.length<1){box.style.display="none";box.innerHTML="";return}
+const matches=movies.filter(m=>String(m.title||"").toLowerCase().includes(q)).slice(0,8);
+box.innerHTML=matches.length?matches.map(m=>`<div class="result-item" data-id="${m.id}"><img src="${poster(m)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"><div><strong>${esc(m.title)}</strong><small>${esc(m.language||"")} ${m.release_date?"• "+esc(String(m.release_date)):""}</small></div></div>`).join(""):`<div class="result-item"><div><strong>No movies found</strong></div></div>`;
+box.style.display="block";
+box.querySelectorAll("[data-id]").forEach(el=>el.onclick=()=>{
+const m=movies.find(x=>Number(x.id)===Number(el.dataset.id));
+if(!m)return;
+if(side==="A")selectedA=m;else selectedB=m;
+document.getElementById(inputId).value=m.title;
+renderSelected(side==="A"?"selectedA":"selectedB",m);
+box.style.display="none";
+updateButton();
+});
+}
+document.getElementById("searchA").addEventListener("input",()=>showResults("searchA","resultsA","A"));
+document.getElementById("searchB").addEventListener("input",()=>showResults("searchB","resultsB","B"));
+document.getElementById("compareBtn").onclick=()=>{
+if(!selectedA||!selectedB||selectedA.id===selectedB.id)return;
+location.href="movie-compare.html?a="+encodeURIComponent(selectedA.id)+"&b="+encodeURIComponent(selectedB.id);
+};
+document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))document.querySelectorAll(".results").forEach(x=>x.style.display="none")});
+fetch("/movies").then(r=>{if(!r.ok)throw new Error("Movies API error: "+r.status);return r.json()}).then(d=>{movies=Array.isArray(d.movies)?d.movies:[]}).catch(error=>console.error("Movie loading error:",error));
+
+function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
+function parseSiteDate(value){if(!value)return null;const p=String(value).slice(0,10).split("-").map(Number);if(p.length!==3||!p[0]||!p[1]||!p[2])return null;return new Date(p[0],p[1]-1,p[2])}
+async function updateSiteNewBadges(){
+try{
+const [mr,ar]=await Promise.all([fetch("/movies/new-system",{cache:"no-store"}),fetch("/articles/latest?limit=10",{cache:"no-store"})]);
+if(mr.ok){const d=await mr.json();const all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];const n=new Date();const today=new Date(n.getFullYear(),n.getMonth(),n.getDate());const fresh=all.some(movie=>{const dt=parseSiteDate(movie.release_date);if(!dt)return false;const days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}
+if(ar.ok){const d=await ar.json();const now=Date.now(),seven=7*86400000;const fresh=(d.articles||[]).some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}
+}catch(error){console.warn("Site NEW badge check failed:",error)}
+}
+updateSiteNewBadges();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+ const b=document.getElementById("mobileMenuButton"),n=document.querySelector("header nav");
+ if(!b||!n)return;
+ function closeMenu(){n.classList.remove("mobile-menu-open");b.classList.remove("open");b.setAttribute("aria-expanded","false")}
+ b.addEventListener("click",e=>{e.stopPropagation();const o=!n.classList.contains("mobile-menu-open");n.classList.toggle("mobile-menu-open",o);b.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")});
+ n.addEventListener("click",e=>{if(e.target.closest("a"))closeMenu()});
+ document.addEventListener("click",e=>{if(!n.contains(e.target)&&!b.contains(e.target))closeMenu()});
+ window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
+});
+</script>
+</body>
+</html>
