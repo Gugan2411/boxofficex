@@ -4074,7 +4074,7 @@ def article_pretty_page(slug: str):
 
 @app.get("/articles")
 def get_articles():
-    with psycopg.connect("host=localhost dbname=boxofficex user=postgres password=5432") as conn:
+    with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT id,title,slug,subtitle,category,author,hero_image,
@@ -4096,7 +4096,7 @@ def get_articles():
 @app.get("/articles/latest")
 def get_latest_articles(limit: int = 10):
     limit=max(1,min(limit,50))
-    with psycopg.connect("host=localhost dbname=boxofficex user=postgres password=5432") as conn:
+    with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT id,title,slug,subtitle,category,author,hero_image,views,published_at
@@ -4116,7 +4116,7 @@ def get_latest_articles(limit: int = 10):
 
 @app.get("/movies/{movie_id}/articles")
 def get_movie_articles(movie_id: int):
-    with psycopg.connect("host=localhost dbname=boxofficex user=postgres password=5432") as conn:
+    with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT a.id,a.title,a.slug,a.subtitle,a.category,a.author,a.hero_image,a.published_at
@@ -4135,7 +4135,7 @@ def get_movie_articles(movie_id: int):
 
 @app.get("/actors/{actor_id}/articles")
 def get_actor_articles(actor_id: int):
-    with psycopg.connect("host=localhost dbname=boxofficex user=postgres password=5432") as conn:
+    with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT a.id,a.title,a.slug,a.subtitle,a.category,a.author,a.hero_image,a.published_at
@@ -4154,7 +4154,7 @@ def get_actor_articles(actor_id: int):
 
 @app.get("/articles/{slug}/blocks")
 def get_article_blocks(slug: str):
-    with psycopg.connect("host=localhost dbname=boxofficex user=postgres password=5432") as conn:
+    with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT ab.id,ab.block_order,ab.block_type,ab.content,
@@ -4174,7 +4174,7 @@ def get_article_blocks(slug: str):
 
 @app.get("/articles/{slug}")
 def get_article(slug: str):
-    with psycopg.connect("host=localhost dbname=boxofficex user=postgres password=5432") as conn:
+    with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT id,title,slug,subtitle,category,author,hero_image,
