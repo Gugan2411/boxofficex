@@ -1355,9 +1355,7 @@ def get_connection():
 
 @app.get("/")
 def home():
-    return {
-        "message": "BoxOfficeX API is working!"
-    }
+    return FileResponse(BASE_DIR / "index.html")
 
 
 
