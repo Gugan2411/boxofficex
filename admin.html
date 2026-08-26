@@ -5045,7 +5045,7 @@ function renderMovieManagementSearch() {
                     <button
                         type="button"
                         class="delete-button"
-                        onclick="deleteMovie(${movie.id}, ${JSON.stringify(movie.title)})"
+                        onclick="deleteMovie(${Number(movie.id)})"
                     >
                         🗑️
                     </button>
@@ -5515,9 +5515,21 @@ function showMovieEditMessage(
 ===================================================== */
 
 function deleteMovie(
-    movieId,
-    movieTitle
+    movieId
 ) {
+
+    movieId = Number(movieId);
+
+    if (!Number.isInteger(movieId) || movieId <= 0) {
+        alert("❌ Invalid movie ID.");
+        return;
+    }
+
+    const movieRecord = (movieManagementMovies || []).find(
+        item => Number(item.id) === movieId
+    );
+
+    const movieTitle = movieRecord?.title || ("Movie #" + movieId);
 
     const confirmed =
         confirm(

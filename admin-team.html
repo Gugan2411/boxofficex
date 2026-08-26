@@ -119,6 +119,19 @@ nav,.account{width:100%}
 @media(max-width:560px){
 .summary,.team-grid{grid-template-columns:1fr}
 }
+
+.manage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.manage-grid .full{grid-column:1/-1}
+.manage-actions{display:flex;flex-wrap:wrap;gap:7px}
+.mini-btn{border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:#202b44;color:#cfe0ff;font-size:10px;font-weight:900;cursor:pointer}
+.mini-btn.danger{background:#351919;color:#ff9a9a;border-color:#703535}
+.mini-btn.good{background:#142c22;color:#7de2bb;border-color:#2e6b4f}
+.message{display:none;margin-top:12px;padding:11px;border-radius:10px;font-size:11px;font-weight:800}
+.message.success{display:block;background:#142c22;color:#7de2bb;border:1px solid #2e6b4f}
+.message.error{display:block;background:#351919;color:#ff9a9a;border:1px solid #703535}
+.manage-table{min-width:1000px}
+@media(max-width:700px){.manage-grid{grid-template-columns:1fr}.manage-grid .full{grid-column:auto}}
+
 </style>
 </head>
 
@@ -151,6 +164,30 @@ nav,.account{width:100%}
 Select an admin and a date to see only that person's work for that day:
 first login, last logout, total working hours, number of sessions, and every login/logout session separately.
 </p>
+
+
+<section class="card">
+<h2>➕ Add Admin</h2>
+<p class="intro" style="margin-top:8px">Create multiple BoxOfficeX staff accounts. Owner access is required.</p>
+<div class="manage-grid">
+<div><label>Display Name</label><input id="newAdminDisplayName" type="text" placeholder="Example: Nanmathi"></div>
+<div><label>Email</label><input id="newAdminEmail" type="email" placeholder="name@boxoffice-x.com"></div>
+<div><label>Role</label><select id="newAdminRole"><option value="editor">Editor</option><option value="data_admin">Data Admin</option><option value="owner">Owner</option></select></div>
+<div><label>Temporary Password</label><input id="newAdminPassword" type="password" minlength="10" placeholder="Minimum 10 characters"></div>
+</div>
+<button class="btn" style="margin-top:14px" type="button" onclick="createAdminAccount()">➕ CREATE ADMIN</button>
+<div id="teamManageMessage" class="message"></div>
+</section>
+
+<section class="card">
+<h2>👥 Manage Admin Accounts</h2>
+<div class="table-wrap">
+<table class="manage-table">
+<thead><tr><th>Name / Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+<tbody id="manageAdminBody"><tr><td colspan="5" class="empty">Loading admin accounts...</td></tr></tbody>
+</table>
+</div>
+</section>
 
 <section class="card">
 <h2>👤 Select Admin</h2>
@@ -206,6 +243,77 @@ first login, last logout, total working hours, number of sessions, and every log
 
 <script>
 let admins=[];
+
+function teamMessage(text,type="success"){
+ const el=document.getElementById("teamManageMessage"); if(!el)return;
+ el.textContent=text; el.className="message "+type;
+}
+async function apiJson(url,options={}){
+ const r=await fetch(url,{credentials:"include",cache:"no-store",...options});
+ let d={}; try{d=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(d.detail||`Request failed (${r.status})`);
+ return d;
+}
+async function loadManageAdmins(){
+ const body=document.getElementById("manageAdminBody"); if(!body)return;
+ try{
+  const d=await apiJson("/admin/team");
+  admins=Array.isArray(d.admins)?d.admins:[];
+  if(!admins.length){body.innerHTML='<tr><td colspan="5" class="empty">No admin accounts found.</td></tr>';return;}
+  body.innerHTML=admins.map(a=>`<tr>
+   <td><strong>${esc(a.display_name||"")}</strong><div style="color:#8e99b3;margin-top:4px">${esc(a.email||"")}</div></td>
+   <td><span class="badge">${esc(String(a.role||"").replaceAll("_"," "))}</span></td>
+   <td class="${a.is_active?"status-closed":"status-open"}">${a.is_active?"ACTIVE":"DISABLED"}</td>
+   <td>${fmtDateTime(a.last_login_at)}</td>
+   <td><div class="manage-actions">
+    <button class="mini-btn" type="button" onclick="changeAdminRole(${Number(a.id)},'${esc(a.role||"editor")}')">ROLE</button>
+    <button class="mini-btn" type="button" onclick="resetAdminPassword(${Number(a.id)})">PASSWORD</button>
+    <button class="mini-btn ${a.is_active?"danger":"good"}" type="button" onclick="setAdminActive(${Number(a.id)},${a.is_active?"false":"true"})">${a.is_active?"DISABLE":"ENABLE"}</button>
+   </div></td></tr>`).join("");
+ }catch(e){body.innerHTML=`<tr><td colspan="5" class="empty">${esc(e.message)}</td></tr>`;}
+}
+async function createAdminAccount(){
+ const display_name=document.getElementById("newAdminDisplayName").value.trim();
+ const email=document.getElementById("newAdminEmail").value.trim().toLowerCase();
+ const role=document.getElementById("newAdminRole").value;
+ const password=document.getElementById("newAdminPassword").value;
+ if(!display_name||!email||!password){teamMessage("Display name, email and password are required.","error");return;}
+ if(!email.endsWith("@boxoffice-x.com")){teamMessage("Admin email must use @boxoffice-x.com.","error");return;}
+ if(password.length<10){teamMessage("Password must be at least 10 characters.","error");return;}
+ try{
+  await apiJson("/admin/team",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password,display_name,role})});
+  teamMessage("Admin created successfully.","success");
+  document.getElementById("newAdminDisplayName").value="";
+  document.getElementById("newAdminEmail").value="";
+  document.getElementById("newAdminPassword").value="";
+  await loadAdmins(); await loadManageAdmins();
+ }catch(e){teamMessage(e.message,"error");}
+}
+async function setAdminActive(adminId,isActive){
+ const action=isActive?"enable":"disable"; if(!confirm(`Are you sure you want to ${action} this admin?`))return;
+ try{
+  await apiJson(`/admin/team/${adminId}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({is_active:isActive})});
+  await loadAdmins(); await loadManageAdmins();
+ }catch(e){alert("❌ "+e.message);}
+}
+async function changeAdminRole(adminId,currentRole){
+ const value=prompt("Enter role: owner, editor, or data_admin",currentRole||"editor"); if(value===null)return;
+ const role=value.trim().toLowerCase();
+ if(!["owner","editor","data_admin"].includes(role)){alert("❌ Role must be owner, editor, or data_admin.");return;}
+ try{
+  await apiJson(`/admin/team/${adminId}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({role})});
+  await loadAdmins(); await loadManageAdmins();
+ }catch(e){alert("❌ "+e.message);}
+}
+async function resetAdminPassword(adminId){
+ const password=prompt("Enter the new password (minimum 10 characters):"); if(password===null)return;
+ if(password.length<10){alert("❌ Password must be at least 10 characters.");return;}
+ try{
+  await apiJson(`/admin/team/${adminId}/password`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({new_password:password})});
+  alert("✅ Admin password updated.");
+ }catch(e){alert("❌ "+e.message);}
+}
+
 
 function esc(v){
 const d=document.createElement("div");
@@ -375,6 +483,7 @@ document.getElementById("workDate").value=`${yyyy}-${mm}-${dd}`;
 
 try{
 await loadAdmins();
+await loadManageAdmins();
 await loadReport();
 }catch(e){
 document.getElementById("sessionBody").innerHTML=
