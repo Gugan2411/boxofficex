@@ -227,6 +227,9 @@ def _role_can_access(role: str, request: Request) -> bool:
             path.startswith("/admin/articles")
             or path.startswith("/admin/article-blocks")
             or path.startswith("/admin/article-images")
+            # Article Admin may sync its linked movie's daily box-office
+            # in one protected bulk request.
+            or path == "/admin/movie-collections/bulk-sync"
         )
 
     # Movie/actor/box-office permissions.
@@ -3464,6 +3467,107 @@ class AdminMovieData(BaseModel):
     verdict: Optional[str] = None
 
     poster: Optional[str] = None
+
+
+
+class BulkMovieCollectionDay(BaseModel):
+    date: date
+    tamil_nadu: float = 0
+    kerala: float = 0
+    karnataka: float = 0
+    telugu_states: float = 0
+    rest_of_india: float = 0
+    overseas: float = 0
+
+
+class BulkMovieCollectionSync(BaseModel):
+    movie_id: int
+    days: list[BulkMovieCollectionDay]
+
+
+@app.post(
+    "/admin/movie-collections/bulk-sync",
+    dependencies=[Depends(require_admin)]
+)
+def admin_bulk_sync_movie_collections(
+    data: BulkMovieCollectionSync
+):
+    """
+    Fast Article Admin -> Movie sync.
+
+    Replaces all daily regional rows for one linked movie using a
+    single HTTP request and one PostgreSQL transaction.
+    """
+
+    territories = (
+        ("Tamil Nadu", "tamil_nadu"),
+        ("Kerala", "kerala"),
+        ("Karnataka", "karnataka"),
+        ("Telugu States", "telugu_states"),
+        ("Rest of India", "rest_of_india"),
+        ("Overseas", "overseas"),
+    )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+
+            cur.execute("""
+                SELECT id
+                FROM movies
+                WHERE id = %s
+            """, (data.movie_id,))
+
+            if not cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Linked movie not found"
+                )
+
+            # Article Admin's daily table is authoritative for this movie.
+            cur.execute("""
+                DELETE FROM movie_daily_collections
+                WHERE movie_id = %s
+            """, (data.movie_id,))
+
+            rows = []
+
+            for day in data.days:
+                for state, field_name in territories:
+                    rows.append((
+                        data.movie_id,
+                        day.date,
+                        state,
+                        float(getattr(day, field_name) or 0)
+                    ))
+
+            if rows:
+                cur.executemany("""
+                    INSERT INTO movie_daily_collections (
+                        movie_id,
+                        collection_date,
+                        state,
+                        collection_crore
+                    )
+                    VALUES (%s, %s, %s, %s)
+                """, rows)
+
+        # Force headline totals to match the newly-saved Article Admin data,
+        # including older/final movies as well as currently-running movies.
+        totals = sync_running_movie_totals(
+            conn,
+            data.movie_id,
+            force=True
+        )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "movie_id": data.movie_id,
+        "days_saved": len(data.days),
+        "rows_saved": len(rows),
+        "live_totals": totals
+    }
 
 
 @app.get("/admin/movie-collections", dependencies=[Depends(require_admin)])
