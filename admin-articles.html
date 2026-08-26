@@ -369,6 +369,13 @@ textarea{min-height:92px;resize:vertical}
     }
 }
 
+
+.bo-days-table{overflow-x:scroll!important;overflow-y:hidden!important;padding-bottom:6px;scrollbar-width:auto;scrollbar-color:#5f7195 #0a101c}
+.bo-days-table::-webkit-scrollbar{height:14px}
+.bo-days-table::-webkit-scrollbar-track{background:#0a101c;border-radius:10px}
+.bo-days-table::-webkit-scrollbar-thumb{background:#5f7195;border:3px solid #0a101c;border-radius:10px}
+.bo-days-table::-webkit-scrollbar-thumb:hover{background:#8094bd}
+
 </style>
 </head>
 <body>
@@ -1254,40 +1261,36 @@ if(!boxOfficeBlocks.length)return;
 for(const b of boxOfficeBlocks){
 const e=normalizeBoxOfficeExtra(b.extra_data||{});
 const movieId=Number(e.movie_id);
+if(!Number.isInteger(movieId)||movieId<=0)throw new Error("Choose a Linked Movie inside every Box Office block.");
 
-if(!Number.isInteger(movieId) || movieId<=0){
-throw new Error("Choose a Linked Movie inside every Box Office block before saving.");
+const days=(e.days||[]).filter(d=>d.date);
+if(!days.length)throw new Error("Enter at least one Day date before movie sync.");
+
+const existingResponse=await fetch(`/admin/movie-collections?movie_id=${encodeURIComponent(movieId)}`,{
+credentials:"include",cache:"no-store"
+});
+let existingData={};try{existingData=await existingResponse.json()}catch(err){}
+if(!existingResponse.ok)throw new Error(existingData.detail||("Cannot read movie collections ("+existingResponse.status+")"));
+
+for(const row of (existingData.collections||[])){
+const del=await fetch(`/admin/movie-collections/${row.id}`,{method:"DELETE",credentials:"include"});
+if(!del.ok){let d={};try{d=await del.json()}catch(err){}throw new Error(d.detail||("Cannot replace old movie collection ("+del.status+")"));}
 }
 
-const days=(e.days||[])
-.filter(d=>d.date)
-.map(d=>({
-date:d.date,
-tamil_nadu:boNum(d.tamil_nadu),
-kerala:boNum(d.kerala),
-karnataka:boNum(d.karnataka),
-telugu_states:boNum(d.telugu_states),
-rest_of_india:boNum(d.rest_of_india),
-overseas:boNum(d.overseas)
-}));
+const territoryMap=[
+["Tamil Nadu","tamil_nadu"],["Kerala","kerala"],["Karnataka","karnataka"],
+["Telugu States","telugu_states"],["Rest of India","rest_of_india"],["Overseas","overseas"]
+];
 
-const r=await fetch("/admin/articles/movie-boxoffice-sync",{
-method:"POST",
-credentials:"include",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-movie_id:movieId,
-budget:e.budget===null||e.budget===""?null:Number(e.budget),
-verdict:String(e.verdict||"").trim()||null,
-days
-})
+for(const day of days){
+for(const [state,field] of territoryMap){
+const r=await fetch("/admin/movie-collections",{
+method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({movie_id:movieId,collection_date:day.date,state,collection_crore:boNum(day[field])})
 });
-
-let d={};
-try{d=await r.json()}catch(err){}
-
-if(!r.ok){
-throw new Error(d.detail||("Movie box-office sync failed ("+r.status+")"));
+let d={};try{d=await r.json()}catch(err){}
+if(!r.ok)throw new Error(d.detail||(`${state} sync failed (${r.status})`));
+}
 }
 }
 }

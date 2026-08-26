@@ -589,96 +589,48 @@
             }
         }
     
-/* =====================================================
-   ARTICLE BOX OFFICE DAILY / WEEKLY / FINAL TABLES
-===================================================== */
-.bo-meta-grid{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:10px;
-    margin-top:12px;
-}
-.bo-section-title{
-    margin:18px 0 9px;
-    color:#ffcc33;
-    font-size:13px;
-    font-weight:900;
-    text-transform:uppercase;
-    letter-spacing:.4px;
-}
-.bo-table-wrap{
-    overflow:auto;
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:14px;
-    background:#0f1625;
-}
-.bo-detail-table{
-    width:100%;
-    min-width:980px;
-    border-collapse:collapse;
-}
-.bo-detail-table th,
-.bo-detail-table td{
-    padding:10px 11px;
-    border-bottom:1px solid rgba(255,255,255,.06);
-    text-align:right;
-    font-size:11px;
-}
-.bo-detail-table th:first-child,
-.bo-detail-table td:first-child,
-.bo-detail-table th:nth-child(2),
-.bo-detail-table td:nth-child(2){
-    text-align:left;
-}
-.bo-detail-table th{
-    background:#111a2b;
-    color:#8e99b3;
-    font-size:10px;
-    text-transform:uppercase;
-}
-.bo-detail-table tr:last-child td{border-bottom:0}
-.bo-day-title{font-weight:900;color:#f4f7fb}
-.bo-date-sub{display:block;margin-top:3px;color:#7f8ba3;font-size:9px}
-.bo-strong{font-weight:900;color:#7de2bb}
-.bo-final-grid{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:10px;
-}
-.bo-final-card{
-    padding:12px;
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:12px;
-    background:#111a2b;
-}
-.bo-final-card span{
-    display:block;
-    color:#8e99b3;
-    font-size:9px;
-    font-weight:900;
-    text-transform:uppercase;
-}
-.bo-final-card strong{
-    display:block;
-    margin-top:6px;
-    font-size:15px;
-}
-.bo-final-card.total strong{color:#7de2bb}
-@media(max-width:760px){
-    .bo-meta-grid,.bo-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(max-width:520px){
-    .bo-meta-grid,.bo-final-grid{grid-template-columns:1fr}
+/* BOXOFFICEX MASTER ARTICLE POLISH */
+html{-webkit-text-size-adjust:100%}
+body{overflow-x:hidden;background:radial-gradient(circle at 50% -10%,rgba(77,141,255,.17),transparent 34%),linear-gradient(180deg,#070b15,#080d1c 58%,#070a12)}
+header{background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.navbar{min-height:66px;gap:12px}.logo{font-size:20px;letter-spacing:.45px}.logo-icon{width:33px;height:33px;border-radius:9px}
+header nav{gap:2px;flex-wrap:nowrap}header nav a{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+header nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
+header nav .nav-compare:hover{background:linear-gradient(135deg,#ff5967,#e83b49);color:#fff!important;transform:translateY(-1px)}
+.nav-item-with-badge{position:relative}.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none}.nav-new-badge.show{display:inline-flex}
+
+.article-shell{width:min(1040px,calc(100% - 36px));padding:30px 0 58px}.article-top{max-width:860px}.category{min-height:25px;padding:4px 9px;font-size:9px}
+h1{margin-top:12px;font-size:clamp(31px,5vw,50px);letter-spacing:-1.2px}.subtitle{margin-top:13px;font-size:clamp(14px,2vw,18px)}
+.byline-row{margin-top:17px;padding-top:13px}.byline{font-size:10px}.share-button{padding:7px 9px;font-size:9px;border-radius:8px}
+.hero-wrap{margin-top:22px}.hero-wrap img{max-height:470px;border-radius:15px}.media-caption{font-size:9px}
+.article-layout{max-width:860px;margin-top:27px}.article-content{width:min(100%,700px)}
+.article-content p{margin-bottom:19px;font-size:clamp(16px,1.8vw,18px);line-height:1.78}.article-content h2{margin:34px 0 14px;font-size:clamp(23px,3vw,30px)}
+.article-image{margin:27px 0}.article-image img{max-height:560px;border-radius:13px}blockquote{margin:28px 0;padding:18px 19px 18px 22px;font-size:clamp(18px,2.5vw,24px)}
+.boxoffice-block{margin:27px 0;padding:16px;border-radius:14px}.boxoffice-title{font-size:15px}.bo-card{padding:11px 9px}.bo-label{font-size:8px}.bo-value{font-size:14px}
+.gallery-block{margin:27px 0;gap:8px}.related-card{margin:25px 0;padding:10px;grid-template-columns:82px 1fr;gap:11px}.related-card img{width:82px}.related-card strong{font-size:14px}.related-card small{font-size:9px}.video-link{margin:25px 0;padding:14px;font-size:12px}.article-end{margin-top:37px;font-size:10px}
+
+footer{background:linear-gradient(180deg,#080c16,#050810)}.footer-inner{max-width:1180px;padding:28px 18px}.footer-brand{font-size:17px}.footer-tagline,.footer-copy{font-size:10px}.footer-links a{font-size:10px;color:#aebbd4}
+
+@media(max-width:1180px) and (min-width:701px){.navbar{padding-left:14px;padding-right:14px;overflow-x:auto;scrollbar-width:none}.navbar::-webkit-scrollbar{display:none}.logo{font-size:17px}.logo-icon{width:30px;height:30px}header nav{min-width:max-content}header nav a{padding-left:7px;padding-right:7px;font-size:10.5px}}
+@media(max-width:700px){
+body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.article-shell{width:100%;padding:20px 11px 38px}.category{font-size:7px;min-height:22px}h1{font-size:29px;line-height:1.08;letter-spacing:-.7px}.subtitle{font-size:13px;line-height:1.5}.byline-row{gap:10px}.share-row{gap:5px}.hero-wrap{margin-top:17px}.hero-wrap img{border-radius:11px}.article-layout{margin-top:21px}.article-content p{font-size:16px;line-height:1.72;margin-bottom:17px}.article-content h2{font-size:22px;margin-top:28px}.boxoffice-grid{grid-template-columns:repeat(2,1fr);gap:7px}.gallery-block{grid-template-columns:1fr}.related-card{grid-template-columns:70px 1fr}.related-card img{width:70px}
+.mobile-bottom-nav{min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+.mobile-bottom-nav a{position:relative;min-height:50px;font-size:7.5px}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav a.active{color:#fff;background:rgba(77,141,255,.11)}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}
 }
 
 
-.movie-release-line{
-    margin-top:5px;
-    color:#9fb0c9;
-    font-size:11px;
-    font-weight:700;
-}
-.movie-release-line strong{color:#ffcc33}
+.bo-detail-wrap{overflow-x:auto;margin-top:12px;border:1px solid rgba(255,255,255,.08);border-radius:12px}
+.bo-detail-table{width:100%;min-width:920px;border-collapse:collapse}
+.bo-detail-table th,.bo-detail-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:10px;text-align:right;white-space:nowrap}
+.bo-detail-table th:first-child,.bo-detail-table td:first-child,.bo-detail-table th:nth-child(2),.bo-detail-table td:nth-child(2){text-align:left}
+.bo-detail-table th{color:#8e99b3;background:#111a2b;text-transform:uppercase}
+.bo-detail-table tr:last-child td{border-bottom:0}.bo-auto-total{color:#7de2bb;font-weight:900}
+.bo-subtitle{margin:17px 0 8px;color:#ffcc33;font-size:11px;font-weight:900;text-transform:uppercase}
+.bo-final-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:9px}
+.bo-final-item{padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#111a2b}
+.bo-final-item span{display:block;color:#8e99b3;font-size:8px;text-transform:uppercase}.bo-final-item strong{display:block;margin-top:4px;font-size:13px}
+.bo-final-item.total strong{color:#7de2bb}.movie-release-note{margin-top:5px;color:#9aa8c1;font-size:10px}
+@media(max-width:700px){.bo-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 </style>
 </head>
@@ -693,12 +645,14 @@
         </a>
 
         <nav aria-label="Main navigation">
-            <a href="/index.html">Home</a>
-            <a href="/new-movies.html">New Movies</a>
-            <a href="/movie-rankings.html">Rankings</a>
-            <a href="/actors.html">Actors</a>
-            <a href="/compare-select.html" class="nav-compare">⚔️ Compare</a>
-        </nav>
+<a href="/index.html">Home</a>
+<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/movie-rankings.html">Rankings</a>
+<a href="/actors.html">Actors</a>
+<a href="/articles.html" class="active nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+<a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+</nav>
     </div>
 </header>
 
@@ -724,11 +678,11 @@
 </footer>
 
 <div class="mobile-bottom-nav" aria-label="Mobile navigation">
-    <a href="/index.html"><span>🏠</span><span>Home</span></a>
-    <a href="/new-movies.html"><span>🆕</span><span>New</span></a>
-    <a href="/movie-rankings.html"><span>🏆</span><span>Rankings</span></a>
-    <a href="/actors.html"><span>🎭</span><span>Actors</span></a>
-    <a href="/compare-select.html"><span>⚔️</span><span>Compare</span></a>
+<a href="/index.html"><span>🏠</span><span>Home</span></a>
+<a href="/new-movies.html" class="nav-item-with-badge"><span>🆕</span><span>New</span><span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/articles.html" class="active nav-item-with-badge"><span>📰</span><span>Articles</span><span id="mobileArticlesBadge" class="nav-new-badge">NEW</span></a>
+<a href="/compare-select.html"><span>⚔️</span><span>Actors</span></a>
+<a href="/movie-compare-select.html"><span>🎬</span><span>Movies</span></a>
 </div>
 
 <script>
@@ -753,36 +707,18 @@ function formatDate(value) {
     });
 }
 
-function getArticleTarget() {
-    const params = new URLSearchParams(window.location.search);
-
-    const adminPreview = params.get("admin_preview");
-    if (adminPreview && /^\d+$/.test(adminPreview)) {
-        return {
-            type: "admin_preview",
-            value: adminPreview
-        };
-    }
-
-    const querySlug = params.get("slug");
-    if (querySlug) {
-        return {
-            type: "slug",
-            value: querySlug
-        };
-    }
+function getSlug() {
+    const querySlug = new URLSearchParams(window.location.search).get("slug");
+    if (querySlug) return querySlug;
 
     const parts = window.location.pathname.split("/").filter(Boolean);
     const articleIndex = parts.indexOf("article");
 
     if (articleIndex !== -1 && parts[articleIndex + 1]) {
-        return {
-            type: "slug",
-            value: decodeURIComponent(parts[articleIndex + 1])
-        };
+        return decodeURIComponent(parts[articleIndex + 1]);
     }
 
-    return null;
+    return "";
 }
 
 function imageUrl(filename) {
@@ -811,315 +747,34 @@ function setSEO(article) {
 }
 
 function renderBoxOffice(data) {
-    const money = value => {
-        const n = Number(value);
-        return Number.isFinite(n)
-            ? `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })} Cr`
-            : "N/A";
-    };
-
-    const num = value => {
-        const n = Number(value);
-        return Number.isFinite(n) ? n : 0;
-    };
-
-    const indiaGross = row =>
-        num(row?.tamil_nadu) +
-        num(row?.kerala) +
-        num(row?.karnataka) +
-        num(row?.telugu_states) +
-        num(row?.rest_of_india);
-
-    const worldGross = row =>
-        indiaGross(row) + num(row?.overseas);
-
-    const formatDayDate = value => {
-        if (!value) return "Date not set";
-        const d = new Date(value + "T00:00:00");
-        if (Number.isNaN(d.getTime())) return value;
-        return d.toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            weekday: "long"
-        });
-    };
-
-    const days = Array.isArray(data?.days) ? data.days : [];
-
-    /* Backward compatibility with older simple Box Office blocks. */
-    if (!days.length) {
-        return `
-            <div class="boxoffice-block">
-                <div class="boxoffice-title">Box Office Snapshot</div>
-                <div class="boxoffice-grid">
-                    <div class="bo-card">
-                        <div class="bo-label">India</div>
-                        <div class="bo-value">${money(data?.india)}</div>
-                    </div>
-                    <div class="bo-card">
-                        <div class="bo-label">Overseas</div>
-                        <div class="bo-value">${money(data?.overseas)}</div>
-                    </div>
-                    <div class="bo-card">
-                        <div class="bo-label">Worldwide</div>
-                        <div class="bo-value">${money(data?.worldwide)}</div>
-                    </div>
-                    <div class="bo-card">
-                        <div class="bo-label">Verdict</div>
-                        <div class="bo-value">${esc(data?.verdict || "N/A")}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    const weekly = [];
-    for (let start = 0; start < days.length; start += 7) {
-        const slice = days.slice(start, start + 7);
-        const w = {
-            week: Math.floor(start / 7) + 1,
-            from_day: start + 1,
-            to_day: start + slice.length,
-            tamil_nadu: 0,
-            kerala: 0,
-            karnataka: 0,
-            telugu_states: 0,
-            rest_of_india: 0,
-            overseas: 0
-        };
-
-        slice.forEach(d => {
-            w.tamil_nadu += num(d.tamil_nadu);
-            w.kerala += num(d.kerala);
-            w.karnataka += num(d.karnataka);
-            w.telugu_states += num(d.telugu_states);
-            w.rest_of_india += num(d.rest_of_india);
-            w.overseas += num(d.overseas);
-        });
-
-        w.india = w.tamil_nadu + w.kerala + w.karnataka + w.telugu_states + w.rest_of_india;
-        w.worldwide = w.india + w.overseas;
-        weekly.push(w);
-    }
-
-    const total = {
-        tamil_nadu: 0,
-        kerala: 0,
-        karnataka: 0,
-        telugu_states: 0,
-        rest_of_india: 0,
-        overseas: 0
-    };
-
-    days.forEach(d => {
-        total.tamil_nadu += num(d.tamil_nadu);
-        total.kerala += num(d.kerala);
-        total.karnataka += num(d.karnataka);
-        total.telugu_states += num(d.telugu_states);
-        total.rest_of_india += num(d.rest_of_india);
-        total.overseas += num(d.overseas);
-    });
-
-    total.india =
-        total.tamil_nadu +
-        total.kerala +
-        total.karnataka +
-        total.telugu_states +
-        total.rest_of_india;
-
-    total.worldwide = total.india + total.overseas;
-
-    return `
-        <div class="boxoffice-block">
-            <div class="boxoffice-title">Box Office Collection Report</div>
-
-            <div class="bo-meta-grid">
-                <div class="bo-card">
-                    <div class="bo-label">Budget</div>
-                    <div class="bo-value">${money(data?.budget)}</div>
-                </div>
-                <div class="bo-card">
-                    <div class="bo-label">Verdict</div>
-                    <div class="bo-value">${esc(data?.verdict || "N/A")}</div>
-                </div>
-            </div>
-
-            <div class="bo-section-title">Daily Collections</div>
-            <div class="bo-table-wrap">
-                <table class="bo-detail-table">
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Date</th>
-                            <th>Tamil Nadu</th>
-                            <th>Kerala</th>
-                            <th>Karnataka</th>
-                            <th>Telugu States</th>
-                            <th>Rest of India</th>
-                            <th>India Gross</th>
-                            <th>Overseas</th>
-                            <th>Worldwide</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${days.map((d, i) => `
-                            <tr>
-                                <td><span class="bo-day-title">Day ${i + 1}</span></td>
-                                <td>${esc(formatDayDate(d.date))}</td>
-                                <td>${money(d.tamil_nadu)}</td>
-                                <td>${money(d.kerala)}</td>
-                                <td>${money(d.karnataka)}</td>
-                                <td>${money(d.telugu_states)}</td>
-                                <td>${money(d.rest_of_india)}</td>
-                                <td class="bo-strong">${money(indiaGross(d))}</td>
-                                <td>${money(d.overseas)}</td>
-                                <td class="bo-strong">${money(worldGross(d))}</td>
-                            </tr>
-                        `).join("")}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="bo-section-title">Weekly Totals — Automatic</div>
-            <div class="bo-table-wrap">
-                <table class="bo-detail-table">
-                    <thead>
-                        <tr>
-                            <th>Week</th>
-                            <th>Days</th>
-                            <th>Tamil Nadu</th>
-                            <th>Kerala</th>
-                            <th>Karnataka</th>
-                            <th>Telugu States</th>
-                            <th>Rest of India</th>
-                            <th>India Gross</th>
-                            <th>Overseas</th>
-                            <th>Worldwide</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${weekly.map(w => `
-                            <tr>
-                                <td><span class="bo-day-title">Week ${w.week}</span></td>
-                                <td>Day ${w.from_day}–${w.to_day}</td>
-                                <td>${money(w.tamil_nadu)}</td>
-                                <td>${money(w.kerala)}</td>
-                                <td>${money(w.karnataka)}</td>
-                                <td>${money(w.telugu_states)}</td>
-                                <td>${money(w.rest_of_india)}</td>
-                                <td class="bo-strong">${money(w.india)}</td>
-                                <td>${money(w.overseas)}</td>
-                                <td class="bo-strong">${money(w.worldwide)}</td>
-                            </tr>
-                        `).join("")}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="bo-section-title">Final Overall Gross — Automatic</div>
-            <div class="bo-final-grid">
-                <div class="bo-final-card"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div>
-                <div class="bo-final-card"><span>Kerala</span><strong>${money(total.kerala)}</strong></div>
-                <div class="bo-final-card"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div>
-                <div class="bo-final-card"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div>
-                <div class="bo-final-card"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div>
-                <div class="bo-final-card total"><span>India Gross</span><strong>${money(total.india)}</strong></div>
-                <div class="bo-final-card"><span>Overseas Gross</span><strong>${money(total.overseas)}</strong></div>
-                <div class="bo-final-card total"><span>Worldwide Gross</span><strong>${money(total.worldwide)}</strong></div>
-            </div>
-        </div>
-    `;
+const money=v=>{const n=Number(v);return Number.isFinite(n)?`₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`:"N/A"};
+const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+const days=Array.isArray(data?.days)?data.days:[];
+if(!days.length)return `<div class="boxoffice-block"><div class="boxoffice-title">Box Office Snapshot</div><div class="boxoffice-grid"><div class="bo-card"><div class="bo-label">India</div><div class="bo-value">${money(data?.india)}</div></div><div class="bo-card"><div class="bo-label">Overseas</div><div class="bo-value">${money(data?.overseas)}</div></div><div class="bo-card"><div class="bo-label">Worldwide</div><div class="bo-value">${money(data?.worldwide)}</div></div><div class="bo-card"><div class="bo-label">Verdict</div><div class="bo-value">${esc(data?.verdict||"N/A")}</div></div></div></div>`;
+const india=d=>num(d.tamil_nadu)+num(d.kerala)+num(d.karnataka)+num(d.telugu_states)+num(d.rest_of_india);
+const world=d=>india(d)+num(d.overseas);
+const fmt=v=>{if(!v)return"N/A";const d=new Date(v+"T00:00:00");return Number.isNaN(d.getTime())?v:d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"})};
+const total={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};
+days.forEach(d=>Object.keys(total).forEach(k=>total[k]+=num(d[k])));
+total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;total.worldwide=total.india+total.overseas;
+const weeks=[];for(let x=0;x<days.length;x+=7){const w={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};days.slice(x,x+7).forEach(d=>Object.keys(w).forEach(k=>w[k]+=num(d[k])));w.india=w.tamil_nadu+w.kerala+w.karnataka+w.telugu_states+w.rest_of_india;w.worldwide=w.india+w.overseas;w.week=Math.floor(x/7)+1;w.from=x+1;w.to=Math.min(x+7,days.length);weeks.push(w)}
+return `<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>
+<div class="bo-subtitle">Daily Collections</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${days.map((d,i)=>`<tr><td>Day ${i+1}</td><td>${esc(fmt(d.date))}</td><td>${money(d.tamil_nadu)}</td><td>${money(d.kerala)}</td><td>${money(d.karnataka)}</td><td>${money(d.telugu_states)}</td><td>${money(d.rest_of_india)}</td><td class="bo-auto-total">${money(india(d))}</td><td>${money(d.overseas)}</td><td class="bo-auto-total">${money(world(d))}</td></tr>`).join("")}</tbody></table></div>
+<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>
+<div class="bo-subtitle">Final Overall Gross — Automatic</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
 }
 
 async function renderMovieBlock(data) {
-    if (!data || !data.movie_id) return "";
-
-    try {
-        /* One movie link now powers BOTH the movie card and its live DB box-office data. */
-        const [movieResponse, collectionResponse] = await Promise.all([
-            fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}`),
-            fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}/collections`)
-        ]);
-
-        const movie = await movieResponse.json();
-
-        if (!movieResponse.ok || movie.error) return "";
-
-        const photo = movie.poster
-            ? `/posters/${encodeURIComponent(movie.poster)}`
-            : ARTICLE_FALLBACK_IMAGE;
-
-        let collectionHTML = "";
-
-        if (collectionResponse.ok) {
-            const collectionData = await collectionResponse.json();
-            const rows = Array.isArray(collectionData.collections)
-                ? collectionData.collections
-                : [];
-
-            if (rows.length) {
-                /*
-                   Convert the movie collection API response into the exact
-                   structure already used by the article Box Office renderer.
-                   This means the article automatically stays synced with
-                   movie_collections in PostgreSQL.
-                */
-                const autoBoxOffice = {
-                    budget: movie.budget_crore ?? null,
-                    verdict: movie.verdict || "",
-                    days: rows.map((row, index) => ({
-                        number: row.day_number ?? (index + 1),
-                        date: row.collection_date || "",
-                        tamil_nadu: Number(row["Tamil Nadu"] || 0),
-                        kerala: Number(row["Kerala"] || 0),
-                        karnataka: Number(row["Karnataka"] || 0),
-                        telugu_states: Number(row["Telugu States"] || 0),
-                        rest_of_india: Number(row["Rest of India"] || 0),
-                        overseas: Number(row["Overseas"] || 0)
-                    }))
-                };
-
-                collectionHTML = `
-                    <div class="bo-section-title" style="margin-top:22px">
-                        ${esc(movie.title || "Movie")} — Box Office Collections
-                    </div>
-                    <div class="movie-release-line" style="margin-bottom:10px">
-                        <strong>Release Date:</strong>
-                        ${movie.release_date ? esc(new Date(movie.release_date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"})) : "N/A"}
-                    </div>
-                    ${renderBoxOffice(autoBoxOffice)}
-                `;
-            }
-        }
-
-        return `
-            <div class="related-card" onclick="window.location.href='/movie.html?id=${movie.id}'">
-                <img
-                    src="${photo}"
-                    alt="${esc(movie.title)}"
-                    loading="lazy"
-                    onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
-                >
-                <div>
-                    <strong>${esc(movie.title)}</strong>
-                    <small>
-                        Movie • ${esc(movie.language || "")}
-                        ${movie.verdict ? ` • ${esc(movie.verdict)}` : ""}
-                    </small>
-                    <div class="movie-release-line">
-                        <strong>Release:</strong>
-                        ${movie.release_date ? esc(new Date(movie.release_date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"})) : "N/A"}
-                    </div>
-                </div>
-            </div>
-
-            ${collectionHTML}
-        `;
-    } catch (error) {
-        console.error("Movie article block error:", error);
-        return "";
-    }
+if(!data||!data.movie_id)return"";
+try{
+const [mr,cr]=await Promise.all([fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}`,{cache:"no-store"}),fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}/collection-breakdown`,{cache:"no-store"})]);
+const movie=await mr.json();if(!mr.ok||movie.error)return"";
+const photo=movie.poster?`/posters/${encodeURIComponent(movie.poster)}`:ARTICLE_FALLBACK_IMAGE;
+let collectionHTML="";
+if(cr.ok){const cd=await cr.json();const records=Array.isArray(cd.records)?cd.records:[];const grouped={};records.forEach(r=>{const date=r.date||r.collection_date;if(!date)return;if(!grouped[date])grouped[date]={date,tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};const st=(r.state||"").trim(),a=Number(r.collection_crore||0);if(st==="Tamil Nadu")grouped[date].tamil_nadu+=a;else if(st==="Kerala")grouped[date].kerala+=a;else if(st==="Karnataka")grouped[date].karnataka+=a;else if(["Telugu States","Andhra Pradesh","Telangana"].includes(st))grouped[date].telugu_states+=a;else if(st==="Rest of India")grouped[date].rest_of_india+=a;else if(st==="Overseas")grouped[date].overseas+=a});const days=Object.values(grouped).sort((a,b)=>String(a.date).localeCompare(String(b.date)));if(days.length)collectionHTML=renderBoxOffice({budget:movie.budget_crore,verdict:movie.verdict,days})}
+const release=movie.release_date?new Date(movie.release_date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"}):"N/A";
+return `<div class="related-card" onclick="window.location.href='/movie.html?id=${movie.id}'"><img src="${photo}" alt="${esc(movie.title)}" loading="lazy" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"><div><strong>${esc(movie.title)}</strong><small>Movie • ${esc(movie.language||"")}${movie.verdict?` • ${esc(movie.verdict)}`:""}</small><div class="movie-release-note">Release: ${esc(release)}</div></div></div>${collectionHTML}`;
+}catch(error){console.error("Movie article block error:",error);return""}
 }
 
 async function renderActorBlock(data) {
@@ -1140,6 +795,7 @@ async function renderActorBlock(data) {
                 <img
                     src="${photo}"
                     alt="${esc(actor.name)}"
+                    loading="lazy"
                     onerror="this.onerror=null;this.src='${ACTOR_FALLBACK_IMAGE}'"
                 >
                 <div>
@@ -1273,6 +929,7 @@ async function renderArticle(article) {
                     <img
                         src="${imageUrl(article.hero_image)}"
                         alt="${esc(article.hero_caption || article.title || "Article image")}"
+                        loading="lazy"
                         onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
                     >
                     ${(article.hero_caption || article.hero_credit) ? `
@@ -1327,9 +984,12 @@ async function renderArticle(article) {
 }
 
 async function loadArticle() {
-    const target = getArticleTarget();
+    const slug = getSlug();
 
-    if (!target) {
+    const adminPreviewId =
+        new URLSearchParams(window.location.search).get("admin_preview");
+
+    if (!slug && !adminPreviewId) {
         document.getElementById("app").innerHTML = `
             <div class="error-state">
                 <strong>Article not found</strong>
@@ -1340,62 +1000,54 @@ async function loadArticle() {
     }
 
     try {
-        let response;
-        let data;
-        let article;
+        const adminPreviewId =
+            new URLSearchParams(window.location.search).get("admin_preview");
 
-        if (target.type === "admin_preview") {
-            response = await fetch(
-                `/admin/articles/${encodeURIComponent(target.value)}`,
-                {
-                    credentials: "include",
-                    cache: "no-store"
-                }
-            );
+        const endpoint = adminPreviewId
+            ? `${API_BASE}/admin/articles/${encodeURIComponent(adminPreviewId)}`
+            : `${API_BASE}/articles/${encodeURIComponent(slug)}`;
 
-            data = await response.json();
+        const response = await fetch(endpoint);
 
-            if (!response.ok || !data.article) {
-                throw new Error(data.detail || "Unable to load article preview");
-            }
-
-            article = data.article;
-        } else {
-            response = await fetch(
-                `${API_BASE}/articles/${encodeURIComponent(target.value)}`,
-                {
-                    cache: "no-store"
-                }
-            );
-
-            data = await response.json();
-
-            if (!response.ok || data.error || !data.article) {
-                throw new Error(
-                    data.error ||
-                    data.detail ||
-                    "Article not found"
-                );
-            }
-
-            article = data.article;
+        if (response.status === 401 && adminPreviewId) {
+            window.location.href = "/admin-login.html";
+            return;
         }
 
-        await renderArticle(article);
+        const data = await response.json();
+
+        if (!response.ok || data.error || !data.article) {
+            throw new Error(data.detail || data.error || "Article not found");
+        }
+
+        await renderArticle(data.article);
 
     } catch (error) {
-        console.error("Article loading error:", error);
+        console.error(error);
 
         document.getElementById("app").innerHTML = `
             <div class="error-state">
                 <strong>Unable to load article</strong>
-                ${esc(error.message || "Please try again later.")}
+                Please try again later.
             </div>
         `;
     }
 }
 
 loadArticle();
+
+
+function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
+function parseSiteDate(value){if(!value)return null;const p=String(value).slice(0,10).split("-").map(Number);if(p.length!==3||!p[0]||!p[1]||!p[2])return null;return new Date(p[0],p[1]-1,p[2])}
+async function updateSiteNewBadges(){
+try{
+const [mr,ar]=await Promise.all([fetch("/movies/new-system",{cache:"no-store"}),fetch("/articles/latest?limit=10",{cache:"no-store"})]);
+if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])];const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());const fresh=all.some(movie=>{const dt=parseSiteDate(movie.release_date);if(!dt)return false;const days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}
+if(ar.ok){const d=await ar.json(),now=Date.now(),seven=7*86400000;const fresh=(d.articles||[]).some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}
+}catch(error){console.warn("Site NEW badge check failed:",error)}
+}
+updateSiteNewBadges();
+
 </script>
 
 </body>
