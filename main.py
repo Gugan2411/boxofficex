@@ -4321,6 +4321,255 @@ def admin_list_articles():
     }
 
 
+
+# ============================================================
+# ARTICLE EDITOR -> CENTRAL MOVIE BOX OFFICE SYNC
+# ============================================================
+
+class ArticleMovieBoxOfficeDay(BaseModel):
+    date: date
+    tamil_nadu: float = 0
+    kerala: float = 0
+    karnataka: float = 0
+    telugu_states: float = 0
+    rest_of_india: float = 0
+    overseas: float = 0
+
+
+class ArticleMovieBoxOfficeSync(BaseModel):
+    movie_id: int
+    budget: Optional[float] = None
+    verdict: Optional[str] = None
+    days: list[ArticleMovieBoxOfficeDay] = []
+
+
+@app.post(
+    "/admin/articles/movie-boxoffice-sync",
+    dependencies=[Depends(require_admin)]
+)
+def admin_article_sync_movie_boxoffice(
+    data: ArticleMovieBoxOfficeSync
+):
+    """
+    Article Admin is the editing surface, while movie_daily_collections
+    remains the single source of truth used by movie.html and articles.
+    """
+
+    territory_fields = (
+        ("Tamil Nadu", "tamil_nadu"),
+        ("Kerala", "kerala"),
+        ("Karnataka", "karnataka"),
+        ("Telugu States", "telugu_states"),
+        ("Rest of India", "rest_of_india"),
+        ("Overseas", "overseas"),
+    )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id
+                FROM movies
+                WHERE id = %s
+            """, (data.movie_id,))
+
+            if not cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Linked movie not found"
+                )
+
+            # The Article Box Office block becomes authoritative for this movie.
+            # Removing a day from the block also removes that day's old DB rows.
+            cur.execute("""
+                DELETE FROM movie_daily_collections
+                WHERE movie_id = %s
+            """, (data.movie_id,))
+
+            india_total = 0.0
+            overseas_total = 0.0
+
+            for day in data.days:
+                for territory, field_name in territory_fields:
+                    amount = float(getattr(day, field_name) or 0)
+
+                    cur.execute("""
+                        INSERT INTO movie_daily_collections (
+                            movie_id,
+                            collection_date,
+                            state,
+                            collection_crore
+                        )
+                        VALUES (%s, %s, %s, %s)
+                    """, (
+                        data.movie_id,
+                        day.date,
+                        territory,
+                        amount
+                    ))
+
+                    if territory == "Overseas":
+                        overseas_total += amount
+                    else:
+                        india_total += amount
+
+            worldwide_total = india_total + overseas_total
+
+            cur.execute("""
+                UPDATE movies
+                SET
+                    budget_crore = COALESCE(%s, budget_crore),
+                    verdict = COALESCE(NULLIF(%s, ''), verdict),
+                    india_collection_crore = %s,
+                    overseas_collection_crore = %s,
+                    worldwide_collection_crore = %s
+                WHERE id = %s
+            """, (
+                data.budget,
+                (data.verdict or "").strip(),
+                india_total,
+                overseas_total,
+                worldwide_total,
+                data.movie_id
+            ))
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "movie_id": data.movie_id,
+        "days_saved": len(data.days),
+        "india_collection_crore": round(india_total, 2),
+        "overseas_collection_crore": round(overseas_total, 2),
+        "worldwide_collection_crore": round(worldwide_total, 2),
+    }
+
+
+# Public normalized collection feed used by linked Article movie blocks.
+@app.get("/movies/{movie_id}/collections")
+def get_movie_collections_for_articles(movie_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, release_date, poster
+                FROM movies
+                WHERE id = %s
+            """, (movie_id,))
+            movie = cur.fetchone()
+
+            if not movie:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Movie not found"
+                )
+
+            cur.execute("""
+                SELECT
+                    collection_date,
+                    state,
+                    collection_crore
+                FROM movie_daily_collections
+                WHERE movie_id = %s
+                ORDER BY collection_date ASC, state ASC
+            """, (movie_id,))
+            rows = cur.fetchall()
+
+    by_date = {}
+
+    for collection_date, state, amount in rows:
+        key = collection_date
+        if key not in by_date:
+            by_date[key] = {
+                "Tamil Nadu": 0.0,
+                "Kerala": 0.0,
+                "Karnataka": 0.0,
+                "Telugu States": 0.0,
+                "Rest of India": 0.0,
+                "Overseas": 0.0,
+            }
+
+        normalized_state = (state or "").strip()
+
+        # Compatibility with any older Andhra/Telangana rows.
+        if normalized_state in {"Andhra Pradesh", "Telangana"}:
+            normalized_state = "Telugu States"
+
+        if normalized_state in by_date[key]:
+            by_date[key][normalized_state] += float(amount or 0)
+
+    collections = []
+    cumulative = {
+        "Tamil Nadu": 0.0,
+        "Kerala": 0.0,
+        "Karnataka": 0.0,
+        "Telugu States": 0.0,
+        "Rest of India": 0.0,
+        "Overseas": 0.0,
+    }
+
+    for index, collection_date in enumerate(sorted(by_date.keys()), start=1):
+        values = by_date[collection_date]
+
+        india = (
+            values["Tamil Nadu"]
+            + values["Kerala"]
+            + values["Karnataka"]
+            + values["Telugu States"]
+            + values["Rest of India"]
+        )
+        worldwide = india + values["Overseas"]
+
+        for territory in cumulative:
+            cumulative[territory] += values[territory]
+
+        cumulative_india = (
+            cumulative["Tamil Nadu"]
+            + cumulative["Kerala"]
+            + cumulative["Karnataka"]
+            + cumulative["Telugu States"]
+            + cumulative["Rest of India"]
+        )
+        cumulative_worldwide = (
+            cumulative_india
+            + cumulative["Overseas"]
+        )
+
+        collections.append({
+            "day_number": index,
+            "collection_date": str(collection_date),
+            "Tamil Nadu": round(values["Tamil Nadu"], 2),
+            "Kerala": round(values["Kerala"], 2),
+            "Karnataka": round(values["Karnataka"], 2),
+            "Telugu States": round(values["Telugu States"], 2),
+            "Rest of India": round(values["Rest of India"], 2),
+            "India Total": round(india, 2),
+            "Overseas": round(values["Overseas"], 2),
+            "Worldwide Total": round(worldwide, 2),
+            "cumulative": {
+                "Tamil Nadu": round(cumulative["Tamil Nadu"], 2),
+                "Kerala": round(cumulative["Kerala"], 2),
+                "Karnataka": round(cumulative["Karnataka"], 2),
+                "Telugu States": round(cumulative["Telugu States"], 2),
+                "Rest of India": round(cumulative["Rest of India"], 2),
+                "India Total": round(cumulative_india, 2),
+                "Overseas": round(cumulative["Overseas"], 2),
+                "Worldwide Total": round(cumulative_worldwide, 2),
+            }
+        })
+
+    final_total = collections[-1]["cumulative"] if collections else {}
+
+    return {
+        "movie": {
+            "id": movie[0],
+            "title": movie[1],
+            "release_date": str(movie[2]) if movie[2] else None,
+            "poster": movie[3],
+        },
+        "collections": collections,
+        "final_total": final_total,
+    }
+
+
 @app.get("/admin/articles/{article_id}", dependencies=[Depends(require_admin)])
 def admin_get_article(article_id: int):
     with get_connection() as conn:
