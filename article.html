@@ -1014,28 +1014,420 @@ header nav a{
     }
 }
 
+
+/* EXACT INDEX.HTML HEADER SYSTEM */
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 1000;
+
+    width: 100%;
+
+    background:
+        rgba(6,9,18,0.88);
+
+    backdrop-filter:
+        blur(18px);
+
+    -webkit-backdrop-filter:
+        blur(18px);
+
+    border-bottom:
+        1px solid var(--border);
+}
+
+
+.navbar {
+
+    width: 100%;
+
+    max-width:
+        var(--content-width);
+
+    min-height:
+        68px;
+
+    margin: auto;
+
+    padding:
+        0 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+
+.logo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    font-size: 21px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.6px;
+
+    white-space: nowrap;
+
+    flex-shrink: 0;
+}
+
+
+.logo-icon {
+
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--blue),
+            var(--purple)
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(77,141,255,0.24);
+}
+
+
+.logo span:last-child {
+    color: var(--gold);
+}
+
+
+nav {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+
+nav a {
+
+    min-height: 40px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        9px 12px;
+
+    border-radius: 10px;
+
+    color: #c7d1e6;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+nav a:hover {
+
+    background:
+        rgba(77,141,255,0.10);
+
+    color:
+        var(--blue-light);
+}
+
+
+nav a.active {
+
+    background:
+        rgba(77,141,255,0.14);
+
+    color:
+        var(--blue-light);
+}
+
+
+.nav-compare {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff4655,
+            #d92e3d
+        );
+
+    color:
+        white !important;
+
+    box-shadow:
+        0 8px 20px
+        rgba(255,70,85,0.16);
+}
+
+
+.nav-compare:hover {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff5967,
+            #e83b49
+        );
+
+    transform:
+        translateY(-1px);
+}
+
+
+
+@media (max-width: 1180px) and (min-width: 701px){
+    .navbar{
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .logo{
+        font-size: 17px;
+    }
+
+    .logo-icon{
+        width: 30px;
+        height: 30px;
+    }
+
+    nav a{
+        padding-left: 7px;
+        padding-right: 7px;
+        font-size: 10.5px;
+    }
+
+    .movie-grid{
+        grid-template-columns:
+            repeat(4, minmax(0,1fr));
+    }
+
+    #actorsGrid{
+        grid-template-columns:
+            repeat(5, minmax(0,1fr));
+    }
+}
+@media (max-width: 900px) and (min-width: 701px){
+    .navbar{
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .navbar::-webkit-scrollbar{
+        display:none;
+    }
+
+    nav{
+        min-width: max-content;
+    }
+
+    .movie-grid{
+        grid-template-columns:
+            repeat(3, minmax(0,1fr));
+    }
+
+    #actorsGrid{
+        grid-template-columns:
+            repeat(4, minmax(0,1fr));
+    }
+}
+@media (max-width: 700px) {
+
+    body {
+
+        padding-bottom:
+            70px;
+    }
+
+
+    header {
+
+        position:
+            sticky;
+    }
+
+
+    .navbar {
+
+        min-height:
+            61px;
+
+        padding:
+            0 13px;
+    }
+
+
+    .logo {
+
+        font-size:
+            18px;
+    }
+
+
+    .logo-icon {
+
+        width:
+            31px;
+
+        height:
+            31px;
+
+        border-radius:
+            9px;
+    }
+
+
+    nav {
+        display:
+            none;
+    }
+
+
+    
+}
+@media (max-width: 380px) {
+
+    .navbar {
+
+        padding:
+            0 10px;
+    }
+
+
+    .logo {
+
+        font-size:
+            16px;
+    }
+
+
+    .logo-icon {
+
+        width:
+            29px;
+
+        height:
+            29px;
+    }
+
+
+    }
+@media (max-width: 330px) {
+
+    .logo {
+
+        font-size:
+            15px;
+    }
+
+
+    .logo-icon {
+
+        width:
+            27px;
+
+        height:
+            27px;
+    }
+
+
+    }
+
 </style>
 </head>
 
 <body>
 
 <header>
+
     <div class="navbar">
-        <a href="/index.html" class="logo" aria-label="BoxOfficeX Home">
-            <span class="logo-icon">🎬</span>
+
+        <a
+            href="index.html"
+            class="logo"
+            aria-label="BoxOfficeX Home"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
             BOXOFFICE<span>X</span>
+
         </a>
 
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open mobile menu"
+            aria-expanded="false"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+
         <nav aria-label="Main navigation">
-<a href="/index.html">Home</a>
-<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
-<a href="/movie-rankings.html">Rankings</a>
-<a href="/actors.html">Actors</a>
-<a href="/articles.html" class="active nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
-<a href="/compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
-<a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
-</nav>
+            <a href="index.html">Home</a>
+
+            <a href="new-movies.html" class="nav-item-with-badge">
+                New Movies
+                <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
+            </a>
+
+            <a href="movie-rankings.html">Rankings</a>
+
+            <a href="actors.html">Actors</a>
+
+            <a href="articles.html" class="active nav-item-with-badge">
+                Articles
+                <span id="articlesBadge" class="nav-new-badge">NEW</span>
+            </a>
+
+            <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+
+            <a href="movie-compare-select.html" class="nav-compare">
+                🎬 Movie Compare
+            </a>
+        </nav>
+
     </div>
+
 </header>
 
 <main id="app">
