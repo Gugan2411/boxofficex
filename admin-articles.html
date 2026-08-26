@@ -1416,7 +1416,6 @@ throw new Error(d.detail||(`Block ${i+1} failed (${r.status})`));
 }
 }
 }
-}
 async function setStatus(status){
 if(!currentArticleId){await saveArticle();if(!currentArticleId)return}
 const endpoint=status==="published"?"publish":"draft";
