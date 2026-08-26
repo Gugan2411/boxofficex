@@ -290,6 +290,26 @@ textarea{min-height:92px;resize:vertical}
 @media(max-width:900px){.bo-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.bo-final-grid{grid-template-columns:1fr}}
 
+
+.bo-movie-release{
+    margin-top:8px;
+    padding:10px 12px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:10px;
+    background:#111a2b;
+    color:#cfe0ff;
+    font-size:11px;
+}
+.bo-movie-release strong{color:#ffcc33}
+.bo-use-release{
+    margin-left:8px;
+    padding:6px 9px!important;
+    background:#17243a!important;
+    border:1px solid rgba(255,255,255,.08)!important;
+    color:#d9e0ec!important;
+    font-size:9px!important;
+}
+
 </style>
 </head>
 <body>
@@ -598,6 +618,29 @@ function movieNameById(id){
 const m=articleMovieLookup.find(x=>Number(x.id)===Number(id));
 return m?.title||("Movie #"+id);
 }
+
+function movieById(id){
+return (allMovies||[]).find(m=>Number(m.id)===Number(id))||null;
+}
+
+function movieReleaseDateById(id){
+const movie=movieById(id);
+return movie?.release_date||"";
+}
+
+function movieReleaseLabelById(id){
+const value=movieReleaseDateById(id);
+if(!value)return "Release date not available";
+const d=new Date(value+"T00:00:00");
+if(Number.isNaN(d.getTime()))return value;
+return d.toLocaleDateString("en-IN",{
+day:"2-digit",
+month:"short",
+year:"numeric",
+weekday:"long"
+});
+}
+
 function actorNameById(id){
 const a=articleActorLookup.find(x=>Number(x.id)===Number(id));
 return a?.name||("Actor #"+id);
@@ -924,6 +967,11 @@ return `
 <option value="">Select linked movie</option>
 ${selectedMovieLinkIds.map(id=>`<option value="${id}" ${Number(e.movie_id)===Number(id)?"selected":""}>${lookupEsc(movieNameById(id))} • ID ${id}</option>`).join("")}
 </select>
+<div class="bo-movie-release" data-bo-release-info>
+<strong>Release Date:</strong>
+${e.movie_id ? lookupEsc(movieReleaseLabelById(e.movie_id)) : "Select a linked movie"}
+${e.movie_id && movieReleaseDateById(e.movie_id) ? `<button type="button" class="bo-use-release" data-bo-use-release>Use as Day 1 Date</button>` : ""}
+</div>
 </div>
 <div><label>Budget</label><input type="number" step="0.01" min="0" data-bo-root="budget" value="${e.budget??""}"></div>
 <div><label>Verdict</label><input data-bo-root="verdict" value="${lookupEsc(e.verdict??"")}"></div>
@@ -1021,6 +1069,10 @@ el.oninput=()=>{
 const k=el.dataset.boRoot;
 if(k==="budget" || k==="movie_id"){
 b.extra_data[k]=el.value===""?null:Number(el.value);
+if(k==="movie_id"){
+renderBlocks();
+return;
+}
 }else{
 b.extra_data[k]=el.value;
 }
@@ -1040,6 +1092,20 @@ b.extra_data.days[idx][field]=value;
 refreshBoxOfficeDerived(card,b);
 };
 });
+
+const useRelease=card.querySelector("[data-bo-use-release]");
+if(useRelease)useRelease.onclick=()=>{
+const releaseDate=movieReleaseDateById(b.extra_data.movie_id);
+if(!releaseDate){
+alert("Release date not available for this movie.");
+return;
+}
+if(!b.extra_data.days.length){
+b.extra_data.days.push(makeBoxOfficeDay(1));
+}
+b.extra_data.days[0].date=releaseDate;
+renderBlocks();
+};
 
 const addDay=card.querySelector("[data-bo-add-day]");
 if(addDay)addDay.onclick=()=>{
