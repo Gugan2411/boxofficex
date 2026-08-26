@@ -3,8 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Articles | BoxOfficeX</title>
-<meta name="description" content="Latest movie news, box-office stories, interviews and entertainment articles from BoxOfficeX.">
+<title>Movie News & Box Office Articles | BoxOfficeX</title>
+<meta name="description" content="Read the latest Indian movie news, box-office reports, theatrical analysis, actor stories, rankings and entertainment articles on BoxOfficeX.">
+
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link id="canonicalUrl" rel="canonical" href="">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BoxOfficeX">
+<meta property="og:title" content="Movie News & Box Office Articles | BoxOfficeX">
+<meta property="og:description" content="Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.">
+<meta id="ogUrl" property="og:url" content="">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Movie News & Box Office Articles | BoxOfficeX">
+<meta name="twitter:description" content="Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.">
+<script id="articlesStructuredData" type="application/ld+json"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:#29334d;--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--red:#ff4655}
@@ -456,6 +469,351 @@ nav a.active {
 
     }
 
+
+/* =========================================================
+   MOBILE HAMBURGER HEADER
+========================================================= */
+.mobile-menu-button{
+    display:none;
+}
+
+@media (max-width:700px){
+
+    .navbar{
+        min-height:61px !important;
+        padding:0 13px !important;
+        display:grid !important;
+        grid-template-columns:1fr auto;
+        align-items:center !important;
+        gap:10px !important;
+        position:relative;
+    }
+
+    .logo{
+        align-self:auto !important;
+    }
+
+    .mobile-menu-button{
+        width:42px;
+        height:42px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:10px;
+        background:#101728;
+        cursor:pointer;
+    }
+
+    .mobile-menu-button span{
+        display:block;
+        width:20px;
+        height:2px;
+        border-radius:999px;
+        background:#fff;
+        transition:
+            transform .2s ease,
+            opacity .2s ease;
+    }
+
+    .mobile-menu-button.open span:nth-child(1){
+        transform:translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-button.open span:nth-child(2){
+        opacity:0;
+    }
+
+    .mobile-menu-button.open span:nth-child(3){
+        transform:translateY(-7px) rotate(-45deg);
+    }
+
+    header nav{
+        position:absolute;
+        top:calc(100% + 1px);
+        left:10px;
+        right:10px;
+        width:auto !important;
+        max-width:none !important;
+        display:none !important;
+        flex-direction:column;
+        align-items:stretch;
+        gap:5px !important;
+        padding:10px;
+        overflow:visible !important;
+        border:1px solid rgba(255,255,255,.09);
+        border-radius:14px;
+        background:rgba(10,15,27,.98);
+        box-shadow:0 18px 45px rgba(0,0,0,.42);
+        backdrop-filter:blur(18px);
+        -webkit-backdrop-filter:blur(18px);
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+
+    header nav a{
+        width:100%;
+        min-height:42px !important;
+        padding:10px 12px !important;
+        justify-content:flex-start;
+        border-radius:9px;
+        font-size:12px !important;
+    }
+
+    header nav .nav-compare{
+        justify-content:flex-start;
+    }
+
+    /* Remove the always-visible top nav row on mobile.
+       Bottom navigation remains unchanged. */
+}
+
+
+/* =========================================================
+   MOBILE: REMOVE DUPLICATE BOTTOM NAVIGATION
+========================================================= */
+@media (max-width:700px){
+    .mobile-bottom-nav{
+        display:none !important;
+    }
+
+    body{
+        padding-bottom:0 !important;
+    }
+}
+
+
+/* Mobile bottom navigation removed permanently */
+.mobile-bottom-nav{
+    display:none !important;
+}
+@media (max-width:700px){
+    body{
+        padding-bottom:0 !important;
+    }
+}
+
+
+/* =========================================================
+   INDEX MOBILE STICKY HEADER — SOLID + ALWAYS ON TOP
+========================================================= */
+@media (max-width:700px){
+
+    header{
+        position:sticky !important;
+        top:0 !important;
+        z-index:99999 !important;
+        width:100% !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        overflow:visible !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+    }
+
+    .navbar{
+        position:relative !important;
+        z-index:100000 !important;
+        background:#070a12 !important;
+    }
+
+    .logo{
+        position:relative !important;
+        z-index:100001 !important;
+        background:#070a12 !important;
+    }
+
+    .mobile-menu-button{
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    header nav{
+        z-index:100002 !important;
+    }
+
+    .hero,
+    .quick-links,
+    .section,
+    main,
+    footer{
+        position:relative;
+        z-index:1;
+    }
+}
+
+
+/* =========================================================
+   INDEX MOBILE HEADER — FIXED ON SCREEN
+   Keeps BOXOFFICEX + hamburger visible while scrolling
+========================================================= */
+@media (max-width:700px){
+
+    body{
+        padding-top:61px !important;
+    }
+
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        width:100% !important;
+        z-index:99999 !important;
+        background:#070a12 !important;
+        border-bottom:1px solid #202a3d !important;
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:0 8px 22px rgba(0,0,0,.28) !important;
+        overflow:visible !important;
+    }
+
+    .navbar{
+        min-height:61px !important;
+        height:61px !important;
+        position:relative !important;
+        z-index:100000 !important;
+        background:#070a12 !important;
+    }
+
+    .logo,
+    .mobile-menu-button{
+        position:relative !important;
+        z-index:100001 !important;
+    }
+
+    header nav{
+        position:absolute !important;
+        top:61px !important;
+        z-index:100002 !important;
+    }
+
+    .hero{
+        padding-top:25px !important;
+    }
+}
+
+
+
+/* =========================================================
+   CURRENT INDEX.HTML HEADER / LOGO LOCK
+========================================================= */
+header{
+    position:sticky!important;
+    top:0!important;
+    z-index:1000!important;
+    width:100%!important;
+    background:linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88))!important;
+    backdrop-filter:blur(18px)!important;
+    -webkit-backdrop-filter:blur(18px)!important;
+    border-bottom:1px solid rgba(255,255,255,.08)!important;
+    box-shadow:0 8px 28px rgba(0,0,0,.18)!important;
+}
+header .navbar{
+    width:100%!important;
+    max-width:1280px!important;
+    min-height:66px!important;
+    margin:auto!important;
+    padding:0 18px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+}
+header .logo{
+    display:flex!important;
+    align-items:center!important;
+    gap:9px!important;
+    color:#fff!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+    font-size:20px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:.45px!important;
+    text-decoration:none!important;
+    white-space:nowrap!important;
+    flex-shrink:0!important;
+}
+header .logo-icon{
+    width:33px!important;
+    height:33px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 33px!important;
+    border-radius:9px!important;
+    background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+    box-shadow:0 8px 25px rgba(77,141,255,.24)!important;
+    font-size:18px!important;
+    line-height:1!important;
+}
+header .logo > span:last-child{color:#ffcc33!important}
+header nav{
+    display:flex!important;
+    align-items:center!important;
+    gap:2px!important;
+    flex-wrap:nowrap!important;
+}
+header nav a{
+    min-height:38px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:8px 10px!important;
+    border-radius:9px!important;
+    color:#c7d1e6!important;
+    font-size:12px!important;
+    font-weight:700!important;
+    text-decoration:none!important;
+    white-space:nowrap!important;
+}
+header nav a:hover,
+header nav a.active{
+    background:rgba(77,141,255,.14)!important;
+    color:#79adff!important;
+}
+header nav .nav-compare{
+    background:linear-gradient(135deg,#ff4655,#d92e3d)!important;
+    color:#fff!important;
+    box-shadow:0 8px 20px rgba(255,70,85,.16)!important;
+}
+header nav .nav-compare:hover{
+    background:linear-gradient(135deg,#ff5967,#e83b49)!important;
+    color:#fff!important;
+}
+@media (max-width:1180px) and (min-width:701px){
+    header .navbar{padding-left:14px!important;padding-right:14px!important}
+    header .logo{font-size:17px!important}
+    header .logo-icon{width:30px!important;height:30px!important;flex-basis:30px!important}
+    header nav a{padding-left:7px!important;padding-right:7px!important;font-size:10.5px!important}
+}
+@media (max-width:900px) and (min-width:701px){
+    header .navbar{overflow-x:auto!important;scrollbar-width:none!important}
+    header .navbar::-webkit-scrollbar{display:none!important}
+    header nav{min-width:max-content!important}
+}
+@media (max-width:700px){
+    header{position:fixed!important;left:0!important;right:0!important;top:0!important}
+    header .navbar{min-height:61px!important;padding:0 13px!important;overflow:visible!important}
+    header .logo{font-size:18px!important}
+    header .logo-icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important}
+}
+@media (max-width:380px){
+    header .navbar{padding:0 10px!important}
+    header .logo{font-size:16px!important}
+    header .logo-icon{width:29px!important;height:29px!important;flex-basis:29px!important}
+}
+@media (max-width:330px){
+    header .logo{font-size:15px!important}
+    header .logo-icon{width:27px!important;height:27px!important;flex-basis:27px!important}
+}
+
 </style>
 </head>
 <body>
@@ -624,5 +982,136 @@ setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],articleFresh);
 }
 
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const button =
+        document.getElementById(
+            "mobileMenuButton"
+        );
+
+    const nav =
+        document.querySelector(
+            "header nav"
+        );
+
+    if (!button || !nav) {
+        return;
+    }
+
+    function closeMobileMenu() {
+        nav.classList.remove(
+            "mobile-menu-open"
+        );
+
+        button.classList.remove(
+            "open"
+        );
+
+        button.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
+
+    button.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            const opening =
+                !nav.classList.contains(
+                    "mobile-menu-open"
+                );
+
+            nav.classList.toggle(
+                "mobile-menu-open",
+                opening
+            );
+
+            button.classList.toggle(
+                "open",
+                opening
+            );
+
+            button.setAttribute(
+                "aria-expanded",
+                opening
+                    ? "true"
+                    : "false"
+            );
+        }
+    );
+
+    nav.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target.closest("a")
+            ) {
+                closeMobileMenu();
+            }
+        }
+    );
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                !nav.contains(
+                    event.target
+                ) &&
+                !button.contains(
+                    event.target
+                )
+            ) {
+                closeMobileMenu();
+            }
+        }
+    );
+
+    window.addEventListener(
+        "resize",
+        function () {
+
+            if (
+                window.innerWidth > 700
+            ) {
+                closeMobileMenu();
+            }
+        }
+    );
+});
+</script>
+
+<script>
+(function setupArticlesSEO(){
+    const canonical = window.location.origin + "/articles.html";
+    document.getElementById("canonicalUrl")?.setAttribute("href", canonical);
+    document.getElementById("ogUrl")?.setAttribute("content", canonical);
+
+    const structured = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Movie News & Box Office Articles | BoxOfficeX",
+        "description": "Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.",
+        "url": canonical,
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "BoxOfficeX",
+            "url": window.location.origin
+        },
+        "inLanguage": "en"
+    };
+
+    const jsonLd = document.getElementById("articlesStructuredData");
+    if(jsonLd) jsonLd.textContent = JSON.stringify(structured);
+})();
+</script>
+
 </body>
 </html>
