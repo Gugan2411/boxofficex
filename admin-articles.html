@@ -1261,37 +1261,30 @@ if(!boxOfficeBlocks.length)return;
 for(const b of boxOfficeBlocks){
 const e=normalizeBoxOfficeExtra(b.extra_data||{});
 const movieId=Number(e.movie_id);
-if(!Number.isInteger(movieId)||movieId<=0)throw new Error("Choose a Linked Movie inside every Box Office block.");
+if(!Number.isInteger(movieId)||movieId<=0){
+throw new Error("Choose a Linked Movie inside every Box Office block.");
+}
 
-const days=(e.days||[]).filter(d=>d.date);
+const days=(e.days||[]).filter(d=>d.date).map(d=>({
+date:d.date,
+tamil_nadu:boNum(d.tamil_nadu),
+kerala:boNum(d.kerala),
+karnataka:boNum(d.karnataka),
+telugu_states:boNum(d.telugu_states),
+rest_of_india:boNum(d.rest_of_india),
+overseas:boNum(d.overseas)
+}));
+
 if(!days.length)throw new Error("Enter at least one Day date before movie sync.");
 
-const existingResponse=await fetch(`/admin/movie-collections?movie_id=${encodeURIComponent(movieId)}`,{
-credentials:"include",cache:"no-store"
-});
-let existingData={};try{existingData=await existingResponse.json()}catch(err){}
-if(!existingResponse.ok)throw new Error(existingData.detail||("Cannot read movie collections ("+existingResponse.status+")"));
-
-for(const row of (existingData.collections||[])){
-const del=await fetch(`/admin/movie-collections/${row.id}`,{method:"DELETE",credentials:"include"});
-if(!del.ok){let d={};try{d=await del.json()}catch(err){}throw new Error(d.detail||("Cannot replace old movie collection ("+del.status+")"));}
-}
-
-const territoryMap=[
-["Tamil Nadu","tamil_nadu"],["Kerala","kerala"],["Karnataka","karnataka"],
-["Telugu States","telugu_states"],["Rest of India","rest_of_india"],["Overseas","overseas"]
-];
-
-for(const day of days){
-for(const [state,field] of territoryMap){
-const r=await fetch("/admin/movie-collections",{
-method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},
-body:JSON.stringify({movie_id:movieId,collection_date:day.date,state,collection_crore:boNum(day[field])})
+const r=await fetch("/admin/movie-collections/bulk-sync",{
+method:"POST",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({movie_id:movieId,days})
 });
 let d={};try{d=await r.json()}catch(err){}
-if(!r.ok)throw new Error(d.detail||(`${state} sync failed (${r.status})`));
-}
-}
+if(!r.ok)throw new Error(d.detail||("Bulk movie sync failed ("+r.status+")"));
 }
 }
 
