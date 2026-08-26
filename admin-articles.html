@@ -310,6 +310,65 @@ textarea{min-height:92px;resize:vertical}
     font-size:9px!important;
 }
 
+
+/* Compact side-by-side daily collection editor */
+.bo-days-table{
+    overflow-x:auto;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    background:#0f1625;
+}
+.bo-day-row{
+    min-width:1180px;
+    display:grid;
+    grid-template-columns:
+        92px 150px
+        repeat(5,120px)
+        125px 120px 135px 84px;
+    gap:8px;
+    align-items:end;
+    padding:10px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+.bo-day-row:last-child{border-bottom:0}
+.bo-day-name{
+    align-self:center;
+}
+.bo-day-name strong{
+    display:block;
+    color:#ffcc33;
+    font-size:12px;
+}
+.bo-day-name small{
+    display:block;
+    color:#8e99b3;
+    font-size:9px;
+    margin-top:3px;
+    line-height:1.35;
+}
+.bo-day-row label{
+    font-size:8px;
+    white-space:nowrap;
+}
+.bo-day-row input{
+    min-width:0;
+}
+.bo-day-auto input{
+    background:#131d30;
+    color:#7de2bb;
+    font-weight:900;
+}
+.bo-day-remove{
+    height:36px;
+    padding:0 8px!important;
+}
+@media(max-width:650px){
+    .bo-days-table{
+        margin-left:-2px;
+        margin-right:-2px;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -852,28 +911,40 @@ function boDayHTML(p,index){
 const india=boIndia(p);
 const worldwide=boWorldwide(p);
 return `
-<div class="bo-period">
-<div class="bo-period-head">
-<div>
-<div class="bo-period-title">Day ${index+1}</div>
-<div class="bo-date-line" data-bo-date-label="${index}">${lookupEsc(boDateLabel(p.date))}</div>
-</div>
-${index>0?`<button type="button" class="bo-small-btn bo-remove" data-bo-remove-day="${index}">✕ Remove</button>`:""}
+<div class="bo-day-row">
+<div class="bo-day-name">
+<strong>Day ${index+1}</strong>
+<small data-bo-date-label="${index}">${lookupEsc(boDateLabel(p.date))}</small>
 </div>
 
-<div class="bo-grid">
 <div>
 <label>Date</label>
 <input type="date" data-bo-index="${index}" data-bo-field="date" value="${p.date||""}">
 </div>
+
 <div><label>Tamil Nadu</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="tamil_nadu" value="${p.tamil_nadu??""}"></div>
 <div><label>Kerala</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="kerala" value="${p.kerala??""}"></div>
 <div><label>Karnataka</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="karnataka" value="${p.karnataka??""}"></div>
 <div><label>Telugu States</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="telugu_states" value="${p.telugu_states??""}"></div>
 <div><label>Rest of India</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="rest_of_india" value="${p.rest_of_india??""}"></div>
-<div class="bo-total"><label>India Gross (Auto)</label><input data-bo-india="${index}" readonly value="${india.toFixed(2)}"></div>
-<div><label>Overseas</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="overseas" value="${p.overseas??""}"></div>
-<div class="bo-total"><label>Worldwide Gross (Auto)</label><input data-bo-worldwide="${index}" readonly value="${worldwide.toFixed(2)}"></div>
+
+<div class="bo-day-auto">
+<label>India Gross</label>
+<input data-bo-india="${index}" readonly value="${india.toFixed(2)}">
+</div>
+
+<div>
+<label>Overseas</label>
+<input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="overseas" value="${p.overseas??""}">
+</div>
+
+<div class="bo-day-auto">
+<label>Worldwide</label>
+<input data-bo-worldwide="${index}" readonly value="${worldwide.toFixed(2)}">
+</div>
+
+<div>
+${index>0?`<button type="button" class="bo-small-btn bo-remove bo-day-remove" data-bo-remove-day="${index}">✕</button>`:""}
 </div>
 </div>`;
 }
@@ -979,7 +1050,9 @@ ${e.movie_id && movieReleaseDateById(e.movie_id) ? `<button type="button" class=
 
 <div>
 <div class="bo-period-title" style="margin:4px 0 9px">DAILY COLLECTIONS</div>
+<div class="bo-days-table">
 ${e.days.map((p,j)=>boDayHTML(p,j)).join("")}
+</div>
 <div class="bo-actions">
 <button type="button" class="bo-small-btn" data-bo-add-day>＋ Add Next Day</button>
 </div>
@@ -1220,33 +1293,128 @@ throw new Error(d.detail||("Movie box-office sync failed ("+r.status+")"));
 }
 
 async function saveArticle(){
-const payload=articlePayload();if(!payload.title){toast("Headline is required");return}
-let r;
-if(currentArticleId)r=await fetch("/admin/articles/"+currentArticleId,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-else r=await fetch("/admin/articles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-const d=await r.json();if(!r.ok){toast(d.detail||"Save failed");return}
-currentArticleId=d.article_id;
-try{
-await saveLinks();
-await saveBlocks();
-await syncArticleBoxOfficeToMovies();
-}catch(e){
-toast(e.message||"Movie box-office sync failed");
+const payload=articlePayload();
+if(!payload.title){
+toast("Headline is required");
 return;
 }
-toast("Article + linked movie box office saved");await loadArticles();await loadArticle(currentArticleId);
+
+let r;
+if(currentArticleId){
+r=await fetch("/admin/articles/"+currentArticleId,{
+method:"PUT",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+}else{
+r=await fetch("/admin/articles",{
+method:"POST",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+}
+
+let d={};
+try{d=await r.json()}catch(e){}
+
+if(!r.ok){
+toast(d.detail||("Article save failed ("+r.status+")"));
+return;
+}
+
+currentArticleId=d.article_id;
+
+try{
+await saveLinks();
+}catch(e){
+toast("Article saved, but movie/actor links failed: "+e.message);
+return;
+}
+
+try{
+await saveBlocks();
+}catch(e){
+toast("Article saved, but content blocks failed: "+e.message);
+return;
+}
+
+/* Article is fully saved at this point. Movie sync is a separate final step. */
+try{
+await syncArticleBoxOfficeToMovies();
+toast("Article saved + movie box office synced");
+}catch(e){
+console.error("Movie box-office sync error:",e);
+toast("Article saved. Movie sync failed: "+(e.message||"unknown error"));
+}
+
+/* Always reload the saved article even when movie sync fails. */
+await loadArticles();
+await loadArticle(currentArticleId);
 }
 async function saveLinks(){
 if(!currentArticleId)return;
-await fetch(`/admin/articles/${currentArticleId}/links`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({movie_ids:selectedMovieLinkIds,actor_ids:selectedActorLinkIds})});
+const r=await fetch(`/admin/articles/${currentArticleId}/links`,{
+method:"PUT",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+movie_ids:selectedMovieLinkIds,
+actor_ids:selectedActorLinkIds
+})
+});
+let d={};
+try{d=await r.json()}catch(e){}
+if(!r.ok){
+throw new Error(d.detail||("HTTP "+r.status));
+}
 }
 async function saveBlocks(){
 if(!currentArticleId)return;
-const current=await fetch("/admin/articles/"+currentArticleId).then(r=>r.json());
-for(const old of (current.article?.blocks||[]))await fetch("/admin/article-blocks/"+old.id,{method:"DELETE"});
+
+const currentResponse=await fetch("/admin/articles/"+currentArticleId,{
+credentials:"include",
+cache:"no-store"
+});
+const current=await currentResponse.json();
+
+if(!currentResponse.ok){
+throw new Error(current.detail||("Unable to read article ("+currentResponse.status+")"));
+}
+
+for(const old of (current.article?.blocks||[])){
+const del=await fetch("/admin/article-blocks/"+old.id,{
+method:"DELETE",
+credentials:"include"
+});
+if(!del.ok){
+let d={};try{d=await del.json()}catch(e){}
+throw new Error(d.detail||("Unable to replace old block ("+del.status+")"));
+}
+}
+
 for(let i=0;i<blocks.length;i++){
 const b=blocks[i];
-await fetch(`/admin/articles/${currentArticleId}/blocks`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({block_order:i+1,block_type:b.block_type,content:b.content||null,image:b.image||null,image_caption:b.image_caption||null,image_credit:b.image_credit||null,extra_data:b.extra_data||{}})});
+const r=await fetch(`/admin/articles/${currentArticleId}/blocks`,{
+method:"POST",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+block_order:i+1,
+block_type:b.block_type,
+content:b.content||null,
+image:b.image||null,
+image_caption:b.image_caption||null,
+image_credit:b.image_credit||null,
+extra_data:b.extra_data||{}
+})
+});
+if(!r.ok){
+let d={};try{d=await r.json()}catch(e){}
+throw new Error(d.detail||(`Block ${i+1} failed (${r.status})`));
+}
+}
 }
 }
 async function setStatus(status){
