@@ -230,6 +230,66 @@ textarea{min-height:92px;resize:vertical}
     .hero-actions button{flex:1}
 }
 
+
+/* =====================================================
+   BOX OFFICE DAILY TRACKER + AUTO WEEKLY TOTALS
+===================================================== */
+.bo-tracker{display:grid;gap:14px}
+.bo-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bo-period{border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#101725;padding:12px}
+.bo-period-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.bo-period-title{font-size:13px;font-weight:900;color:#ffcc33}
+.bo-date-line{font-size:10px;color:#8e99b3;margin-top:3px}
+.bo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.bo-total input{background:#131d30;color:#7de2bb;font-weight:900}
+.bo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bo-small-btn{padding:8px 10px!important;background:#151d31!important;color:#d9e0ec!important;border:1px solid rgba(255,255,255,.08)!important;font-size:10px!important}
+.bo-remove{background:#351919!important;color:#ff9a9a!important;border-color:#703535!important}
+.bo-week-summary{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:12px}
+.bo-week-summary table{width:100%;min-width:900px;border-collapse:collapse}
+.bo-week-summary th,.bo-week-summary td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:10px;text-align:right}
+.bo-week-summary th:first-child,.bo-week-summary td:first-child{text-align:left}
+.bo-week-summary th{background:#111a2b;color:#8e99b3;text-transform:uppercase}
+.bo-week-summary tr:last-child td{border-bottom:0}
+@media(max-width:900px){.bo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.bo-top,.bo-grid{grid-template-columns:1fr}}
+
+
+.bo-final-summary{
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    background:#0f1625;
+    padding:12px;
+}
+.bo-final-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:9px;
+    margin-top:10px;
+}
+.bo-final-card{
+    padding:10px;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:10px;
+    background:#111a2b;
+}
+.bo-final-card span{
+    display:block;
+    color:#8e99b3;
+    font-size:9px;
+    font-weight:900;
+    text-transform:uppercase;
+}
+.bo-final-card strong{
+    display:block;
+    margin-top:5px;
+    font-size:13px;
+    color:#f4f7fb;
+}
+.bo-final-card.total strong{color:#7de2bb}
+@media(max-width:900px){.bo-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.bo-final-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -555,7 +615,13 @@ syncLinkIdInputs();
 }
 
 function removeArticleMovieLink(id){
-selectedMovieLinkIds=selectedMovieLinkIds.filter(x=>Number(x)!==Number(id));renderSelectedArticleLinks();
+selectedMovieLinkIds=selectedMovieLinkIds.filter(x=>Number(x)!==Number(id));
+blocks.forEach(b=>{
+if(b.block_type==="boxoffice" && Number(b.extra_data?.movie_id)===Number(id)){
+b.extra_data.movie_id=null;
+}
+});
+renderSelectedArticleLinks();renderBlocks();
 }
 function removeArticleActorLink(id){
 selectedActorLinkIds=selectedActorLinkIds.filter(x=>Number(x)!==Number(id));renderSelectedArticleLinks();
@@ -602,7 +668,7 @@ pendingMovieLink=articleMovieLookup.find(x=>String(x.title||"").toLowerCase()===
 }
 if(!pendingMovieLink){toast("Choose a movie from search results");return}
 if(!selectedMovieLinkIds.includes(Number(pendingMovieLink.id)))selectedMovieLinkIds.push(Number(pendingMovieLink.id));
-pendingMovieLink=null;$("movieLinkSearch").value="";renderSelectedArticleLinks();
+pendingMovieLink=null;$("movieLinkSearch").value="";renderSelectedArticleLinks();renderBlocks();
 }
 function addPendingActorLink(){
 if(!pendingActorLink){
@@ -631,7 +697,12 @@ document.querySelectorAll(".article-item").forEach(x=>x.classList.remove("active
 }
 function blockTemplate(type){
 const base={id:null,block_order:blocks.length+1,block_type:type,content:"",image:"",image_caption:"",image_credit:"",extra_data:{}};
-if(type==="boxoffice")base.extra_data={india:null,overseas:null,worldwide:null,verdict:""};
+if(type==="boxoffice")base.extra_data={
+movie_id:selectedMovieLinkIds.length===1 ? Number(selectedMovieLinkIds[0]) : null,
+budget:null,
+verdict:"",
+days:[makeBoxOfficeDay(1)]
+};
 if(type==="gallery")base.extra_data={images:[]};
 if(type==="movie")base.extra_data={movie_id:null};
 if(type==="actor")base.extra_data={actor_id:null};
@@ -644,6 +715,259 @@ function moveBlock(i,d){const n=i+d;if(n<0||n>=blocks.length)return;[blocks[i],b
 function removeBlock(i){blocks.splice(i,1);renumber();renderBlocks()}
 function updateBlock(i,key,val){blocks[i][key]=val}
 function updateExtra(i,key,val){blocks[i].extra_data=blocks[i].extra_data||{};blocks[i].extra_data[key]=val}
+
+
+function makeBoxOfficeDay(number){
+return {
+number:number,
+date:"",
+tamil_nadu:null,
+kerala:null,
+karnataka:null,
+telugu_states:null,
+rest_of_india:null,
+overseas:null
+};
+}
+
+function boNum(v){
+const n=Number(v);
+return Number.isFinite(n)?n:0;
+}
+
+function boIndia(p){
+return boNum(p?.tamil_nadu)+boNum(p?.kerala)+boNum(p?.karnataka)+boNum(p?.telugu_states)+boNum(p?.rest_of_india);
+}
+
+function boWorldwide(p){
+return boIndia(p)+boNum(p?.overseas);
+}
+
+function boDateLabel(dateValue){
+if(!dateValue)return "Select date";
+const d=new Date(dateValue+"T00:00:00");
+if(Number.isNaN(d.getTime()))return dateValue;
+return d.toLocaleDateString("en-IN",{
+day:"2-digit",
+month:"short",
+year:"numeric",
+weekday:"long"
+});
+}
+
+function normalizeBoxOfficeExtra(e){
+e=e||{};
+if(!Array.isArray(e.days))e.days=[];
+
+/* Preserve old simple Box Office block values. */
+if(!e.days.length){
+const first=makeBoxOfficeDay(1);
+if(e.india!=null)first.rest_of_india=Number(e.india)||null;
+if(e.overseas!=null)first.overseas=Number(e.overseas)||null;
+e.days=[first];
+}
+e.days.forEach((d,i)=>{d.number=i+1});
+if(e.budget===undefined)e.budget=null;
+if(e.verdict===undefined)e.verdict="";
+if((e.movie_id===undefined || e.movie_id===null || e.movie_id==="") && selectedMovieLinkIds.length===1){
+e.movie_id=Number(selectedMovieLinkIds[0]);
+}
+return e;
+}
+
+function weeklyTotalsFromDays(days){
+const weeks=[];
+for(let start=0;start<days.length;start+=7){
+const slice=days.slice(start,start+7);
+const total={
+week:Math.floor(start/7)+1,
+from_day:start+1,
+to_day:start+slice.length,
+tamil_nadu:0,
+kerala:0,
+karnataka:0,
+telugu_states:0,
+rest_of_india:0,
+overseas:0
+};
+slice.forEach(d=>{
+total.tamil_nadu+=boNum(d.tamil_nadu);
+total.kerala+=boNum(d.kerala);
+total.karnataka+=boNum(d.karnataka);
+total.telugu_states+=boNum(d.telugu_states);
+total.rest_of_india+=boNum(d.rest_of_india);
+total.overseas+=boNum(d.overseas);
+});
+total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;
+total.worldwide=total.india+total.overseas;
+weeks.push(total);
+}
+return weeks;
+}
+
+function boDayHTML(p,index){
+const india=boIndia(p);
+const worldwide=boWorldwide(p);
+return `
+<div class="bo-period">
+<div class="bo-period-head">
+<div>
+<div class="bo-period-title">Day ${index+1}</div>
+<div class="bo-date-line" data-bo-date-label="${index}">${lookupEsc(boDateLabel(p.date))}</div>
+</div>
+${index>0?`<button type="button" class="bo-small-btn bo-remove" data-bo-remove-day="${index}">✕ Remove</button>`:""}
+</div>
+
+<div class="bo-grid">
+<div>
+<label>Date</label>
+<input type="date" data-bo-index="${index}" data-bo-field="date" value="${p.date||""}">
+</div>
+<div><label>Tamil Nadu</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="tamil_nadu" value="${p.tamil_nadu??""}"></div>
+<div><label>Kerala</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="kerala" value="${p.kerala??""}"></div>
+<div><label>Karnataka</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="karnataka" value="${p.karnataka??""}"></div>
+<div><label>Telugu States</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="telugu_states" value="${p.telugu_states??""}"></div>
+<div><label>Rest of India</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="rest_of_india" value="${p.rest_of_india??""}"></div>
+<div class="bo-total"><label>India Gross (Auto)</label><input data-bo-india="${index}" readonly value="${india.toFixed(2)}"></div>
+<div><label>Overseas</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="overseas" value="${p.overseas??""}"></div>
+<div class="bo-total"><label>Worldwide Gross (Auto)</label><input data-bo-worldwide="${index}" readonly value="${worldwide.toFixed(2)}"></div>
+</div>
+</div>`;
+}
+
+function boWeeklySummaryHTML(days){
+const weeks=weeklyTotalsFromDays(days);
+if(!weeks.length)return "";
+return `
+<div class="bo-week-summary">
+<table>
+<thead>
+<tr>
+<th>Week</th>
+<th>Tamil Nadu</th>
+<th>Kerala</th>
+<th>Karnataka</th>
+<th>Telugu States</th>
+<th>Rest of India</th>
+<th>India</th>
+<th>Overseas</th>
+<th>Worldwide</th>
+</tr>
+</thead>
+<tbody>
+${weeks.map(w=>`
+<tr>
+<td><strong>Week ${w.week}</strong><div style="color:#77839a;margin-top:3px">Day ${w.from_day}–${w.to_day}</div></td>
+<td>${w.tamil_nadu.toFixed(2)}</td>
+<td>${w.kerala.toFixed(2)}</td>
+<td>${w.karnataka.toFixed(2)}</td>
+<td>${w.telugu_states.toFixed(2)}</td>
+<td>${w.rest_of_india.toFixed(2)}</td>
+<td><strong>${w.india.toFixed(2)}</strong></td>
+<td>${w.overseas.toFixed(2)}</td>
+<td><strong>${w.worldwide.toFixed(2)}</strong></td>
+</tr>`).join("")}
+</tbody>
+</table>
+</div>`;
+}
+
+
+function overallTotalsFromDays(days){
+const total={
+tamil_nadu:0,
+kerala:0,
+karnataka:0,
+telugu_states:0,
+rest_of_india:0,
+overseas:0
+};
+(days||[]).forEach(d=>{
+total.tamil_nadu+=boNum(d.tamil_nadu);
+total.kerala+=boNum(d.kerala);
+total.karnataka+=boNum(d.karnataka);
+total.telugu_states+=boNum(d.telugu_states);
+total.rest_of_india+=boNum(d.rest_of_india);
+total.overseas+=boNum(d.overseas);
+});
+total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;
+total.worldwide=total.india+total.overseas;
+return total;
+}
+
+function boFinalSummaryHTML(days){
+const t=overallTotalsFromDays(days);
+return `
+<div class="bo-final-summary">
+<div class="bo-period-title">FINAL OVERALL GROSS — AUTOMATIC</div>
+<div class="bo-final-grid">
+<div class="bo-final-card"><span>Tamil Nadu</span><strong>${t.tamil_nadu.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card"><span>Kerala</span><strong>${t.kerala.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card"><span>Karnataka</span><strong>${t.karnataka.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card"><span>Telugu States</span><strong>${t.telugu_states.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card"><span>Rest of India</span><strong>${t.rest_of_india.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card total"><span>India Gross</span><strong>${t.india.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card"><span>Overseas Gross</span><strong>${t.overseas.toFixed(2)} Cr</strong></div>
+<div class="bo-final-card total"><span>Worldwide Gross</span><strong>${t.worldwide.toFixed(2)} Cr</strong></div>
+</div>
+</div>`;
+}
+
+function renderBoxOfficeBlock(e){
+e=normalizeBoxOfficeExtra(e);
+return `
+<div class="bo-tracker">
+<div class="bo-top">
+<div>
+<label>Linked Movie — Sync Target</label>
+<select data-bo-root="movie_id">
+<option value="">Select linked movie</option>
+${selectedMovieLinkIds.map(id=>`<option value="${id}" ${Number(e.movie_id)===Number(id)?"selected":""}>${lookupEsc(movieNameById(id))} • ID ${id}</option>`).join("")}
+</select>
+</div>
+<div><label>Budget</label><input type="number" step="0.01" min="0" data-bo-root="budget" value="${e.budget??""}"></div>
+<div><label>Verdict</label><input data-bo-root="verdict" value="${lookupEsc(e.verdict??"")}"></div>
+</div>
+
+<div>
+<div class="bo-period-title" style="margin:4px 0 9px">DAILY COLLECTIONS</div>
+${e.days.map((p,j)=>boDayHTML(p,j)).join("")}
+<div class="bo-actions">
+<button type="button" class="bo-small-btn" data-bo-add-day>＋ Add Next Day</button>
+</div>
+</div>
+
+<div>
+<div class="bo-period-title" style="margin:8px 0 9px">WEEKLY TOTALS — AUTOMATIC</div>
+<div data-bo-weekly-summary>
+${boWeeklySummaryHTML(e.days)}
+</div>
+</div>
+
+<div data-bo-final-summary>
+${boFinalSummaryHTML(e.days)}
+</div>
+
+<div class="note">Week 1 = Day 1–7, Week 2 = Day 8–14, Week 3 = Day 15–21, and so on. Final overall state totals, India Gross, Overseas Gross and Worldwide Gross are all calculated automatically from the daily entries.</div>
+</div>`;
+}
+
+function refreshBoxOfficeDerived(card,b){
+const days=b.extra_data.days||[];
+days.forEach((p,index)=>{
+const india=card.querySelector(`[data-bo-india="${index}"]`);
+const world=card.querySelector(`[data-bo-worldwide="${index}"]`);
+const dateLabel=card.querySelector(`[data-bo-date-label="${index}"]`);
+if(india)india.value=boIndia(p).toFixed(2);
+if(world)world.value=boWorldwide(p).toFixed(2);
+if(dateLabel)dateLabel.textContent=boDateLabel(p.date);
+});
+const weekly=card.querySelector("[data-bo-weekly-summary]");
+if(weekly)weekly.innerHTML=boWeeklySummaryHTML(days);
+
+const finalSummary=card.querySelector("[data-bo-final-summary]");
+if(finalSummary)finalSummary.innerHTML=boFinalSummaryHTML(days);
+}
 
 function renderBlocks(){
 const box=$("blocks");box.innerHTML="";
@@ -663,8 +987,8 @@ if(b.block_type==="image"){
 body=`<div class="block-row"><div><label>Image filename</label><input data-field="image" value="${b.image??""}"></div><div><label>Upload</label><input type="file" data-upload accept="image/jpeg,image/png,image/webp"></div></div><div class="block-row" style="margin-top:9px"><div><label>Caption</label><input data-field="image_caption" value="${b.image_caption??""}"></div><div><label>Credit</label><input data-field="image_credit" value="${b.image_credit??""}"></div></div><div class="media-preview"><img src="${mediaUrl(b.image)}" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}'"></div>`;
 }
 if(b.block_type==="boxoffice"){
-const e=b.extra_data||{};
-body=`<div class="block-row"><div><label>India</label><input data-extra="india" value="${e.india??""}"></div><div><label>Overseas</label><input data-extra="overseas" value="${e.overseas??""}"></div><div><label>Worldwide</label><input data-extra="worldwide" value="${e.worldwide??""}"></div><div><label>Verdict</label><input data-extra="verdict" value="${e.verdict??""}"></div></div>`;
+b.extra_data=normalizeBoxOfficeExtra(b.extra_data);
+body=renderBoxOfficeBlock(b.extra_data);
 }
 if(b.block_type==="gallery"){
 body=`<label>Gallery images</label><textarea data-extra="images">${Array.isArray(b.extra_data?.images)?b.extra_data.images.join(", "):""}</textarea><div style="margin-top:8px"><input type="file" data-gallery-upload multiple accept="image/jpeg,image/png,image/webp"></div><div class="note">Select multiple images to upload them together. You can still edit filenames manually.</div>${galleryPreviewHTML(b.extra_data?.images||[])}`;
@@ -690,6 +1014,48 @@ if(k==="images")v=v.split(",").map(x=>x.trim()).filter(Boolean);
 if(["india","overseas","worldwide","movie_id","actor_id"].includes(k))v=v===""?null:Number(v);
 updateExtra(i,k,v);
 });
+
+if(b.block_type==="boxoffice"){
+card.querySelectorAll("[data-bo-root]").forEach(el=>{
+el.oninput=()=>{
+const k=el.dataset.boRoot;
+if(k==="budget" || k==="movie_id"){
+b.extra_data[k]=el.value===""?null:Number(el.value);
+}else{
+b.extra_data[k]=el.value;
+}
+};
+});
+
+card.querySelectorAll("[data-bo-field]").forEach(el=>{
+el.oninput=()=>{
+const idx=Number(el.dataset.boIndex);
+const field=el.dataset.boField;
+if(!b.extra_data.days[idx])return;
+let value=el.value;
+if(["tamil_nadu","kerala","karnataka","telugu_states","rest_of_india","overseas"].includes(field)){
+value=value===""?null:Number(value);
+}
+b.extra_data.days[idx][field]=value;
+refreshBoxOfficeDerived(card,b);
+};
+});
+
+const addDay=card.querySelector("[data-bo-add-day]");
+if(addDay)addDay.onclick=()=>{
+b.extra_data.days.push(makeBoxOfficeDay(b.extra_data.days.length+1));
+renderBlocks();
+};
+
+card.querySelectorAll("[data-bo-remove-day]").forEach(btn=>{
+btn.onclick=()=>{
+const idx=Number(btn.dataset.boRemoveDay);
+b.extra_data.days.splice(idx,1);
+b.extra_data.days.forEach((p,n)=>p.number=n+1);
+renderBlocks();
+};
+});
+}
 const upload=card.querySelector("[data-upload]");
 if(upload)upload.onchange=async()=>{if(!upload.files[0])return;const filename=await uploadImage(upload.files[0]);if(filename){b.image=filename;renderBlocks()}};
 const galleryUpload=card.querySelector("[data-gallery-upload]");
@@ -732,6 +1098,52 @@ CURRENT_ARTICLE_ADMIN?.display_name||
 CURRENT_ARTICLE_ADMIN?.email||
 "BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null};
 }
+
+async function syncArticleBoxOfficeToMovies(){
+const boxOfficeBlocks=(blocks||[]).filter(b=>b.block_type==="boxoffice");
+if(!boxOfficeBlocks.length)return;
+
+for(const b of boxOfficeBlocks){
+const e=normalizeBoxOfficeExtra(b.extra_data||{});
+const movieId=Number(e.movie_id);
+
+if(!Number.isInteger(movieId) || movieId<=0){
+throw new Error("Choose a Linked Movie inside every Box Office block before saving.");
+}
+
+const days=(e.days||[])
+.filter(d=>d.date)
+.map(d=>({
+date:d.date,
+tamil_nadu:boNum(d.tamil_nadu),
+kerala:boNum(d.kerala),
+karnataka:boNum(d.karnataka),
+telugu_states:boNum(d.telugu_states),
+rest_of_india:boNum(d.rest_of_india),
+overseas:boNum(d.overseas)
+}));
+
+const r=await fetch("/admin/articles/movie-boxoffice-sync",{
+method:"POST",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+movie_id:movieId,
+budget:e.budget===null||e.budget===""?null:Number(e.budget),
+verdict:String(e.verdict||"").trim()||null,
+days
+})
+});
+
+let d={};
+try{d=await r.json()}catch(err){}
+
+if(!r.ok){
+throw new Error(d.detail||("Movie box-office sync failed ("+r.status+")"));
+}
+}
+}
+
 async function saveArticle(){
 const payload=articlePayload();if(!payload.title){toast("Headline is required");return}
 let r;
@@ -739,8 +1151,15 @@ if(currentArticleId)r=await fetch("/admin/articles/"+currentArticleId,{method:"P
 else r=await fetch("/admin/articles",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
 const d=await r.json();if(!r.ok){toast(d.detail||"Save failed");return}
 currentArticleId=d.article_id;
-await saveLinks();await saveBlocks();
-toast("Article saved");await loadArticles();await loadArticle(currentArticleId);
+try{
+await saveLinks();
+await saveBlocks();
+await syncArticleBoxOfficeToMovies();
+}catch(e){
+toast(e.message||"Movie box-office sync failed");
+return;
+}
+toast("Article + linked movie box office saved");await loadArticles();await loadArticle(currentArticleId);
 }
 async function saveLinks(){
 if(!currentArticleId)return;
