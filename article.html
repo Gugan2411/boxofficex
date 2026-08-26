@@ -753,18 +753,36 @@ function formatDate(value) {
     });
 }
 
-function getSlug() {
-    const querySlug = new URLSearchParams(window.location.search).get("slug");
-    if (querySlug) return querySlug;
+function getArticleTarget() {
+    const params = new URLSearchParams(window.location.search);
+
+    const adminPreview = params.get("admin_preview");
+    if (adminPreview && /^\d+$/.test(adminPreview)) {
+        return {
+            type: "admin_preview",
+            value: adminPreview
+        };
+    }
+
+    const querySlug = params.get("slug");
+    if (querySlug) {
+        return {
+            type: "slug",
+            value: querySlug
+        };
+    }
 
     const parts = window.location.pathname.split("/").filter(Boolean);
     const articleIndex = parts.indexOf("article");
 
     if (articleIndex !== -1 && parts[articleIndex + 1]) {
-        return decodeURIComponent(parts[articleIndex + 1]);
+        return {
+            type: "slug",
+            value: decodeURIComponent(parts[articleIndex + 1])
+        };
     }
 
-    return "";
+    return null;
 }
 
 function imageUrl(filename) {
@@ -1309,9 +1327,9 @@ async function renderArticle(article) {
 }
 
 async function loadArticle() {
-    const slug = getSlug();
+    const target = getArticleTarget();
 
-    if (!slug) {
+    if (!target) {
         document.getElementById("app").innerHTML = `
             <div class="error-state">
                 <strong>Article not found</strong>
@@ -1322,22 +1340,56 @@ async function loadArticle() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/articles/${encodeURIComponent(slug)}`);
-        const data = await response.json();
+        let response;
+        let data;
+        let article;
 
-        if (!response.ok || data.error || !data.article) {
-            throw new Error(data.error || "Article not found");
+        if (target.type === "admin_preview") {
+            response = await fetch(
+                `/admin/articles/${encodeURIComponent(target.value)}`,
+                {
+                    credentials: "include",
+                    cache: "no-store"
+                }
+            );
+
+            data = await response.json();
+
+            if (!response.ok || !data.article) {
+                throw new Error(data.detail || "Unable to load article preview");
+            }
+
+            article = data.article;
+        } else {
+            response = await fetch(
+                `${API_BASE}/articles/${encodeURIComponent(target.value)}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+            data = await response.json();
+
+            if (!response.ok || data.error || !data.article) {
+                throw new Error(
+                    data.error ||
+                    data.detail ||
+                    "Article not found"
+                );
+            }
+
+            article = data.article;
         }
 
-        await renderArticle(data.article);
+        await renderArticle(article);
 
     } catch (error) {
-        console.error(error);
+        console.error("Article loading error:", error);
 
         document.getElementById("app").innerHTML = `
             <div class="error-state">
                 <strong>Unable to load article</strong>
-                Please try again later.
+                ${esc(error.message || "Please try again later.")}
             </div>
         `;
     }

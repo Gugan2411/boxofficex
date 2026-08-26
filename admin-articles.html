@@ -620,7 +620,7 @@ return m?.title||("Movie #"+id);
 }
 
 function movieById(id){
-return (allMovies||[]).find(m=>Number(m.id)===Number(id))||null;
+return (articleMovieLookup||[]).find(m=>Number(m.id)===Number(id))||null;
 }
 
 function movieReleaseDateById(id){
@@ -1070,6 +1070,15 @@ const k=el.dataset.boRoot;
 if(k==="budget" || k==="movie_id"){
 b.extra_data[k]=el.value===""?null:Number(el.value);
 if(k==="movie_id"){
+const releaseDate=movieReleaseDateById(b.extra_data.movie_id);
+if(releaseDate){
+if(!b.extra_data.days.length){
+b.extra_data.days.push(makeBoxOfficeDay(1));
+}
+if(!b.extra_data.days[0].date){
+b.extra_data.days[0].date=releaseDate;
+}
+}
 renderBlocks();
 return;
 }
