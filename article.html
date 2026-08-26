@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
     <title id="pageTitle">Article | BoxOfficeX</title>
 
@@ -632,6 +632,388 @@ body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:
 .bo-final-item.total strong{color:#7de2bb}.movie-release-note{margin-top:5px;color:#9aa8c1;font-size:10px}
 @media(max-width:700px){.bo-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+
+/* =========================================================
+   ARTICLE MOBILE SYSTEM — MATCHES INDEX.HTML
+   Responsive-only overrides. Article functionality unchanged.
+========================================================= */
+
+:root{
+    --article-header-h: 66px;
+    --article-mobile-nav-h: 68px;
+}
+
+html{
+    -webkit-text-size-adjust: 100%;
+}
+
+body{
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+header{
+    background: linear-gradient(180deg,rgba(6,9,18,.96),rgba(6,9,18,.88));
+    box-shadow: 0 8px 28px rgba(0,0,0,.18);
+}
+
+.navbar{
+    min-height: var(--article-header-h);
+    gap: 12px;
+}
+
+.logo{
+    font-size: 20px;
+    letter-spacing: .45px;
+    flex-shrink: 0;
+}
+
+.logo-icon{
+    width: 33px;
+    height: 33px;
+    border-radius: 9px;
+}
+
+header nav{
+    gap: 2px;
+    flex-wrap: nowrap;
+}
+
+header nav a{
+    min-height: 38px;
+    padding: 8px 10px;
+    border-radius: 9px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+@media (max-width:1180px) and (min-width:701px){
+    .navbar{
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .logo{font-size:17px}
+    .logo-icon{width:30px;height:30px}
+    header nav a{
+        padding-left:7px;
+        padding-right:7px;
+        font-size:10.5px;
+    }
+}
+
+@media (max-width:900px) and (min-width:701px){
+    .navbar{
+        overflow-x:auto;
+        scrollbar-width:none;
+    }
+    .navbar::-webkit-scrollbar{display:none}
+    header nav{min-width:max-content}
+}
+
+@media (max-width:700px){
+    body{
+        padding-bottom: calc(var(--article-mobile-nav-h) + env(safe-area-inset-bottom));
+    }
+
+    .navbar{
+        min-height:61px;
+        padding:0 13px;
+    }
+
+    .logo{font-size:18px}
+    .logo-icon{
+        width:31px;
+        height:31px;
+        border-radius:9px;
+    }
+
+    header nav{display:none}
+
+    .article-shell{
+        width:100%;
+        padding:28px 13px 42px;
+    }
+
+    .article-top,
+    .article-layout,
+    .article-content{
+        width:100%;
+        max-width:100%;
+    }
+
+    .category{
+        min-height:28px;
+        padding:5px 9px;
+        font-size:10px;
+    }
+
+    h1{
+        margin-top:13px;
+        font-size:clamp(30px,9.5vw,44px);
+        line-height:1.07;
+        letter-spacing:-1px;
+        overflow-wrap:anywhere;
+    }
+
+    .subtitle{
+        margin-top:14px;
+        font-size:16px;
+        line-height:1.55;
+    }
+
+    .byline-row{
+        margin-top:17px;
+        padding-top:14px;
+        gap:11px;
+    }
+
+    .byline{font-size:11px}
+    .share-row{gap:7px}
+    .share-button{
+        min-height:38px;
+        padding:7px 10px;
+        font-size:11px;
+    }
+
+    .hero-wrap{margin-top:22px}
+    .hero-wrap img{
+        border-radius:14px;
+        aspect-ratio:16/9;
+    }
+
+    .article-layout{margin-top:26px}
+
+    .article-content p{
+        margin-bottom:21px;
+        font-size:18px;
+        line-height:1.72;
+        overflow-wrap:anywhere;
+    }
+
+    .article-content h2{
+        margin:34px 0 14px;
+        font-size:clamp(24px,7vw,31px);
+        line-height:1.18;
+    }
+
+    .article-image,
+    blockquote,
+    .boxoffice-block,
+    .gallery-block{
+        margin-top:27px;
+        margin-bottom:27px;
+    }
+
+    .article-image img{border-radius:13px}
+
+    blockquote{
+        padding:19px 17px 19px 20px;
+        font-size:20px;
+    }
+
+    .boxoffice-block{
+        padding:15px 12px;
+        border-radius:15px;
+    }
+
+    .boxoffice-title{font-size:16px}
+    .boxoffice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .bo-card{padding:12px 10px}
+    .bo-value{font-size:16px}
+
+    /* Daily/weekly tables remain horizontally scrollable on phones. */
+    .bo-detail-wrap{
+        width:100%;
+        max-width:100%;
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+    }
+
+    .bo-detail-table{min-width:920px}
+
+    .bo-final-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:7px;
+    }
+
+    .bo-final-item{padding:9px}
+
+    .gallery-block{
+        grid-template-columns:1fr;
+        gap:9px;
+    }
+
+    .related-card{
+        grid-template-columns:76px minmax(0,1fr);
+        gap:11px;
+        padding:10px;
+    }
+
+    .related-card img{width:76px}
+    .related-card strong{overflow-wrap:anywhere}
+
+    .media-caption{font-size:10px}
+
+    footer{margin-top:28px}
+    .footer-inner{
+        padding:27px 13px 28px;
+    }
+
+    .footer-links{
+        gap:6px 13px;
+        margin:13px 0 9px;
+    }
+
+    .mobile-bottom-nav{
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:0;
+        z-index:1500;
+        display:grid;
+        grid-template-columns:repeat(5,1fr);
+        padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+        background:rgba(7,11,20,.96);
+        border-top:1px solid rgba(255,255,255,.08);
+        backdrop-filter:blur(18px);
+        -webkit-backdrop-filter:blur(18px);
+    }
+
+    .mobile-bottom-nav a{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:3px;
+        min-height:48px;
+        border-radius:11px;
+        color:#8793a9;
+        font-size:8px;
+        font-weight:700;
+        text-decoration:none;
+        -webkit-tap-highlight-color:transparent;
+    }
+
+    .mobile-bottom-nav a span:first-child{font-size:18px}
+    .mobile-bottom-nav a.active{
+        color:#79adff;
+        background:rgba(77,141,255,.10);
+    }
+}
+
+@media (max-width:380px){
+    .navbar{padding:0 10px}
+    .logo{font-size:16px}
+    .logo-icon{width:29px;height:29px}
+    .article-shell{padding-left:10px;padding-right:10px}
+    h1{font-size:29px}
+    .article-content p{font-size:17px}
+    .related-card{grid-template-columns:70px minmax(0,1fr)}
+    .related-card img{width:70px}
+}
+
+@media (max-width:330px){
+    .logo{font-size:15px}
+    .logo-icon{width:27px;height:27px}
+    h1{font-size:27px}
+    .share-button{padding-left:8px;padding-right:8px;font-size:10px}
+    .bo-final-grid{grid-template-columns:1fr}
+}
+
+
+
+/* =========================================================
+   ARTICLE BOX OFFICE MOBILE SWIPE SYSTEM
+   Day/Week stays visible; area-wise columns swipe horizontally.
+========================================================= */
+
+.bo-swipe-hint{
+    display:none;
+}
+
+@media (max-width:700px){
+
+    .bo-swipe-hint{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        margin:8px 0 9px;
+        padding:8px 10px;
+        border:1px solid rgba(77,141,255,.20);
+        border-radius:10px;
+        background:rgba(77,141,255,.08);
+        color:#9fc1ff;
+        font-size:10px;
+        font-weight:800;
+        line-height:1.35;
+        text-align:center;
+    }
+
+    .bo-detail-wrap{
+        position:relative;
+        width:100%;
+        max-width:100%;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+        scroll-snap-type:x proximity;
+        border-radius:12px;
+    }
+
+    .bo-detail-wrap::after{
+        content:"";
+        position:sticky;
+        right:0;
+        float:right;
+        width:22px;
+        height:100%;
+        min-height:48px;
+        margin-left:-22px;
+        pointer-events:none;
+        background:linear-gradient(90deg,transparent,rgba(6,9,18,.80));
+    }
+
+    .bo-detail-table{
+        min-width:900px;
+        border-collapse:separate;
+        border-spacing:0;
+    }
+
+    .bo-detail-table th:first-child,
+    .bo-detail-table td:first-child{
+        position:sticky;
+        left:0;
+        z-index:5;
+        min-width:74px;
+        width:74px;
+        max-width:74px;
+        text-align:left;
+        background:#111a2b;
+        box-shadow:8px 0 14px rgba(0,0,0,.24);
+    }
+
+    .bo-detail-table td:first-child{
+        background:#0f1625;
+        color:#ffffff;
+        font-weight:900;
+    }
+
+    .bo-detail-table th:nth-child(2),
+    .bo-detail-table td:nth-child(2){
+        text-align:left;
+    }
+
+    .bo-detail-table th,
+    .bo-detail-table td{
+        scroll-snap-align:start;
+    }
+}
+
 </style>
 </head>
 
@@ -759,8 +1141,8 @@ days.forEach(d=>Object.keys(total).forEach(k=>total[k]+=num(d[k])));
 total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;total.worldwide=total.india+total.overseas;
 const weeks=[];for(let x=0;x<days.length;x+=7){const w={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};days.slice(x,x+7).forEach(d=>Object.keys(w).forEach(k=>w[k]+=num(d[k])));w.india=w.tamil_nadu+w.kerala+w.karnataka+w.telugu_states+w.rest_of_india;w.worldwide=w.india+w.overseas;w.week=Math.floor(x/7)+1;w.from=x+1;w.to=Math.min(x+7,days.length);weeks.push(w)}
 return `<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>
-<div class="bo-subtitle">Daily Collections</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${days.map((d,i)=>`<tr><td>Day ${i+1}</td><td>${esc(fmt(d.date))}</td><td>${money(d.tamil_nadu)}</td><td>${money(d.kerala)}</td><td>${money(d.karnataka)}</td><td>${money(d.telugu_states)}</td><td>${money(d.rest_of_india)}</td><td class="bo-auto-total">${money(india(d))}</td><td>${money(d.overseas)}</td><td class="bo-auto-total">${money(world(d))}</td></tr>`).join("")}</tbody></table></div>
-<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>
+<div class="bo-subtitle">Daily Collections</div><div class="bo-swipe-hint">↔ Swipe to view area-wise collections</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${days.map((d,i)=>`<tr><td>Day ${i+1}</td><td>${esc(fmt(d.date))}</td><td>${money(d.tamil_nadu)}</td><td>${money(d.kerala)}</td><td>${money(d.karnataka)}</td><td>${money(d.telugu_states)}</td><td>${money(d.rest_of_india)}</td><td class="bo-auto-total">${money(india(d))}</td><td>${money(d.overseas)}</td><td class="bo-auto-total">${money(world(d))}</td></tr>`).join("")}</tbody></table></div>
+<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>
 <div class="bo-subtitle">Final Overall Gross — Automatic</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
 }
 
