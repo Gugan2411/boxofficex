@@ -22,12 +22,12 @@
 
     <meta
         name="theme-color"
-        content="#060912"
+        content="#f5f7fb"
     >
 
     <meta
         name="color-scheme"
-        content="dark"
+        content="light"
     >
 
     <meta
@@ -35,10 +35,7 @@
         content="index, follow"
     >
 
-    <link
-        rel="preconnect"
-        href="http://127.0.0.1:8000"
-    >
+    
 
     <title>
         BoxOfficeX - Indian Movie Box Office, Collections & Rankings
@@ -91,6 +88,15 @@
         name="twitter:description"
         content="Explore Indian movie box office collections, worldwide grosses, verdicts, latest releases, actor profiles, rankings and comparisons on BoxOfficeX."
     >
+
+    <meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BoxOfficeX - Indian Movie Box Office, Collections & Rankings">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image:alt" content="BoxOfficeX - Indian Movie Box Office, Collections & Rankings">
 
     <script
         id="websiteStructuredData"
@@ -4093,6 +4099,225 @@ nav .nav-compare:hover{
     }
 }
 
+
+/* =========================================================
+   BOXOFFICEX FINAL LIGHT THEME + MOBILE SWIPE SYSTEM
+========================================================= */
+:root{
+    --bg:#f5f7fb;
+    --bg-soft:#eef2f8;
+    --surface:#ffffff;
+    --surface-2:#f8faff;
+    --surface-3:#edf2fa;
+    --border:rgba(15,23,42,.10);
+    --border-strong:rgba(37,99,235,.28);
+    --text:#111827;
+    --muted:#5f6b7d;
+    --muted-2:#7b8798;
+    --blue:#2563eb;
+    --blue-light:#2563eb;
+    --purple:#6d5ce7;
+    --gold:#b77900;
+    --red:#e43d4f;
+    --success:#15945b;
+    --shadow:0 15px 40px rgba(15,23,42,.10);
+    --shadow-small:0 8px 24px rgba(15,23,42,.08);
+}
+
+html{color-scheme:light;}
+body{
+    color:var(--text) !important;
+    background:
+        radial-gradient(circle at 50% -10%,rgba(37,99,235,.10),transparent 34%),
+        radial-gradient(circle at 100% 30%,rgba(109,92,231,.06),transparent 27%),
+        linear-gradient(180deg,#ffffff 0%,#f5f7fb 48%,#eef2f8 100%) !important;
+}
+body::before{opacity:.04 !important;}
+header{
+    background:rgba(255,255,255,.94) !important;
+    border-bottom:1px solid var(--border) !important;
+    box-shadow:0 7px 24px rgba(15,23,42,.07) !important;
+}
+.logo{color:#111827 !important;}
+nav a{color:#475569 !important;}
+nav a:hover,nav a.active{background:#edf3ff !important;color:var(--blue) !important;}
+nav .nav-compare{background:linear-gradient(135deg,#e43d4f,#c92f40) !important;color:#fff !important;}
+.hero::before{background:rgba(37,99,235,.09) !important;}
+.hero::after{background:rgba(109,92,231,.06) !important;}
+.hero-badge{background:#edf4ff !important;border-color:#d7e5ff !important;color:#2563eb !important;}
+.hero h1{color:#111827 !important;}
+.search-form{background:#fff !important;border-color:#dce3ed !important;box-shadow:0 14px 32px rgba(15,23,42,.09) !important;}
+.search-form input{color:#111827 !important;}
+.search-form input::placeholder{color:#8a95a5 !important;}
+#searchResults{background:#fff !important;border-color:#dce3ed !important;}
+.search-result:hover{background:#f2f6ff !important;}
+.search-result-icon{background:#edf4ff !important;}
+.quick-card,.movie-card,.actor-card,.movie-empty{
+    background:#fff !important;
+    border-color:#e1e7ef !important;
+    box-shadow:0 7px 20px rgba(15,23,42,.055);
+}
+.quick-card-movie-compare,.quick-card-actor-compare{
+    background:linear-gradient(145deg,#fff7f8,#ffffff) !important;
+    border-color:rgba(228,61,79,.25) !important;
+}
+.comparison-card{
+    background:linear-gradient(135deg,#f2f6ff,#ffffff) !important;
+    border-color:#d9e5fb !important;
+    box-shadow:0 12px 34px rgba(15,23,42,.07) !important;
+}
+.comparison-icon{background:#eaf1fc !important;border-color:#d9e3f2 !important;box-shadow:none !important;}
+.movie-poster,.actor-image-wrap{background:#e9eef5 !important;}
+.movie-verdict{color:#475569 !important;}
+footer{background:#eef2f7 !important;border-top-color:#dce3eb !important;}
+.footer-links a{color:#475569 !important;}
+
+/* Mobile: hamburger LEFT, logo beside it, every content rail swipes horizontally */
+@media (max-width:700px){
+    body{padding-top:61px !important;background:#f5f7fb !important;}
+    header,.navbar,.logo{background:#fff !important;}
+    header{border-bottom:1px solid #dfe5ed !important;box-shadow:0 5px 18px rgba(15,23,42,.08) !important;}
+    .navbar{
+        grid-template-columns:auto 1fr !important;
+        justify-content:start !important;
+        padding:0 12px !important;
+    }
+    .mobile-menu-button{
+        grid-column:1;
+        grid-row:1;
+        background:#f4f7fb !important;
+        border-color:#dce3ec !important;
+    }
+    .mobile-menu-button span{background:#172033 !important;}
+    .logo{
+        grid-column:2;
+        grid-row:1;
+        justify-self:start;
+    }
+    header nav{
+        left:10px !important;
+        right:10px !important;
+        background:#fff !important;
+        border-color:#dce3ec !important;
+        box-shadow:0 18px 40px rgba(15,23,42,.14) !important;
+    }
+    header nav a{color:#334155 !important;}
+    header nav .nav-compare{color:#fff !important;}
+
+    .quick-links,.quick-grid,
+    .movie-grid,
+    #latestMoviesGrid.latest-grid,
+    .ranking-grid,
+    #actorsGrid{
+        display:flex !important;
+        grid-template-columns:none !important;
+        width:100% !important;
+        max-width:100% !important;
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+        gap:11px !important;
+        padding:2px 2px 10px !important;
+        scroll-snap-type:x mandatory !important;
+        scrollbar-width:none !important;
+        -webkit-overflow-scrolling:touch !important;
+        overscroll-behavior-x:contain !important;
+    }
+    .quick-links::-webkit-scrollbar,.quick-grid::-webkit-scrollbar,
+    .movie-grid::-webkit-scrollbar,#latestMoviesGrid.latest-grid::-webkit-scrollbar,
+    .ranking-grid::-webkit-scrollbar,#actorsGrid::-webkit-scrollbar{display:none !important;}
+
+    .quick-card{
+        flex:0 0 78% !important;
+        width:auto !important;
+        min-width:0 !important;
+        scroll-snap-align:start !important;
+    }
+    .movie-grid .movie-card,
+    #latestMoviesGrid.latest-grid .movie-card,
+    .ranking-grid .movie-card{
+        flex:0 0 145px !important;
+        width:145px !important;
+        min-width:145px !important;
+        scroll-snap-align:start !important;
+    }
+    #actorsGrid .actor-card{
+        flex:0 0 132px !important;
+        width:132px !important;
+        min-width:132px !important;
+        scroll-snap-align:start !important;
+    }
+    .ranking-grid .movie-poster,
+    #latestMoviesGrid.latest-grid .movie-poster{aspect-ratio:2/3 !important;}
+
+    .mobile-swipe-hint{
+        display:flex;
+        align-items:center;
+        gap:6px;
+        margin:-4px 0 10px;
+        color:#64748b;
+        font-size:10px;
+        font-weight:800;
+        letter-spacing:.15px;
+    }
+    .mobile-swipe-hint::before{content:'↔';color:#2563eb;font-size:15px;}
+}
+@media (min-width:701px){.mobile-swipe-hint{display:none !important;}}
+
+
+
+/* =========================================================
+   BOXOFFICEX COMPARE BUTTON CONTRAST FIX
+   Keep comparison buttons readable in every interaction state.
+========================================================= */
+header nav a.nav-compare,
+header nav a.nav-compare:link,
+header nav a.nav-compare:visited,
+header nav a.nav-compare:hover,
+header nav a.nav-compare:focus,
+header nav a.nav-compare:focus-visible,
+header nav a.nav-compare:active,
+header nav a.nav-compare.active {
+    background: linear-gradient(135deg, #e43d4f, #c92f40) !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border-color: transparent !important;
+    text-decoration: none !important;
+}
+
+header nav a.nav-compare:hover {
+    background: linear-gradient(135deg, #d93649, #b92738) !important;
+}
+
+header nav a.nav-compare:active {
+    background: linear-gradient(135deg, #c92f40, #a92131) !important;
+    color: #ffffff !important;
+    transform: translateY(0) !important;
+}
+
+header nav a.nav-compare:focus-visible {
+    outline: 3px solid rgba(228,61,79,.28) !important;
+    outline-offset: 2px !important;
+}
+
+@media (max-width:700px) {
+    header nav a.nav-compare,
+    header nav a.nav-compare:link,
+    header nav a.nav-compare:visited,
+    header nav a.nav-compare:hover,
+    header nav a.nav-compare:focus,
+    header nav a.nav-compare:focus-visible,
+    header nav a.nav-compare:active,
+    header nav a.nav-compare.active {
+        background: linear-gradient(135deg, #e43d4f, #c92f40) !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+
+    header nav a.nav-compare:active {
+        background: linear-gradient(135deg, #c92f40, #a92131) !important;
+    }
+}
+
 </style>
 
 </head>
@@ -4109,6 +4334,18 @@ nav .nav-compare:hover{
 
     <div class="navbar">
 
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open mobile menu"
+            aria-expanded="false"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
         <a
             href="index.html"
             class="logo"
@@ -4123,17 +4360,6 @@ nav .nav-compare:hover{
 
         </a>
 
-        <button
-            type="button"
-            class="mobile-menu-button"
-            id="mobileMenuButton"
-            aria-label="Open mobile menu"
-            aria-expanded="false"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
 
 
         <nav aria-label="Main navigation">
@@ -4153,10 +4379,10 @@ nav .nav-compare:hover{
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+            <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
 
             <a href="movie-compare-select.html" class="nav-compare">
-                🎬 Movie Compare
+                🎬 Movie Comparison
             </a>
         </nav>
 
@@ -6311,8 +6537,9 @@ function parseLocalDate(value){
 async function updateSiteNewBadges(){
     try{
         const [moviesRes,articlesRes]=await Promise.all([
-            fetch("http://127.0.0.1:8000/movies/new-system",{cache:"no-store"}),
-            fetch("http://127.0.0.1:8000/articles/latest?limit=10",{cache:"no-store"})
+            fetch("/movies/new-system",{cache:"no-store"}),
+            fetch("/articles/latest?limit=10",{cache:"no-store"})
+            
         ]);
 
         if(moviesRes.ok){
@@ -6454,6 +6681,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     );
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const rails = document.querySelectorAll(".quick-links, .movie-grid, #latestMoviesGrid, #actorsGrid");
+    const seen = new Set();
+    rails.forEach(function(rail){
+        if(seen.has(rail)) return;
+        seen.add(rail);
+        if(rail.previousElementSibling && rail.previousElementSibling.classList.contains("mobile-swipe-hint")) return;
+        const hint = document.createElement("div");
+        hint.className = "mobile-swipe-hint";
+        hint.textContent = "Swipe to explore more";
+        rail.parentNode.insertBefore(hint, rail);
+    });
 });
 </script>
 

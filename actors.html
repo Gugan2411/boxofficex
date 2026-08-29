@@ -20,7 +20,7 @@
         content="index, follow"
     >
 
-    <link id="canonicalUrl" rel="canonical" href="">
+    <link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/actors.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BoxOfficeX">
@@ -32,9 +32,11 @@
         property="og:description"
         content="Explore popular Indian actors across Tamil, Telugu, Hindi, Malayalam and Kannada cinema, with movies, box office collections, career highlights and verdicts on BoxOfficeX."
     >
-    <meta id="ogUrl" property="og:url" content="">
+<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image:alt" content="Indian Actors, Movies & Box Office Careers | BoxOfficeX">
+    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/actors.html">
 
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta
         name="twitter:title"
         content="Indian Actors, Movies & Box Office Careers | BoxOfficeX"
@@ -43,6 +45,8 @@
         name="twitter:description"
         content="Explore popular Indian actors across Tamil, Telugu, Hindi, Malayalam and Kannada cinema, with movies, box office collections, career highlights and verdicts on BoxOfficeX."
     >
+<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image:alt" content="Indian Actors, Movies & Box Office Careers | BoxOfficeX">
 
     <script id="actorsStructuredData" type="application/ld+json"></script>
 
@@ -1321,6 +1325,39 @@ footer{
     box-shadow: none !important;
 }
 
+
+
+/* =========================================================
+   BOXOFFICEX LIGHT MASTER — ACTORS PAGE
+========================================================= */
+:root{--bg:#f5f7fb;--panel:#ffffff;--panel-2:#f8faff;--border:#dce3ee;--border-strong:#b8c5d8;--muted:#667085;--blue:#2563eb;--gold:#d99a00;--red:#e53945;}
+body{background:linear-gradient(180deg,#eef4ff 0,#f7f9fc 240px,#f7f9fc 100%) !important;color:#172033 !important;}
+header{background:rgba(255,255,255,.96) !important;border-bottom:1px solid #dfe5ee !important;box-shadow:0 5px 18px rgba(24,39,75,.08) !important;}
+.navbar{background:transparent !important;}
+.logo{color:#172033 !important}.logo span:last-child{color:#d99a00 !important}.logo-icon{box-shadow:0 6px 18px rgba(37,99,235,.16)}
+header nav a{color:#475467 !important} header nav a:hover,header nav a.active{background:#eef4ff !important;color:#2563eb !important}
+header .nav-compare{background:linear-gradient(135deg,#e53945,#c92d39) !important;color:#fff !important}
+header .nav-compare:link,header .nav-compare:visited,header .nav-compare:hover,header .nav-compare:active,header .nav-compare:focus,header .nav-compare:focus-visible{color:#fff !important;-webkit-text-fill-color:#fff !important;}
+.search-form{background:#fff !important;border-color:#dce3ee !important;box-shadow:0 10px 28px rgba(24,39,75,.08) !important}.search-form input{color:#172033 !important}.search-form input::placeholder{color:#98a2b3 !important}
+#searchResults{background:#fff !important;border-color:#dce3ee !important;box-shadow:0 18px 40px rgba(24,39,75,.14) !important}.search-result{border-color:#e6eaf0 !important}.search-result:hover{background:#f1f5ff !important}.search-result-icon{background:#eef4ff !important}.search-result small{color:#667085 !important}
+.actor-card{background:#fff !important;border-color:#e0e6ef !important;box-shadow:0 6px 18px rgba(24,39,75,.06)}.actor-card:hover{border-color:#b8c5d8 !important;box-shadow:0 14px 30px rgba(24,39,75,.12) !important}.actor-card img{background:#eef1f5 !important}.actor-name{color:#172033 !important}.actor-profession{color:#667085 !important}
+footer{background:#eef2f7 !important;border-top:1px solid #dfe5ee !important}.footer-tagline,.footer-copy{color:#667085 !important}.footer-links a{color:#2563eb !important}.footer-brand strong{color:#172033 !important}
+.mobile-menu-button{border-color:#d9e0ea !important;background:#f3f6fa !important}.mobile-menu-button span{background:#172033 !important}
+.swipe-hint{display:none;color:#667085;font-size:11px;font-weight:700;margin:-4px 0 10px;text-align:right}
+@media(max-width:700px){
+ body{background:#f7f9fc !important}
+ header{background:#fff !important;border-bottom-color:#dfe5ee !important}
+ .navbar{grid-template-columns:auto 1fr !important;padding:0 13px !important}
+ .mobile-menu-button{grid-column:1;grid-row:1;justify-self:start}
+ .logo{grid-column:2;grid-row:1;justify-self:start}
+ header nav{top:61px !important;left:10px !important;right:10px !important;background:#fff !important;border-color:#dfe5ee !important;box-shadow:0 18px 40px rgba(24,39,75,.16) !important}
+ header nav a{color:#344054 !important}
+ .swipe-hint{display:block}
+ .language-grid{display:flex !important;grid-template-columns:none !important;gap:10px !important;overflow-x:auto !important;scroll-snap-type:x mandatory;padding:2px 2px 10px !important;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .language-grid::-webkit-scrollbar{display:none}
+ .language-grid .actor-card{flex:0 0 43% !important;min-width:43% !important;scroll-snap-align:start}
+}
+@media(max-width:380px){.language-grid .actor-card{flex-basis:47% !important;min-width:47% !important}}
 </style>
 
 </head>
@@ -1365,11 +1402,11 @@ footer{
             </a>
 
             <a href="compare-select.html" class="nav-compare">
-                ⚔️ Actor Compare
+                ⚔️ Actor Comparison
             </a>
 
             <a href="movie-compare-select.html" class="nav-compare">
-                🎬 Movie Compare
+                🎬 Movie Comparison
             </a>
         </nav>
 
@@ -1638,6 +1675,10 @@ function displayActors(actors) {
         heading.className = "language-heading";
         heading.textContent = `${group.icon} ${group.title}`;
 
+        const swipeHint = document.createElement("div");
+        swipeHint.className = "swipe-hint";
+        swipeHint.textContent = "↔ Swipe to explore more";
+
         const languageGrid = document.createElement("div");
         languageGrid.className = "language-grid";
 
@@ -1683,6 +1724,7 @@ function displayActors(actors) {
         });
 
         section.appendChild(heading);
+        section.appendChild(swipeHint);
         section.appendChild(languageGrid);
         grid.appendChild(section);
     });
@@ -2078,6 +2120,17 @@ document.addEventListener("DOMContentLoaded",function(){
  window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
 });
 </script>
+
+<script>
+(function() {
+    const productionUrl = "https://boxoffice-x.com/actors.html";
+    const canonicalTag = document.getElementById("canonicalUrl");
+    if (canonicalTag) canonicalTag.href = productionUrl;
+    const ogUrlTag = document.getElementById("ogUrl");
+    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
+})();
+</script>
+
 </body>
 
 </html>

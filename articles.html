@@ -7,15 +7,19 @@
 <meta name="description" content="Read the latest Indian movie news, box-office reports, theatrical analysis, actor stories, rankings and entertainment articles on BoxOfficeX.">
 
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link id="canonicalUrl" rel="canonical" href="">
+<link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/articles.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BoxOfficeX">
 <meta property="og:title" content="Movie News & Box Office Articles | BoxOfficeX">
 <meta property="og:description" content="Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.">
-<meta id="ogUrl" property="og:url" content="">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image:alt" content="Movie News & Box Office Articles | BoxOfficeX">
+<meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/articles.html">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Movie News & Box Office Articles | BoxOfficeX">
 <meta name="twitter:description" content="Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.">
+<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image:alt" content="Movie News & Box Office Articles | BoxOfficeX">
 <script id="articlesStructuredData" type="application/ld+json"></script>
 
 <style>
@@ -814,12 +818,612 @@ header nav .nav-compare:hover{
     header .logo-icon{width:27px!important;height:27px!important;flex-basis:27px!important}
 }
 
+
+/* =========================================================
+   BOXOFFICEX FINAL LIGHT THEME — ARTICLES
+   Matches finalized index.html while preserving article logic.
+========================================================= */
+:root{
+    --bg:#f5f7fb!important;
+    --panel:#ffffff!important;
+    --panel2:#f8fafc!important;
+    --border:#dfe5ee!important;
+    --muted:#667085!important;
+    --text:#111827!important;
+    --blue:#2563eb!important;
+    --blue-light:#2563eb!important;
+    --purple:#795cff!important;
+    --gold:#b77900!important;
+    --red:#e43d4f!important;
+    --content-width:1280px!important;
+}
+html{background:#f5f7fb!important;color-scheme:light}
+body{
+    background:linear-gradient(180deg,#f7f9fc 0,#f5f7fb 45%,#f3f6fa 100%)!important;
+    color:#111827!important;
+}
+header{
+    background:rgba(255,255,255,.96)!important;
+    border-bottom:1px solid #dfe5ee!important;
+    box-shadow:0 4px 18px rgba(15,23,42,.06)!important;
+}
+header .navbar{background:transparent!important}
+header .logo{color:#111827!important}
+header .logo > span:last-child{color:#b77900!important}
+header .logo-icon{
+    background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+}
+header nav a{color:#475467!important}
+header nav a:hover,
+header nav a.active{
+    color:#2563eb!important;
+    background:#eef4ff!important;
+}
+
+/* Comparison buttons remain readable in every interaction state. */
+header nav a.nav-compare,
+header nav a.nav-compare:link,
+header nav a.nav-compare:visited,
+header nav a.nav-compare:hover,
+header nav a.nav-compare:focus,
+header nav a.nav-compare:focus-visible,
+header nav a.nav-compare:active,
+header nav a.nav-compare.active{
+    background:linear-gradient(135deg,#e43d4f,#c92f40)!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    border-color:transparent!important;
+    text-decoration:none!important;
+}
+header nav a.nav-compare:hover{
+    background:linear-gradient(135deg,#d93649,#b92738)!important;
+}
+header nav a.nav-compare:active{
+    background:linear-gradient(135deg,#c92f40,#a92131)!important;
+    color:#fff!important;
+    transform:translateY(0)!important;
+}
+header nav a.nav-compare:focus-visible{
+    outline:3px solid rgba(228,61,79,.28)!important;
+    outline-offset:2px!important;
+}
+
+.eyebrow{
+    color:#2563eb!important;
+    background:#eef4ff!important;
+    border-color:#cfe0ff!important;
+}
+.page-title{color:#111827!important}
+.page-intro,.meta,.section-head span{color:#667085!important}
+.section-head{border-bottom-color:#dfe5ee!important}
+.section-head h2{color:#111827!important}
+
+.hero-main,.side-card,.story-card,.trend-card,.empty,.loading{
+    background:#fff!important;
+    border-color:#dfe5ee!important;
+    box-shadow:0 8px 24px rgba(15,23,42,.055)!important;
+}
+.hero-main:after{
+    background:linear-gradient(180deg,transparent 20%,rgba(8,15,28,.9) 90%)!important;
+}
+.hero-copy h2{color:#fff!important}
+.hero-copy p{color:#e5e7eb!important}
+.hero-copy .meta{color:#d1d5db!important}
+.side-card h3,.story-body h3,.trend-card h3{color:#111827!important}
+.story-body p{color:#667085!important}
+.side-card img,.story-card img{background:#eef2f7!important}
+.story-card:hover,.trend-card:hover,.side-card:hover{
+    border-color:#b9cdf7!important;
+    box-shadow:0 10px 28px rgba(37,99,235,.08)!important;
+}
+.trend-num{color:#c5cedb!important}
+.badge{background:#2563eb!important;color:#fff!important}
+
+.category-tabs button{
+    background:#fff!important;
+    color:#475467!important;
+    border-color:#dfe5ee!important;
+}
+.category-tabs button.active{
+    background:#2563eb!important;
+    color:#fff!important;
+    border-color:#2563eb!important;
+}
+
+.site-footer{
+    border-top:1px solid #dfe5ee!important;
+    background:#fff!important;
+}
+.footer-brand{
+    color:#111827!important;
+    text-decoration:none!important;
+    border-bottom:0!important;
+}
+.footer-logo-icon{
+    background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+}
+.footer-brand strong{color:#111827!important}
+.footer-brand strong > span{color:#b77900!important}
+.footer-tagline,.footer-copy{color:#667085!important}
+.footer-links a{color:#475467!important}
+.footer-links a:hover{color:#2563eb!important}
+
+/* Mobile article rails */
+.mobile-swipe-hint{
+    display:none;
+    color:#667085;
+    font-size:10px;
+    font-weight:700;
+    margin:3px 0 9px;
+}
+
+@media(max-width:700px){
+    body{
+        padding-top:61px!important;
+        padding-bottom:0!important;
+        overflow-x:hidden!important;
+    }
+    header{
+        position:fixed!important;
+        top:0!important;
+        left:0!important;
+        right:0!important;
+        width:100%!important;
+        background:#fff!important;
+        border-bottom:1px solid #dfe5ee!important;
+        box-shadow:0 5px 18px rgba(15,23,42,.08)!important;
+        overflow:visible!important;
+    }
+    header .navbar{
+        min-height:61px!important;
+        height:61px!important;
+        padding:0 13px!important;
+        display:grid!important;
+        grid-template-columns:auto 1fr!important;
+        justify-content:start!important;
+        align-items:center!important;
+        gap:10px!important;
+        overflow:visible!important;
+    }
+    .mobile-menu-button{
+        grid-column:1!important;
+        grid-row:1!important;
+        justify-self:start!important;
+        background:#f8fafc!important;
+        border-color:#d7dee8!important;
+    }
+    .mobile-menu-button span{background:#111827!important}
+    header .logo{
+        grid-column:2!important;
+        grid-row:1!important;
+        justify-self:start!important;
+        background:transparent!important;
+    }
+    header nav{
+        top:61px!important;
+        left:10px!important;
+        right:10px!important;
+        background:#fff!important;
+        border-color:#dfe5ee!important;
+        box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    }
+    header nav a{color:#344054!important}
+    header nav a:hover,
+    header nav a.active{
+        color:#2563eb!important;
+        background:#eef4ff!important;
+    }
+    header nav a.nav-compare,
+    header nav a.nav-compare:link,
+    header nav a.nav-compare:visited,
+    header nav a.nav-compare:hover,
+    header nav a.nav-compare:focus,
+    header nav a.nav-compare:focus-visible,
+    header nav a.nav-compare:active,
+    header nav a.nav-compare.active{
+        background:linear-gradient(135deg,#e43d4f,#c92f40)!important;
+        color:#fff!important;
+        -webkit-text-fill-color:#fff!important;
+    }
+
+    main{padding:20px 10px 38px!important}
+
+    .hero-side{
+        display:flex!important;
+        overflow-x:auto!important;
+        gap:10px!important;
+        scroll-snap-type:x mandatory;
+        scrollbar-width:none;
+        padding-bottom:4px;
+    }
+    .hero-side::-webkit-scrollbar,
+    .latest-grid::-webkit-scrollbar,
+    .trending::-webkit-scrollbar{display:none}
+    .hero-side .side-card{
+        flex:0 0 84%!important;
+        scroll-snap-align:start;
+    }
+
+    .latest-grid,
+    .trending{
+        display:flex!important;
+        overflow-x:auto!important;
+        gap:10px!important;
+        scroll-snap-type:x mandatory;
+        scrollbar-width:none;
+        padding-bottom:5px;
+    }
+    .latest-grid .story-card{
+        flex:0 0 84%!important;
+        scroll-snap-align:start;
+    }
+    .trending .trend-card{
+        flex:0 0 84%!important;
+        scroll-snap-align:start;
+    }
+    .mobile-swipe-hint{display:block!important}
+
+    .site-footer{
+        margin-top:35px!important;
+        background:#fff!important;
+    }
+    .footer-inner{
+        max-width:100%!important;
+        padding:32px 12px 28px!important;
+        text-align:center!important;
+    }
+    .footer-brand{
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        gap:8px!important;
+        margin-bottom:13px!important;
+        font-size:18px!important;
+    }
+    .footer-logo-icon{width:34px!important;height:34px!important}
+    .footer-tagline{
+        max-width:290px!important;
+        margin:0 auto 20px!important;
+        font-size:11px!important;
+        line-height:1.65!important;
+    }
+    .footer-links{
+        display:flex!important;
+        flex-wrap:wrap!important;
+        justify-content:center!important;
+        gap:4px 8px!important;
+        margin:0 auto 20px!important;
+    }
+    .footer-links a{
+        padding:3px 4px!important;
+        color:#475467!important;
+        font-size:8px!important;
+        line-height:1.2!important;
+    }
+    .footer-copy{margin-bottom:0!important;font-size:10px!important}
+}
+
+
+/* =========================================================
+   BOXOFFICEX MOBILE BURGER MENU VISIBILITY FIX
+========================================================= */
+.mobile-menu-button{
+    display:none !important;
+}
+
+@media (max-width:700px){
+    .mobile-menu-button{
+        display:flex !important;
+    }
+
+    header nav{
+        display:none !important;
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE LAYOUT + EXACT INDEX FOOTER FIX
+========================================================= */
+
+/* Exact index footer system */
+footer,
+.site-footer{
+    margin-top:42px!important;
+    background:#eef2f7!important;
+    border-top:1px solid #dce3eb!important;
+}
+.footer-inner{
+    width:100%!important;
+    max-width:1180px!important;
+    margin:auto!important;
+    padding:28px 18px 35px!important;
+    text-align:center!important;
+}
+.footer-brand{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:8px!important;
+    margin-bottom:8px!important;
+    color:#111827!important;
+    -webkit-text-fill-color:#111827!important;
+    font-size:18px!important;
+    font-weight:900!important;
+    letter-spacing:.5px!important;
+    text-decoration:none!important;
+}
+.footer-brand-icon,
+.footer-logo-icon{
+    width:32px!important;
+    height:32px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:9px!important;
+    background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+}
+.footer-brand strong{color:#111827!important;-webkit-text-fill-color:#111827!important}
+.footer-brand strong span,
+.footer-brand > span:last-child{
+    color:#b77900!important;
+    -webkit-text-fill-color:#b77900!important;
+}
+.footer-tagline{
+    max-width:620px!important;
+    margin:0 auto!important;
+    color:#667085!important;
+    font-size:10px!important;
+}
+.footer-links{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex-wrap:wrap!important;
+    gap:5px 16px!important;
+    margin:15px 0 10px!important;
+}
+.footer-links a,
+.footer-links a:link,
+.footer-links a:visited{
+    min-height:34px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    padding:6px 3px!important;
+    color:#475569!important;
+    -webkit-text-fill-color:#475569!important;
+    font-size:11px!important;
+    font-weight:700!important;
+    text-decoration:none!important;
+}
+.footer-links a:hover{
+    color:#2563eb!important;
+    -webkit-text-fill-color:#2563eb!important;
+}
+.footer-copy{
+    margin-top:10px!important;
+    color:#667085!important;
+    font-size:10px!important;
+}
+
+/* Burger is only the button. Menu must never remain visible by default. */
+.mobile-menu-button{display:none!important}
+@media(max-width:700px){
+    .mobile-menu-button{display:flex!important}
+    header nav{display:none!important}
+    header nav.mobile-menu-open{display:flex!important}
+
+    footer,.site-footer{
+        max-width:100%!important;
+        margin-top:35px!important;
+        background:#eef2f7!important;
+    }
+    .footer-inner{
+        max-width:100%!important;
+        padding:28px 13px!important;
+    }
+    .footer-brand{margin-bottom:8px!important}
+    .footer-tagline{max-width:290px!important;margin:0 auto!important}
+    .footer-links{gap:5px 12px!important;margin:13px 0 10px!important}
+    .footer-links a{font-size:10px!important;padding:5px 3px!important}
+}
+
+/* Articles page: fix overlapping hero/side rail at very small widths. */
+@media(max-width:700px){
+    .hero{
+        display:block!important;
+        width:100%!important;
+        max-width:100%!important;
+        overflow:hidden!important;
+    }
+    .hero-main{
+        width:100%!important;
+        min-height:315px!important;
+        margin:0 0 12px!important;
+    }
+    .hero > div{
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+    }
+    .hero-side{
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+        margin:0!important;
+        padding:0 0 5px!important;
+    }
+    .hero-side .side-card{
+        flex:0 0 84%!important;
+        min-width:0!important;
+    }
+    .latest-grid,
+    .trending{
+        width:100%!important;
+        max-width:100%!important;
+    }
+}
+
+
+/* =========================================================
+   EXACT INDEX.HTML FOOTER — ARTICLES
+========================================================= */
+footer{
+    margin-top:35px !important;
+    border-top:1px solid #dce3eb !important;
+    background:#eef2f7 !important;
+}
+
+.footer-inner{
+    width:100% !important;
+    max-width:1280px !important;
+    margin:auto !important;
+    padding:32px 18px calc(35px + env(safe-area-inset-bottom)) !important;
+    text-align:center !important;
+}
+
+.footer-brand{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:8px !important;
+    margin-bottom:10px !important;
+    color:#111827 !important;
+    -webkit-text-fill-color:#111827 !important;
+    font-size:18px !important;
+    font-weight:900 !important;
+    letter-spacing:.5px !important;
+    text-decoration:none !important;
+}
+
+.footer-brand-icon{
+    width:32px !important;
+    height:32px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border-radius:9px !important;
+    background:linear-gradient(135deg,#4d8dff,#795cff) !important;
+}
+
+.footer-brand strong{
+    color:#111827 !important;
+    -webkit-text-fill-color:#111827 !important;
+}
+
+.footer-brand strong span{
+    color:#b77900 !important;
+    -webkit-text-fill-color:#b77900 !important;
+}
+
+.footer-tagline{
+    max-width:620px !important;
+    margin:6px auto !important;
+    color:#667085 !important;
+    font-size:12px !important;
+    line-height:1.6 !important;
+}
+
+.footer-links{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex-wrap:wrap !important;
+    gap:6px 14px !important;
+    margin:15px 0 10px !important;
+}
+
+.footer-links a,
+.footer-links a:link,
+.footer-links a:visited{
+    min-height:34px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    padding:6px 3px !important;
+    color:#475569 !important;
+    -webkit-text-fill-color:#475569 !important;
+    font-size:11px !important;
+    font-weight:700 !important;
+    text-decoration:none !important;
+}
+
+.footer-links a:hover{
+    color:#2563eb !important;
+    -webkit-text-fill-color:#2563eb !important;
+}
+
+.footer-copy{
+    margin:10px 0 6px !important;
+    color:#667085 !important;
+    font-size:12px !important;
+    line-height:1.6 !important;
+}
+
+@media(max-width:700px){
+    footer{
+        margin-top:35px !important;
+        background:#eef2f7 !important;
+        border-top-color:#dce3eb !important;
+    }
+
+    .footer-inner{
+        width:100% !important;
+        max-width:1280px !important;
+        padding:32px 18px calc(35px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .footer-brand{
+        font-size:18px !important;
+        margin-bottom:10px !important;
+    }
+
+    .footer-tagline{
+        max-width:620px !important;
+        margin:6px auto !important;
+        font-size:12px !important;
+        line-height:1.6 !important;
+    }
+
+    .footer-links{
+        flex-wrap:wrap !important;
+        gap:6px 14px !important;
+        margin:15px 0 10px !important;
+    }
+
+    .footer-links a{
+        min-height:34px !important;
+        padding:6px 3px !important;
+        font-size:11px !important;
+    }
+
+    .footer-copy{
+        margin:10px 0 6px !important;
+        font-size:12px !important;
+    }
+}
+
 </style>
 </head>
 <body>
 <header>
 
     <div class="navbar">
+
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open mobile menu"
+            aria-expanded="false"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
         <a
             href="index.html"
@@ -834,18 +1438,6 @@ header nav .nav-compare:hover{
             BOXOFFICE<span>X</span>
 
         </a>
-
-        <button
-            type="button"
-            class="mobile-menu-button"
-            id="mobileMenuButton"
-            aria-label="Open mobile menu"
-            aria-expanded="false"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
 
 
         <nav aria-label="Main navigation">
@@ -865,10 +1457,10 @@ header nav .nav-compare:hover{
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+            <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
 
             <a href="movie-compare-select.html" class="nav-compare">
-                🎬 Movie Compare
+                🎬 Movie Comparison
             </a>
         </nav>
 
@@ -884,16 +1476,44 @@ header nav .nav-compare:hover{
 <div id="content"><div class="loading">Loading latest stories...</div></div>
 </main>
 
-<footer class="site-footer">
-<div class="footer-inner">
-<a href="/index.html" class="footer-brand"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
-<p class="footer-tagline">Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
-<div class="footer-links">
-<a href="/index.html">Home</a><a href="/new-movies.html">New Movies</a><a href="/movie-rankings.html">Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles</a><a href="/compare-select.html">Actor Compare</a><a href="/movie-compare-select.html">Movie Compare</a><a href="/about.html">About</a><a href="/contact.html">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/disclaimer.html">Disclaimer</a>
-</div>
-<p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
-</div>
+
+<footer>
+
+    <div class="footer-inner">
+
+        <a
+            href="index.html"
+            class="footer-brand"
+            aria-label="BoxOfficeX Home"
+        >
+            <span class="footer-brand-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </a>
+
+        <p class="footer-tagline">
+            Movie box-office collections, latest releases,
+            actors, verdicts, rankings and hero comparisons.
+        </p>
+
+        <nav
+            class="footer-links"
+            aria-label="Footer navigation"
+        >
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="disclaimer.html">Disclaimer</a>
+        </nav>
+
+        <p class="footer-copy">
+            © 2026 BoxOfficeX. All rights reserved.
+        </p>
+
+    </div>
+
 </footer>
+
 
 <div class="mobile-bottom-nav" aria-label="Mobile navigation">
 <a href="/index.html"><span>🏠</span><span>Home</span></a>
@@ -945,14 +1565,14 @@ const categories=["All",...new Set(allArticles.map(a=>a.category||"News"))];
 const trending=[...allArticles].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,6);
 
 document.getElementById("content").innerHTML=`
-<section class="hero">${heroMarkup(hero)}<div class="hero-side">${side.length?side.map(sideMarkup).join(""):`<div class="empty">More stories coming soon.</div>`}</div></section>
+<section class="hero">${heroMarkup(hero)}<div><div class="mobile-swipe-hint">↔ Swipe to explore more</div><div class="hero-side">${side.length?side.map(sideMarkup).join(""):`<div class="empty">More stories coming soon.</div>`}</div></div></section>
 
 <div class="section-head"><h2>Latest Stories</h2><span>${allArticles.length} published</span></div>
 <div class="category-tabs">${categories.map((c,i)=>`<button class="${i===0?"active":""}" data-category="${esc(c)}">${esc(c)}</button>`).join("")}</div>
-<section id="latestGrid" class="latest-grid">${latest.length?latest.map(cardMarkup).join(""):cardMarkup(hero)}</section>
+<div class="mobile-swipe-hint">↔ Swipe to explore more</div><section id="latestGrid" class="latest-grid">${latest.length?latest.map(cardMarkup).join(""):cardMarkup(hero)}</section>
 
 <div class="section-head"><h2>Trending</h2><span>Most-read BoxOfficeX stories</span></div>
-<section class="trending">${trending.map(trendMarkup).join("")}</section>`;
+<div class="mobile-swipe-hint">↔ Swipe to explore more</div><section class="trending">${trending.map(trendMarkup).join("")}</section>`;
 document.querySelectorAll(".category-tabs button").forEach(b=>b.onclick=()=>renderCategory(b.dataset.category));
 bindCards();
 }
@@ -1113,5 +1733,16 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 
+
+<script>
+(function() {
+    const productionUrl = "https://boxoffice-x.com/articles.html";
+    const canonicalTag = document.getElementById("canonicalUrl");
+    if (canonicalTag) canonicalTag.href = productionUrl;
+    const ogUrlTag = document.getElementById("ogUrl");
+    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
+})();
+</script>
+
 </body>
-</html>
+</html>cd

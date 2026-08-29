@@ -7,19 +7,21 @@
 <meta id="metaDescription" name="description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">
 <meta name="robots" content="index, follow">
 
-<link id="canonicalUrl" rel="canonical" href="">
+<link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/movie-compare.html">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BoxOfficeX">
 <meta id="ogTitle" property="og:title" content="Movie Box Office Comparison | BoxOfficeX">
 <meta id="ogDescription" property="og:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">
-<meta id="ogUrl" property="og:url" content="">
-<meta id="ogImage" property="og:image" content="">
+<meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/movie-compare.html">
+<meta id="ogImage" property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image:alt" content="Movie Box Office Comparison | BoxOfficeX">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta id="twitterTitle" name="twitter:title" content="Movie Box Office Comparison | BoxOfficeX">
 <meta id="twitterDescription" name="twitter:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">
-<meta id="twitterImage" name="twitter:image" content="">
+<meta id="twitterImage" name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image:alt" content="Movie Box Office Comparison | BoxOfficeX">
 
 <script id="comparisonStructuredData" type="application/ld+json"></script>
 <style>
@@ -109,12 +111,65 @@ h1{margin-top:7px;font-size:clamp(32px,5vw,52px);letter-spacing:-1.4px}
 }
 @media(max-width:340px){.footer-links a{padding-left:6px!important;padding-right:6px!important;font-size:7.5px!important}}
 
+
+
+/* =========================================================
+   BOXOFFICEX FINAL LIGHT STANDARD — MOVIE COMPARISON
+   Header/footer brand colors intentionally preserved.
+========================================================= */
+:root{
+  --bg:#f5f7fb;--panel:#ffffff;--border:#dfe5ee;--muted:#667085;
+  --text:#111827;--blue:#2563eb;--gold:#ffcc33;--red:#e43d4f;--green:#15803d;
+}
+body{background:#f5f7fb!important;color:#111827!important}
+header{background:rgba(255,255,255,.97)!important;border-bottom:1px solid #e3e8f0!important;box-shadow:0 5px 18px rgba(15,23,42,.07)!important}
+.navbar{background:#fff!important}
+.logo{color:#111827!important}
+.logo-icon{background:linear-gradient(135deg,#4d8dff,#795cff)!important;color:#fff!important}
+.logo span:last-child{color:#ffcc33!important}
+header nav a{color:#475467!important}
+header nav a:hover,header nav a.active{background:#eef4ff!important;color:#2563eb!important}
+header nav a.nav-compare,header nav a.nav-compare:link,header nav a.nav-compare:visited,header nav a.nav-compare:hover,header nav a.nav-compare:focus,header nav a.nav-compare:focus-visible,header nav a.nav-compare:active,header nav a.nav-compare.active{
+ background:linear-gradient(135deg,#e43d4f,#c92f40)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:transparent!important;text-decoration:none!important
+}
+header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738)!important}
+header nav a.nav-compare:active{background:linear-gradient(135deg,#c92f40,#a92131)!important}
+header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!important;outline-offset:2px!important}
+.eyebrow{color:#2563eb!important;background:#eef4ff!important;border-color:#c9d9ff!important}
+.change{background:#fff!important;color:#2563eb!important;border:1px solid #dbe4f0!important;box-shadow:0 5px 14px rgba(15,23,42,.05)}
+.movie-card,.table,.overall-result,.loading,.error{background:#fff!important;border-color:#dfe5ee!important;box-shadow:0 8px 24px rgba(15,23,42,.06)!important}
+.movie-card img{background:#eef1f5!important;border-color:#e2e8f0!important}
+.movie-card p,.overall-result .label2,.overall-result .score,.loading,.error{color:#667085!important}
+.row{border-bottom-color:#e7ebf1!important}
+.label{background:#f8fafc!important;color:#667085!important}
+.value{color:#111827!important}
+.winner{background:#edf9f1!important;color:#15803d!important}
+.winner:after{color:#15803d!important}
+.tie{color:#9a6700!important}.na{color:#98a2b3!important}
+.overall-result .winner-name{color:#15803d!important}.overall-result.tie-result .winner-name{color:#9a6700!important}
+.site-footer{background:#fff!important;border-top:1px solid #e3e8f0!important}
+.footer-brand{color:#111827!important}
+.footer-brand span{color:#ffcc33!important}
+.site-footer p{color:#667085!important}.footer-links a{color:#475467!important}.footer-links a:hover{color:#2563eb!important}
+.mobile-menu-button{background:#f8fafc!important;border-color:#d8dee8!important}
+.mobile-menu-button span{background:#111827!important}
+@media(max-width:700px){
+ header{background:#fff!important;border-bottom-color:#e3e8f0!important;box-shadow:0 5px 18px rgba(15,23,42,.08)!important}
+ .navbar{grid-template-columns:auto 1fr!important;background:#fff!important}
+ .mobile-menu-button{grid-column:1!important;grid-row:1!important;justify-self:start!important}
+ .logo{grid-column:2!important;grid-row:1!important;justify-self:start!important}
+ header nav{background:#fff!important;border-color:#dfe5ee!important;box-shadow:0 18px 45px rgba(15,23,42,.16)!important}
+ header nav a{color:#344054!important}
+ header nav a.nav-compare,header nav a.nav-compare:link,header nav a.nav-compare:visited,header nav a.nav-compare:hover,header nav a.nav-compare:focus,header nav a.nav-compare:focus-visible,header nav a.nav-compare:active,header nav a.nav-compare.active{background:linear-gradient(135deg,#e43d4f,#c92f40)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+ .site-footer{background:#fff!important}
+}
+
 </style>
 </head>
 <body>
 <header><div class="navbar">
 <a href="/index.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a><button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
-<nav><a href="/index.html">Home</a><a href="/new-movies.html">New Movies</a><a href="/movie-rankings.html">Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles</a><a class="nav-compare" href="/compare-select.html">⚔️ Actor Compare</a><a class="nav-compare active" href="/movie-compare-select.html">🎬 Movie Compare</a></nav>
+<nav><a href="/index.html">Home</a><a href="/new-movies.html">New Movies</a><a href="/movie-rankings.html">Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles</a><a class="nav-compare" href="/compare-select.html">⚔️ Actor Comparison</a><a class="nav-compare active" href="/movie-compare-select.html">🎬 Movie Comparison</a></nav>
 </div></header>
 
 <main id="app"><div class="loading">Loading comparison...</div></main>
@@ -368,5 +423,21 @@ document.addEventListener("DOMContentLoaded",function(){
  window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
 });
 </script>
+
+<script>
+(function() {
+    const productionUrl = "https://boxoffice-x.com/movie-compare.html";
+    const socialImage = "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const canonicalTag = document.getElementById("canonicalUrl");
+    if (canonicalTag) canonicalTag.href = productionUrl;
+    const ogUrlTag = document.getElementById("ogUrl");
+    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
+    const ogImageTag = document.getElementById("ogImage");
+    if (ogImageTag && !ogImageTag.getAttribute("content")) ogImageTag.setAttribute("content", socialImage);
+    const twitterImageTag = document.getElementById("twitterImage");
+    if (twitterImageTag && !twitterImageTag.getAttribute("content")) twitterImageTag.setAttribute("content", socialImage);
+})();
+</script>
+
 </body>
 </html>

@@ -33,7 +33,7 @@
 
     <meta
         name="theme-color"
-        content="#060912"
+        content="#f7f9fc"
     >
 
     <title>Movie Box Office Collection, Budget & Verdict | BoxOfficeX</title>
@@ -2068,6 +2068,28 @@ nav .nav-compare:hover{
     transform:translateY(-1px);
 }
 
+/* Comparison navigation contrast fix — preserve white text on touch/focus/visited */
+nav a.nav-compare,
+nav a.nav-compare:link,
+nav a.nav-compare:visited,
+nav a.nav-compare:hover,
+nav a.nav-compare:focus,
+nav a.nav-compare:focus-visible,
+nav a.nav-compare:active {
+    color:#fff !important;
+    -webkit-text-fill-color:#fff !important;
+}
+nav a.nav-compare:active {
+    background:linear-gradient(135deg,#cf2f3d,#ad2230) !important;
+    color:#fff !important;
+}
+nav a.nav-compare:focus,
+nav a.nav-compare:focus-visible {
+    background:linear-gradient(135deg,#e44250,#c52c3a) !important;
+    color:#fff !important;
+}
+
+
 .nav-item-with-badge{
     position:relative;
 }
@@ -2555,6 +2577,243 @@ footer{
     }
 }
 
+
+
+/* =====================================================
+   BOXOFFICEX LIGHT MASTER THEME — PUBLIC STANDARD
+   Homepage-aligned light shell + left mobile hamburger
+===================================================== */
+:root{
+    --bg:#f7f9fc;
+    --surface:#ffffff;
+    --surface-2:#f1f5fb;
+    --surface-3:#e9eff8;
+    --border:rgba(20,35,60,.11);
+    --border-strong:rgba(47,105,220,.30);
+    --text:#142033;
+    --muted:#66758d;
+    --muted-2:#8290a5;
+    --blue:#326fe5;
+    --blue-light:#326fe5;
+    --purple:#7457e8;
+    --gold:#c58a00;
+    --green:#258b4b;
+    --red:#e44250;
+}
+html{color-scheme:light;}
+body{
+    color:var(--text);
+    background:
+        radial-gradient(circle at 50% -10%,rgba(50,111,229,.10),transparent 32%),
+        radial-gradient(circle at 100% 30%,rgba(116,87,232,.06),transparent 25%),
+        linear-gradient(180deg,#fbfcfe 0%,#f7f9fc 48%,#f3f6fb 100%);
+}
+body::before{background:linear-gradient(rgba(20,35,60,.018) 1px,transparent 1px);}
+header,
+@media(min-width:701px){header{background:rgba(255,255,255,.92);}}
+header{background:rgba(255,255,255,.94);border-bottom-color:var(--border);box-shadow:0 8px 28px rgba(27,43,70,.08);}
+nav a{color:#46566f;}
+nav a:hover{background:rgba(50,111,229,.08);color:var(--blue);}
+.search-form{background:rgba(255,255,255,.98);box-shadow:0 12px 30px rgba(28,44,70,.10);}
+.search-form input{color:var(--text);}
+.search-form input::placeholder{color:#8a96a9;}
+#searchResults{background:#fff;box-shadow:0 18px 45px rgba(27,43,70,.16);}
+.search-result:hover{background:rgba(50,111,229,.06);}
+.search-result-icon{background:rgba(50,111,229,.09);}
+.back-button{background:#fff;color:#526078;}
+.movie-card,.select-movie-box{background:linear-gradient(145deg,#fff,#f8fafd);box-shadow:0 18px 50px rgba(28,44,70,.10);}
+.movie-poster{background:#e7edf6;border-color:var(--border);box-shadow:0 14px 35px rgba(28,44,70,.16);}
+.movie-label{background:rgba(50,111,229,.08);color:var(--blue);}
+.hero-tags span{background:#f1f5fb;color:#3f4d63;}
+.worldwide{background:linear-gradient(135deg,#fff8df,#fffdf6);border-color:rgba(197,138,0,.25);}
+.worldwide-label{color:#8b7540;}.worldwide-value{color:#b47c00;}
+.info-box{background:linear-gradient(145deg,#fff,#f4f7fb);}.info-value{color:#1d2a3e;}
+.verdict{background:linear-gradient(135deg,#eef9f1,#f8fcf9);border-color:rgba(37,139,75,.20);}
+.verdict-label{color:#66806d;}.verdict-value{color:#258b4b;}
+.weekly-card,.daily-card,.day-block{background:#fff;}
+.weekly-table th,.daily-table th,.day-block-title{background:#edf3fb;color:var(--blue);}
+.weekly-table td,.daily-table td,.day-state-table td{color:#334158;}
+.day-state-matrix th:first-child,.day-state-matrix td:first-child,
+.day-state-matrix th:nth-child(2),.day-state-matrix td:nth-child(2){background:#edf3fb;}
+.day-state-matrix tbody td:first-child,.day-state-matrix tbody td:nth-child(2){background:#fff;}
+.day-state-matrix .week-summary-row td:first-child,.day-state-matrix .week-summary-row td:nth-child(2){background:#e8f0fb;}
+footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
+.footer-links a{color:#596b85;}
+.mobile-scroll-hint{border-color:rgba(50,111,229,.16);background:rgba(50,111,229,.06);color:#326fe5;}
+.mobile-scroll-hint span{color:#c58a00;}
+
+@media(max-width:700px){
+    header{background:#fff !important;border-bottom:1px solid #e1e7f0 !important;box-shadow:0 7px 20px rgba(27,43,70,.10) !important;}
+    .navbar{
+        background:#fff !important;
+        grid-template-columns:auto 1fr !important;
+        justify-content:start !important;
+    }
+    .mobile-menu-button{
+        grid-column:1 !important;
+        grid-row:1 !important;
+        background:#f2f5fa !important;
+        border-color:#dce4ef !important;
+        order:-1 !important;
+    }
+    .mobile-menu-button span{background:#25334a !important;}
+    .logo{
+        grid-column:2 !important;
+        grid-row:1 !important;
+        justify-self:start !important;
+    }
+    header nav{
+        left:10px !important;
+        right:10px !important;
+        background:#fff !important;
+        border-color:#dce4ef !important;
+        box-shadow:0 18px 45px rgba(27,43,70,.16) !important;
+    }
+    header nav a{color:#3f4d63 !important;}
+    header nav .nav-compare{color:#fff !important;}
+    .weekly-card,.daily-card,.day-block{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
+}
+
+
+/* =========================================================
+   BOXOFFICEX BOX OFFICE TABLE READABILITY FIX
+   Strong contrast for day-wise + weekly collection values.
+========================================================= */
+
+/* Main day-wise table */
+.day-state-matrix{
+    background:#ffffff !important;
+}
+
+.day-state-matrix th{
+    background:#eaf1fb !important;
+    color:#2459b8 !important;
+    font-weight:900 !important;
+    border-bottom:1px solid #cfd9e8 !important;
+}
+
+.day-state-matrix td{
+    background:#ffffff !important;
+    color:#1f2937 !important;
+    font-weight:700 !important;
+    border-bottom:1px solid #e2e8f0 !important;
+}
+
+/* Sticky Day column stays clearly visible */
+.day-state-matrix th:first-child{
+    background:#eaf1fb !important;
+    color:#2459b8 !important;
+}
+.day-state-matrix tbody td:first-child{
+    background:#ffffff !important;
+    color:#1d4ed8 !important;
+    font-weight:900 !important;
+}
+
+/* Date column */
+.day-state-matrix tbody td:nth-child(2){
+    background:#ffffff !important;
+    color:#334155 !important;
+    font-weight:800 !important;
+}
+
+/* State / territory collection values */
+.day-state-matrix .day-value{
+    color:#15803d !important;
+    -webkit-text-fill-color:#15803d !important;
+    font-weight:900 !important;
+}
+
+/* India / Overseas / Worldwide totals */
+.day-state-matrix .overall-value{
+    color:#a16207 !important;
+    -webkit-text-fill-color:#a16207 !important;
+    font-weight:1000 !important;
+}
+
+/* Empty values should remain muted without looking disabled */
+.day-state-matrix td:not(.day-value):not(.overall-value){
+    opacity:1 !important;
+}
+
+/* Weekly summary row — clearly separated from daily rows */
+.day-state-matrix .week-summary-row td{
+    background:#dce9fb !important;
+    color:#173f7a !important;
+    -webkit-text-fill-color:#173f7a !important;
+    font-weight:1000 !important;
+    border-top:2px solid #9ebce8 !important;
+    border-bottom:2px solid #9ebce8 !important;
+}
+
+.day-state-matrix .week-summary-row td:first-child,
+.day-state-matrix .week-summary-row td:nth-child(2){
+    background:#cfe0f6 !important;
+    color:#173f7a !important;
+    -webkit-text-fill-color:#173f7a !important;
+}
+
+/* Preserve stronger semantic colors inside weekly summary cells */
+.day-state-matrix .week-summary-row .day-value{
+    color:#166534 !important;
+    -webkit-text-fill-color:#166534 !important;
+}
+.day-state-matrix .week-summary-row .overall-value{
+    color:#92400e !important;
+    -webkit-text-fill-color:#92400e !important;
+}
+
+/* Other daily / weekly tables on movie page */
+.daily-table td,
+.weekly-table td{
+    color:#1f2937 !important;
+    background:#ffffff !important;
+    font-weight:700 !important;
+}
+
+.daily-collection{
+    color:#15803d !important;
+    -webkit-text-fill-color:#15803d !important;
+    font-weight:900 !important;
+}
+
+.weekly-collection{
+    color:#92400e !important;
+    -webkit-text-fill-color:#92400e !important;
+    font-weight:1000 !important;
+}
+
+.week-number{
+    color:#1d4ed8 !important;
+    -webkit-text-fill-color:#1d4ed8 !important;
+    font-weight:1000 !important;
+}
+
+.weekly-table tr:hover td,
+.daily-table tr:hover td{
+    background:#f8fafc !important;
+}
+
+@media(max-width:700px){
+    .day-state-matrix th,
+    .day-state-matrix td{
+        font-size:11px !important;
+    }
+
+    .day-state-matrix th:first-child,
+    .day-state-matrix td:first-child{
+        box-shadow:6px 0 12px rgba(15,23,42,.10) !important;
+    }
+
+    .day-state-matrix .week-summary-row td{
+        background:#dce9fb !important;
+    }
+
+    .day-state-matrix .week-summary-row td:first-child{
+        background:#cfe0f6 !important;
+    }
+}
+
 </style>
 
 </head>
@@ -2571,6 +2830,19 @@ footer{
 
     <div class="navbar">
 
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+
         <a
             href="index.html"
             class="logo"
@@ -2583,17 +2855,6 @@ footer{
             BOXOFFICE<span>X</span>
 
         </a>
-        <button
-            type="button"
-            class="mobile-menu-button"
-            id="mobileMenuButton"
-            aria-label="Open navigation menu"
-            aria-expanded="false"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
 
 
 
@@ -2614,11 +2875,11 @@ footer{
             </a>
 
             <a href="compare-select.html" class="nav-compare">
-                ⚔️ Actor Compare
+                ⚔️ Actor Comparison
             </a>
 
             <a href="movie-compare-select.html" class="nav-compare">
-                🎬 Movie Compare
+                🎬 Movie Comparison
             </a>
         </nav>
 
@@ -4457,21 +4718,14 @@ footer{
             ". View day-wise and state-wise box office details on BoxOfficeX.";
 
         const canonical =
-            window.location.origin +
-            window.location.pathname +
-            "?id=" +
+            "https://boxoffice-x.com/movie.html?id=" +
             encodeURIComponent(movieId);
 
         const posterUrl =
             movie.poster
-                ? new URL(
-                    "posters/" + encodeURIComponent(movie.poster),
-                    window.location.href
-                ).href
-                : new URL(
-                    "posters/coming-soon.png",
-                    window.location.href
-                ).href;
+                ? "https://boxoffice-x.com/posters/" +
+                  encodeURIComponent(movie.poster)
+                : "https://boxoffice-x.com/posters/coming-soon.png";
 
         document.title = title;
 

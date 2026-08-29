@@ -22,7 +22,7 @@
         content="index, follow"
     >
 
-    <link id="canonicalUrl" rel="canonical" href="">
+    <link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/compare-select.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BoxOfficeX">
@@ -36,10 +36,12 @@
         property="og:description"
         content="Compare two actors by movies, box office collections, hits, blockbusters and career performance on BoxOfficeX."
     >
+<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image:alt" content="Compare Actors - Movies, Box Office & Career | BoxOfficeX">
 
-    <meta id="ogUrl" property="og:url" content="">
+    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/compare-select.html">
 
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
 
     <meta
         name="twitter:title"
@@ -50,6 +52,8 @@
         name="twitter:description"
         content="Compare two actors by movies, box office collections, hits, blockbusters and career performance on BoxOfficeX."
     >
+<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image:alt" content="Compare Actors - Movies, Box Office & Career | BoxOfficeX">
 
     <script
         id="compareSelectStructuredData"
@@ -659,6 +663,141 @@ main{max-width:980px;padding:28px 18px 54px}
 }
 @media(max-width:340px){.footer-links a{padding-left:6px!important;padding-right:6px!important;font-size:7.5px!important}}
 
+
+
+/* =========================================================
+   BOXOFFICEX FINAL LIGHT MASTER — ACTOR COMPARISON SELECT
+========================================================= */
+:root{
+    --bx-bg:#f5f7fb;
+    --bx-surface:#ffffff;
+    --bx-surface-soft:#f8fafc;
+    --bx-text:#111827;
+    --bx-muted:#667085;
+    --bx-border:#dfe5ee;
+    --bx-blue:#2563eb;
+    --bx-red:#e43d4f;
+}
+html{color-scheme:light!important}
+body{
+    background:linear-gradient(180deg,#f5f7fb 0%,#ffffff 100%)!important;
+    color:var(--bx-text)!important;
+}
+header{
+    background:rgba(255,255,255,.96)!important;
+    border-bottom:1px solid var(--bx-border)!important;
+    box-shadow:0 6px 22px rgba(15,23,42,.07)!important;
+}
+.logo{color:#111827!important}
+.logo span:last-child{color:#b77900!important}
+.logo-icon{background:linear-gradient(135deg,#2563eb,#6d5dfc)!important}
+header nav a{color:#475467!important}
+header nav a:hover{background:#eef4ff!important;color:#1d4ed8!important}
+header nav a:not(.nav-compare).active{background:#eef4ff!important;color:#1d4ed8!important}
+
+/* Comparison links stay readable in every browser/touch state. */
+header nav a.nav-compare,
+header nav a.nav-compare:link,
+header nav a.nav-compare:visited,
+header nav a.nav-compare:hover,
+header nav a.nav-compare:focus,
+header nav a.nav-compare:focus-visible,
+header nav a.nav-compare:active,
+header nav a.nav-compare.active{
+    background:linear-gradient(135deg,#e43d4f,#c92f40)!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    border-color:transparent!important;
+    text-decoration:none!important;
+}
+header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738)!important}
+header nav a.nav-compare:active{background:linear-gradient(135deg,#c92f40,#a92131)!important;transform:translateY(0)!important}
+header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.25)!important;outline-offset:2px!important}
+
+main{color:var(--bx-text)!important}
+.page-header::before{background:#eef4ff!important;border-color:#cbdcff!important;color:#2563eb!important}
+.page-header p,.message{color:var(--bx-muted)!important}
+.hero-selector{
+    background:#fff!important;
+    border:1px solid var(--bx-border)!important;
+    box-shadow:0 12px 32px rgba(15,23,42,.07)!important;
+}
+.search-input{
+    background:#f8fafc!important;
+    color:#111827!important;
+    border:1px solid #d8e0eb!important;
+}
+.search-input::placeholder{color:#98a2b3!important}
+.search-input:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,.10)!important}
+.search-results{
+    background:#fff!important;
+    border:1px solid var(--bx-border)!important;
+    box-shadow:0 14px 32px rgba(15,23,42,.13)!important;
+}
+.search-result{color:#1f2937!important;border-bottom-color:#edf0f5!important}
+.search-result:hover{background:#f2f6ff!important}
+.selected-hero-name{color:#111827!important}
+.remove-hero{color:#d92d20!important}
+.vs{color:#fff!important;background:linear-gradient(135deg,#e43d4f,#c92f40)!important}
+.compare-button{background:linear-gradient(135deg,#e43d4f,#c92f40)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.compare-button:focus-visible{outline:3px solid rgba(228,61,79,.25)!important;outline-offset:2px!important}
+.compare-button:disabled{background:#cbd5e1!important;color:#64748b!important;-webkit-text-fill-color:#64748b!important}
+.site-footer{background:#fff!important;border-top:1px solid var(--bx-border)!important}
+.footer-brand{color:#111827!important}
+.footer-brand strong>span{color:#e43d4f!important}
+.site-footer p{color:#667085!important}
+.footer-links a{color:#475467!important}
+.footer-links a:hover{color:#2563eb!important}
+
+@media(max-width:700px){
+    body{padding-top:61px!important;padding-bottom:0!important;background:#f5f7fb!important}
+    header{background:#fff!important;border-bottom:1px solid #dfe5ee!important;box-shadow:0 5px 18px rgba(15,23,42,.08)!important}
+    .navbar{
+        background:#fff!important;
+        grid-template-columns:auto 1fr!important;
+        justify-content:start!important;
+    }
+    .mobile-menu-button{
+        grid-column:1!important;grid-row:1!important;
+        background:#f8fafc!important;border:1px solid #dfe5ee!important;
+    }
+    .mobile-menu-button span{background:#111827!important}
+    .logo{grid-column:2!important;grid-row:1!important;justify-self:start!important}
+    header nav{
+        background:#fff!important;
+        border:1px solid #dfe5ee!important;
+        box-shadow:0 18px 40px rgba(15,23,42,.16)!important;
+    }
+    header nav a{color:#344054!important}
+    header nav a.nav-compare,
+    header nav a.nav-compare:link,
+    header nav a.nav-compare:visited,
+    header nav a.nav-compare:hover,
+    header nav a.nav-compare:focus,
+    header nav a.nav-compare:focus-visible,
+    header nav a.nav-compare:active,
+    header nav a.nav-compare.active{
+        background:linear-gradient(135deg,#e43d4f,#c92f40)!important;
+        color:#fff!important;
+        -webkit-text-fill-color:#fff!important;
+    }
+    .site-footer{background:#fff!important}
+}
+
+
+
+/* =========================================================
+   BOXOFFICEX FOOTER MASTER FIX
+========================================================= */
+.site-footer{background:#eef2f7!important;border-top:1px solid #dce3eb!important;}
+.footer-brand,.footer-brand:link,.footer-brand:visited,.footer-brand:hover{color:#111827!important;-webkit-text-fill-color:#111827!important;text-decoration:none!important;}
+.footer-brand strong>span{color:#ffcc33!important;-webkit-text-fill-color:#ffcc33!important;}
+.footer-logo-icon{background:linear-gradient(135deg,#4d8dff,#795cff)!important;}
+.site-footer p{color:#667085!important;}
+.footer-links a,.footer-links a:link,.footer-links a:visited{color:#475569!important;-webkit-text-fill-color:#475569!important;}
+.footer-links a:hover{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important;}
+@media(max-width:700px){.site-footer{background:#eef2f7!important;border-top-color:#dce3eb!important;}}
+
 </style>
 
 </head>
@@ -668,10 +807,12 @@ main{max-width:980px;padding:28px 18px 54px}
 <header>
     <div class="navbar">
 
+        <button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
+
         <a href="index.html" class="logo" aria-label="BoxOfficeX Home">
             <span class="logo-icon">🎬</span>
             BOXOFFICE<span>X</span>
-        </a><button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </a>
 
         <nav aria-label="Main navigation">
             <a href="index.html">Home</a>
@@ -685,8 +826,8 @@ main{max-width:980px;padding:28px 18px 54px}
                 Articles
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
-            <a href="compare-select.html" class="nav-compare active">⚔️ Actor Compare</a>
-            <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+            <a href="compare-select.html" class="nav-compare active">⚔️ Actor Comparison</a>
+            <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
         </nav>
 
     </div>
@@ -1310,6 +1451,22 @@ document.addEventListener("DOMContentLoaded",function(){
  window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
 });
 </script>
+
+<script>
+(function() {
+    const productionUrl = "https://boxoffice-x.com/compare-select.html";
+    const socialImage = "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const canonicalTag = document.getElementById("canonicalUrl");
+    if (canonicalTag) canonicalTag.href = productionUrl;
+    const ogUrlTag = document.getElementById("ogUrl");
+    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
+    const ogImageTag = document.getElementById("ogImage");
+    if (ogImageTag && !ogImageTag.getAttribute("content")) ogImageTag.setAttribute("content", socialImage);
+    const twitterImageTag = document.getElementById("twitterImage");
+    if (twitterImageTag && !twitterImageTag.getAttribute("content")) twitterImageTag.setAttribute("content", socialImage);
+})();
+</script>
+
 </body>
 
 </html>

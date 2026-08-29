@@ -28,6 +28,7 @@ BASE_DIR = Path(
 POSTERS_DIR = BASE_DIR / "posters"
 ACTORS_DIR = BASE_DIR / "actors"
 ARTICLE_IMAGES_DIR = BASE_DIR / "article-images"
+IMAGES_DIR = BASE_DIR / "images"
 ARTICLE_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_MOVIE_POSTER = "coming-soon.png"
@@ -65,7 +66,17 @@ print("LEO POSTER EXISTS:", (POSTERS_DIR / "leo.jpg").exists())
 # FASTAPI APP
 # ============================================================
 
-app = FastAPI(title="BoxOfficeX API")
+IS_PRODUCTION = (
+    os.getenv("BOXOFFICEX_ENV", "").strip().lower() == "production"
+    or bool(os.getenv("RENDER"))
+)
+
+app = FastAPI(
+    title="BoxOfficeX API",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
+)
 
 
 # ============================================================
@@ -84,6 +95,11 @@ SESSION_SECRET = os.getenv(
     "CHANGE_ME_BOXOFFICEX_SESSION_SECRET_2026"
 )
 
+if IS_PRODUCTION and SESSION_SECRET == "CHANGE_ME_BOXOFFICEX_SESSION_SECRET_2026":
+    raise RuntimeError(
+        "BOXOFFICEX_SESSION_SECRET must be set to a strong random value in production."
+    )
+
 # The first Owner is bootstrapped from your current admin password so
 # switching to multi-admin does not lock you out.
 BOOTSTRAP_OWNER_EMAIL = os.getenv(
@@ -99,16 +115,29 @@ BOOTSTRAP_OWNER_PASSWORD = os.getenv(
     )
 )
 
+if IS_PRODUCTION:
+    if BOOTSTRAP_OWNER_PASSWORD == "CHANGE_ME_BOXOFFICEX_ADMIN_PASSWORD":
+        raise RuntimeError(
+            "BOXOFFICEX_OWNER_PASSWORD must be set in production."
+        )
+    if len(BOOTSTRAP_OWNER_PASSWORD) < 12:
+        raise RuntimeError(
+            "BOXOFFICEX_OWNER_PASSWORD must be at least 12 characters in production."
+        )
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=SESSION_SECRET,
     session_cookie="boxofficex_admin_session",
     max_age=60 * 60 * 8,
     same_site="lax",
-    https_only=os.getenv(
-        "BOXOFFICEX_HTTPS_ONLY",
-        "false"
-    ).strip().lower() in {"1", "true", "yes", "on"}
+    https_only=(
+        IS_PRODUCTION
+        or os.getenv(
+            "BOXOFFICEX_HTTPS_ONLY",
+            "false"
+        ).strip().lower() in {"1", "true", "yes", "on"}
+    )
 )
 
 
@@ -227,9 +256,6 @@ def _role_can_access(role: str, request: Request) -> bool:
             path.startswith("/admin/articles")
             or path.startswith("/admin/article-blocks")
             or path.startswith("/admin/article-images")
-            # Article Admin may sync its linked movie's daily box-office
-            # in one protected bulk request.
-            or path == "/admin/movie-collections/bulk-sync"
         )
 
     # Movie/actor/box-office permissions.
@@ -1177,13 +1203,51 @@ def owner_admin_sessions(
 # CORS
 # ============================================================
 
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "BOXOFFICEX_CORS_ORIGINS",
+        (
+            "https://boxoffice-x.com,"
+            "https://www.boxoffice-x.com"
+            if IS_PRODUCTION
+            else
+            "http://127.0.0.1:8000,http://localhost:8000"
+        )
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Accept", "Authorization", "Content-Type"],
 )
+
+
+# ============================================================
+# PRODUCTION SECURITY HEADERS
+# ============================================================
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = (
+        "camera=(), microphone=(), geolocation=()"
+    )
+
+    if IS_PRODUCTION:
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+
+    return response
 
 
 # ============================================================
@@ -1206,6 +1270,12 @@ app.mount(
     "/article-images",
     StaticFiles(directory=ARTICLE_IMAGES_DIR),
     name="article-images"
+)
+
+app.mount(
+    "/images",
+    StaticFiles(directory=IMAGES_DIR),
+    name="images"
 )
 
 
@@ -1341,13 +1411,21 @@ LOCAL_DATABASE_URL = os.getenv(
     "postgresql://postgres:5432@localhost/boxofficex"
 )
 
-DATABASE_URL = os.getenv("DATABASE_URL", LOCAL_DATABASE_URL)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if IS_PRODUCTION and not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL must be set in production."
+    )
+
+if not DATABASE_URL:
+    DATABASE_URL = LOCAL_DATABASE_URL
 
 
 def get_connection():
     """
-    Use Render/production DATABASE_URL when available.
-    Falls back to the existing local PostgreSQL database on this laptop.
+    Production uses DATABASE_URL.
+    Local development falls back to BOXOFFICEX_LOCAL_DATABASE_URL.
     """
     return psycopg.connect(DATABASE_URL)
 
@@ -3082,6 +3160,19 @@ def actor_rankings(language: str = "All"):
 @app.get("/rankings/movies")
 def movie_rankings(industry: str = "All"):
 
+    # Industry -> language fallback
+    industry_language_map = {
+        "kollywood": "Tamil",
+        "tollywood": "Telugu",
+        "bollywood": "Hindi",
+        "sandalwood": "Kannada",
+        "mollywood": "Malayalam",
+        "hollywood": "English",
+    }
+
+    requested_industry = (industry or "All").strip()
+    industry_key = requested_industry.lower()
+
     with get_connection() as conn:
 
         with conn.cursor() as cur:
@@ -3090,7 +3181,7 @@ def movie_rankings(industry: str = "All"):
             # GLOBAL RANKINGS
             # ==========================================
 
-            if industry.lower() == "all":
+            if industry_key == "all":
 
                 cur.execute("""
                     SELECT
@@ -3105,8 +3196,7 @@ def movie_rankings(industry: str = "All"):
                     FROM movies
                     WHERE worldwide_collection_crore IS NOT NULL
                       AND worldwide_collection_crore > 0
-                    ORDER BY
-                        worldwide_collection_crore DESC
+                    ORDER BY worldwide_collection_crore DESC
                     LIMIT 100;
                 """)
 
@@ -3116,67 +3206,72 @@ def movie_rankings(industry: str = "All"):
 
             else:
 
-                cur.execute("""
-                    SELECT
-                        id,
-                        title,
-                        language,
-                        industry,
-                        release_date,
-                        worldwide_collection_crore,
-                        verdict,
-                        poster
-                    FROM movies
-                    WHERE LOWER(industry) = LOWER(%s)
-                      AND worldwide_collection_crore IS NOT NULL
-                      AND worldwide_collection_crore > 0
-                    ORDER BY
-                        worldwide_collection_crore DESC
-                    LIMIT 100;
-                """, (industry,))
+                language = industry_language_map.get(industry_key)
+
+                if language:
+
+                    cur.execute("""
+                        SELECT
+                            id,
+                            title,
+                            language,
+                            industry,
+                            release_date,
+                            worldwide_collection_crore,
+                            verdict,
+                            poster
+                        FROM movies
+                        WHERE (
+                            LOWER(TRIM(COALESCE(industry, ''))) = LOWER(%s)
+                            OR LOWER(TRIM(COALESCE(language, ''))) = LOWER(%s)
+                        )
+                          AND worldwide_collection_crore IS NOT NULL
+                          AND worldwide_collection_crore > 0
+                        ORDER BY worldwide_collection_crore DESC
+                        LIMIT 100;
+                    """, (requested_industry, language))
+
+                else:
+
+                    cur.execute("""
+                        SELECT
+                            id,
+                            title,
+                            language,
+                            industry,
+                            release_date,
+                            worldwide_collection_crore,
+                            verdict,
+                            poster
+                        FROM movies
+                        WHERE LOWER(TRIM(COALESCE(industry, ''))) = LOWER(%s)
+                          AND worldwide_collection_crore IS NOT NULL
+                          AND worldwide_collection_crore > 0
+                        ORDER BY worldwide_collection_crore DESC
+                        LIMIT 100;
+                    """, (requested_industry,))
 
             rows = cur.fetchall()
-
 
     rankings = []
 
     for position, row in enumerate(rows, start=1):
 
         rankings.append({
-
             "rank": position,
-
             "id": row[0],
-
             "title": row[1],
-
             "language": row[2],
-
             "industry": row[3],
-
-            "release_date":
-                str(row[4])
-                if row[4]
-                else None,
-
-            "worldwide_collection":
-                float(row[5] or 0),
-
-            "verdict":
-                row[6],
-
-            "poster":
-                safe_movie_poster(row[7])
-
+            "release_date": str(row[4]) if row[4] else None,
+            "worldwide_collection": float(row[5] or 0),
+            "verdict": row[6],
+            "poster": safe_movie_poster(row[7])
         })
 
-
     return {
-
-        "industry": industry,
-
+        "industry": requested_industry,
         "rankings": rankings
-
     }
 
 
@@ -3485,20 +3580,9 @@ class BulkMovieCollectionSync(BaseModel):
     days: list[BulkMovieCollectionDay]
 
 
-@app.post(
-    "/admin/movie-collections/bulk-sync",
-    dependencies=[Depends(require_admin)]
-)
-def admin_bulk_sync_movie_collections(
-    data: BulkMovieCollectionSync
-):
-    """
-    Fast Article Admin -> Movie sync.
-
-    Replaces all daily regional rows for one linked movie using a
-    single HTTP request and one PostgreSQL transaction.
-    """
-
+@app.post("/admin/movie-collections/bulk-sync", dependencies=[Depends(require_admin)])
+def admin_bulk_sync_movie_collections(data: BulkMovieCollectionSync):
+    """Replace one movie's daily territory rows in one DB transaction."""
     territories = (
         ("Tamil Nadu", "tamil_nadu"),
         ("Kerala", "kerala"),
@@ -3510,54 +3594,48 @@ def admin_bulk_sync_movie_collections(
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
-            cur.execute("""
-                SELECT id
-                FROM movies
-                WHERE id = %s
-            """, (data.movie_id,))
-
+            cur.execute("SELECT id FROM movies WHERE id = %s", (data.movie_id,))
             if not cur.fetchone():
-                raise HTTPException(
-                    status_code=404,
-                    detail="Linked movie not found"
-                )
+                raise HTTPException(status_code=404, detail="Movie not found")
 
-            # Article Admin's daily table is authoritative for this movie.
-            cur.execute("""
-                DELETE FROM movie_daily_collections
-                WHERE movie_id = %s
-            """, (data.movie_id,))
+            cur.execute(
+                "DELETE FROM movie_daily_collections WHERE movie_id = %s",
+                (data.movie_id,)
+            )
 
             rows = []
+            india_total = 0.0
+            overseas_total = 0.0
 
             for day in data.days:
-                for state, field_name in territories:
-                    rows.append((
-                        data.movie_id,
-                        day.date,
-                        state,
-                        float(getattr(day, field_name) or 0)
-                    ))
+                for state, field in territories:
+                    amount = float(getattr(day, field) or 0)
+                    rows.append((data.movie_id, day.date, state, amount))
+                    if state == "Overseas":
+                        overseas_total += amount
+                    else:
+                        india_total += amount
 
             if rows:
                 cur.executemany("""
-                    INSERT INTO movie_daily_collections (
-                        movie_id,
-                        collection_date,
-                        state,
-                        collection_crore
-                    )
+                    INSERT INTO movie_daily_collections
+                        (movie_id, collection_date, state, collection_crore)
                     VALUES (%s, %s, %s, %s)
                 """, rows)
 
-        # Force headline totals to match the newly-saved Article Admin data,
-        # including older/final movies as well as currently-running movies.
-        totals = sync_running_movie_totals(
-            conn,
-            data.movie_id,
-            force=True
-        )
+            worldwide_total = india_total + overseas_total
+            cur.execute("""
+                UPDATE movies
+                SET india_collection_crore = %s,
+                    overseas_collection_crore = %s,
+                    worldwide_collection_crore = %s
+                WHERE id = %s
+            """, (
+                india_total,
+                overseas_total,
+                worldwide_total,
+                data.movie_id
+            ))
 
         conn.commit()
 
@@ -3566,7 +3644,9 @@ def admin_bulk_sync_movie_collections(
         "movie_id": data.movie_id,
         "days_saved": len(data.days),
         "rows_saved": len(rows),
-        "live_totals": totals
+        "india_collection_crore": round(india_total, 2),
+        "overseas_collection_crore": round(overseas_total, 2),
+        "worldwide_collection_crore": round(worldwide_total, 2),
     }
 
 

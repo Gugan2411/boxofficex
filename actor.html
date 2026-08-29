@@ -1728,6 +1728,66 @@ footer{margin-top:42px;background:linear-gradient(180deg,#080c16,#050810)}
     }
 }
 
+
+
+/* =========================================================
+   BOXOFFICEX LIGHT MASTER — ACTOR PROFILE FINAL
+========================================================= */
+:root{
+  --bg:#f5f7fb !important;--panel:#ffffff !important;--panel-2:#f8fafc !important;
+  --border:#dbe3ee !important;--muted:#64748b !important;--blue:#2563eb !important;
+  --blue-light:#2563eb !important;--gold:#d97706 !important;--red:#dc2626 !important;
+}
+html{color-scheme:light}
+body{background:#f5f7fb !important;color:#111827 !important}
+header{background:rgba(255,255,255,.96) !important;border-bottom:1px solid #dbe3ee !important;box-shadow:0 4px 18px rgba(15,23,42,.06) !important}
+.navbar{background:transparent !important}
+.logo,.logo:link,.logo:visited{color:#111827 !important}
+.logo span:last-child{color:#d97706 !important}
+header nav a,header nav a:link,header nav a:visited{color:#475569 !important}
+header nav a:hover,header nav a.active{background:#eff6ff !important;color:#2563eb !important}
+header .nav-compare,header .nav-compare:link,header .nav-compare:visited{background:#dc2626 !important;color:#fff !important;border-color:#dc2626 !important;-webkit-tap-highlight-color:transparent;box-shadow:0 7px 18px rgba(220,38,38,.16) !important}
+header .nav-compare:hover{background:#b91c1c !important;color:#fff !important}
+header .nav-compare:active{background:#991b1b !important;color:#fff !important}
+header .nav-compare:focus,header .nav-compare:focus-visible{background:#dc2626 !important;color:#fff !important;outline:3px solid rgba(220,38,38,.22) !important;outline-offset:2px}
+.search-form{background:#fff !important;border-color:#dbe3ee !important;box-shadow:0 10px 28px rgba(15,23,42,.08) !important}
+.search-form input{color:#111827 !important}.search-form input::placeholder{color:#94a3b8 !important}
+#searchResults{background:#fff !important;border-color:#dbe3ee !important;box-shadow:0 16px 36px rgba(15,23,42,.14) !important}
+.search-result{border-bottom-color:#e5e7eb !important}.search-result:hover{background:#f8fafc !important}.search-result-icon{background:#eff6ff !important}
+.actor,.section,.verdict-section{background:#fff !important;border-color:#dbe3ee !important;box-shadow:0 10px 28px rgba(15,23,42,.05) !important}
+.actor{background:linear-gradient(145deg,#fff,#f8fafc) !important}
+#actorPhoto{background:#e2e8f0 !important}
+#profession{color:#d97706 !important}#bio,.overview-label,.top-movie-collection,.movie-info,.verdict-subtitle,.verdict-movie-card p,.loading-message,.career-overview-hint{color:#64748b !important}
+.overview-card,.top-movie-card,.movie-item,.verdict-card,.verdict-movie-card{background:#f8fafc !important;border-color:#e2e8f0 !important;color:#111827 !important}
+.overview-card:hover,.top-movie-card:hover,.movie-item:hover,.verdict-card:hover,.verdict-movie-card:hover{background:#f1f5f9 !important;border-color:#bfdbfe !important}
+.overview-highlight-card{background:linear-gradient(145deg,#fffbeb,#f8fafc) !important;border-color:#fde68a !important}
+.overview-verdict-card.active-verdict{background:#fff1f2 !important;border-color:#fda4af !important}
+.overview-verdict-card:hover,.overview-verdict-card:focus-visible{background:#f1f5f9 !important;border-color:#93c5fd !important}
+.overview-verdict-card::after{color:#2563eb !important}.overview-verdict-card.active-verdict::after{color:#dc2626 !important}
+.movie-verdict,.verdict-movie-card .verdict-text{color:#d97706 !important}.close-verdict{background:#e2e8f0 !important;color:#111827 !important}.close-verdict:hover{background:#cbd5e1 !important}
+footer{background:#fff !important;border-top:1px solid #dbe3ee !important}.footer-brand,.footer-brand:visited{color:#111827 !important}.footer-tagline,.footer-copy{color:#64748b !important}.footer-links a,.footer-links a:visited{color:#475569 !important}.footer-links a:hover{color:#2563eb !important}
+.swipe-hint{display:none;color:#64748b;font-size:11px;font-weight:700;margin:2px 0 10px}
+
+@media(max-width:700px){
+  body{padding-top:61px !important;background:#f5f7fb !important}
+  header{background:#fff !important;border-bottom-color:#dbe3ee !important;box-shadow:0 5px 18px rgba(15,23,42,.08) !important}
+  .navbar{grid-template-columns:auto 1fr !important;background:#fff !important}
+  .mobile-menu-button{grid-column:1 !important;grid-row:1 !important;justify-self:start !important;background:#f8fafc !important;border-color:#cbd5e1 !important}
+  .mobile-menu-button span{background:#111827 !important}
+  .logo{grid-column:2 !important;grid-row:1 !important;justify-self:start !important}
+  header nav{background:#fff !important;border-color:#dbe3ee !important;box-shadow:0 18px 40px rgba(15,23,42,.16) !important}
+  header nav a,header nav a:link,header nav a:visited{color:#334155 !important}
+  header nav .nav-compare,header nav .nav-compare:link,header nav .nav-compare:visited{background:#dc2626 !important;color:#fff !important}
+  header nav .nav-compare:hover{background:#b91c1c !important;color:#fff !important}
+  header nav .nav-compare:active{background:#991b1b !important;color:#fff !important}
+  header nav .nav-compare:focus,header nav .nav-compare:focus-visible{background:#dc2626 !important;color:#fff !important}
+  #topMovies,.verdict-movie-grid{display:flex !important;grid-template-columns:none !important;gap:10px !important;overflow-x:auto !important;scroll-snap-type:x mandatory !important;-webkit-overflow-scrolling:touch;padding:2px 2px 8px !important;scrollbar-width:none}
+  #topMovies::-webkit-scrollbar,.verdict-movie-grid::-webkit-scrollbar{display:none}
+  #topMovies .top-movie-card,.verdict-movie-grid .verdict-movie-card{flex:0 0 145px !important;width:145px !important;scroll-snap-align:start !important}
+  .swipe-hint{display:block !important}
+  footer{background:#fff !important}
+}
+
 </style>
 
 </head>
@@ -1769,8 +1829,8 @@ footer{margin-top:42px;background:linear-gradient(180deg,#080c16,#050810)}
         <a href="movie-rankings.html">Rankings</a>
         <a href="actors.html" class="active">Actors</a>
         <a href="articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
-        <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
-        <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
+        <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
+        <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
     </nav>
 
     </div>
@@ -1885,6 +1945,8 @@ footer{margin-top:42px;background:linear-gradient(180deg,#080c16,#050810)}
             🏆 Top 5 Highest-Grossing Movies
         </h2>
 
+
+        <div class="swipe-hint">↔ Swipe to explore more</div>
 
         <div id="topMovies">
 
@@ -2213,18 +2275,14 @@ function updateActorSEO(actor) {
         "career statistics, blockbusters, hits and verdicts on BoxOfficeX.";
 
     const canonical =
-        window.location.origin +
-        window.location.pathname +
-        "?id=" +
+        "https://boxoffice-x.com/actor.html?id=" +
         encodeURIComponent(actorId);
 
     const photoUrl =
         actor.photo
-            ? new URL(
-                "actor-images/" + encodeURIComponent(actor.photo),
-                window.location.href
-            ).href
-            : "";
+            ? "https://boxoffice-x.com/actor-images/" +
+              encodeURIComponent(actor.photo)
+            : "https://boxoffice-x.com/images/boxofficex-share.jpg";
 
     document.title = title;
 
@@ -3377,6 +3435,23 @@ document.addEventListener("DOMContentLoaded",function(){
         if(window.innerWidth>700) closeMobileMenu();
     });
 });
+</script>
+
+
+<script>
+(function(){
+  function addVerdictSwipeHints(){
+    document.querySelectorAll('.verdict-movie-grid').forEach(function(grid){
+      if(grid.previousElementSibling && grid.previousElementSibling.classList.contains('swipe-hint')) return;
+      var hint=document.createElement('div');
+      hint.className='swipe-hint';
+      hint.textContent='↔ Swipe to explore more';
+      grid.parentNode.insertBefore(hint,grid);
+    });
+  }
+  addVerdictSwipeHints();
+  new MutationObserver(addVerdictSwipeHints).observe(document.body,{childList:true,subtree:true});
+})();
 </script>
 
 </body>

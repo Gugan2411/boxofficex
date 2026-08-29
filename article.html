@@ -1722,6 +1722,395 @@ header nav .nav-compare:hover{
     header .logo-icon{width:27px!important;height:27px!important;flex-basis:27px!important}
 }
 
+
+/* =========================================================
+   BOXOFFICEX FINAL LIGHT THEME — ARTICLE PAGE
+========================================================= */
+:root{
+    --bg:#f5f7fb!important;
+    --panel:#ffffff!important;
+    --panel-2:#f8fafc!important;
+    --border:#dfe5ee!important;
+    --muted:#667085!important;
+    --text:#111827!important;
+    --blue:#2563eb!important;
+    --blue-light:#2563eb!important;
+    --purple:#795cff!important;
+    --gold:#b77900!important;
+    --red:#e43d4f!important;
+    --content-width:1280px!important;
+}
+html{background:#f5f7fb!important;color-scheme:light}
+body{
+    background:linear-gradient(180deg,#f7f9fc 0,#f5f7fb 48%,#f3f6fa 100%)!important;
+    color:#111827!important;
+}
+header{
+    background:rgba(255,255,255,.96)!important;
+    border-bottom:1px solid #dfe5ee!important;
+    box-shadow:0 4px 18px rgba(15,23,42,.06)!important;
+}
+header .navbar{background:transparent!important}
+header .logo{color:#111827!important;background:transparent!important}
+header .logo-icon{background:linear-gradient(135deg,#4d8dff,#795cff)!important}
+header .logo > span:last-child{color:#b77900!important}
+header nav a{color:#475467!important}
+header nav a:hover,
+header nav a.active{background:#eef4ff!important;color:#2563eb!important}
+
+/* Exact master comparison-button contrast fix. */
+header nav a.nav-compare,
+header nav a.nav-compare:link,
+header nav a.nav-compare:visited,
+header nav a.nav-compare:hover,
+header nav a.nav-compare:focus,
+header nav a.nav-compare:focus-visible,
+header nav a.nav-compare:active,
+header nav a.nav-compare.active{
+    background:linear-gradient(135deg,#e43d4f,#c92f40)!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    border-color:transparent!important;
+    text-decoration:none!important;
+}
+header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738)!important}
+header nav a.nav-compare:active{
+    background:linear-gradient(135deg,#c92f40,#a92131)!important;
+    color:#fff!important;
+    transform:translateY(0)!important;
+}
+header nav a.nav-compare:focus-visible{
+    outline:3px solid rgba(228,61,79,.28)!important;
+    outline-offset:2px!important;
+}
+
+.category{
+    border-color:#cfe0ff!important;
+    background:#eef4ff!important;
+    color:#2563eb!important;
+}
+h1,.article-content h2{color:#111827!important}
+.subtitle,.byline{color:#667085!important}
+.byline-row,.article-end{border-color:#dfe5ee!important}
+.byline strong{color:#111827!important}
+.share-button{
+    border-color:#dfe5ee!important;
+    background:#fff!important;
+    color:#344054!important;
+}
+.share-button:hover{border-color:#b9cdf7!important;background:#eef4ff!important}
+.hero-wrap img,.article-image img,.gallery-block img{
+    border-color:#dfe5ee!important;
+    background:#eef2f7!important;
+}
+.media-caption{color:#667085!important}
+.media-credit{color:#98a2b3!important}
+.article-content p{color:#344054!important}
+blockquote{
+    border-left-color:#b77900!important;
+    background:#fff8e8!important;
+    color:#1f2937!important;
+}
+.boxoffice-block{
+    border-color:#d9e3f3!important;
+    background:#fff!important;
+    box-shadow:0 8px 24px rgba(15,23,42,.05)!important;
+}
+.boxoffice-title{color:#111827!important}
+.bo-card,.bo-final-item{
+    background:#f8fafc!important;
+    border-color:#e2e8f0!important;
+}
+.bo-label,.bo-final-item span{color:#667085!important}
+.bo-value,.bo-final-item strong{color:#111827!important}
+.bo-subtitle{color:#b77900!important}
+.bo-auto-total,.bo-final-item.total strong{color:#087a55!important}
+.movie-release-note{color:#667085!important}
+
+.bo-detail-wrap{border-color:#dfe5ee!important}
+.bo-detail-table th{
+    color:#667085!important;
+    background:#f1f5f9!important;
+}
+.bo-detail-table th,.bo-detail-table td{border-bottom-color:#e5e7eb!important}
+.bo-detail-table td{color:#344054!important;background:#fff!important}
+
+.related-card,.video-link,.loading-state,.error-state{
+    background:#fff!important;
+    border-color:#dfe5ee!important;
+    box-shadow:0 6px 20px rgba(15,23,42,.04)!important;
+}
+.related-card:hover{border-color:#b9cdf7!important}
+.related-card strong,.error-state strong{color:#111827!important}
+.related-card small,.loading-state,.error-state,.article-end{color:#667085!important}
+.video-link{color:#2563eb!important}
+
+footer{
+    background:#fff!important;
+    border-top:1px solid #dfe5ee!important;
+}
+.footer-brand{color:#111827!important}
+.footer-brand span{color:#b77900!important}
+.footer-tagline,.footer-copy{color:#667085!important}
+.footer-links a{color:#475467!important}
+.footer-links a:hover{color:#2563eb!important}
+
+.bo-swipe-hint{
+    border-color:#cfe0ff!important;
+    background:#eef4ff!important;
+    color:#2563eb!important;
+}
+
+@media(max-width:700px){
+    body{
+        padding-top:61px!important;
+        padding-bottom:0!important;
+        overflow-x:hidden!important;
+    }
+    header{
+        position:fixed!important;
+        top:0!important;
+        left:0!important;
+        right:0!important;
+        width:100%!important;
+        background:#fff!important;
+        border-bottom:1px solid #dfe5ee!important;
+        box-shadow:0 5px 18px rgba(15,23,42,.08)!important;
+        backdrop-filter:none!important;
+        -webkit-backdrop-filter:none!important;
+        overflow:visible!important;
+    }
+    header .navbar{
+        min-height:61px!important;
+        height:61px!important;
+        padding:0 13px!important;
+        display:grid!important;
+        grid-template-columns:auto 1fr!important;
+        justify-content:start!important;
+        align-items:center!important;
+        gap:10px!important;
+        overflow:visible!important;
+        background:#fff!important;
+    }
+    .mobile-menu-button{
+        grid-column:1!important;
+        grid-row:1!important;
+        justify-self:start!important;
+        background:#f8fafc!important;
+        border-color:#d7dee8!important;
+    }
+    .mobile-menu-button span{background:#111827!important}
+    header .logo{
+        grid-column:2!important;
+        grid-row:1!important;
+        justify-self:start!important;
+        background:transparent!important;
+    }
+    header nav{
+        top:61px!important;
+        left:10px!important;
+        right:10px!important;
+        background:#fff!important;
+        border-color:#dfe5ee!important;
+        box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    }
+    header nav a{color:#344054!important}
+    header nav a:hover,
+    header nav a.active{background:#eef4ff!important;color:#2563eb!important}
+    header nav a.nav-compare,
+    header nav a.nav-compare:link,
+    header nav a.nav-compare:visited,
+    header nav a.nav-compare:hover,
+    header nav a.nav-compare:focus,
+    header nav a.nav-compare:focus-visible,
+    header nav a.nav-compare:active,
+    header nav a.nav-compare.active{
+        background:linear-gradient(135deg,#e43d4f,#c92f40)!important;
+        color:#fff!important;
+        -webkit-text-fill-color:#fff!important;
+    }
+
+    .article-shell{padding-top:24px!important}
+    .bo-detail-wrap::after{
+        background:linear-gradient(90deg,transparent,rgba(255,255,255,.92))!important;
+    }
+    .bo-detail-table th:first-child{
+        background:#f1f5f9!important;
+        box-shadow:8px 0 14px rgba(15,23,42,.10)!important;
+    }
+    .bo-detail-table td:first-child{
+        background:#fff!important;
+        color:#111827!important;
+        box-shadow:8px 0 14px rgba(15,23,42,.08)!important;
+    }
+    .mobile-bottom-nav{display:none!important}
+}
+
+
+/* =========================================================
+   BOXOFFICEX MOBILE BURGER MENU VISIBILITY FIX
+========================================================= */
+.mobile-menu-button{
+    display:none !important;
+}
+
+@media (max-width:700px){
+    .mobile-menu-button{
+        display:flex !important;
+    }
+
+    header nav{
+        display:none !important;
+    }
+
+    header nav.mobile-menu-open{
+        display:flex !important;
+    }
+}
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE LAYOUT + EXACT INDEX FOOTER FIX
+========================================================= */
+
+/* Exact index footer system */
+footer,
+.site-footer{
+    margin-top:42px!important;
+    background:#eef2f7!important;
+    border-top:1px solid #dce3eb!important;
+}
+.footer-inner{
+    width:100%!important;
+    max-width:1180px!important;
+    margin:auto!important;
+    padding:28px 18px 35px!important;
+    text-align:center!important;
+}
+.footer-brand{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:8px!important;
+    margin-bottom:8px!important;
+    color:#111827!important;
+    -webkit-text-fill-color:#111827!important;
+    font-size:18px!important;
+    font-weight:900!important;
+    letter-spacing:.5px!important;
+    text-decoration:none!important;
+}
+.footer-brand-icon,
+.footer-logo-icon{
+    width:32px!important;
+    height:32px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:9px!important;
+    background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+}
+.footer-brand strong{color:#111827!important;-webkit-text-fill-color:#111827!important}
+.footer-brand strong span,
+.footer-brand > span:last-child{
+    color:#b77900!important;
+    -webkit-text-fill-color:#b77900!important;
+}
+.footer-tagline{
+    max-width:620px!important;
+    margin:0 auto!important;
+    color:#667085!important;
+    font-size:10px!important;
+}
+.footer-links{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex-wrap:wrap!important;
+    gap:5px 16px!important;
+    margin:15px 0 10px!important;
+}
+.footer-links a,
+.footer-links a:link,
+.footer-links a:visited{
+    min-height:34px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    padding:6px 3px!important;
+    color:#475569!important;
+    -webkit-text-fill-color:#475569!important;
+    font-size:11px!important;
+    font-weight:700!important;
+    text-decoration:none!important;
+}
+.footer-links a:hover{
+    color:#2563eb!important;
+    -webkit-text-fill-color:#2563eb!important;
+}
+.footer-copy{
+    margin-top:10px!important;
+    color:#667085!important;
+    font-size:10px!important;
+}
+
+/* Burger is only the button. Menu must never remain visible by default. */
+.mobile-menu-button{display:none!important}
+@media(max-width:700px){
+    .mobile-menu-button{display:flex!important}
+    header nav{display:none!important}
+    header nav.mobile-menu-open{display:flex!important}
+
+    footer,.site-footer{
+        max-width:100%!important;
+        margin-top:35px!important;
+        background:#eef2f7!important;
+    }
+    .footer-inner{
+        max-width:100%!important;
+        padding:28px 13px!important;
+    }
+    .footer-brand{margin-bottom:8px!important}
+    .footer-tagline{max-width:290px!important;margin:0 auto!important}
+    .footer-links{gap:5px 12px!important;margin:13px 0 10px!important}
+    .footer-links a{font-size:10px!important;padding:5px 3px!important}
+}
+
+/* Articles page: fix overlapping hero/side rail at very small widths. */
+@media(max-width:700px){
+    .hero{
+        display:block!important;
+        width:100%!important;
+        max-width:100%!important;
+        overflow:hidden!important;
+    }
+    .hero-main{
+        width:100%!important;
+        min-height:315px!important;
+        margin:0 0 12px!important;
+    }
+    .hero > div{
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+    }
+    .hero-side{
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+        margin:0!important;
+        padding:0 0 5px!important;
+    }
+    .hero-side .side-card{
+        flex:0 0 84%!important;
+        min-width:0!important;
+    }
+    .latest-grid,
+    .trending{
+        width:100%!important;
+        max-width:100%!important;
+    }
+}
+
 </style>
 </head>
 
@@ -1730,20 +2119,6 @@ header nav .nav-compare:hover{
 <header>
 
     <div class="navbar">
-
-        <a
-            href="index.html"
-            class="logo"
-            aria-label="BoxOfficeX Home"
-        >
-
-            <span class="logo-icon">
-                🎬
-            </span>
-
-            BOXOFFICE<span>X</span>
-
-        </a>
 
         <button
             type="button"
@@ -1757,28 +2132,42 @@ header nav .nav-compare:hover{
             <span></span>
         </button>
 
+        <a
+            href="/index.html"
+            class="logo"
+            aria-label="BoxOfficeX Home"
+        >
+
+            <span class="logo-icon">
+                🎬
+            </span>
+
+            BOXOFFICE<span>X</span>
+
+        </a>
+
 
         <nav aria-label="Main navigation">
-            <a href="index.html">Home</a>
+            <a href="/index.html">Home</a>
 
-            <a href="new-movies.html" class="nav-item-with-badge">
+            <a href="/new-movies.html" class="nav-item-with-badge">
                 New Movies
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="movie-rankings.html">Rankings</a>
+            <a href="/movie-rankings.html">Rankings</a>
 
-            <a href="actors.html">Actors</a>
+            <a href="/actors.html">Actors</a>
 
-            <a href="articles.html" class="active nav-item-with-badge">
+            <a href="/articles.html" class="active nav-item-with-badge">
                 Articles
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
+            <a href="/compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
 
-            <a href="movie-compare-select.html" class="nav-compare">
-                🎬 Movie Compare
+            <a href="/movie-compare-select.html" class="nav-compare">
+                🎬 Movie Comparison
             </a>
         </nav>
 
@@ -1792,8 +2181,8 @@ header nav .nav-compare:hover{
 
 <footer>
     <div class="footer-inner">
-        <a href="/index.html" class="footer-brand">🎬 BOXOFFICE<span>X</span></a>
-        <p class="footer-tagline">Movie box-office collections, latest releases, actors, verdicts, rankings and entertainment stories.</p>
+        <a href="/index.html" class="footer-brand" aria-label="BoxOfficeX Home"><span class="footer-brand-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
+        <p class="footer-tagline">Movie box-office collections, latest releases, actors, verdicts, rankings and hero comparisons.</p>
 
         <nav class="footer-links" aria-label="Footer navigation">
             <a href="/about.html">About</a>
