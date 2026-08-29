@@ -1,776 +1,1058 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <title>Actor Movies by Verdict | BoxOfficeX</title>
+    <meta id="metaDescription" name="description" content="Browse an actor's movies by verdict on BoxOfficeX, including release dates, worldwide box-office collections and verdicts.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#ffffff">
 
-    <title>BoxOfficeX - Actor Movies</title>
+    <link id="canonicalLink" rel="canonical" href="https://boxoffice-x.com/actor-movies.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BoxOfficeX">
+    <meta id="ogTitle" property="og:title" content="Actor Movies by Verdict | BoxOfficeX">
+    <meta id="ogDescription" property="og:description" content="Browse actor movies by verdict, release date and worldwide box-office collection on BoxOfficeX.">
+    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/actor-movies.html">
+    <meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta property="og:image:alt" content="BoxOfficeX movie box-office collections and rankings">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta id="twitterTitle" name="twitter:title" content="Actor Movies by Verdict | BoxOfficeX">
+    <meta id="twitterDescription" name="twitter:description" content="Browse actor movies by verdict, release date and worldwide box-office collection on BoxOfficeX.">
+    <meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta name="twitter:image:alt" content="BoxOfficeX movie box-office collections and rankings">
 
     <style>
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root{
+            --bg:#f5f7fb;
+            --surface:#ffffff;
+            --surface-soft:#f8faff;
+            --border:#e1e7ef;
+            --text:#111827;
+            --muted:#64748b;
+            --muted-2:#7b8798;
+            --blue:#2563eb;
+            --purple:#6d5ce7;
+            --gold:#b77900;
+            --red:#e43d4f;
+            --shadow:0 10px 28px rgba(15,23,42,.08);
         }
 
-        body {
-            font-family: Arial, sans-serif;
+        *{box-sizing:border-box;margin:0;padding:0}
+        html{color-scheme:light;scroll-behavior:smooth}
+
+        body{
+            min-height:100vh;
+            font-family:Arial,sans-serif;
+            color:var(--text);
             background:
-                radial-gradient(circle at top, #18213a 0%, #080b14 45%);
-            color: white;
-            min-height: 100vh;
+                radial-gradient(circle at 50% -10%,rgba(37,99,235,.10),transparent 34%),
+                radial-gradient(circle at 100% 30%,rgba(109,92,231,.06),transparent 27%),
+                linear-gradient(180deg,#fff 0%,#f5f7fb 48%,#eef2f8 100%);
         }
+
+        a{color:inherit}
+        button{font:inherit}
 
         /* ==============================
-           HEADER
+           HEADER — BOXOFFICEX MASTER
         ============================== */
-
-        header {
-            background: rgba(16, 22, 37, 0.96);
-            padding: 20px 30px;
-            border-bottom: 1px solid #29334d;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(12px);
+        header{
+            position:sticky;
+            top:0;
+            z-index:1000;
+            background:rgba(255,255,255,.94);
+            border-bottom:1px solid rgba(15,23,42,.10);
+            box-shadow:0 7px 24px rgba(15,23,42,.07);
+            backdrop-filter:blur(18px);
+            -webkit-backdrop-filter:blur(18px);
         }
 
-        header h2 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 2px;
+        .navbar{
+            max-width:1280px;
+            min-height:66px;
+            margin:auto;
+            padding:0 18px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
         }
+
+        .logo{
+            display:flex;
+            align-items:center;
+            gap:9px;
+            color:#111827;
+            text-decoration:none;
+            font-size:20px;
+            font-weight:900;
+            letter-spacing:.45px;
+            white-space:nowrap;
+        }
+
+        .logo-icon{
+            width:33px;
+            height:33px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:9px;
+            background:linear-gradient(135deg,#4d8dff,#795cff);
+        }
+
+        .logo span:last-child{color:var(--gold)}
+
+        header nav{
+            display:flex;
+            align-items:center;
+            gap:2px;
+        }
+
+        header nav a{
+            position:relative;
+            min-height:38px;
+            padding:8px 10px;
+            display:inline-flex;
+            align-items:center;
+            border-radius:9px;
+            color:#475569;
+            text-decoration:none;
+            font-size:12px;
+            font-weight:700;
+            white-space:nowrap;
+        }
+
+        header nav a:hover,
+        header nav a.active{
+            color:var(--blue);
+            background:#edf3ff;
+        }
+
+        header nav a.nav-compare,
+        header nav a.nav-compare:link,
+        header nav a.nav-compare:visited,
+        header nav a.nav-compare:hover,
+        header nav a.nav-compare:focus,
+        header nav a.nav-compare:active{
+            background:linear-gradient(135deg,#e43d4f,#c92f40);
+            color:#fff;
+            -webkit-text-fill-color:#fff;
+        }
+
+        header nav a.nav-compare:hover{
+            background:linear-gradient(135deg,#d93649,#b92738);
+        }
+
+        .nav-item-with-badge{position:relative}
+        .nav-new-badge{
+            position:absolute;
+            top:-5px;
+            right:-1px;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            min-width:25px;
+            height:13px;
+            padding:0 4px;
+            border-radius:999px;
+            background:#ff4655;
+            color:#fff;
+            font-size:6.5px;
+            font-weight:1000;
+        }
+        .nav-new-badge.show{display:inline-flex}
+
+        .mobile-menu-button{display:none}
 
         /* ==============================
            MAIN
         ============================== */
-
-        main {
-            max-width: 1100px;
-            margin: auto;
-            padding: 45px 20px 60px;
+        main{
+            width:min(1180px,calc(100% - 32px));
+            margin:0 auto;
+            padding:34px 0 60px;
         }
 
-        /* ==============================
-           PAGE TITLE
-        ============================== */
-
-        .page-title {
-            text-align: center;
-            margin-bottom: 38px;
+        .page-back-row{
+            display:flex;
+            justify-content:flex-start;
+            margin-bottom:18px;
         }
 
-        .page-title h1 {
-            font-size: 38px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-            margin-bottom: 10px;
+        .page-back-button{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:7px;
+            min-height:38px;
+            padding:8px 13px;
+            border:1px solid #dce3ec;
+            border-radius:10px;
+            background:#fff;
+            color:#475569;
+            font-size:11px;
+            font-weight:800;
+            cursor:pointer;
+            box-shadow:0 5px 16px rgba(15,23,42,.05);
+            transition:.2s ease;
         }
 
-        .page-title p {
-            color: #8e99b3;
-            font-size: 15px;
+        .page-back-button:hover{
+            color:var(--blue);
+            border-color:#b9cdf7;
+            background:#f7faff;
         }
+
+        .back-arrow{
+            color:var(--blue);
+            font-size:17px;
+            line-height:1;
+        }
+
+        .page-title{
+            text-align:center;
+            margin:0 auto 28px;
+        }
+
+        .page-eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            margin-bottom:9px;
+            padding:6px 10px;
+            border:1px solid #d7e5ff;
+            border-radius:999px;
+            background:#edf4ff;
+            color:var(--blue);
+            font-size:10px;
+            font-weight:900;
+            letter-spacing:.5px;
+            text-transform:uppercase;
+        }
+
+        .page-title h1{
+            max-width:900px;
+            margin:0 auto 9px;
+            color:#111827;
+            font-size:clamp(30px,4vw,44px);
+            line-height:1.08;
+            font-weight:900;
+            letter-spacing:-.8px;
+        }
+
+        .page-title p{
+            color:var(--muted);
+            font-size:13px;
+            font-weight:600;
+        }
+
+        .mobile-swipe-hint{display:none}
 
         /* ==============================
            MOVIE GRID
         ============================== */
+        .movie-grid{
+            display:grid;
+            grid-template-columns:repeat(5,minmax(0,1fr));
+            gap:14px;
+        }
 
-        .movie-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
+        .movie-card{
+            position:relative;
+            min-width:0;
+            overflow:hidden;
+            cursor:pointer;
+            background:#fff;
+            border:1px solid var(--border);
+            border-radius:14px;
+            box-shadow:0 7px 20px rgba(15,23,42,.055);
+            transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+        }
+
+        .movie-card:hover{
+            transform:translateY(-4px);
+            border-color:#c9d7ea;
+            box-shadow:0 14px 30px rgba(15,23,42,.10);
+        }
+
+        .poster-wrap{
+            position:relative;
+            overflow:hidden;
+            aspect-ratio:2/3;
+            background:#e9eef5;
+        }
+
+        .movie-card img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+            transition:transform .3s ease;
+        }
+
+        .movie-card:hover img{transform:scale(1.025)}
+
+        .movie-info{
+            padding:12px;
+            background:#fff;
+        }
+
+        .movie-title{
+            display:-webkit-box;
+            overflow:hidden;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:2;
+            min-height:35px;
+            margin-bottom:9px;
+            color:#111827;
+            font-size:14px;
+            font-weight:900;
+            line-height:1.25;
+        }
+
+        .movie-detail{
+            display:flex;
+            align-items:flex-start;
+            gap:5px;
+            margin-top:6px;
+            color:#64748b;
+            font-size:10px;
+            line-height:1.35;
+            font-weight:600;
+        }
+
+        .movie-detail strong{
+            color:#334155;
+            font-weight:800;
+        }
+
+        .verdict-pill{
+            display:inline-flex;
+            align-items:center;
+            margin-top:9px;
+            padding:5px 8px;
+            border-radius:999px;
+            background:#edf4ff;
+            color:#2563eb;
+            font-size:9px;
+            font-weight:900;
+        }
+
+        .loading,.error,.empty{
+            grid-column:1/-1;
+            padding:55px 20px;
+            text-align:center;
+            color:#64748b;
+            background:#fff;
+            border:1px solid var(--border);
+            border-radius:16px;
+            box-shadow:var(--shadow);
+            font-size:13px;
+            font-weight:700;
+        }
+
+        .error{color:#b42318}
+
+        /* ==============================
+           FOOTER — BOXOFFICEX MASTER
+        ============================== */
+        footer{
+            margin-top:20px;
+            background:#eef2f7;
+            border-top:1px solid #dce3eb;
+        }
+
+        .footer-inner{
+            max-width:1180px;
+            margin:auto;
+            padding:34px 18px;
+            text-align:center;
+        }
+
+        .footer-brand{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            color:#111827;
+            text-decoration:none;
+            font-size:18px;
+        }
+
+        .footer-brand-icon{
+            width:33px;
+            height:33px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:9px;
+            background:linear-gradient(135deg,#4d8dff,#795cff);
+        }
+
+        .footer-brand strong span{color:var(--gold)}
+
+        .footer-tagline{
+            max-width:650px;
+            margin:11px auto;
+            color:#667085;
+            font-size:11px;
+            line-height:1.65;
+        }
+
+        .footer-links{
+            display:flex;
+            justify-content:center;
+            flex-wrap:wrap;
+            gap:8px 18px;
+            margin:14px 0;
+        }
+
+        .footer-links a{
+            color:#475569;
+            text-decoration:none;
+            font-size:10px;
+            font-weight:700;
+        }
+
+        .footer-links a:hover{color:var(--blue)}
+
+        .footer-copy{
+            color:#667085;
+            font-size:10px;
+        }
+
+        @media(max-width:1000px){
+            .movie-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+        }
+
+        @media(max-width:820px) and (min-width:701px){
+            .navbar{overflow-x:auto}
+            .navbar nav{min-width:max-content}
+            header nav a{font-size:10px;padding:7px}
+            .movie-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
         }
 
         /* ==============================
-           MOVIE CARD
+           MOBILE — BOXOFFICEX MASTER
         ============================== */
+        @media(max-width:700px){
+            body{
+                padding-top:61px;
+                overflow-x:hidden;
+                background:#f5f7fb;
+            }
 
-        .movie-card {
-            position: relative;
-            background: #111827;
-            border: 1px solid #293653;
-            border-radius: 18px;
-            overflow: hidden;
-            cursor: pointer;
-            transition:
-                transform 0.25s ease,
-                border-color 0.25s ease,
-                box-shadow 0.25s ease;
-            box-shadow:
-                0 12px 35px rgba(0, 0, 0, 0.35);
+            header{
+                position:fixed;
+                top:0;
+                left:0;
+                right:0;
+                width:100%;
+                z-index:99999;
+                background:#fff;
+                border-bottom:1px solid #dfe5ed;
+                box-shadow:0 5px 18px rgba(15,23,42,.08);
+                backdrop-filter:none;
+                -webkit-backdrop-filter:none;
+            }
+
+            .navbar{
+                min-height:61px;
+                height:61px;
+                padding:0 12px;
+                display:grid;
+                grid-template-columns:auto 1fr;
+                align-items:center;
+                justify-content:start;
+                gap:10px;
+                overflow:visible;
+            }
+
+            .mobile-menu-button{
+                grid-column:1;
+                grid-row:1;
+                width:42px;
+                height:42px;
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                gap:5px;
+                padding:0;
+                border:1px solid #dce3ec;
+                border-radius:10px;
+                background:#f4f7fb;
+                cursor:pointer;
+                position:relative;
+                z-index:100001;
+            }
+
+            .mobile-menu-button span{
+                width:20px;
+                height:2px;
+                display:block;
+                background:#172033;
+                border-radius:999px;
+                transition:.2s;
+            }
+
+            .mobile-menu-button.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+            .mobile-menu-button.open span:nth-child(2){opacity:0}
+            .mobile-menu-button.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+            .logo{
+                grid-column:2;
+                grid-row:1;
+                justify-self:start;
+                font-size:18px;
+                background:#fff;
+                position:relative;
+                z-index:100001;
+            }
+
+            .logo-icon{width:31px;height:31px}
+
+            header nav{
+                position:absolute;
+                top:61px;
+                left:10px;
+                right:10px;
+                width:auto;
+                display:none;
+                flex-direction:column;
+                align-items:stretch;
+                gap:5px;
+                padding:10px;
+                border:1px solid #dce3ec;
+                border-radius:14px;
+                background:#fff;
+                box-shadow:0 18px 40px rgba(15,23,42,.14);
+                z-index:100002;
+            }
+
+            header nav.mobile-menu-open{display:flex}
+
+            header nav a{
+                width:100%;
+                min-height:42px;
+                padding:10px 12px;
+                justify-content:flex-start;
+                color:#334155;
+                font-size:12px;
+            }
+
+            main{
+                width:100%;
+                padding:22px 10px 42px;
+            }
+
+            .page-back-row{margin-bottom:13px}
+
+            .page-back-button{
+                min-height:35px;
+                padding:7px 11px;
+                border-radius:9px;
+                font-size:10px;
+            }
+
+            .page-title{
+                text-align:left;
+                margin-bottom:17px;
+            }
+
+            .page-eyebrow{
+                margin-bottom:8px;
+                font-size:9px;
+            }
+
+            .page-title h1{
+                margin:0 0 7px;
+                font-size:27px;
+                line-height:1.1;
+                letter-spacing:-.5px;
+            }
+
+            .page-title p{font-size:11px}
+
+            .mobile-swipe-hint{display:none!important}
+
+            /* Rankings-style vertical movie list */
+            .movie-grid{
+                display:flex!important;
+                flex-direction:column!important;
+                width:100%!important;
+                max-width:100%!important;
+                overflow:visible!important;
+                gap:8px!important;
+                padding:2px 0 8px!important;
+                scroll-snap-type:none!important;
+            }
+
+            .movie-grid .movie-card{
+                width:100%!important;
+                min-width:0!important;
+                max-width:100%!important;
+                min-height:78px!important;
+                display:grid!important;
+                grid-template-columns:50px minmax(0,1fr)!important;
+                align-items:center!important;
+                gap:8px!important;
+                padding:7px 8px!important;
+                border-radius:10px!important;
+                scroll-snap-align:none!important;
+            }
+
+            .movie-grid .poster-wrap{
+                width:50px!important;
+                height:68px!important;
+                aspect-ratio:auto!important;
+                border-radius:7px!important;
+                overflow:hidden!important;
+                flex-shrink:0!important;
+            }
+
+            .movie-grid .movie-card img{
+                width:50px!important;
+                height:68px!important;
+                object-fit:cover!important;
+                border-radius:7px!important;
+            }
+
+            .movie-grid .movie-info{
+                width:100%!important;
+                min-width:0!important;
+                padding:0!important;
+            }
+
+            .movie-grid .movie-title{
+                width:100%!important;
+                max-width:100%!important;
+                min-height:0!important;
+                margin-bottom:0!important;
+                font-size:12px!important;
+                line-height:1.25!important;
+                white-space:nowrap!important;
+                overflow:hidden!important;
+                text-overflow:ellipsis!important;
+                display:block!important;
+            }
+
+            .movie-grid .movie-detail{
+                margin-top:4px!important;
+                font-size:8px!important;
+                line-height:1.4!important;
+                white-space:normal!important;
+            }
+
+            .movie-grid .verdict-pill{
+                margin-top:4px!important;
+                padding:3px 5px!important;
+                font-size:7px!important;
+            }
+
+            .loading,.error,.empty{
+                width:100%!important;
+                min-width:0!important;
+                padding:38px 15px!important;
+            }
+
+            footer{margin-top:15px}
+
+            .footer-inner{
+                max-width:100%;
+                padding:32px 12px 28px;
+            }
+
+            .footer-brand{
+                margin-bottom:13px;
+                font-size:18px;
+            }
+
+            .footer-brand-icon{width:34px;height:34px}
+
+            .footer-tagline{
+                max-width:290px;
+                margin:0 auto 20px;
+                font-size:11px;
+            }
+
+            .footer-links{
+                flex-wrap:nowrap;
+                gap:0;
+                width:100%;
+                margin:0 auto 22px;
+                white-space:nowrap;
+            }
+
+            .footer-links a{
+                flex:0 0 auto;
+                padding:4px 8px;
+                font-size:8px;
+            }
         }
 
-        .movie-card:hover {
-            transform: translateY(-8px);
-            border-color: #465a83;
-            box-shadow:
-                0 20px 45px rgba(0, 0, 0, 0.55);
+        @media(max-width:340px){
+            .movie-grid .movie-card{
+                grid-template-columns:46px minmax(0,1fr)!important;
+                gap:7px!important;
+                padding:7px!important;
+            }
+
+            .movie-grid .poster-wrap,
+            .movie-grid .movie-card img{
+                width:46px!important;
+                height:64px!important;
+            }
+
+            .movie-grid .movie-title{font-size:11.5px!important}
+
+            .footer-links a{
+                padding-left:6px;
+                padding-right:6px;
+                font-size:7.5px;
+            }
         }
-
-        /* ==============================
-           POSTER
-        ============================== */
-
-        .movie-card img {
-            width: 100%;
-            height: 310px;
-            object-fit: cover;
-            display: block;
-            background: #0d1322;
-            transition: transform 0.3s ease;
-        }
-
-        .movie-card:hover img {
-            transform: scale(1.035);
-        }
-
-        /* ==============================
-           MOVIE INFO
-        ============================== */
-
-        .movie-info {
-            padding: 18px;
-            background: linear-gradient(
-                180deg,
-                #111827,
-                #0f1627
-            );
-        }
-
-        .movie-title {
-            font-size: 19px;
-            font-weight: 800;
-            margin-bottom: 11px;
-            line-height: 1.3;
-            color: #ffffff;
-        }
-
-        .movie-detail {
-            color: #aeb8ce;
-            margin-top: 7px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        /* ==============================
-           LOADING / ERROR / EMPTY
-        ============================== */
-
-        .loading,
-        .error,
-        .empty {
-            text-align: center;
-            padding: 55px 20px;
-            color: #8e99b3;
-            background: #111827;
-            border: 1px solid #293653;
-            border-radius: 18px;
-            grid-column: 1 / -1;
-        }
-
-        .error {
-            color: #d8a6a6;
-        }
-
-        /* ==============================
-           TABLET
-        ============================== */
-
-        @media (max-width: 900px) {
-
-            main {
-                padding: 35px 18px 50px;
-            }
-
-            .movie-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 18px;
-            }
-
-            .movie-card img {
-                height: 290px;
-            }
-
-        }
-
-        /* ==============================
-           MOBILE
-        ============================== */
-
-        @media (max-width: 600px) {
-
-            header {
-                padding: 18px 20px;
-            }
-
-            header h2 {
-                font-size: 24px;
-            }
-
-            main {
-                padding: 28px 12px 45px;
-            }
-
-            .page-title {
-                margin-bottom: 28px;
-            }
-
-            .page-title h1 {
-                font-size: 28px;
-                line-height: 1.2;
-            }
-
-            .page-title p {
-                font-size: 14px;
-            }
-
-            .movie-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 13px;
-            }
-
-            .movie-card {
-                border-radius: 14px;
-            }
-
-            .movie-card img {
-                height: 235px;
-            }
-
-            .movie-info {
-                padding: 13px;
-            }
-
-            .movie-title {
-                font-size: 16px;
-                margin-bottom: 8px;
-            }
-
-            .movie-detail {
-                font-size: 12px;
-                margin-top: 6px;
-            }
-
-        }
-
-        /* ==============================
-           SMALL MOBILE
-        ============================== */
-
-        @media (max-width: 380px) {
-
-            .movie-grid {
-                gap: 10px;
-            }
-
-            .movie-card img {
-                height: 210px;
-            }
-
-            .movie-info {
-                padding: 11px;
-            }
-
-            .movie-title {
-                font-size: 15px;
-            }
-
-            .movie-detail {
-                font-size: 11px;
-            }
-
-        }
-
-    
-/* BOXOFFICEX MASTER — ACTOR MOVIES */
-header{position:sticky;top:0;z-index:1000;padding:0;background:rgba(6,9,18,.92);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}
-.navbar{max-width:1280px;min-height:66px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.logo{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font-size:20px;font-weight:900;letter-spacing:.45px;white-space:nowrap}.logo-icon{width:33px;height:33px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff)}.logo span:last-child{color:#ffcc33}
-header nav{display:flex;align-items:center;gap:2px}header nav a{min-height:38px;padding:8px 10px;display:inline-flex;align-items:center;border-radius:9px;color:#c7d1e6;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap}header nav a:hover,header nav a.active{color:#79adff;background:rgba(77,141,255,.1)}
-header nav .nav-compare{background:linear-gradient(135deg,#ff4655,#d92e3d);color:#fff!important;box-shadow:0 8px 20px rgba(255,70,85,.16)}
-.nav-item-with-badge{position:relative}.nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000}.nav-new-badge.show{display:inline-flex}
-main{max-width:1120px;padding:30px 18px 55px}.page-title{margin-bottom:24px}.page-title h1{font-size:clamp(29px,4vw,40px);margin-bottom:7px}.page-title p{font-size:12px}
-.movie-grid{grid-template-columns:repeat(5,1fr);gap:12px}.movie-card{border-radius:13px}.movie-card:hover{transform:translateY(-3px)}.movie-card img{height:auto;aspect-ratio:2/3;object-fit:cover}.movie-info{padding:11px}.movie-title{font-size:14px;margin-bottom:7px}.movie-detail{margin-top:5px;font-size:9.5px}
-.site-footer{margin-top:25px;border-top:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#080c16,#050810)}.footer-inner{max-width:1180px;margin:auto;padding:28px 18px;text-align:center}.footer-brand{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-size:17px}.footer-logo-icon{width:31px;height:31px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff)}.footer-brand strong span{color:#ffcc33}.site-footer p{max-width:650px;margin:9px auto;color:#73809a;font-size:10px;line-height:1.6}.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 15px;margin:13px 0}.footer-links a{color:#aebbd4;text-decoration:none;font-size:10px;font-weight:700}
-.mobile-bottom-nav{display:none}
-@media(max-width:1000px){.movie-grid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:800px) and (min-width:601px){.navbar{overflow-x:auto}.navbar nav{min-width:max-content}.movie-grid{grid-template-columns:repeat(3,1fr)}header nav a{font-size:10px;padding:7px}}
-@media(max-width:600px){body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}main{padding:20px 9px 38px}.page-title{margin-bottom:18px}.page-title h1{font-size:26px}.page-title p{font-size:10px}.movie-grid{grid-template-columns:repeat(3,1fr);gap:7px}.movie-card{border-radius:10px}.movie-info{padding:7px}.movie-title{font-size:10.5px;margin-bottom:5px}.movie-detail{font-size:7px;margin-top:3px}.loading,.error,.empty{padding:35px 10px}
-.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);min-height:calc(68px + env(safe-area-inset-bottom));padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;background:rgba(7,11,20,.96);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}.mobile-bottom-nav a{position:relative;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:11px;color:#8793a9;text-decoration:none;font-size:7.5px;font-weight:700}.mobile-bottom-nav a span:first-child{font-size:17px}.mobile-bottom-nav .nav-new-badge{top:2px;right:7px}}
-@media(max-width:390px){.movie-grid{grid-template-columns:repeat(2,1fr)}}
-
-
-/* BOXOFFICEX FINAL MOBILE STANDARD — ACTOR VERDICT MOVIES */
-.mobile-menu-button{display:none}
-.footer-brand,.footer-brand:hover,.footer-brand:visited{text-decoration:none!important;border-bottom:0!important;box-shadow:none!important}
-
-@media(max-width:700px){
- body{padding-top:61px!important;padding-bottom:0!important;overflow-x:hidden!important}
- header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:99999!important;padding:0!important;background:#070a12!important;border-bottom:1px solid #202a3d!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 8px 22px rgba(0,0,0,.28)!important;overflow:visible!important}
- .navbar{min-height:61px!important;height:61px!important;padding:0 13px!important;display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;justify-content:initial!important;gap:10px!important;background:#070a12!important;position:relative!important;z-index:100000!important;overflow:visible!important}
- .logo{font-size:18px!important;position:relative!important;z-index:100001!important}
- .logo-icon{width:31px!important;height:31px!important}
- .mobile-menu-button{width:42px;height:42px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#101728;cursor:pointer;position:relative;z-index:100001}
- .mobile-menu-button span{width:20px;height:2px;display:block;background:#fff;border-radius:999px;transition:.2s}
- .mobile-menu-button.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
- .mobile-menu-button.open span:nth-child(2){opacity:0}
- .mobile-menu-button.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
- header nav{position:absolute!important;top:61px!important;left:10px!important;right:10px!important;width:auto!important;display:none!important;flex-direction:column!important;align-items:stretch!important;gap:5px!important;padding:10px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;background:#0a0f1b!important;box-shadow:0 18px 45px rgba(0,0,0,.42)!important;z-index:100002!important}
- header nav.mobile-menu-open{display:flex!important}
- header nav a{width:100%!important;min-height:42px!important;padding:10px 12px!important;justify-content:flex-start!important;font-size:12px!important}
- .mobile-bottom-nav{display:none!important}
-
- main{padding:22px 9px 38px!important}
- .page-title{margin-bottom:18px!important}
- .page-title h1{font-size:26px!important;line-height:1.15!important}
- .page-title p{font-size:10px!important}
-
- /* Keep movie results easy to scan: left-to-right, 2 columns on phones */
- .movie-grid{
-   grid-template-columns:repeat(2,minmax(0,1fr))!important;
-   gap:9px!important;
-   direction:ltr!important;
- }
- .movie-card{border-radius:11px!important;direction:ltr!important}
- .movie-card img{width:100%!important;height:auto!important;aspect-ratio:2/3!important;object-fit:cover!important}
- .movie-info{padding:8px!important;text-align:left!important}
- .movie-title{font-size:11px!important;margin-bottom:5px!important}
- .movie-detail{font-size:8px!important;margin-top:3px!important}
-
- .site-footer{margin-top:35px!important;background:linear-gradient(180deg,#080c16,#050810)!important}
- .footer-inner{max-width:100%!important;padding:32px 12px 28px!important;text-align:center!important}
- .footer-brand{display:inline-flex!important;justify-content:center!important;margin-bottom:13px!important;font-size:18px!important;text-decoration:none!important;border-bottom:0!important}
- .footer-logo-icon{width:34px!important;height:34px!important}
- .site-footer p{max-width:290px!important;margin:0 auto 20px!important;font-size:11px!important;line-height:1.65!important}
- .footer-links{display:flex!important;flex-wrap:nowrap!important;justify-content:center!important;align-items:center!important;gap:0!important;width:100%!important;margin:0 auto 22px!important;white-space:nowrap!important}
- .footer-links a{flex:0 0 auto!important;padding:4px 8px!important;color:#aebbd4!important;text-decoration:none!important;border-bottom:0!important;font-size:8px!important;line-height:1.2!important;white-space:nowrap!important}
- .footer-inner>p:last-child{margin-bottom:0!important;font-size:10px!important}
-}
-@media(max-width:340px){.footer-links a{padding-left:6px!important;padding-right:6px!important;font-size:7.5px!important}}
-
-
-/* PAGE BACK BUTTON */
-.page-back-row{
-    display:flex;
-    justify-content:flex-start;
-    margin-bottom:16px;
-}
-
-.page-back-button{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    min-height:38px;
-    padding:8px 13px;
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:10px;
-    background:#101728;
-    color:#cbd6eb;
-    font:inherit;
-    font-size:11px;
-    font-weight:800;
-    cursor:pointer;
-    transition:.2s ease;
-}
-
-.page-back-button:hover{
-    color:#fff;
-    border-color:#4d8dff;
-    background:#16213a;
-}
-
-.back-arrow{
-    color:#79adff;
-    font-size:17px;
-    line-height:1;
-}
-
-@media(max-width:700px){
-    .page-back-row{
-        margin-bottom:12px !important;
-    }
-
-    .page-back-button{
-        min-height:35px !important;
-        padding:7px 11px !important;
-        border-radius:9px !important;
-        font-size:10px !important;
-    }
-
-    .back-arrow{
-        font-size:16px !important;
-    }
-}
-
-</style>
-
+    </style>
 </head>
-
 
 <body>
 
-
 <header>
-<div class="navbar">
-<a href="/index.html" class="logo" aria-label="BoxOfficeX Home"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a><button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false"><span></span><span></span><span></span></button>
-<nav aria-label="Main navigation">
-<a href="/index.html">Home</a>
-<a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
-<a href="/movie-rankings.html">Rankings</a>
-<a href="/actors.html" class="active">Actors</a>
-<a href="/articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
-<a href="/compare-select.html" class="nav-compare">⚔️ Actor Compare</a>
-<a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Compare</a>
-</nav>
-</div>
+    <div class="navbar">
+        <button type="button" class="mobile-menu-button" id="mobileMenuButton"
+                aria-label="Open navigation menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+        <a href="/index.html" class="logo" aria-label="BoxOfficeX Home">
+            <span class="logo-icon">🎬</span>
+            BOXOFFICE<span>X</span>
+        </a>
+
+        <nav aria-label="Main navigation">
+            <a href="/index.html">Home</a>
+            <a href="/new-movies.html" class="nav-item-with-badge">
+                New Movies
+                <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
+            </a>
+            <a href="/movie-rankings.html">Rankings</a>
+            <a href="/actors.html" class="active">Actors</a>
+            <a href="/articles.html" class="nav-item-with-badge">
+                Articles
+                <span id="articlesBadge" class="nav-new-badge">NEW</span>
+            </a>
+            <a href="/compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
+            <a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
+        </nav>
+    </div>
 </header>
 
-
 <main>
-
-
     <div class="page-back-row">
-    <button type="button" class="page-back-button" onclick="goBackToPreviousPage()" aria-label="Go back">
-        <span class="back-arrow">←</span>
-        <span>Back</span>
-    </button>
-</div>
-
-<div class="page-title">
-
-        <h1 id="pageTitle">
-            Loading...
-        </h1>
-
-        <p id="pageSubtitle">
-            Loading movies...
-        </p>
-
+        <button type="button" class="page-back-button" onclick="goBackToPreviousPage()" aria-label="Go back">
+            <span class="back-arrow">←</span>
+            <span>Back</span>
+        </button>
     </div>
 
+    <section class="page-title" aria-labelledby="pageTitle">
+        <div class="page-eyebrow">Actor Filmography</div>
+        <h1 id="pageTitle">Loading...</h1>
+        <p id="pageSubtitle">Loading movies...</p>
+    </section>
 
-    <div
-        id="movieGrid"
-        class="movie-grid"
-    >
-
-        <div class="loading">
-            Loading movies...
-        </div>
-
+    <div id="movieGrid" class="movie-grid" aria-live="polite">
+        <div class="loading">Loading movies...</div>
     </div>
-
-
 </main>
 
+<footer>
+    <div class="footer-inner">
+        <a href="/index.html" class="footer-brand" aria-label="BoxOfficeX Home">
+            <span class="footer-brand-icon">🎬</span>
+            <strong>BOXOFFICE<span>X</span></strong>
+        </a>
 
-<footer class="site-footer">
-<div class="footer-inner">
-<a href="/index.html" class="footer-brand"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
-<p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
-<div class="footer-links">
-<a href="/about.html">About</a>
-<a href="/contact.html">Contact</a>
-<a href="/privacy.html">Privacy</a>
-<a href="/terms.html">Terms</a>
-<a href="/disclaimer.html">Disclaimer</a>
-</div>
-<p>© 2026 BoxOfficeX. All rights reserved.</p>
-</div>
+        <p class="footer-tagline">
+            Movie box-office collections, latest releases,
+            actors, verdicts, rankings and hero comparisons.
+        </p>
+
+        <nav class="footer-links" aria-label="Footer navigation">
+            <a href="/about.html">About</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/privacy.html">Privacy</a>
+            <a href="/terms.html">Terms</a>
+            <a href="/disclaimer.html">Disclaimer</a>
+        </nav>
+
+        <p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
+    </div>
 </footer>
 
-
 <script>
+    const params = new URLSearchParams(window.location.search);
+    const actorId = params.get("actorId") || params.get("id");
+    const verdict = params.get("verdict");
 
+    function escapeHtml(value){
+        return String(value ?? "")
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+    }
 
-// ==========================================
-// GET URL PARAMETERS
-// ==========================================
-
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
-
-
-const actorId =
-    params.get("actorId") || params.get("id");
-
-
-const verdict =
-    params.get("verdict");
-
-
-// ==========================================
-// CHECK PARAMETERS
-// ==========================================
-
-if (!actorId || !verdict) {
-
-    document.getElementById(
-        "movieGrid"
-    ).innerHTML =
-        '<div class="error">Invalid movie request.</div>';
-
-}
-else {
-
-    loadActorMovies();
-
-}
-
-
-// ==========================================
-// LOAD ACTOR MOVIES
-// ==========================================
-
-async function loadActorMovies() {
-
-    try {
-
-
-        // ==============================
-        // GET ACTOR DETAILS
-        // ==============================
-
-        const actorsResponse =
-            await fetch(
-                "/actors"
-            );
-
-
-        if (!actorsResponse.ok) {
-
-            throw new Error(
-                "Actors API error"
-            );
-
+    function safeValue(value, fallback = "—"){
+        if (value === null || value === undefined || value === "" || String(value).toLowerCase() === "null"){
+            return fallback;
         }
+        return value;
+    }
 
+    function posterUrl(movie){
+        return movie.poster
+            ? "/posters/" + encodeURIComponent(movie.poster)
+            : "/posters/coming-soon.png";
+    }
 
-        const actorsData =
-            await actorsResponse.json();
+    function updateSeo(actorName, verdictName){
+        const cleanActor = String(actorName || "Actor").trim();
+        const cleanVerdict = String(verdictName || "Movies").trim();
 
+        const title = `${cleanActor} ${cleanVerdict} Movies, Box Office & Verdict | BoxOfficeX`;
+        const description = `Explore ${cleanActor}'s ${cleanVerdict} movies with release dates, worldwide box-office collections and verdict information on BoxOfficeX.`;
+        const canonical =
+            "https://boxoffice-x.com/actor-movies.html?id=" +
+            encodeURIComponent(actorId) +
+            "&verdict=" +
+            encodeURIComponent(cleanVerdict);
 
-        const actor =
-            actorsData.actors.find(
-                a =>
-                    String(a.id) ===
-                    String(actorId)
+        document.title = title;
+        document.getElementById("metaDescription").setAttribute("content", description);
+        document.getElementById("canonicalLink").setAttribute("href", canonical);
+        document.getElementById("ogTitle").setAttribute("content", title);
+        document.getElementById("ogDescription").setAttribute("content", description);
+        document.getElementById("ogUrl").setAttribute("content", canonical);
+        document.getElementById("twitterTitle").setAttribute("content", title);
+        document.getElementById("twitterDescription").setAttribute("content", description);
+    }
+
+    if (!actorId || !verdict){
+        document.getElementById("pageTitle").textContent = "Actor Movies";
+        document.getElementById("pageSubtitle").textContent = "Invalid movie request.";
+        document.getElementById("movieGrid").innerHTML =
+            '<div class="error">Invalid movie request.</div>';
+    } else {
+        loadActorMovies();
+    }
+
+    async function loadActorMovies(){
+        try{
+            const actorsResponse = await fetch("/actors", {cache:"no-store"});
+            if (!actorsResponse.ok) throw new Error("Actors API error");
+
+            const actorsData = await actorsResponse.json();
+            const actor = (actorsData.actors || []).find(
+                a => String(a.id) === String(actorId)
             );
 
+            if (!actor) throw new Error("Actor not found");
 
-        if (!actor) {
-
-            throw new Error(
-                "Actor not found"
+            const moviesResponse = await fetch(
+                "/actors/" + encodeURIComponent(actorId) +
+                "/movies/verdict/" + encodeURIComponent(verdict),
+                {cache:"no-store"}
             );
 
-        }
+            if (!moviesResponse.ok) throw new Error("Movies API error");
 
+            const moviesData = await moviesResponse.json();
+            const movies = moviesData.movies || [];
 
-        // ==============================
-        // GET VERDICT MOVIES
-        // ==============================
+            document.getElementById("pageTitle").textContent =
+                actor.name + " — " + verdict + " Movies";
 
-        const moviesResponse =
-            await fetch(
+            document.getElementById("pageSubtitle").textContent =
+                movies.length + " " + verdict + " movie" + (movies.length === 1 ? "" : "s");
 
-                "/actors/" +
-                actorId +
-                "/movies/verdict/" +
-                encodeURIComponent(verdict)
+            updateSeo(actor.name, verdict);
 
-            );
+            const grid = document.getElementById("movieGrid");
+            grid.innerHTML = "";
 
+            if (movies.length === 0){
+                grid.innerHTML =
+                    '<div class="empty">No ' + escapeHtml(verdict) + ' movies found.</div>';
+                return;
+            }
 
-        if (!moviesResponse.ok) {
+            movies.forEach(movie => {
+                const card = document.createElement("article");
+                card.className = "movie-card";
+                card.tabIndex = 0;
+                card.setAttribute("role","link");
+                card.setAttribute("aria-label","Open " + safeValue(movie.title,"movie"));
 
-            throw new Error(
-                "Movies API error"
-            );
+                const releaseDate = safeValue(movie.release_date);
+                const worldwide = movie.worldwide_collection_crore === null ||
+                                  movie.worldwide_collection_crore === undefined ||
+                                  movie.worldwide_collection_crore === ""
+                                  ? "—"
+                                  : "₹" + movie.worldwide_collection_crore + " Cr";
+                const movieVerdict = safeValue(movie.verdict);
 
-        }
-
-
-        const moviesData =
-            await moviesResponse.json();
-
-
-        const movies =
-            moviesData.movies || [];
-
-
-        // ==============================
-        // PAGE TITLE
-        // ==============================
-
-        document.getElementById(
-            "pageTitle"
-        ).innerText =
-            actor.name +
-            " — " +
-            verdict +
-            " Movies";
-
-
-        document.getElementById(
-            "pageSubtitle"
-        ).innerText =
-            movies.length +
-            " " +
-            verdict +
-            " movie(s)";
-
-
-        const grid =
-            document.getElementById(
-                "movieGrid"
-            );
-
-
-        grid.innerHTML = "";
-
-
-        // ==============================
-        // NO MOVIES
-        // ==============================
-
-        if (movies.length === 0) {
-
-            grid.innerHTML =
-                '<div class="empty">No ' +
-                verdict +
-                ' movies found.</div>';
-
-            return;
-
-        }
-
-
-        // ==============================
-        // DISPLAY MOVIES
-        // ==============================
-
-        movies.forEach(movie => {
-
-
-            const card =
-                document.createElement("div");
-
-
-            card.className =
-                "movie-card";
-
-
-            card.innerHTML = `
-
-                <img
-                    src="posters/${movie.poster}"
-                    alt="${movie.title}" loading="lazy" onerror="this.onerror=null;this.src='/posters/coming-soon.png'"
-                >
-
-                <div class="movie-info">
-
-                    <div class="movie-title">
-                        ${movie.title}
+                card.innerHTML = `
+                    <div class="poster-wrap">
+                        <img
+                            src="${posterUrl(movie)}"
+                            alt="${escapeHtml(safeValue(movie.title,"Movie"))} poster"
+                            loading="lazy"
+                            onerror="this.onerror=null;this.src='/posters/coming-soon.png'"
+                        >
                     </div>
 
-                    <div class="movie-detail">
-                        📅 ${movie.release_date}
+                    <div class="movie-info">
+                        <div class="movie-title">${escapeHtml(safeValue(movie.title,"Untitled Movie"))}</div>
+                        <div class="movie-detail">📅 <strong>${escapeHtml(releaseDate)}</strong></div>
+                        <div class="movie-detail">🌍 <strong>${escapeHtml(worldwide)}</strong></div>
+                        <div class="verdict-pill">🎬 ${escapeHtml(movieVerdict)}</div>
                     </div>
+                `;
 
-                    <div class="movie-detail">
-                        🌍 ₹${movie.worldwide_collection_crore} Cr
-                    </div>
+                const openMovie = () => {
+                    window.location.href = "/movie.html?id=" + encodeURIComponent(movie.id);
+                };
 
-                    <div class="movie-detail">
-                        🎬 ${movie.verdict}
-                    </div>
+                card.addEventListener("click", openMovie);
+                card.addEventListener("keydown", event => {
+                    if (event.key === "Enter" || event.key === " "){
+                        event.preventDefault();
+                        openMovie();
+                    }
+                });
 
-                </div>
+                grid.appendChild(card);
+            });
 
-            `;
+        } catch(error){
+            console.error("Actor movies error:", error);
+            document.getElementById("pageTitle").textContent = "Actor Movies";
+            document.getElementById("pageSubtitle").textContent = "Unable to load movies.";
+            document.getElementById("movieGrid").innerHTML =
+                '<div class="error">Unable to load movies. Please try again.</div>';
+        }
+    }
 
+    function setSiteNewBadge(ids, visible){
+        ids.forEach(id => {
+            const badge = document.getElementById(id);
+            if (badge) badge.classList.toggle("show", !!visible);
+        });
+    }
 
-            // ==============================
-            // OPEN MOVIE PAGE
-            // ==============================
+    async function updateSiteNewBadges(){
+        try{
+            const [moviesResponse, articlesResponse] = await Promise.all([
+                fetch("/movies/new-system", {cache:"no-store"}),
+                fetch("/articles/latest?limit=10", {cache:"no-store"})
+            ]);
 
-            card.onclick = function () {
+            if (moviesResponse.ok){
+                const data = await moviesResponse.json();
+                const all = [
+                    ...(data.running || []),
+                    ...(data.upcoming || []),
+                    ...(data.recent || [])
+                ];
 
-                window.location.href =
-                    "movie.html?id=" +
-                    movie.id;
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-            };
+                const fresh = all.some(movie => {
+                    if (!movie.release_date) return false;
 
+                    const parts = String(movie.release_date)
+                        .slice(0,10)
+                        .split("-")
+                        .map(Number);
 
-            grid.appendChild(card);
+                    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+                    const days = Math.floor((date - today) / 86400000);
 
+                    return days >= -7 && days <= 7;
+                });
+
+                setSiteNewBadge(["newMoviesBadge"], fresh);
+            }
+
+            if (articlesResponse.ok){
+                const data = await articlesResponse.json();
+                const now = Date.now();
+
+                const fresh = (data.articles || []).some(article => {
+                    const time = new Date(article.published_at).getTime();
+                    return Number.isFinite(time) &&
+                           time <= now &&
+                           now - time <= 604800000;
+                });
+
+                setSiteNewBadge(["articlesBadge"], fresh);
+            }
+        } catch(error){
+            console.warn("Badge check failed", error);
+        }
+    }
+
+    updateSiteNewBadges();
+
+    document.addEventListener("DOMContentLoaded", function(){
+        const button = document.getElementById("mobileMenuButton");
+        const nav = document.querySelector("header nav");
+
+        if (!button || !nav) return;
+
+        function closeMenu(){
+            nav.classList.remove("mobile-menu-open");
+            button.classList.remove("open");
+            button.setAttribute("aria-expanded","false");
+        }
+
+        button.addEventListener("click", event => {
+            event.stopPropagation();
+            const open = !nav.classList.contains("mobile-menu-open");
+            nav.classList.toggle("mobile-menu-open", open);
+            button.classList.toggle("open", open);
+            button.setAttribute("aria-expanded", open ? "true" : "false");
         });
 
+        nav.addEventListener("click", event => {
+            if (event.target.closest("a")) closeMenu();
+        });
 
+        document.addEventListener("click", event => {
+            if (!nav.contains(event.target) && !button.contains(event.target)){
+                closeMenu();
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            if (innerWidth > 700) closeMenu();
+        });
+    });
+
+    function goBackToPreviousPage(){
+        if (window.history.length > 1){
+            window.history.back();
+        } else {
+            window.location.href = "/actors.html";
+        }
     }
-    catch (error) {
-
-        console.error(
-            "Actor movies error:",
-            error
-        );
-
-
-        document.getElementById(
-            "movieGrid"
-        ).innerHTML =
-            '<div class="error">' +
-            'Unable to load movies.' +
-            '</div>';
-
-    }
-
-}
-
-
-
-function setSiteNewBadge(ids,visible){ids.forEach(id=>{const b=document.getElementById(id);if(b)b.classList.toggle("show",!!visible)})}
-async function updateSiteNewBadges(){try{const [mr,ar]=await Promise.all([fetch("/movies/new-system",{cache:"no-store"}),fetch("/articles/latest?limit=10",{cache:"no-store"})]);if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),...(d.recent||[])],now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const fresh=all.some(m=>{if(!m.release_date)return false;const p=String(m.release_date).slice(0,10).split("-").map(Number),dt=new Date(p[0],p[1]-1,p[2]),days=Math.floor((dt-today)/86400000);return days>=-7&&days<=7});setSiteNewBadge(["newMoviesBadge","mobileNewMoviesBadge"],fresh)}if(ar.ok){const d=await ar.json(),now=Date.now(),fresh=(d.articles||[]).some(a=>{const t=new Date(a.published_at).getTime();return Number.isFinite(t)&&t<=now&&now-t<=604800000});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}}catch(e){console.warn("Badge check failed",e)}}
-updateSiteNewBadges();
-
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded",function(){
- const b=document.getElementById("mobileMenuButton"),n=document.querySelector("header nav");
- if(!b||!n)return;
- function closeMenu(){n.classList.remove("mobile-menu-open");b.classList.remove("open");b.setAttribute("aria-expanded","false")}
- b.addEventListener("click",e=>{e.stopPropagation();const o=!n.classList.contains("mobile-menu-open");n.classList.toggle("mobile-menu-open",o);b.classList.toggle("open",o);b.setAttribute("aria-expanded",o?"true":"false")});
- n.addEventListener("click",e=>{if(e.target.closest("a"))closeMenu()});
- document.addEventListener("click",e=>{if(!n.contains(e.target)&&!b.contains(e.target))closeMenu()});
- window.addEventListener("resize",()=>{if(innerWidth>700)closeMenu()});
-});
-</script>
-
-<script>
-function goBackToPreviousPage(){
-    if(window.history.length > 1){
-        window.history.back();
-    }else{
-        window.location.href="/actors.html";
-    }
-}
 </script>
 
 </body>
-
 </html>
