@@ -5962,3 +5962,220 @@ def report_movie_comment(comment_id: int, data: CommentReportData):
         "new_report": created,
         "message": "Comment reported for review"
     }
+
+# ============================================================
+# HERO COMPARISON FAN ENGAGEMENT
+# ============================================================
+
+class HeroComparisonVoteData(BaseModel):
+    visitor_id: str
+    choice: Literal["hero1", "tie", "hero2"]
+
+
+class HeroComparisonCommentCreateData(BaseModel):
+    visitor_id: str
+    display_name: str
+    comment_text: str
+
+
+def _hero_comparison_pair(actor1_id: int, actor2_id: int):
+    if actor1_id == actor2_id:
+        raise HTTPException(status_code=400, detail="Choose two different actors")
+    return tuple(sorted((int(actor1_id), int(actor2_id))))
+
+
+def _ensure_hero_comparison_exists(cur, actor1_id: int, actor2_id: int):
+    actor1_id, actor2_id = _hero_comparison_pair(actor1_id, actor2_id)
+    cur.execute("SELECT id FROM actors WHERE id IN (%s, %s)", (actor1_id, actor2_id))
+    found = {row[0] for row in cur.fetchall()}
+    if actor1_id not in found or actor2_id not in found:
+        raise HTTPException(status_code=404, detail="Actor not found")
+    return actor1_id, actor2_id
+
+
+def _hero_comparison_summary(cur, actor1_id: int, actor2_id: int, visitor_id: Optional[str] = None):
+    actor1_id, actor2_id = _ensure_hero_comparison_exists(cur, actor1_id, actor2_id)
+    cur.execute("SELECT COUNT(*) FROM hero_comparison_likes WHERE actor1_id=%s AND actor2_id=%s", (actor1_id, actor2_id))
+    like_count = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM hero_comparison_hype WHERE actor1_id=%s AND actor2_id=%s", (actor1_id, actor2_id))
+    hype_count = cur.fetchone()[0]
+    cur.execute("SELECT choice, COUNT(*) FROM hero_comparison_votes WHERE actor1_id=%s AND actor2_id=%s GROUP BY choice", (actor1_id, actor2_id))
+    counts = {"hero1": 0, "tie": 0, "hero2": 0}
+    for choice, count in cur.fetchall():
+        if choice in counts:
+            counts[choice] = count
+    total = sum(counts.values())
+    percentages = {k: round(v * 100 / total, 1) if total else 0 for k, v in counts.items()}
+    liked = hyped = False
+    my_vote = None
+    if visitor_id:
+        cur.execute("SELECT 1 FROM hero_comparison_likes WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s", (actor1_id, actor2_id, visitor_id))
+        liked = bool(cur.fetchone())
+        cur.execute("SELECT 1 FROM hero_comparison_hype WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s", (actor1_id, actor2_id, visitor_id))
+        hyped = bool(cur.fetchone())
+        cur.execute("SELECT choice FROM hero_comparison_votes WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s", (actor1_id, actor2_id, visitor_id))
+        row = cur.fetchone()
+        my_vote = row[0] if row else None
+    return {"actor1_id": actor1_id, "actor2_id": actor2_id, "like_count": like_count, "hype_count": hype_count,
+            "liked": liked, "hyped": hyped,
+            "fan_vote": {"total_votes": total, "counts": counts, "percentages": percentages, "my_vote": my_vote}}
+
+
+@app.get("/hero-comparisons/{actor1_id}/{actor2_id}/engagement")
+def get_hero_comparison_engagement(actor1_id: int, actor2_id: int, visitor_id: Optional[str] = None):
+    visitor_id = _clean_visitor_id(visitor_id) if visitor_id else None
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            return _hero_comparison_summary(cur, actor1_id, actor2_id, visitor_id)
+
+
+@app.post("/hero-comparisons/{actor1_id}/{actor2_id}/like")
+def toggle_hero_comparison_like(actor1_id: int, actor2_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            a1, a2 = _ensure_hero_comparison_exists(cur, actor1_id, actor2_id)
+            cur.execute("DELETE FROM hero_comparison_likes WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s RETURNING id", (a1, a2, visitor_id))
+            active = not bool(cur.fetchone())
+            if active:
+                cur.execute("INSERT INTO hero_comparison_likes(actor1_id,actor2_id,visitor_id) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING", (a1, a2, visitor_id))
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM hero_comparison_likes WHERE actor1_id=%s AND actor2_id=%s", (a1, a2))
+            count = cur.fetchone()[0]
+    return {"success": True, "active": active, "like_count": count}
+
+
+@app.post("/hero-comparisons/{actor1_id}/{actor2_id}/hype")
+def toggle_hero_comparison_hype(actor1_id: int, actor2_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            a1, a2 = _ensure_hero_comparison_exists(cur, actor1_id, actor2_id)
+            cur.execute("DELETE FROM hero_comparison_hype WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s RETURNING id", (a1, a2, visitor_id))
+            active = not bool(cur.fetchone())
+            if active:
+                cur.execute("INSERT INTO hero_comparison_hype(actor1_id,actor2_id,visitor_id) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING", (a1, a2, visitor_id))
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM hero_comparison_hype WHERE actor1_id=%s AND actor2_id=%s", (a1, a2))
+            count = cur.fetchone()[0]
+    return {"success": True, "active": active, "hype_count": count}
+
+
+@app.post("/hero-comparisons/{actor1_id}/{actor2_id}/vote")
+def set_hero_comparison_vote(actor1_id: int, actor2_id: int, data: HeroComparisonVoteData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    original1 = int(actor1_id)
+    a1, a2 = _hero_comparison_pair(actor1_id, actor2_id)
+    choice = data.choice
+    reversed_order = original1 != a1
+    if reversed_order and choice in {"hero1", "hero2"}:
+        choice = "hero2" if choice == "hero1" else "hero1"
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_hero_comparison_exists(cur, a1, a2)
+            cur.execute("""INSERT INTO hero_comparison_votes(actor1_id,actor2_id,visitor_id,choice)
+                           VALUES(%s,%s,%s,%s)
+                           ON CONFLICT(actor1_id,actor2_id,visitor_id)
+                           DO UPDATE SET choice=EXCLUDED.choice, updated_at=NOW()""", (a1, a2, visitor_id, choice))
+            conn.commit()
+            result = _hero_comparison_summary(cur, a1, a2, visitor_id)
+    if reversed_order:
+        c = result["fan_vote"]["counts"]; p = result["fan_vote"]["percentages"]
+        result["fan_vote"]["counts"] = {"hero1": c["hero2"], "tie": c["tie"], "hero2": c["hero1"]}
+        result["fan_vote"]["percentages"] = {"hero1": p["hero2"], "tie": p["tie"], "hero2": p["hero1"]}
+        if result["fan_vote"]["my_vote"] in {"hero1", "hero2"}:
+            result["fan_vote"]["my_vote"] = "hero2" if result["fan_vote"]["my_vote"] == "hero1" else "hero1"
+    return result
+
+
+@app.get("/hero-comparisons/{actor1_id}/{actor2_id}/comments")
+def get_hero_comparison_comments(actor1_id: int, actor2_id: int, visitor_id: Optional[str] = None,
+                                 sort: Literal["newest", "top"] = "newest", limit: int = 30, offset: int = 0):
+    visitor_id = _clean_visitor_id(visitor_id) if visitor_id else None
+    limit, offset = max(1, min(limit, 100)), max(0, offset)
+    order_sql = "like_count DESC, c.created_at DESC" if sort == "top" else "c.created_at DESC"
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            a1, a2 = _ensure_hero_comparison_exists(cur, actor1_id, actor2_id)
+            cur.execute(f"""SELECT c.id,c.display_name,c.comment_text,c.created_at,COUNT(l.id) AS like_count,
+                           EXISTS(SELECT 1 FROM hero_comparison_comment_likes mine WHERE mine.comment_id=c.id AND mine.visitor_id=%s),
+                           (c.visitor_id=%s)
+                           FROM hero_comparison_comments c
+                           LEFT JOIN hero_comparison_comment_likes l ON l.comment_id=c.id
+                           WHERE c.actor1_id=%s AND c.actor2_id=%s AND c.is_hidden=FALSE AND c.is_deleted=FALSE
+                           GROUP BY c.id ORDER BY {order_sql} LIMIT %s OFFSET %s""",
+                        (visitor_id or "", visitor_id or "", a1, a2, limit, offset))
+            rows = cur.fetchall()
+            cur.execute("SELECT COUNT(*) FROM hero_comparison_comments WHERE actor1_id=%s AND actor2_id=%s AND is_hidden=FALSE AND is_deleted=FALSE", (a1, a2))
+            total = cur.fetchone()[0]
+    return {"actor1_id": a1, "actor2_id": a2, "total": total,
+            "comments": [{"id":r[0],"display_name":r[1],"comment_text":r[2],
+                          "created_at":r[3].isoformat() if r[3] else None,"like_count":r[4],
+                          "liked_by_me":r[5],"is_owner":r[6]} for r in rows]}
+
+
+@app.post("/hero-comparisons/{actor1_id}/{actor2_id}/comments")
+def post_hero_comparison_comment(actor1_id: int, actor2_id: int, data: HeroComparisonCommentCreateData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    display_name = _clean_public_text(data.display_name, "Display name", 2, 50)
+    comment_text = _clean_public_text(data.comment_text, "Comment", 2, 1000)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            a1, a2 = _ensure_hero_comparison_exists(cur, actor1_id, actor2_id)
+            cur.execute("SELECT created_at FROM hero_comparison_comments WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s ORDER BY created_at DESC LIMIT 1", (a1,a2,visitor_id))
+            recent = cur.fetchone()
+            if recent and (datetime.now(timezone.utc)-recent[0]).total_seconds() < 30:
+                raise HTTPException(status_code=429, detail="Please wait 30 seconds before posting another comment")
+            cur.execute("""INSERT INTO hero_comparison_comments(actor1_id,actor2_id,visitor_id,display_name,comment_text)
+                           VALUES(%s,%s,%s,%s,%s) RETURNING id,created_at""", (a1,a2,visitor_id,display_name,comment_text))
+            row = cur.fetchone(); conn.commit()
+    return {"success":True,"comment":{"id":row[0],"display_name":display_name,"comment_text":comment_text,
+            "created_at":row[1].isoformat() if row[1] else None,"like_count":0,"liked_by_me":False,"is_owner":True}}
+
+
+@app.delete("/hero-comparison-comments/{comment_id}")
+def delete_hero_comparison_comment(comment_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE hero_comparison_comments SET is_deleted=TRUE,updated_at=NOW() WHERE id=%s AND visitor_id=%s AND is_deleted=FALSE RETURNING id", (comment_id,visitor_id))
+            deleted=cur.fetchone()
+            if not deleted:
+                cur.execute("SELECT visitor_id,is_deleted FROM hero_comparison_comments WHERE id=%s",(comment_id,))
+                row=cur.fetchone()
+                if not row or row[1]: raise HTTPException(status_code=404,detail="Comment not found")
+                raise HTTPException(status_code=403,detail="You can delete only your own comment")
+            conn.commit()
+    return {"success":True,"deleted":True,"comment_id":comment_id}
+
+
+@app.post("/hero-comparison-comments/{comment_id}/like")
+def toggle_hero_comparison_comment_like(comment_id: int, data: VisitorActionData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM hero_comparison_comments WHERE id=%s AND is_hidden=FALSE AND is_deleted=FALSE",(comment_id,))
+            if not cur.fetchone(): raise HTTPException(status_code=404,detail="Comment not found")
+            cur.execute("DELETE FROM hero_comparison_comment_likes WHERE comment_id=%s AND visitor_id=%s RETURNING id",(comment_id,visitor_id))
+            active=not bool(cur.fetchone())
+            if active:
+                cur.execute("INSERT INTO hero_comparison_comment_likes(comment_id,visitor_id) VALUES(%s,%s) ON CONFLICT DO NOTHING",(comment_id,visitor_id))
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM hero_comparison_comment_likes WHERE comment_id=%s",(comment_id,))
+            count=cur.fetchone()[0]
+    return {"success":True,"active":active,"like_count":count}
+
+
+@app.post("/hero-comparison-comments/{comment_id}/report")
+def report_hero_comparison_comment(comment_id: int, data: CommentReportData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    reason=(data.reason or "Other").strip()
+    if len(reason)>100: raise HTTPException(status_code=400,detail="Report reason is too long")
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM hero_comparison_comments WHERE id=%s AND is_deleted=FALSE",(comment_id,))
+            if not cur.fetchone(): raise HTTPException(status_code=404,detail="Comment not found")
+            cur.execute("""INSERT INTO hero_comparison_comment_reports(comment_id,visitor_id,reason)
+                           VALUES(%s,%s,%s) ON CONFLICT(comment_id,visitor_id) DO NOTHING""",(comment_id,visitor_id,reason))
+            created=cur.rowcount>0; conn.commit()
+    return {"success":True,"reported":True,"new_report":created,"message":"Comment reported for review"}

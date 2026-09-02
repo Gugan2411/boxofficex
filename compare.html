@@ -963,6 +963,19 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
  .site-footer{background:#fff!important}
 }
 
+
+
+/* HERO COMPARISON FAN ENGAGEMENT */
+.compare-engagement{margin-top:28px;padding:18px;border:1px solid #dbe3ef;border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(15,23,42,.06)}
+.compare-engagement h2{margin:0 0 6px;font-size:20px;text-align:center}.compare-engagement-sub{margin:0 0 16px;color:#64748b;font-size:11px;text-align:center}
+.compare-engagement-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.compare-action{min-height:48px;border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;color:#1e293b;font-weight:900;cursor:pointer}.compare-action.active{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
+.compare-vote-title{margin:4px 0 10px;font-size:13px;font-weight:900;text-align:center}.compare-votes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.compare-vote{padding:11px 7px;border:1px solid #dbe3ef;border-radius:11px;background:#fff;cursor:pointer;font-size:10px;font-weight:900;color:#334155}.compare-vote.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8}.compare-vote small{display:block;margin-top:4px;color:#64748b;font-size:8px}
+.compare-comments{margin-top:20px;padding-top:18px;border-top:1px solid #e2e8f0}.compare-comments-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.compare-comments-head h3{margin:0;font-size:16px}.compare-comment-sort{padding:8px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#334155;font-size:10px}
+.compare-top-comment{display:none;margin:0 0 12px;padding:13px;border:1px solid rgba(197,138,0,.25);border-radius:12px;background:linear-gradient(135deg,#fff8df,#fffdf6)}.compare-top-comment.show{display:block}.compare-top-label{margin-bottom:7px;color:#a86f00;font-size:9px;font-weight:1000;text-transform:uppercase}.compare-top-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.compare-top-author{font-size:11px;font-weight:1000;color:#26364f}.compare-top-likes{font-size:9px;font-weight:1000;color:#a86f00}.compare-top-body{font-size:12px;line-height:1.55;color:#3d4b61;overflow-wrap:anywhere}
+.compare-comment-form{display:grid;gap:8px;margin-bottom:14px}.compare-comment-form input,.compare-comment-form textarea{width:100%;padding:11px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;color:#111827;font:inherit}.compare-comment-form textarea{min-height:90px;resize:vertical}.compare-comment-form button{min-height:42px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:900;cursor:pointer}.compare-comment-message{min-height:15px;color:#64748b;font-size:10px}
+.compare-comment-list{display:grid;gap:9px}.compare-comment-card{padding:12px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}.compare-comment-meta{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.compare-comment-name{font-size:11px;font-weight:1000}.compare-comment-time{font-size:8px;color:#94a3b8}.compare-comment-text{font-size:12px;line-height:1.55;color:#334155;overflow-wrap:anywhere}.compare-comment-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.compare-comment-actions button{padding:6px 8px;border:1px solid #dbe3ef;border-radius:8px;background:#fff;color:#475569;font-size:9px;font-weight:800;cursor:pointer}.compare-comment-actions button.active{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}.compare-comments-empty{padding:18px;text-align:center;color:#94a3b8;font-size:11px}
+@media(max-width:700px){.compare-engagement{margin-top:20px;padding:13px 9px;border-radius:13px}.compare-engagement h2{font-size:17px}.compare-engagement-actions{gap:7px}.compare-action{min-height:43px;font-size:10px}.compare-votes{gap:5px}.compare-vote{padding:9px 4px;font-size:8px}.compare-comment-card{padding:10px}.compare-comment-text{font-size:10.5px}}
+
 </style>
 
 </head>
@@ -1961,8 +1974,38 @@ async function loadComparison() {
 
             ${winnerHTML}
 
+            <section class="compare-engagement" id="heroComparisonEngagement">
+                <h2>🎉 Fan Zone</h2>
+                <p class="compare-engagement-sub">React to ${actor1.name} vs ${actor2.name}</p>
+                <div class="compare-engagement-actions">
+                    <button type="button" class="compare-action" id="comparisonLikeBtn">❤️ Like <span id="comparisonLikeCount">0</span></button>
+                    <button type="button" class="compare-action" id="comparisonHypeBtn">🔥 Hype <span id="comparisonHypeCount">0</span></button>
+                </div>
+                <div class="compare-vote-title">📊 Who wins this fan vote?</div>
+                <div class="compare-votes">
+                    <button type="button" class="compare-vote" data-choice="hero1">${actor1.name}<small id="hero1VoteStat">0 votes · 0%</small></button>
+                    <button type="button" class="compare-vote" data-choice="tie">🤝 Tie<small id="tieVoteStat">0 votes · 0%</small></button>
+                    <button type="button" class="compare-vote" data-choice="hero2">${actor2.name}<small id="hero2VoteStat">0 votes · 0%</small></button>
+                </div>
+                <div class="compare-comments">
+                    <div class="compare-comments-head">
+                        <h3>💬 Fan Comments <span id="comparisonCommentCount">0</span></h3>
+                        <select id="comparisonCommentSort" class="compare-comment-sort"><option value="newest">Newest</option><option value="top">Top</option></select>
+                    </div>
+                    <div class="compare-top-comment" id="comparisonTopComment"></div>
+                    <form class="compare-comment-form" id="comparisonCommentForm">
+                        <input id="comparisonCommentName" maxlength="50" placeholder="Your name" required>
+                        <textarea id="comparisonCommentText" maxlength="1000" placeholder="Share your opinion about this comparison..." required></textarea>
+                        <button type="submit">Post Comment</button>
+                        <div class="compare-comment-message" id="comparisonCommentMessage"></div>
+                    </form>
+                    <div class="compare-comment-list" id="comparisonCommentsList"><div class="compare-comments-empty">Loading comments...</div></div>
+                </div>
+            </section>
 
         `;
+
+        initHeroComparisonEngagement(actor1, actor2);
 
 
     }
@@ -2293,6 +2336,82 @@ function openMovie(
 }
 
 
+
+
+// ==========================================
+// HERO COMPARISON FAN ENGAGEMENT
+// ==========================================
+function getBoxOfficeXVisitorId(){
+    const key="boxofficex_visitor_id";
+    let id=localStorage.getItem(key);
+    if(!id){
+        id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID().replace(/-/g,"_"):"visitor_"+Date.now()+"_"+Math.random().toString(36).slice(2,18);
+        localStorage.setItem(key,id);
+    }
+    return id;
+}
+function compareEscape(value){const d=document.createElement("div");d.textContent=String(value??"");return d.innerHTML}
+function compareTime(value){if(!value)return "";const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleString()}
+async function compareJSON(url,options={}){const r=await fetch(url,options);let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.detail||"Request failed");return d}
+function initHeroComparisonEngagement(actor1,actor2){
+    const visitorId=getBoxOfficeXVisitorId();
+    const base=`/hero-comparisons/${actor1.id}/${actor2.id}`;
+    const nameInput=document.getElementById("comparisonCommentName");
+    if(nameInput)nameInput.value=localStorage.getItem("boxofficex_comment_name")||"";
+
+    async function loadEngagement(){
+        try{
+            const d=await compareJSON(`${base}/engagement?visitor_id=${encodeURIComponent(visitorId)}`);
+            document.getElementById("comparisonLikeCount").textContent=d.like_count||0;
+            document.getElementById("comparisonHypeCount").textContent=d.hype_count||0;
+            document.getElementById("comparisonLikeBtn").classList.toggle("active",!!d.liked);
+            document.getElementById("comparisonHypeBtn").classList.toggle("active",!!d.hyped);
+            const fv=d.fan_vote||{},c=fv.counts||{},p=fv.percentages||{};
+            document.getElementById("hero1VoteStat").textContent=`${c.hero1||0} votes · ${p.hero1||0}%`;
+            document.getElementById("tieVoteStat").textContent=`${c.tie||0} votes · ${p.tie||0}%`;
+            document.getElementById("hero2VoteStat").textContent=`${c.hero2||0} votes · ${p.hero2||0}%`;
+            document.querySelectorAll(".compare-vote").forEach(b=>b.classList.toggle("active",b.dataset.choice===fv.my_vote));
+        }catch(e){console.warn("Comparison engagement:",e)}
+    }
+    async function loadTopComment(){
+        const box=document.getElementById("comparisonTopComment");
+        try{
+            const d=await compareJSON(`${base}/comments?visitor_id=${encodeURIComponent(visitorId)}&sort=top&limit=1`);
+            const c=(d.comments||[])[0];
+            if(c&&(Number(c.like_count)||0)>0){box.classList.add("show");box.innerHTML=`<div class="compare-top-label">🏆 Top Fan Comment</div><div class="compare-top-head"><span class="compare-top-author">${compareEscape(c.display_name)}</span><span class="compare-top-likes">👍 ${Number(c.like_count)||0} likes</span></div><div class="compare-top-body">${compareEscape(c.comment_text)}</div>`}else{box.classList.remove("show");box.innerHTML=""}
+        }catch(e){box.classList.remove("show")}
+    }
+    async function loadComments(){
+        const list=document.getElementById("comparisonCommentsList"),sort=document.getElementById("comparisonCommentSort").value;
+        try{
+            const d=await compareJSON(`${base}/comments?visitor_id=${encodeURIComponent(visitorId)}&sort=${encodeURIComponent(sort)}&limit=30`);
+            document.getElementById("comparisonCommentCount").textContent=d.total||0;
+            const comments=d.comments||[];
+            if(!comments.length){list.innerHTML='<div class="compare-comments-empty">No comments yet. Be the first.</div>'}else{
+                list.innerHTML=comments.map(c=>`<article class="compare-comment-card" data-comment-id="${c.id}"><div class="compare-comment-meta"><span class="compare-comment-name">${compareEscape(c.display_name)}</span><span class="compare-comment-time">${compareEscape(compareTime(c.created_at))}</span></div><div class="compare-comment-text">${compareEscape(c.comment_text)}</div><div class="compare-comment-actions"><button type="button" data-action="like" class="${c.liked_by_me?'active':''}">👍 ${Number(c.like_count)||0}</button><button type="button" data-action="report">🚩 Report</button>${c.is_owner?'<button type="button" data-action="delete">🗑 Delete</button>':''}</div></article>`).join("")
+            }
+            await loadTopComment();
+        }catch(e){list.innerHTML=`<div class="compare-comments-empty">${compareEscape(e.message)}</div>`}
+    }
+    document.getElementById("comparisonLikeBtn").onclick=async()=>{try{await compareJSON(`${base}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId})});await loadEngagement()}catch(e){alert(e.message)}};
+    document.getElementById("comparisonHypeBtn").onclick=async()=>{try{await compareJSON(`${base}/hype`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId})});await loadEngagement()}catch(e){alert(e.message)}};
+    document.querySelectorAll(".compare-vote").forEach(btn=>btn.onclick=async()=>{try{await compareJSON(`${base}/vote`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId,choice:btn.dataset.choice})});await loadEngagement()}catch(e){alert(e.message)}});
+    document.getElementById("comparisonCommentSort").onchange=loadComments;
+    document.getElementById("comparisonCommentForm").onsubmit=async e=>{
+        e.preventDefault();const msg=document.getElementById("comparisonCommentMessage"),name=nameInput.value.trim(),comment=document.getElementById("comparisonCommentText").value.trim();msg.textContent="Posting...";
+        try{await compareJSON(`${base}/comments`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId,display_name:name,comment_text:comment})});localStorage.setItem("boxofficex_comment_name",name);document.getElementById("comparisonCommentText").value="";msg.textContent="Comment posted.";await loadComments()}catch(err){msg.textContent=err.message}
+    };
+    document.getElementById("comparisonCommentsList").onclick=async e=>{
+        const b=e.target.closest("button[data-action]");if(!b)return;const card=b.closest("[data-comment-id]");if(!card)return;const id=card.dataset.commentId;
+        try{
+            if(b.dataset.action==="like")await compareJSON(`/hero-comparison-comments/${id}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId})});
+            if(b.dataset.action==="report")await compareJSON(`/hero-comparison-comments/${id}/report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId,reason:"Other"})});
+            if(b.dataset.action==="delete"){if(!confirm("Delete your comment?"))return;await compareJSON(`/hero-comparison-comments/${id}`,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitorId})})}
+            await loadComments();
+        }catch(err){alert(err.message)}
+    };
+    loadEngagement();loadComments();
+}
 
 
 function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
