@@ -4737,97 +4737,6 @@ header nav a.nav-compare:focus-visible {
 
 </section>
 
-
-<!-- ======================================================
-     HERO VS HERO
-====================================================== -->
-
-<section class="section">
-
-    <div class="section-header">
-
-        <div class="section-title-wrap">
-
-            <div class="section-label">
-                BOXOFFICEX FEATURE
-            </div>
-
-            <h2>
-                ⚔️ Hero vs Hero
-            </h2>
-
-        </div>
-
-
-        <a href="compare-select.html">
-            Compare Now →
-        </a>
-
-    </div>
-
-
-    <div
-        class="comparison-card"
-        id="comparisonCard"
-        role="button"
-        tabindex="0"
-        aria-label="Open hero comparison"
-    >
-
-        <div class="comparison-side">
-
-            <div class="comparison-icon">
-                🎭
-            </div>
-
-            <h3>
-                Your Favourite Hero
-            </h3>
-
-            <p>
-                Movies • Collections • Verdicts
-            </p>
-
-        </div>
-
-
-        <div
-            class="comparison-vs"
-            aria-hidden="true"
-        >
-            VS
-        </div>
-
-
-        <div class="comparison-side">
-
-            <div class="comparison-icon">
-                🎭
-            </div>
-
-            <h3>
-                Another Hero
-            </h3>
-
-            <p>
-                Movies • Collections • Verdicts
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div class="comparison-action">
-
-        👆 Select any two heroes and compare
-        their box-office journey.
-
-    </div>
-
-</section>
-
-
 <!-- ======================================================
      LATEST RELEASES
 ====================================================== -->
@@ -4866,6 +4775,24 @@ header nav a.nav-compare:focus-visible {
         </div>
     </div>
 
+</section>
+
+
+<!-- ======================================================
+     TRENDING MOVIES
+====================================================== -->
+
+<section class="section" id="trending-movies">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <div class="section-label">AUDIENCE ACTIVITY • LAST 7 DAYS</div>
+            <h2>📈 Trending Movies</h2>
+        </div>
+    </div>
+
+    <div class="movie-grid ranking-grid" id="trendingMoviesGrid">
+        <div class="movie-empty">Loading trending movies...</div>
+    </div>
 </section>
 
 
@@ -5977,6 +5904,102 @@ async function loadMovies() {
 
 
 /* =========================================================
+   TRENDING MOVIES
+========================================================= */
+
+async function loadTrendingMovies() {
+    const grid = document.getElementById("trendingMoviesGrid");
+    if (!grid) return;
+
+    try {
+        const response = await fetch(
+            `${API_BASE}/movies/trending?limit=10`,
+            {cache: "no-store"}
+        );
+
+        if (!response.ok) {
+            throw new Error("Trending movies API error: " + response.status);
+        }
+
+        const data = await response.json();
+        const movies = Array.isArray(data.movies) ? data.movies : [];
+
+        grid.innerHTML = "";
+
+        if (!movies.length) {
+            grid.innerHTML = `
+                <div class="movie-empty">
+                    Trending movies will appear as visitors view, like, hype,
+                    vote and comment on movies.
+                </div>
+            `;
+            return;
+        }
+
+        movies.forEach((movie, index) => {
+            const card = document.createElement("article");
+            card.className = "movie-card ranking-card";
+            card.tabIndex = 0;
+            card.setAttribute("role", "link");
+
+            const views = Number(movie.view_count || 0);
+            const hype = Number(movie.hype_count || 0);
+            const fans = Number(movie.fan_count || 0);
+            const votes = Number(movie.vote_count || 0);
+            const comments = Number(movie.comment_count || 0);
+
+            card.innerHTML = `
+                <div class="ranking-number">#${Number(movie.rank || index + 1)}</div>
+
+                <img
+                    class="movie-poster"
+                    src="${movieImage(movie.poster)}"
+                    alt="${escapeHTML(movie.title || "Movie")} poster"
+                    loading="lazy"
+                    decoding="async"
+                    onerror="setMovieFallback(this)"
+                >
+
+                <div class="movie-info">
+                    <h3>${escapeHTML(movie.title || "Untitled")}</h3>
+                    <p>${escapeHTML(movie.language || movie.industry || "Cinema")}</p>
+                    <p class="movie-collection">
+                        👁 ${views.toLocaleString()} Views • 🔥 ${hype.toLocaleString()} Hype
+                    </p>
+                    <p class="movie-verdict">
+                        ❤️ ${fans.toLocaleString()} • 🗳 ${votes.toLocaleString()} • 💬 ${comments.toLocaleString()}
+                    </p>
+                </div>
+            `;
+
+            const openMovie = () => {
+                window.location.href =
+                    "movie.html?id=" + encodeURIComponent(movie.id);
+            };
+
+            card.addEventListener("click", openMovie);
+            card.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openMovie();
+                }
+            });
+
+            grid.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error("Trending movies loading error:", error);
+        grid.innerHTML = `
+            <div class="movie-empty">
+                Unable to load trending movies.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
    MOST HYPED MOVIES
 ========================================================= */
 
@@ -6805,6 +6828,7 @@ async function startHomePage() {
 
     await Promise.all([
         loadTop10(),
+        loadTrendingMovies(),
         loadMostHypedMovies(),
         loadTrendingFanActivity()
     ]);

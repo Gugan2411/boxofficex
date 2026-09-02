@@ -2068,6 +2068,132 @@ def get_latest_movies():
     }
 
 
+
+# ============================================================
+# TRENDING MOVIES
+# Recent 7-day audience activity ranking
+# IMPORTANT: KEEP THIS BEFORE /movies/{movie_id}
+# ============================================================
+
+@app.get("/movies/trending")
+def trending_movies(limit: int = 10):
+    limit = max(1, min(int(limit or 10), 50))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                WITH movie_activity AS (
+                    SELECT
+                        m.id,
+                        m.title,
+                        m.language,
+                        m.industry,
+                        m.release_date,
+                        m.poster,
+
+                        COUNT(DISTINCT v.id) FILTER (
+                            WHERE v.viewed_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS view_count,
+
+                        COUNT(DISTINCT f.id) FILTER (
+                            WHERE f.created_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS fan_count,
+
+                        COUNT(DISTINCT h.id) FILTER (
+                            WHERE h.created_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS hype_count,
+
+                        COUNT(DISTINCT fv.id) FILTER (
+                            WHERE fv.created_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS vote_count,
+
+                        COUNT(DISTINCT c.id) FILTER (
+                            WHERE c.created_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS comment_count
+
+                    FROM movies m
+                    LEFT JOIN movie_views v
+                        ON v.movie_id = m.id
+                    LEFT JOIN movie_fans f
+                        ON f.movie_id = m.id
+                    LEFT JOIN movie_hype h
+                        ON h.movie_id = m.id
+                    LEFT JOIN movie_fan_votes fv
+                        ON fv.movie_id = m.id
+                    LEFT JOIN movie_comments c
+                        ON c.movie_id = m.id
+
+                    GROUP BY
+                        m.id,
+                        m.title,
+                        m.language,
+                        m.industry,
+                        m.release_date,
+                        m.poster
+                ),
+                ranked AS (
+                    SELECT
+                        *,
+                        (
+                            view_count
+                            + (fan_count * 2)
+                            + (hype_count * 3)
+                            + (vote_count * 2)
+                            + (comment_count * 3)
+                        )::bigint AS trending_score
+                    FROM movie_activity
+                )
+                SELECT
+                    id,
+                    title,
+                    language,
+                    industry,
+                    release_date,
+                    poster,
+                    view_count,
+                    fan_count,
+                    hype_count,
+                    vote_count,
+                    comment_count,
+                    trending_score
+                FROM ranked
+                WHERE trending_score > 0
+                ORDER BY
+                    trending_score DESC,
+                    hype_count DESC,
+                    view_count DESC,
+                    release_date DESC NULLS LAST,
+                    id DESC
+                LIMIT %s
+            """, (limit,))
+
+            rows = cur.fetchall()
+
+    movies = []
+
+    for position, row in enumerate(rows, start=1):
+        movies.append({
+            "rank": position,
+            "id": row[0],
+            "title": row[1],
+            "language": row[2],
+            "industry": row[3],
+            "release_date": str(row[4]) if row[4] else None,
+            "poster": safe_movie_poster(row[5]),
+            "view_count": int(row[6] or 0),
+            "fan_count": int(row[7] or 0),
+            "hype_count": int(row[8] or 0),
+            "vote_count": int(row[9] or 0),
+            "comment_count": int(row[10] or 0),
+            "trending_score": int(row[11] or 0),
+        })
+
+    return {
+        "period_days": 7,
+        "movies": movies,
+    }
+
+
 # ============================================================
 # BOXOFFICEX NEW MOVIE SYSTEM
 # Running / Upcoming / Recently Released
