@@ -5387,6 +5387,53 @@ def admin_regional_boxoffice_page():
 
 
 # ============================================================
+# MOST HYPED MOVIES
+# Dynamic ranking from unique visitor hype votes
+# ============================================================
+
+@app.get("/movies/most-hyped")
+def most_hyped_movies(limit: int = 10):
+    limit = max(1, min(int(limit or 10), 50))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    m.id,
+                    m.title,
+                    m.language,
+                    m.industry,
+                    m.release_date,
+                    m.poster,
+                    COUNT(h.id) AS hype_count
+                FROM movies m
+                JOIN movie_hype h
+                  ON h.movie_id = m.id
+                GROUP BY
+                    m.id, m.title, m.language, m.industry,
+                    m.release_date, m.poster
+                ORDER BY hype_count DESC, m.release_date DESC NULLS LAST, m.id DESC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+
+    movies = []
+    for position, row in enumerate(rows, start=1):
+        movies.append({
+            "rank": position,
+            "id": row[0],
+            "title": row[1],
+            "language": row[2],
+            "industry": row[3],
+            "release_date": str(row[4]) if row[4] else None,
+            "poster": safe_movie_poster(row[5]),
+            "hype_count": int(row[6] or 0)
+        })
+
+    return {"movies": movies}
+
+
+# ============================================================
 # BOXOFFICEX FAN ENGAGEMENT API - V1
 # Movie Fans + Hype + Fan Verdict + Comments + Comment Likes
 # ============================================================

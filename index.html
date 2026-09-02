@@ -4318,6 +4318,152 @@ header nav a.nav-compare:focus-visible {
     }
 }
 
+
+
+/* =========================================================
+   BOXOFFICEX FINAL MOBILE BRAND + COMPARISON SHORTCUTS
+   Two important features stay visible directly below the logo.
+========================================================= */
+.mobile-primary-features{display:none;}
+
+@media (max-width:700px){
+    body{padding-top:113px !important;}
+
+    header{
+        height:113px !important;
+        background:#ffffff !important;
+        border-bottom:1px solid #dfe5ed !important;
+        box-shadow:0 6px 20px rgba(15,23,42,.09) !important;
+    }
+
+    .navbar{
+        height:61px !important;
+        min-height:61px !important;
+        display:grid !important;
+        grid-template-columns:42px minmax(0,1fr) 42px !important;
+        padding:0 12px !important;
+        gap:8px !important;
+        background:#ffffff !important;
+    }
+
+    .navbar::after{
+        content:"";
+        width:42px;
+        height:42px;
+        grid-column:3;
+    }
+
+    .mobile-menu-button{
+        grid-column:1 !important;
+        grid-row:1 !important;
+        justify-self:start !important;
+    }
+
+    .logo{
+        grid-column:2 !important;
+        grid-row:1 !important;
+        justify-self:center !important;
+        font-size:18px !important;
+        gap:8px !important;
+        background:#ffffff !important;
+    }
+
+    .logo-icon{
+        width:31px !important;
+        height:31px !important;
+        border-radius:9px !important;
+    }
+
+    header > .mobile-primary-features{
+        position:relative !important;
+        top:auto !important;
+        left:auto !important;
+        right:auto !important;
+        width:100% !important;
+        max-width:none !important;
+        height:52px !important;
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        align-items:center !important;
+        gap:8px !important;
+        padding:6px 10px 7px !important;
+        border-top:1px solid #e3e8f0 !important;
+        background:linear-gradient(90deg,#eef5ff 0%,#fff7ed 50%,#f4f0ff 100%) !important;
+    }
+
+    header > .mobile-primary-features a{
+        width:100% !important;
+        min-width:0 !important;
+        min-height:38px !important;
+        display:flex !important;
+        flex-direction:row !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:7px !important;
+        padding:7px 8px !important;
+        border-radius:11px !important;
+        font-size:11px !important;
+        line-height:1 !important;
+        font-weight:900 !important;
+        text-align:center !important;
+        white-space:nowrap !important;
+        box-shadow:0 4px 12px rgba(15,23,42,.05) !important;
+    }
+
+    header > .mobile-primary-features a span{
+        font-size:16px !important;
+        line-height:1 !important;
+    }
+
+    header > .mobile-primary-features a:first-child{
+        color:#1d4ed8 !important;
+        background:linear-gradient(135deg,#e8f1ff,#f8fbff) !important;
+        border:1px solid #c9dcff !important;
+    }
+
+    header > .mobile-primary-features a:last-child{
+        color:#9a6700 !important;
+        background:linear-gradient(135deg,#fff3d6,#fffaf0) !important;
+        border:1px solid #f0d694 !important;
+    }
+
+    header > .mobile-primary-features a:active{
+        transform:scale(.98);
+        filter:brightness(.97);
+    }
+
+    /* Open hamburger menu BELOW the permanent comparison row. */
+    header nav:not(.mobile-primary-features){
+        top:113px !important;
+        max-height:calc(100vh - 125px) !important;
+        overflow-y:auto !important;
+        overscroll-behavior:contain !important;
+        -webkit-overflow-scrolling:touch !important;
+    }
+
+    /* Actor/Movie comparison are already always visible below the logo,
+       so do not repeat them inside the hamburger menu on mobile. */
+    header nav:not(.mobile-primary-features) .nav-compare{
+        display:none !important;
+    }
+
+    .hero{padding-top:25px !important;}
+}
+
+@media (max-width:380px){
+    header > .mobile-primary-features{
+        gap:6px !important;
+        padding-left:7px !important;
+        padding-right:7px !important;
+    }
+    header > .mobile-primary-features a{
+        font-size:10px !important;
+        gap:5px !important;
+        padding-left:5px !important;
+        padding-right:5px !important;
+    }
+    header > .mobile-primary-features a span{font-size:15px !important;}
+}
 </style>
 
 </head>
@@ -4387,6 +4533,11 @@ header nav a.nav-compare:focus-visible {
         </nav>
 
     </div>
+
+    <nav class="mobile-primary-features" aria-label="Primary mobile features">
+        <a href="compare-select.html"><span>⚔️</span>Actor Comparison</a>
+        <a href="movie-compare-select.html"><span>🎬</span>Movie Comparison</a>
+    </nav>
 
 </header>
 
@@ -4692,6 +4843,23 @@ header nav a.nav-compare:focus-visible {
         </div>
     </div>
 
+</section>
+
+
+<!-- ======================================================
+     MOST HYPED MOVIES
+====================================================== -->
+
+<section class="section" id="most-hyped">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <div class="section-label">FAN HYPE RANKING</div>
+            <h2>🔥 Most Hyped Movies</h2>
+        </div>
+    </div>
+    <div class="movie-grid ranking-grid" id="hypedMoviesGrid">
+        <div class="movie-empty">Loading fan hype...</div>
+    </div>
 </section>
 
 
@@ -5770,6 +5938,50 @@ async function loadMovies() {
 
 
 /* =========================================================
+   MOST HYPED MOVIES
+========================================================= */
+
+async function loadMostHypedMovies() {
+    const grid = document.getElementById("hypedMoviesGrid");
+    if (!grid) return;
+    try {
+        const response = await fetch(`${API_BASE}/movies/most-hyped?limit=10`, {cache:"no-store"});
+        if (!response.ok) throw new Error("Most hyped API error: " + response.status);
+        const data = await response.json();
+        const movies = Array.isArray(data.movies) ? data.movies : [];
+        grid.innerHTML = "";
+        if (!movies.length) {
+            grid.innerHTML = `<div class="movie-empty">No hype votes yet. Open a movie and tap 🔥 Hype to start the ranking.</div>`;
+            return;
+        }
+        movies.forEach((movie, index) => {
+            const card = document.createElement("article");
+            card.className = "movie-card ranking-card";
+            card.tabIndex = 0;
+            card.setAttribute("role", "link");
+            card.innerHTML = `
+                <div class="ranking-number">#${index + 1}</div>
+                <img class="movie-poster" src="${movieImage(movie.poster)}" alt="${escapeHTML(movie.title || "Movie")} poster" loading="lazy" decoding="async" onerror="setMovieFallback(this)">
+                <div class="movie-info">
+                    <h3>${escapeHTML(movie.title || "Untitled")}</h3>
+                    <p>${escapeHTML(movie.language || movie.industry || "Cinema")}</p>
+                    <p class="movie-collection">🔥 ${Number(movie.hype_count || 0).toLocaleString()} Hype</p>
+                </div>`;
+            const openMovie = () => { window.location.href = "movie.html?id=" + encodeURIComponent(movie.id); };
+            card.addEventListener("click", openMovie);
+            card.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openMovie(); }
+            });
+            grid.appendChild(card);
+        });
+    } catch (error) {
+        console.error("Most hyped loading error:", error);
+        grid.innerHTML = `<div class="movie-empty">Unable to load most hyped movies.</div>`;
+    }
+}
+
+
+/* =========================================================
    TOP 10 RANKINGS
 ========================================================= */
 
@@ -6507,7 +6719,10 @@ async function startHomePage() {
         Uses cached movie data.
     */
 
-    await loadTop10();
+    await Promise.all([
+        loadTop10(),
+        loadMostHypedMovies()
+    ]);
 
 }
 
