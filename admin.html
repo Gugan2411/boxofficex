@@ -1732,6 +1732,35 @@ tr:hover td {
     }
 }
 
+
+/* =====================================================
+   COMMENT MODERATION
+===================================================== */
+.comment-moderation-card{margin-bottom:30px}
+.comment-moderation-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+.comment-moderation-stat{padding:15px;border:1px solid #29334d;border-radius:13px;background:#151d31}
+.comment-moderation-stat span{display:block;color:#aeb8ce;font-size:11px;font-weight:800}
+.comment-moderation-stat strong{display:block;margin-top:6px;font-size:24px}
+.comment-moderation-toolbar{display:flex;gap:10px;align-items:end;margin-bottom:18px}
+.comment-moderation-toolbar .form-group{flex:1;margin:0}
+.comment-moderation-list{display:grid;gap:12px}
+.comment-moderation-item{padding:16px;border:1px solid #29334d;border-radius:14px;background:#101625}
+.comment-moderation-item.reported{border-color:#703535}
+.comment-moderation-item.hidden{opacity:.72}
+.comment-moderation-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.comment-moderation-name{font-weight:900}
+.comment-moderation-meta{margin-top:5px;color:#8f9bb4;font-size:11px;line-height:1.5}
+.comment-moderation-text{margin-top:12px;color:#e6ebf5;font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.comment-moderation-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.comment-mod-badge{padding:5px 8px;border-radius:999px;background:#202b44;color:#a9c6ff;font-size:10px;font-weight:900}
+.comment-mod-badge.report{background:#351919;color:#ff9a9a}
+.comment-mod-badge.hidden{background:#2b2510;color:#ffcc33}
+.comment-moderation-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.comment-mod-btn{padding:8px 11px;border:1px solid #29334d;border-radius:8px;background:#202b44;color:#cfe0ff;cursor:pointer;font-size:11px;font-weight:900}
+.comment-mod-btn.good{background:#142c22;color:#7de2bb;border-color:#2e6b4f}
+.comment-mod-btn.danger{background:#351919;color:#ff9a9a;border-color:#703535}
+@media(max-width:650px){.comment-moderation-summary{grid-template-columns:1fr}.comment-moderation-toolbar{flex-direction:column;align-items:stretch}.comment-moderation-head{flex-direction:column}}
+
 </style>
 
 </head>
@@ -1756,6 +1785,7 @@ tr:hover td {
         <a href="#actors">👤 Actors</a>
         <a href="#actor-links">🔗 Actor Links</a>
         <a href="#collections">📊 Collections</a>
+        <a id="commentModerationNav" class="owner-only" href="#comment-moderation">💬 Comments</a>
         <a id="teamNavLink" class="owner-only" href="/admin-team.html">👥 Admin Team</a>
     </nav>
 <div class="admin-account-actions">
@@ -3498,6 +3528,44 @@ tr:hover td {
 
     </div>
 
+
+
+
+    <!-- =====================================================
+         OWNER ONLY: COMMENT MODERATION
+    ===================================================== -->
+    <div id="comment-moderation" class="admin-card comment-moderation-card owner-only">
+        <div class="dashboard-header">
+            <div>
+                <h2>💬 Comment Moderation</h2>
+                <p>Review fan comments, reported content, hide/unhide comments and remove abusive or spam comments.</p>
+            </div>
+            <button type="button" class="refresh-button" onclick="loadCommentModeration()">🔄 Refresh</button>
+        </div>
+
+        <div class="comment-moderation-summary">
+            <div class="comment-moderation-stat"><span>ACTIVE COMMENTS</span><strong id="modCommentTotal">0</strong></div>
+            <div class="comment-moderation-stat"><span>REPORTED</span><strong id="modReportedTotal">0</strong></div>
+            <div class="comment-moderation-stat"><span>HIDDEN</span><strong id="modHiddenTotal">0</strong></div>
+        </div>
+
+        <div class="comment-moderation-toolbar">
+            <div class="form-group">
+                <label for="commentModerationStatus">Filter Comments</label>
+                <select id="commentModerationStatus" onchange="loadCommentModeration()">
+                    <option value="reported">Reported First</option>
+                    <option value="all">All Comments</option>
+                    <option value="visible">Visible</option>
+                    <option value="hidden">Hidden</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="commentModerationMessage" class="message"></div>
+        <div id="commentModerationList" class="comment-moderation-list">
+            <div class="table-loading">Loading comments...</div>
+        </div>
+    </div>
 
 </main>
 
@@ -9127,6 +9195,77 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     calculateAddMovieWorldwide();
+});
+</script>
+
+
+<script>
+function modEsc(value){
+    const div=document.createElement("div");
+    div.textContent=value == null ? "" : String(value);
+    return div.innerHTML;
+}
+function modDate(value){
+    if(!value) return "—";
+    const d=new Date(value);
+    return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+}
+async function modRequest(url, options={}){
+    const response=await fetch(url,{credentials:"include",cache:"no-store",...options});
+    let data={};
+    try{data=await response.json();}catch(e){}
+    if(response.status===401){location.href="/admin-login.html";throw new Error("Admin login required");}
+    if(response.status===403) throw new Error(data.detail || "Owner access required");
+    if(!response.ok) throw new Error(data.detail || "Request failed");
+    return data;
+}
+async function loadCommentModeration(){
+    const list=document.getElementById("commentModerationList");
+    if(!list) return;
+    const status=document.getElementById("commentModerationStatus")?.value || "reported";
+    list.innerHTML='<div class="table-loading">Loading comments...</div>';
+    try{
+        const data=await modRequest(`/admin/comments?status=${encodeURIComponent(status)}&limit=100`);
+        document.getElementById("modCommentTotal").textContent=data.summary?.comments ?? 0;
+        document.getElementById("modReportedTotal").textContent=data.summary?.reported ?? 0;
+        document.getElementById("modHiddenTotal").textContent=data.summary?.hidden ?? 0;
+        const comments=Array.isArray(data.comments)?data.comments:[];
+        if(!comments.length){list.innerHTML='<div class="table-loading">No comments found for this filter.</div>';return;}
+        list.innerHTML=comments.map(c=>{
+            const reported=Number(c.report_count)||0;
+            return `<article class="comment-moderation-item ${reported?'reported':''} ${c.is_hidden?'hidden':''}">
+                <div class="comment-moderation-head">
+                    <div><div class="comment-moderation-name">${modEsc(c.display_name)}</div><div class="comment-moderation-meta">${modEsc(c.movie_title)} · Movie #${Number(c.movie_id)} · ${modEsc(modDate(c.created_at))}</div></div>
+                    <div class="comment-moderation-meta">Comment #${Number(c.id)}</div>
+                </div>
+                <div class="comment-moderation-text">${modEsc(c.comment_text)}</div>
+                <div class="comment-moderation-badges">
+                    <span class="comment-mod-badge">👍 ${Number(c.like_count)||0} likes</span>
+                    <span class="comment-mod-badge ${reported?'report':''}">🚩 ${reported} reports</span>
+                    ${c.is_hidden?'<span class="comment-mod-badge hidden">Hidden</span>':'<span class="comment-mod-badge">Visible</span>'}
+                </div>
+                <div class="comment-moderation-actions">
+                    <button type="button" class="comment-mod-btn ${c.is_hidden?'good':''}" onclick="toggleAdminCommentVisibility(${Number(c.id)})">${c.is_hidden?'👁 Unhide':'🙈 Hide'}</button>
+                    <button type="button" class="comment-mod-btn danger" onclick="deleteAdminComment(${Number(c.id)})">🗑 Delete</button>
+                    <a class="comment-mod-btn" href="/movie.html?id=${Number(c.movie_id)}" target="_blank" rel="noopener">🎬 Open Movie</a>
+                </div>
+            </article>`;
+        }).join("");
+    }catch(error){list.innerHTML=`<div class="table-loading">${modEsc(error.message)}</div>`;}
+}
+async function toggleAdminCommentVisibility(commentId){
+    try{await modRequest(`/admin/comments/${commentId}/visibility`,{method:"PUT"});await loadCommentModeration();}
+    catch(error){alert(error.message);}
+}
+async function deleteAdminComment(commentId){
+    if(!confirm("Permanently remove this comment from the public site?")) return;
+    try{await modRequest(`/admin/comments/${commentId}`,{method:"DELETE"});await loadCommentModeration();}
+    catch(error){alert(error.message);}
+}
+document.addEventListener("DOMContentLoaded",()=>{
+    setTimeout(()=>{
+        if(window.BOXOFFICEX_CURRENT_ADMIN?.role === "owner") loadCommentModeration();
+    },700);
 });
 </script>
 

@@ -5692,6 +5692,134 @@ def post_movie_comment(movie_id: int, data: MovieCommentCreateData):
     }
 
 
+# ============================================================
+# OWNER COMMENT MODERATION
+# ============================================================
+
+@app.get("/admin/comments", dependencies=[Depends(require_owner)])
+def admin_list_movie_comments(
+    status: Literal["all", "reported", "visible", "hidden"] = "all",
+    limit: int = 100,
+    offset: int = 0,
+):
+    limit = max(1, min(limit, 250))
+    offset = max(0, offset)
+
+    where = ["c.is_deleted = FALSE"]
+    if status == "reported":
+        where.append("EXISTS (SELECT 1 FROM movie_comment_reports rr WHERE rr.comment_id = c.id)")
+    elif status == "visible":
+        where.append("c.is_hidden = FALSE")
+    elif status == "hidden":
+        where.append("c.is_hidden = TRUE")
+
+    where_sql = " AND ".join(where)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                SELECT
+                    c.id,
+                    c.movie_id,
+                    m.title,
+                    c.display_name,
+                    c.comment_text,
+                    c.is_hidden,
+                    c.created_at,
+                    COUNT(DISTINCT l.id) AS like_count,
+                    COUNT(DISTINCT r.id) AS report_count
+                FROM movie_comments c
+                JOIN movies m ON m.id = c.movie_id
+                LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
+                LEFT JOIN movie_comment_reports r ON r.comment_id = c.id
+                WHERE {where_sql}
+                GROUP BY c.id, c.movie_id, m.title
+                ORDER BY
+                    COUNT(DISTINCT r.id) DESC,
+                    c.created_at DESC
+                LIMIT %s OFFSET %s
+            """, (limit, offset))
+            rows = cur.fetchall()
+
+            cur.execute(f"""
+                SELECT COUNT(*)
+                FROM movie_comments c
+                WHERE {where_sql}
+            """)
+            total = cur.fetchone()[0]
+
+            cur.execute("""
+                SELECT
+                    COUNT(*) FILTER (WHERE is_deleted = FALSE),
+                    COUNT(*) FILTER (WHERE is_deleted = FALSE AND is_hidden = TRUE),
+                    COUNT(DISTINCT r.comment_id)
+                FROM movie_comments c
+                LEFT JOIN movie_comment_reports r ON r.comment_id = c.id
+            """)
+            summary = cur.fetchone()
+
+    return {
+        "total": total,
+        "summary": {
+            "comments": summary[0] or 0,
+            "hidden": summary[1] or 0,
+            "reported": summary[2] or 0,
+        },
+        "comments": [
+            {
+                "id": row[0],
+                "movie_id": row[1],
+                "movie_title": row[2],
+                "display_name": row[3],
+                "comment_text": row[4],
+                "is_hidden": row[5],
+                "created_at": row[6].isoformat() if row[6] else None,
+                "like_count": row[7] or 0,
+                "report_count": row[8] or 0,
+            }
+            for row in rows
+        ],
+    }
+
+
+@app.put("/admin/comments/{comment_id}/visibility", dependencies=[Depends(require_owner)])
+def admin_toggle_comment_visibility(comment_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE movie_comments
+                SET is_hidden = NOT is_hidden, updated_at = NOW()
+                WHERE id = %s
+                  AND is_deleted = FALSE
+                RETURNING is_hidden
+            """, (comment_id,))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Comment not found")
+            conn.commit()
+
+    return {"success": True, "comment_id": comment_id, "is_hidden": row[0]}
+
+
+@app.delete("/admin/comments/{comment_id}", dependencies=[Depends(require_owner)])
+def admin_delete_movie_comment(comment_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE movie_comments
+                SET is_deleted = TRUE, is_hidden = TRUE, updated_at = NOW()
+                WHERE id = %s
+                  AND is_deleted = FALSE
+                RETURNING id
+            """, (comment_id,))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Comment not found")
+            conn.commit()
+
+    return {"success": True, "deleted": True, "comment_id": comment_id}
+
+
 @app.delete("/comments/{comment_id}")
 def delete_movie_comment(comment_id: int, data: VisitorActionData):
     visitor_id = _clean_visitor_id(data.visitor_id)
