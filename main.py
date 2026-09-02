@@ -5383,3 +5383,379 @@ def admin_daily_boxoffice_page():
 @app.get("/admin-regional-boxoffice.html", dependencies=[Depends(require_admin)])
 def admin_regional_boxoffice_page():
     return FileResponse(BASE_DIR / "admin-regional-boxoffice.html")
+
+
+
+# ============================================================
+# BOXOFFICEX FAN ENGAGEMENT API - V1
+# Movie Fans + Hype + Fan Verdict + Comments + Comment Likes
+# ============================================================
+
+class VisitorActionData(BaseModel):
+    visitor_id: str
+
+
+class FanVoteData(BaseModel):
+    visitor_id: str
+    verdict: Literal["Blockbuster", "Hit", "Average", "Flop"]
+
+
+class MovieCommentCreateData(BaseModel):
+    visitor_id: str
+    display_name: str
+    comment_text: str
+
+
+class CommentReportData(BaseModel):
+    visitor_id: str
+    reason: Optional[str] = None
+
+
+def _clean_visitor_id(visitor_id: str) -> str:
+    value = (visitor_id or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_-]{16,100}", value):
+        raise HTTPException(status_code=400, detail="Invalid visitor ID")
+    return value
+
+
+def _clean_public_text(value: str, field: str, min_len: int, max_len: int) -> str:
+    value = re.sub(r"\s+", " ", (value or "").strip())
+    if len(value) < min_len or len(value) > max_len:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{field} must be between {min_len} and {max_len} characters"
+        )
+    if any(ord(ch) < 32 for ch in value):
+        raise HTTPException(status_code=400, detail=f"Invalid {field}")
+    return value
+
+
+def _ensure_movie_exists(cur, movie_id: int):
+    cur.execute("SELECT 1 FROM movies WHERE id = %s", (movie_id,))
+    if not cur.fetchone():
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+
+def _movie_engagement_summary(cur, movie_id: int, visitor_id: Optional[str] = None):
+    cur.execute("SELECT COUNT(*) FROM movie_fans WHERE movie_id = %s", (movie_id,))
+    fan_count = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM movie_hype WHERE movie_id = %s", (movie_id,))
+    hype_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT verdict, COUNT(*)
+        FROM movie_fan_votes
+        WHERE movie_id = %s
+        GROUP BY verdict
+    """, (movie_id,))
+    vote_counts = {"Blockbuster": 0, "Hit": 0, "Average": 0, "Flop": 0}
+    for verdict, count in cur.fetchall():
+        if verdict in vote_counts:
+            vote_counts[verdict] = count
+
+    total_votes = sum(vote_counts.values())
+    percentages = {
+        key: round((value / total_votes) * 100, 1) if total_votes else 0
+        for key, value in vote_counts.items()
+    }
+
+    is_fan = False
+    is_hyped = False
+    my_vote = None
+
+    if visitor_id:
+        cur.execute(
+            "SELECT 1 FROM movie_fans WHERE movie_id = %s AND visitor_id = %s",
+            (movie_id, visitor_id)
+        )
+        is_fan = bool(cur.fetchone())
+
+        cur.execute(
+            "SELECT 1 FROM movie_hype WHERE movie_id = %s AND visitor_id = %s",
+            (movie_id, visitor_id)
+        )
+        is_hyped = bool(cur.fetchone())
+
+        cur.execute(
+            "SELECT verdict FROM movie_fan_votes WHERE movie_id = %s AND visitor_id = %s",
+            (movie_id, visitor_id)
+        )
+        row = cur.fetchone()
+        my_vote = row[0] if row else None
+
+    return {
+        "movie_id": movie_id,
+        "fan_count": fan_count,
+        "hype_count": hype_count,
+        "is_fan": is_fan,
+        "is_hyped": is_hyped,
+        "fan_verdict": {
+            "total_votes": total_votes,
+            "counts": vote_counts,
+            "percentages": percentages,
+            "my_vote": my_vote,
+        },
+    }
+
+
+@app.get("/movies/{movie_id}/engagement")
+def get_movie_engagement(movie_id: int, visitor_id: Optional[str] = None):
+    clean_visitor = _clean_visitor_id(visitor_id) if visitor_id else None
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_exists(cur, movie_id)
+            return _movie_engagement_summary(cur, movie_id, clean_visitor)
+
+
+@app.post("/movies/{movie_id}/fan")
+def toggle_movie_fan(movie_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_exists(cur, movie_id)
+            cur.execute(
+                "DELETE FROM movie_fans WHERE movie_id = %s AND visitor_id = %s RETURNING id",
+                (movie_id, visitor_id)
+            )
+            removed = cur.fetchone()
+            if removed:
+                active = False
+            else:
+                cur.execute(
+                    "INSERT INTO movie_fans (movie_id, visitor_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    (movie_id, visitor_id)
+                )
+                active = True
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM movie_fans WHERE movie_id = %s", (movie_id,))
+            count = cur.fetchone()[0]
+    return {"success": True, "active": active, "fan_count": count}
+
+
+@app.post("/movies/{movie_id}/hype")
+def toggle_movie_hype(movie_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_exists(cur, movie_id)
+            cur.execute(
+                "DELETE FROM movie_hype WHERE movie_id = %s AND visitor_id = %s RETURNING id",
+                (movie_id, visitor_id)
+            )
+            removed = cur.fetchone()
+            if removed:
+                active = False
+            else:
+                cur.execute(
+                    "INSERT INTO movie_hype (movie_id, visitor_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    (movie_id, visitor_id)
+                )
+                active = True
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM movie_hype WHERE movie_id = %s", (movie_id,))
+            count = cur.fetchone()[0]
+    return {"success": True, "active": active, "hype_count": count}
+
+
+@app.post("/movies/{movie_id}/fan-vote")
+def set_movie_fan_vote(movie_id: int, data: FanVoteData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_exists(cur, movie_id)
+            cur.execute("""
+                INSERT INTO movie_fan_votes (movie_id, visitor_id, verdict)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (movie_id, visitor_id)
+                DO UPDATE SET verdict = EXCLUDED.verdict, updated_at = NOW()
+            """, (movie_id, visitor_id, data.verdict))
+            conn.commit()
+            return _movie_engagement_summary(cur, movie_id, visitor_id)
+
+
+@app.get("/movies/{movie_id}/comments")
+def get_movie_comments(
+    movie_id: int,
+    visitor_id: Optional[str] = None,
+    sort: Literal["newest", "top"] = "newest",
+    limit: int = 30,
+    offset: int = 0
+):
+    clean_visitor = _clean_visitor_id(visitor_id) if visitor_id else None
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+    order_sql = "like_count DESC, c.created_at DESC" if sort == "top" else "c.created_at DESC"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_exists(cur, movie_id)
+            cur.execute(f"""
+                SELECT
+                    c.id,
+                    c.display_name,
+                    c.comment_text,
+                    c.created_at,
+                    COUNT(l.id) AS like_count,
+                    CASE
+                        WHEN %s IS NULL THEN FALSE
+                        ELSE EXISTS (
+                            SELECT 1
+                            FROM movie_comment_likes mine
+                            WHERE mine.comment_id = c.id
+                              AND mine.visitor_id = %s
+                        )
+                    END AS liked_by_me
+                FROM movie_comments c
+                LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
+                WHERE c.movie_id = %s
+                  AND c.is_hidden = FALSE
+                  AND c.is_deleted = FALSE
+                GROUP BY c.id
+                ORDER BY {order_sql}
+                LIMIT %s OFFSET %s
+            """, (clean_visitor, clean_visitor, movie_id, limit, offset))
+            rows = cur.fetchall()
+
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM movie_comments
+                WHERE movie_id = %s
+                  AND is_hidden = FALSE
+                  AND is_deleted = FALSE
+            """, (movie_id,))
+            total = cur.fetchone()[0]
+
+    return {
+        "movie_id": movie_id,
+        "total": total,
+        "comments": [
+            {
+                "id": row[0],
+                "display_name": row[1],
+                "comment_text": row[2],
+                "created_at": row[3].isoformat() if row[3] else None,
+                "like_count": row[4],
+                "liked_by_me": row[5],
+            }
+            for row in rows
+        ],
+    }
+
+
+@app.post("/movies/{movie_id}/comments")
+def post_movie_comment(movie_id: int, data: MovieCommentCreateData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    display_name = _clean_public_text(data.display_name, "Display name", 2, 50)
+    comment_text = _clean_public_text(data.comment_text, "Comment", 2, 1000)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_exists(cur, movie_id)
+
+            # Simple server-side anti-spam cooldown for V1.
+            cur.execute("""
+                SELECT created_at
+                FROM movie_comments
+                WHERE movie_id = %s
+                  AND visitor_id = %s
+                ORDER BY created_at DESC
+                LIMIT 1
+            """, (movie_id, visitor_id))
+            recent = cur.fetchone()
+            if recent and (datetime.now(timezone.utc) - recent[0]).total_seconds() < 30:
+                raise HTTPException(
+                    status_code=429,
+                    detail="Please wait 30 seconds before posting another comment"
+                )
+
+            cur.execute("""
+                INSERT INTO movie_comments (
+                    movie_id, visitor_id, display_name, comment_text
+                )
+                VALUES (%s, %s, %s, %s)
+                RETURNING id, created_at
+            """, (movie_id, visitor_id, display_name, comment_text))
+            row = cur.fetchone()
+            conn.commit()
+
+    return {
+        "success": True,
+        "comment": {
+            "id": row[0],
+            "display_name": display_name,
+            "comment_text": comment_text,
+            "created_at": row[1].isoformat() if row[1] else None,
+            "like_count": 0,
+            "liked_by_me": False,
+        },
+    }
+
+
+@app.post("/comments/{comment_id}/like")
+def toggle_movie_comment_like(comment_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 1
+                FROM movie_comments
+                WHERE id = %s
+                  AND is_hidden = FALSE
+                  AND is_deleted = FALSE
+            """, (comment_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Comment not found")
+
+            cur.execute(
+                "DELETE FROM movie_comment_likes WHERE comment_id = %s AND visitor_id = %s RETURNING id",
+                (comment_id, visitor_id)
+            )
+            removed = cur.fetchone()
+            if removed:
+                active = False
+            else:
+                cur.execute(
+                    "INSERT INTO movie_comment_likes (comment_id, visitor_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    (comment_id, visitor_id)
+                )
+                active = True
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM movie_comment_likes WHERE comment_id = %s", (comment_id,))
+            count = cur.fetchone()[0]
+
+    return {"success": True, "active": active, "like_count": count}
+
+
+@app.post("/comments/{comment_id}/report")
+def report_movie_comment(comment_id: int, data: CommentReportData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    reason = (data.reason or "Other").strip()
+    if len(reason) > 100:
+        raise HTTPException(status_code=400, detail="Report reason is too long")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 1
+                FROM movie_comments
+                WHERE id = %s
+                  AND is_deleted = FALSE
+            """, (comment_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Comment not found")
+
+            cur.execute("""
+                INSERT INTO movie_comment_reports (comment_id, visitor_id, reason)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (comment_id, visitor_id) DO NOTHING
+            """, (comment_id, visitor_id, reason))
+            created = cur.rowcount > 0
+            conn.commit()
+
+    return {
+        "success": True,
+        "reported": True,
+        "new_report": created,
+        "message": "Comment reported for review"
+    }
