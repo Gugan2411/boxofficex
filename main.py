@@ -5602,7 +5602,8 @@ def get_movie_comments(
                         FROM movie_comment_likes mine
                         WHERE mine.comment_id = c.id
                           AND mine.visitor_id = %s
-                    ) AS liked_by_me
+                    ) AS liked_by_me,
+                    (c.visitor_id = %s) AS is_owner
                 FROM movie_comments c
                 LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
                 WHERE c.movie_id = %s
@@ -5611,7 +5612,7 @@ def get_movie_comments(
                 GROUP BY c.id
                 ORDER BY {order_sql}
                 LIMIT %s OFFSET %s
-            """, (clean_visitor or "", movie_id, limit, offset))
+            """, (clean_visitor or "", clean_visitor or "", movie_id, limit, offset))
             rows = cur.fetchall()
 
             cur.execute("""
@@ -5634,6 +5635,7 @@ def get_movie_comments(
                 "created_at": row[3].isoformat() if row[3] else None,
                 "like_count": row[4],
                 "liked_by_me": row[5],
+                "is_owner": row[6],
             }
             for row in rows
         ],
@@ -5685,8 +5687,37 @@ def post_movie_comment(movie_id: int, data: MovieCommentCreateData):
             "created_at": row[1].isoformat() if row[1] else None,
             "like_count": 0,
             "liked_by_me": False,
+            "is_owner": True,
         },
     }
+
+
+@app.delete("/comments/{comment_id}")
+def delete_movie_comment(comment_id: int, data: VisitorActionData):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE movie_comments
+                SET is_deleted = TRUE, updated_at = NOW()
+                WHERE id = %s
+                  AND visitor_id = %s
+                  AND is_deleted = FALSE
+                RETURNING id
+            """, (comment_id, visitor_id))
+            deleted = cur.fetchone()
+
+            if not deleted:
+                cur.execute("SELECT visitor_id, is_deleted FROM movie_comments WHERE id = %s", (comment_id,))
+                row = cur.fetchone()
+                if not row or row[1]:
+                    raise HTTPException(status_code=404, detail="Comment not found")
+                raise HTTPException(status_code=403, detail="You can delete only your own comment")
+
+            conn.commit()
+
+    return {"success": True, "deleted": True, "comment_id": comment_id}
 
 
 @app.post("/comments/{comment_id}/like")

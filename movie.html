@@ -4931,7 +4931,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
             document.getElementById("commentCount").textContent=data.total ?? 0;
             const comments=Array.isArray(data.comments)?data.comments:[];
             if(!comments.length){list.innerHTML='<div class="comments-empty">No comments yet. Be the first fan to comment.</div>';return;}
-            list.innerHTML=comments.map(c=>`<article class="comment-card" data-comment-id="${Number(c.id)}"><div class="comment-meta"><span class="comment-author">${escapeHtmlText(c.display_name)}</span><span class="comment-time">${escapeHtmlText(formatCommentTime(c.created_at))}</span></div><div class="comment-body">${escapeHtmlText(c.comment_text)}</div><div class="comment-tools"><button type="button" class="comment-tool comment-like ${c.liked_by_me?'active':''}">👍 <span>${Number(c.like_count)||0}</span></button><button type="button" class="comment-tool comment-report">🚩 Report</button></div></article>`).join("");
+            list.innerHTML=comments.map(c=>`<article class="comment-card" data-comment-id="${Number(c.id)}"><div class="comment-meta"><span class="comment-author">${escapeHtmlText(c.display_name)}</span><span class="comment-time">${escapeHtmlText(formatCommentTime(c.created_at))}</span></div><div class="comment-body">${escapeHtmlText(c.comment_text)}</div><div class="comment-tools"><button type="button" class="comment-tool comment-like ${c.liked_by_me?'active':''}">👍 <span>${Number(c.like_count)||0}</span></button><button type="button" class="comment-tool comment-report">🚩 Report</button>${c.is_owner?'<button type="button" class="comment-tool comment-delete">🗑 Delete</button>':''}</div></article>`).join("");
         }catch(error){console.error("Comments loading error:",error); list.innerHTML='<div class="comments-empty">Comments could not be loaded.</div>';}
     }
 
@@ -4948,6 +4948,8 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
         const card=event.target.closest(".comment-card"); if(!card)return; const commentId=card.dataset.commentId;
         const like=event.target.closest(".comment-like");
         if(like){like.disabled=true; try{const data=await engagementJSON(`${API_BASE}/comments/${encodeURIComponent(commentId)}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId})}); like.classList.toggle("active",!!data.active); like.querySelector("span").textContent=data.like_count ?? 0;}catch(error){alert(error.message);}finally{like.disabled=false;} return;}
+        const del=event.target.closest(".comment-delete");
+        if(del){if(!confirm("Delete your comment?"))return; del.disabled=true; try{await engagementJSON(`${API_BASE}/comments/${encodeURIComponent(commentId)}`,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId})}); await loadComments();}catch(error){alert(error.message); del.disabled=false;} return;}
         const report=event.target.closest(".comment-report");
         if(report){if(!confirm("Report this comment for review?"))return; report.disabled=true; try{const data=await engagementJSON(`${API_BASE}/comments/${encodeURIComponent(commentId)}/report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId,reason:"User report"})}); report.textContent="✓ Reported";}catch(error){alert(error.message);}finally{report.disabled=false;}}
     });
