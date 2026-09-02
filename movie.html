@@ -2814,6 +2814,18 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
     }
 }
 
+
+
+        /* =====================================================
+           FAN ENGAGEMENT
+        ===================================================== */
+        .engagement-section{margin-top:28px;padding:22px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,#fff,#f7f9fd);box-shadow:0 12px 30px rgba(28,44,70,.07)}
+        .engagement-title{font-size:20px;font-weight:1000;color:var(--text);margin-bottom:5px}.engagement-subtitle{color:var(--muted);font-size:12px;line-height:1.55;margin-bottom:17px}
+        .engagement-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.engagement-action{min-height:48px;border:1px solid var(--border);border-radius:13px;background:#fff;color:#26364f;font-weight:900;cursor:pointer;font-size:13px}.engagement-action.active{border-color:rgba(228,66,80,.28);background:#fff1f3;color:#d92e3d}.engagement-action.hype.active{border-color:rgba(197,138,0,.28);background:#fff8df;color:#a86f00}.engagement-action:disabled,.fan-vote-button:disabled,.comment-submit:disabled{opacity:.55;cursor:not-allowed}
+        .fan-vote-wrap{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}.fan-vote-heading{font-size:13px;font-weight:900;margin-bottom:10px}.fan-vote-buttons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.fan-vote-button{min-height:42px;padding:8px;border:1px solid var(--border);border-radius:11px;background:#f7f9fc;color:#44536b;font-size:11px;font-weight:900;cursor:pointer}.fan-vote-button.active{background:rgba(50,111,229,.10);border-color:rgba(50,111,229,.35);color:var(--blue)}.fan-vote-summary{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.6}
+        .comments-section{margin-top:18px;padding:22px;border:1px solid var(--border);border-radius:18px;background:#fff}.comments-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.comments-title{font-size:18px;font-weight:1000}.comment-sort{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#f7f9fc;color:var(--text);font-weight:800}.comment-form{display:grid;gap:9px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#f8fafd}.comment-name,.comment-text{width:100%;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);font:inherit;outline:none}.comment-name{height:42px;padding:0 12px}.comment-text{min-height:92px;padding:11px 12px;resize:vertical}.comment-name:focus,.comment-text:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(50,111,229,.06)}.comment-submit{justify-self:start;min-height:40px;padding:0 15px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-weight:900;cursor:pointer}.comment-message{min-height:16px;color:var(--muted);font-size:11px}.comments-list{display:grid;gap:10px;margin-top:14px}.comment-card{padding:14px;border:1px solid var(--border);border-radius:13px;background:#fff}.comment-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.comment-author{font-size:12px;font-weight:1000;color:#26364f}.comment-time{font-size:10px;color:var(--muted)}.comment-body{font-size:13px;line-height:1.6;color:#3d4b61;overflow-wrap:anywhere}.comment-tools{display:flex;gap:8px;margin-top:10px}.comment-tool{border:1px solid var(--border);border-radius:9px;background:#f7f9fc;padding:6px 9px;color:#596981;font-size:10px;font-weight:900;cursor:pointer}.comment-tool.active{color:var(--blue);border-color:rgba(50,111,229,.25);background:rgba(50,111,229,.07)}.comments-empty{padding:22px;text-align:center;color:var(--muted);font-size:12px}
+        @media(max-width:700px){.engagement-section,.comments-section{padding:15px;border-radius:15px}.engagement-actions{grid-template-columns:1fr 1fr}.fan-vote-buttons{grid-template-columns:1fr 1fr}.comments-head{align-items:flex-start}.comment-submit{width:100%}}
+
 </style>
 
 </head>
@@ -3129,6 +3141,8 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
             </section>
 
 
+
+
             <!-- =================================================
                  DAY-WISE COLLECTION MATRIX
                  DAYS = ROWS / STATES = COLUMNS
@@ -3182,6 +3196,41 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
                 </div>
 
             </section>
+
+
+            <!-- =================================================
+                 FAN ENGAGEMENT
+            ================================================= -->
+            <section class="engagement-section" id="fanEngagementSection">
+                <div class="engagement-title">🎟️ Fan Zone</div>
+                <p class="engagement-subtitle">Support this movie, show your hype and vote for your fan verdict.</p>
+                <div class="engagement-actions">
+                    <button type="button" class="engagement-action" id="fanButton">❤️ Become a Fan · <span id="fanCount">0</span></button>
+                    <button type="button" class="engagement-action hype" id="hypeButton">🔥 Hype · <span id="hypeCount">0</span></button>
+                </div>
+                <div class="fan-vote-wrap">
+                    <div class="fan-vote-heading">📊 Fan Verdict</div>
+                    <div class="fan-vote-buttons" id="fanVoteButtons">
+                        <button type="button" class="fan-vote-button" data-verdict="Blockbuster">Blockbuster</button>
+                        <button type="button" class="fan-vote-button" data-verdict="Hit">Hit</button>
+                        <button type="button" class="fan-vote-button" data-verdict="Average">Average</button>
+                        <button type="button" class="fan-vote-button" data-verdict="Flop">Flop</button>
+                    </div>
+                    <div class="fan-vote-summary" id="fanVoteSummary">No fan votes yet.</div>
+                </div>
+            </section>
+
+            <section class="comments-section" id="fanCommentsSection">
+                <div class="comments-head"><div class="comments-title">💬 Fan Comments <span id="commentCount">0</span></div><select id="commentSort" class="comment-sort" aria-label="Sort comments"><option value="newest">Newest</option><option value="top">Top</option></select></div>
+                <form class="comment-form" id="commentForm">
+                    <input id="commentName" class="comment-name" type="text" maxlength="50" placeholder="Your name" autocomplete="name" required>
+                    <textarea id="commentText" class="comment-text" maxlength="1000" placeholder="Write your comment..." required></textarea>
+                    <button type="submit" class="comment-submit" id="commentSubmit">Post Comment</button>
+                    <div class="comment-message" id="commentMessage"></div>
+                </form>
+                <div class="comments-list" id="commentsList"><div class="comments-empty">Loading comments...</div></div>
+            </section>
+
 
 
         </div>
@@ -4817,6 +4866,93 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
     }
 
 
+
+
+    /* =====================================================
+       BOXOFFICEX FAN ENGAGEMENT V1
+    ===================================================== */
+    function getBoxOfficeXVisitorId(){
+        const key="boxofficex_visitor_id";
+        let value=localStorage.getItem(key);
+        if(!value || !/^[A-Za-z0-9_-]{16,100}$/.test(value)){
+            if(window.crypto && crypto.randomUUID){value=crypto.randomUUID().replace(/-/g,"");}
+            else{value="bx"+Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
+            localStorage.setItem(key,value);
+        }
+        return value;
+    }
+    const engagementVisitorId=getBoxOfficeXVisitorId();
+
+    async function engagementJSON(url,options={}){
+        const response=await fetch(url,{cache:"no-store",...options});
+        let data={}; try{data=await response.json();}catch(e){}
+        if(!response.ok) throw new Error(data.detail || "Request failed");
+        return data;
+    }
+
+    function renderEngagement(data){
+        if(!data)return;
+        const fanButton=document.getElementById("fanButton"), hypeButton=document.getElementById("hypeButton");
+        document.getElementById("fanCount").textContent=data.fan_count ?? 0;
+        document.getElementById("hypeCount").textContent=data.hype_count ?? 0;
+        fanButton.classList.toggle("active",!!data.is_fan); hypeButton.classList.toggle("active",!!data.is_hyped);
+        fanButton.childNodes[0].nodeValue=data.is_fan ? "❤️ Fan · " : "❤️ Become a Fan · ";
+        hypeButton.childNodes[0].nodeValue=data.is_hyped ? "🔥 Hyped · " : "🔥 Hype · ";
+        const verdict=data.fan_verdict || {}; const counts=verdict.counts || {}; const pct=verdict.percentages || {};
+        document.querySelectorAll(".fan-vote-button").forEach(btn=>btn.classList.toggle("active",btn.dataset.verdict===verdict.my_vote));
+        const total=verdict.total_votes || 0;
+        document.getElementById("fanVoteSummary").textContent=total ? `Total ${total} vote${total===1?"":"s"} · Blockbuster ${pct.Blockbuster||0}% · Hit ${pct.Hit||0}% · Average ${pct.Average||0}% · Flop ${pct.Flop||0}%` : "No fan votes yet.";
+    }
+
+    async function loadEngagement(){
+        try{renderEngagement(await engagementJSON(`${API_BASE}/movies/${encodeURIComponent(movieId)}/engagement?visitor_id=${encodeURIComponent(engagementVisitorId)}`));}
+        catch(error){console.error("Engagement loading error:",error);}
+    }
+
+    async function toggleEngagementAction(type,button){
+        button.disabled=true;
+        try{await engagementJSON(`${API_BASE}/movies/${encodeURIComponent(movieId)}/${type}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId})}); await loadEngagement();}
+        catch(error){alert(error.message);} finally{button.disabled=false;}
+    }
+
+    document.getElementById("fanButton")?.addEventListener("click",function(){toggleEngagementAction("fan",this);});
+    document.getElementById("hypeButton")?.addEventListener("click",function(){toggleEngagementAction("hype",this);});
+    document.querySelectorAll(".fan-vote-button").forEach(button=>button.addEventListener("click",async function(){
+        const buttons=[...document.querySelectorAll(".fan-vote-button")]; buttons.forEach(b=>b.disabled=true);
+        try{const data=await engagementJSON(`${API_BASE}/movies/${encodeURIComponent(movieId)}/fan-vote`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId,verdict:this.dataset.verdict})}); renderEngagement(data);}
+        catch(error){alert(error.message);} finally{buttons.forEach(b=>b.disabled=false);}
+    }));
+
+    function formatCommentTime(value){if(!value)return ""; const d=new Date(value); return Number.isNaN(d.getTime())?"":d.toLocaleString();}
+    async function loadComments(){
+        const list=document.getElementById("commentsList"), sort=document.getElementById("commentSort")?.value || "newest";
+        try{
+            const data=await engagementJSON(`${API_BASE}/movies/${encodeURIComponent(movieId)}/comments?visitor_id=${encodeURIComponent(engagementVisitorId)}&sort=${encodeURIComponent(sort)}&limit=30`);
+            document.getElementById("commentCount").textContent=data.total ?? 0;
+            const comments=Array.isArray(data.comments)?data.comments:[];
+            if(!comments.length){list.innerHTML='<div class="comments-empty">No comments yet. Be the first fan to comment.</div>';return;}
+            list.innerHTML=comments.map(c=>`<article class="comment-card" data-comment-id="${Number(c.id)}"><div class="comment-meta"><span class="comment-author">${escapeHtmlText(c.display_name)}</span><span class="comment-time">${escapeHtmlText(formatCommentTime(c.created_at))}</span></div><div class="comment-body">${escapeHtmlText(c.comment_text)}</div><div class="comment-tools"><button type="button" class="comment-tool comment-like ${c.liked_by_me?'active':''}">👍 <span>${Number(c.like_count)||0}</span></button><button type="button" class="comment-tool comment-report">🚩 Report</button></div></article>`).join("");
+        }catch(error){console.error("Comments loading error:",error); list.innerHTML='<div class="comments-empty">Comments could not be loaded.</div>';}
+    }
+
+    document.getElementById("commentSort")?.addEventListener("change",loadComments);
+    document.getElementById("commentForm")?.addEventListener("submit",async function(event){
+        event.preventDefault(); const name=document.getElementById("commentName"), text=document.getElementById("commentText"), submit=document.getElementById("commentSubmit"), message=document.getElementById("commentMessage");
+        submit.disabled=true; message.textContent="Posting...";
+        try{await engagementJSON(`${API_BASE}/movies/${encodeURIComponent(movieId)}/comments`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId,display_name:name.value,comment_text:text.value})}); localStorage.setItem("boxofficex_comment_name",name.value.trim()); text.value=""; message.textContent="Comment posted."; await loadComments();}
+        catch(error){message.textContent=error.message;} finally{submit.disabled=false;}
+    });
+    const savedCommentName=localStorage.getItem("boxofficex_comment_name"); if(savedCommentName && document.getElementById("commentName")) document.getElementById("commentName").value=savedCommentName;
+
+    document.getElementById("commentsList")?.addEventListener("click",async function(event){
+        const card=event.target.closest(".comment-card"); if(!card)return; const commentId=card.dataset.commentId;
+        const like=event.target.closest(".comment-like");
+        if(like){like.disabled=true; try{const data=await engagementJSON(`${API_BASE}/comments/${encodeURIComponent(commentId)}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId})}); like.classList.toggle("active",!!data.active); like.querySelector("span").textContent=data.like_count ?? 0;}catch(error){alert(error.message);}finally{like.disabled=false;} return;}
+        const report=event.target.closest(".comment-report");
+        if(report){if(!confirm("Report this comment for review?"))return; report.disabled=true; try{const data=await engagementJSON(`${API_BASE}/comments/${encodeURIComponent(commentId)}/report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:engagementVisitorId,reason:"User report"})}); report.textContent="✓ Reported";}catch(error){alert(error.message);}finally{report.disabled=false;}}
+    });
+
+
     /* =====================================================
        LOAD MOVIE DETAILS
     ===================================================== */
@@ -5013,6 +5149,8 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
                 ===================================== */
 
                 fetchCollectionBreakdown();
+                loadEngagement();
+                loadComments();
 
             })
 
