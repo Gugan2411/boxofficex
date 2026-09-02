@@ -6976,3 +6976,118 @@ def report_article_comment(comment_id:int,data:CommentReportData):
                            ON CONFLICT(comment_id,visitor_id) DO NOTHING""",(comment_id,visitor_id,reason))
             created=cur.rowcount>0; conn.commit()
     return {"success":True,"reported":True,"new_report":created,"message":"Comment reported for review"}
+
+# ============================================================
+# TRENDING FAN ACTIVITY
+# ============================================================
+
+@app.get("/fan-activity/trending")
+def trending_fan_activity(limit: int = 8):
+    limit = max(1, min(limit, 20))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                WITH activity AS (
+                    SELECT
+                        'movie'::text AS type,
+                        m.id::text AS item_id,
+                        m.title AS title,
+                        COALESCE(m.poster, '') AS image,
+                        ('movie.html?id=' || m.id::text) AS url,
+                        COUNT(*)::bigint AS activity_count,
+                        MAX(x.created_at) AS last_activity
+                    FROM movies m
+                    JOIN (
+                        SELECT movie_id, created_at FROM movie_fans
+                        UNION ALL SELECT movie_id, created_at FROM movie_hype
+                        UNION ALL SELECT movie_id, created_at FROM movie_fan_votes
+                        UNION ALL SELECT movie_id, created_at FROM movie_comments
+                    ) x ON x.movie_id = m.id
+                    WHERE x.created_at >= NOW() - INTERVAL '7 days'
+                    GROUP BY m.id, m.title, m.poster
+
+                    UNION ALL
+
+                    SELECT
+                        'article'::text,
+                        a.id::text,
+                        a.title,
+                        COALESCE(a.hero_image, ''),
+                        ('article/' || a.slug),
+                        COUNT(*)::bigint,
+                        MAX(x.created_at)
+                    FROM articles a
+                    JOIN (
+                        SELECT article_id, created_at FROM article_likes
+                        UNION ALL SELECT article_id, created_at FROM article_hype
+                        UNION ALL SELECT article_id, created_at FROM article_comments
+                    ) x ON x.article_id = a.id
+                    WHERE x.created_at >= NOW() - INTERVAL '7 days'
+                      AND a.status = 'published'
+                    GROUP BY a.id, a.title, a.hero_image, a.slug
+
+                    UNION ALL
+
+                    SELECT
+                        'hero_comparison'::text,
+                        (p.actor1_id::text || '-' || p.actor2_id::text),
+                        (a1.name || ' vs ' || a2.name),
+                        '',
+                        ('compare.html?a=' || p.actor1_id::text || '&b=' || p.actor2_id::text),
+                        COUNT(*)::bigint,
+                        MAX(p.created_at)
+                    FROM (
+                        SELECT actor1_id, actor2_id, created_at FROM hero_comparison_likes
+                        UNION ALL SELECT actor1_id, actor2_id, created_at FROM hero_comparison_hype
+                        UNION ALL SELECT actor1_id, actor2_id, created_at FROM hero_comparison_votes
+                        UNION ALL SELECT actor1_id, actor2_id, created_at FROM hero_comparison_comments
+                    ) p
+                    JOIN actors a1 ON a1.id = p.actor1_id
+                    JOIN actors a2 ON a2.id = p.actor2_id
+                    WHERE p.created_at >= NOW() - INTERVAL '7 days'
+                    GROUP BY p.actor1_id, p.actor2_id, a1.name, a2.name
+
+                    UNION ALL
+
+                    SELECT
+                        'movie_comparison'::text,
+                        (p.movie1_id::text || '-' || p.movie2_id::text),
+                        (m1.title || ' vs ' || m2.title),
+                        '',
+                        ('movie-compare.html?a=' || p.movie1_id::text || '&b=' || p.movie2_id::text),
+                        COUNT(*)::bigint,
+                        MAX(p.created_at)
+                    FROM (
+                        SELECT movie1_id, movie2_id, created_at FROM movie_comparison_likes
+                        UNION ALL SELECT movie1_id, movie2_id, created_at FROM movie_comparison_hype
+                        UNION ALL SELECT movie1_id, movie2_id, created_at FROM movie_comparison_votes
+                        UNION ALL SELECT movie1_id, movie2_id, created_at FROM movie_comparison_comments
+                    ) p
+                    JOIN movies m1 ON m1.id = p.movie1_id
+                    JOIN movies m2 ON m2.id = p.movie2_id
+                    WHERE p.created_at >= NOW() - INTERVAL '7 days'
+                    GROUP BY p.movie1_id, p.movie2_id, m1.title, m2.title
+                )
+                SELECT type, item_id, title, image, url, activity_count, last_activity
+                FROM activity
+                ORDER BY activity_count DESC, last_activity DESC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+
+    return {
+        "period_days": 7,
+        "items": [
+            {
+                "type": row[0],
+                "id": row[1],
+                "title": row[2],
+                "image": row[3],
+                "url": row[4],
+                "activity_count": row[5],
+                "last_activity": row[6].isoformat() if row[6] else None,
+            }
+            for row in rows
+        ]
+    }

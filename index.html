@@ -4464,6 +4464,19 @@ header nav a.nav-compare:focus-visible {
     }
     header > .mobile-primary-features a span{font-size:15px !important;}
 }
+
+/* =========================================================
+   TRENDING FAN ACTIVITY
+========================================================= */
+.fan-activity-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.fan-activity-card{position:relative;display:flex;align-items:center;gap:12px;min-width:0;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:linear-gradient(145deg,rgba(17,25,43,.98),rgba(11,17,30,.98));cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.fan-activity-card:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:var(--shadow-small)}
+.fan-activity-thumb{width:58px;height:72px;flex:0 0 58px;border-radius:10px;object-fit:cover;background:var(--surface-3)}
+.fan-activity-icon{width:58px;height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:rgba(77,141,255,.12);font-size:25px}
+.fan-activity-copy{min-width:0}.fan-activity-type{color:var(--blue-light);font-size:9px;font-weight:900;letter-spacing:.7px;text-transform:uppercase}.fan-activity-title{margin-top:4px;font-size:14px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fan-activity-count{margin-top:6px;color:var(--gold);font-size:11px;font-weight:800}
+@media(max-width:900px){.fan-activity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.fan-activity-grid{grid-template-columns:1fr}.fan-activity-card{padding:11px}.fan-activity-thumb{width:50px;height:62px;flex-basis:50px}.fan-activity-icon{width:50px;height:50px;flex-basis:50px}}
+
 </style>
 
 </head>
@@ -4862,6 +4875,22 @@ header nav a.nav-compare:focus-visible {
     </div>
 </section>
 
+
+
+<!-- ======================================================
+     TRENDING FAN ACTIVITY
+====================================================== -->
+<section class="section" id="trending-fan-activity">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <div class="section-label">WHAT FANS ARE DOING NOW</div>
+            <h2>🔥 Trending Fan Activity</h2>
+        </div>
+    </div>
+    <div class="fan-activity-grid" id="fanActivityGrid">
+        <div class="movie-empty">Loading fan activity...</div>
+    </div>
+</section>
 
 <!-- ======================================================
      TOP 10
@@ -5981,6 +6010,51 @@ async function loadMostHypedMovies() {
 }
 
 
+
+/* =========================================================
+   TRENDING FAN ACTIVITY
+========================================================= */
+async function loadTrendingFanActivity(){
+    const grid=document.getElementById("fanActivityGrid");
+    if(!grid)return;
+    try{
+        const response=await fetch(`${API_BASE}/fan-activity/trending?limit=8`,{cache:"no-store"});
+        if(!response.ok)throw new Error("Trending fan activity API error: "+response.status);
+        const data=await response.json();
+        const items=Array.isArray(data.items)?data.items:[];
+        if(!items.length){
+            grid.innerHTML=`<div class="movie-empty">Fan activity will appear here as visitors like, hype, vote and comment.</div>`;
+            return;
+        }
+        const labels={movie:"Movie",article:"Article",hero_comparison:"Hero Battle",movie_comparison:"Movie Battle"};
+        const icons={article:"📰",hero_comparison:"⚔️",movie_comparison:"🎬"};
+        grid.innerHTML=items.map(item=>{
+            let visual=`<div class="fan-activity-icon">${icons[item.type]||"🔥"}</div>`;
+            if(item.type==="movie"&&item.image){
+                visual=`<img class="fan-activity-thumb" src="${movieImage(item.image)}" alt="${escapeHTML(item.title||"Movie")} poster" loading="lazy" onerror="setMovieFallback(this)">`;
+            }else if(item.type==="article"&&item.image){
+                visual=`<img class="fan-activity-thumb" src="/article-images/${encodeURIComponent(item.image)}" alt="${escapeHTML(item.title||"Article")}" loading="lazy" onerror="this.style.display='none'">`;
+            }
+            return `<article class="fan-activity-card" tabindex="0" role="link" data-fan-url="${escapeHTML(item.url||"#")}">
+                ${visual}
+                <div class="fan-activity-copy">
+                    <div class="fan-activity-type">${escapeHTML(labels[item.type]||"Fan Activity")}</div>
+                    <div class="fan-activity-title">${escapeHTML(item.title||"BoxOfficeX")}</div>
+                    <div class="fan-activity-count">🔥 ${Number(item.activity_count||0).toLocaleString()} interactions • 7 days</div>
+                </div>
+            </article>`;
+        }).join("");
+        grid.querySelectorAll("[data-fan-url]").forEach(card=>{
+            const open=()=>{window.location.href=card.dataset.fanUrl;};
+            card.addEventListener("click",open);
+            card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+        });
+    }catch(error){
+        console.error("Trending fan activity error:",error);
+        grid.innerHTML=`<div class="movie-empty">Unable to load fan activity.</div>`;
+    }
+}
+
 /* =========================================================
    TOP 10 RANKINGS
 ========================================================= */
@@ -6721,7 +6795,8 @@ async function startHomePage() {
 
     await Promise.all([
         loadTop10(),
-        loadMostHypedMovies()
+        loadMostHypedMovies(),
+        loadTrendingFanActivity()
     ]);
 
 }
