@@ -1788,6 +1788,22 @@ footer{background:#fff !important;border-top:1px solid #dbe3ee !important}.foote
   footer{background:#fff !important}
 }
 
+
+        .actor-view-count{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-height:34px;
+            margin:4px 0 0;
+            padding:7px 12px;
+            border:1px solid rgba(37,99,235,.18);
+            border-radius:999px;
+            background:#eff6ff;
+            color:#2563eb;
+            font-size:11px;
+            font-weight:800;
+        }
+
 </style>
 
 </head>
@@ -1899,6 +1915,10 @@ footer{background:#fff !important;border-top:1px solid #dbe3ee !important}.foote
 
         <div id="profession">
             Loading...
+        </div>
+
+        <div id="actorViewCount" class="actor-view-count">
+            👁 0 Views
         </div>
 
 
@@ -2350,6 +2370,115 @@ function updateActorSEO(actor) {
 }
 
 
+
+// ==========================================
+// ACTOR VIEW TRACKING
+// ==========================================
+
+const BOXOFFICEX_VISITOR_KEY = "boxofficex_visitor_id";
+
+function getBoxOfficeXVisitorId() {
+    let visitorId = localStorage.getItem(BOXOFFICEX_VISITOR_KEY);
+
+    if (!visitorId) {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+            visitorId = window.crypto.randomUUID();
+        } else {
+            visitorId =
+                "visitor_" +
+                Date.now().toString(36) +
+                "_" +
+                Math.random().toString(36).slice(2) +
+                Math.random().toString(36).slice(2);
+        }
+
+        localStorage.setItem(BOXOFFICEX_VISITOR_KEY, visitorId);
+    }
+
+    return visitorId;
+}
+
+function renderActorViews(views) {
+    const element = document.getElementById("actorViewCount");
+
+    if (!element) {
+        return;
+    }
+
+    const count = Number(views) || 0;
+
+    element.textContent =
+        `👁 ${count.toLocaleString()} View${count === 1 ? "" : "s"}`;
+}
+
+async function trackActorView() {
+    if (!actorId) {
+        return;
+    }
+
+    const visitorId = getBoxOfficeXVisitorId();
+
+    try {
+        const response = await fetch(
+            `/actors/${encodeURIComponent(actorId)}/view`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    visitor_id: visitorId
+                }),
+                cache: "no-store"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Actor view tracking failed: " +
+                response.status
+            );
+        }
+
+        const data = await response.json();
+
+        renderActorViews(data.views);
+    }
+    catch (error) {
+        console.error(
+            "Actor view tracking error:",
+            error
+        );
+
+        try {
+            const response = await fetch(
+                `/actors/${encodeURIComponent(actorId)}/views`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Actor view count failed: " +
+                    response.status
+                );
+            }
+
+            const data = await response.json();
+
+            renderActorViews(data.views);
+        }
+        catch (viewError) {
+            console.error(
+                "Actor view count loading error:",
+                viewError
+            );
+        }
+    }
+}
+
+
 // ==========================================
 // GET ACTOR ID
 // ==========================================
@@ -2387,6 +2516,16 @@ if (!actorId) {
         "profession"
     ).innerText =
         "Browse actor profiles";
+
+    const actorViewCount =
+        document.getElementById(
+            "actorViewCount"
+        );
+
+    if (actorViewCount) {
+        actorViewCount.style.display =
+            "none";
+    }
 
     document.getElementById(
         "bio"
@@ -2472,6 +2611,8 @@ else {
 
 
         updateActorSEO(actor);
+
+        trackActorView();
 
 
         document.getElementById(

@@ -832,6 +832,20 @@
         }
 
 
+
+        .movie-view-count {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 7px 11px;
+            border: 1px solid rgba(50,111,229,0.18);
+            border-radius: 999px;
+            background: rgba(50,111,229,0.07);
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
         /* =====================================================
            WORLDWIDE
         ===================================================== */
@@ -3017,7 +3031,9 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
                             Loading...
                         </span>
 
-                    </div>
+                    
+                    <span class="movie-view-count" id="movieViewCount">👁 0 Views</span>
+</div>
 
                 </div>
 
@@ -4891,6 +4907,36 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
         return data;
     }
 
+    function renderMovieViews(views){
+        const el=document.getElementById("movieViewCount");
+        if(!el)return;
+        const count=Number(views)||0;
+        el.textContent=`👁 ${count.toLocaleString()} View${count===1?"":"s"}`;
+    }
+
+    async function trackMovieView(){
+        if(!movieId)return;
+        try{
+            const data=await engagementJSON(
+                `${API_BASE}/movies/${encodeURIComponent(movieId)}/view`,
+                {
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({visitor_id:engagementVisitorId})
+                }
+            );
+            renderMovieViews(data.views);
+        }catch(error){
+            console.error("Movie view tracking error:",error);
+            try{
+                const data=await engagementJSON(`${API_BASE}/movies/${encodeURIComponent(movieId)}/views`);
+                renderMovieViews(data.views);
+            }catch(viewError){
+                console.error("Movie view count loading error:",viewError);
+            }
+        }
+    }
+
     function renderEngagement(data){
         if(!data)return;
         const fanButton=document.getElementById("fanButton"), hypeButton=document.getElementById("hypeButton");
@@ -5163,6 +5209,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
                 ===================================== */
 
                 fetchCollectionBreakdown();
+                trackMovieView();
                 loadEngagement();
                 loadComments();
 

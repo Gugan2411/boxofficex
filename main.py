@@ -6977,6 +6977,118 @@ def report_article_comment(comment_id:int,data:CommentReportData):
     return {"success":True,"reported":True,"new_report":created,"message":"Comment reported for review"}
 
 # ============================================================
+# UNIQUE VIEW TRACKING
+# Movie + Actor + Article
+# ============================================================
+
+class ViewTrackData(BaseModel):
+    visitor_id: str
+
+
+def _track_unique_view(table_name: str, id_column: str, item_id: int, visitor_id: str):
+    visitor_id = _clean_visitor_id(visitor_id)
+
+    allowed = {
+        ("movie_views", "movie_id", "movies"),
+        ("actor_views", "actor_id", "actors"),
+        ("article_views", "article_id", "articles"),
+    }
+
+    target_table = {
+        ("movie_views", "movie_id"): "movies",
+        ("actor_views", "actor_id"): "actors",
+        ("article_views", "article_id"): "articles",
+    }.get((table_name, id_column))
+
+    if not target_table or (table_name, id_column, target_table) not in allowed:
+        raise HTTPException(status_code=500, detail="Invalid view tracking target")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT 1 FROM {target_table} WHERE id=%s",
+                (item_id,)
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Item not found")
+
+            cur.execute(
+                f"""
+                INSERT INTO {table_name} ({id_column}, visitor_id)
+                VALUES (%s, %s)
+                ON CONFLICT ({id_column}, visitor_id) DO NOTHING
+                RETURNING id
+                """,
+                (item_id, visitor_id)
+            )
+            counted = bool(cur.fetchone())
+
+            cur.execute(
+                f"SELECT COUNT(*) FROM {table_name} WHERE {id_column}=%s",
+                (item_id,)
+            )
+            views = int(cur.fetchone()[0] or 0)
+
+        conn.commit()
+
+    return {"counted": counted, "views": views}
+
+
+def _get_view_count(table_name: str, id_column: str, item_id: int):
+    allowed = {
+        ("movie_views", "movie_id"),
+        ("actor_views", "actor_id"),
+        ("article_views", "article_id"),
+    }
+
+    if (table_name, id_column) not in allowed:
+        raise HTTPException(status_code=500, detail="Invalid view tracking target")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT COUNT(*) FROM {table_name} WHERE {id_column}=%s",
+                (item_id,)
+            )
+            views = int(cur.fetchone()[0] or 0)
+
+    return {"views": views}
+
+
+@app.post("/movies/{movie_id}/view")
+def track_movie_view(movie_id: int, data: ViewTrackData):
+    result = _track_unique_view("movie_views", "movie_id", movie_id, data.visitor_id)
+    return {"movie_id": movie_id, **result}
+
+
+@app.get("/movies/{movie_id}/views")
+def get_movie_views(movie_id: int):
+    return {"movie_id": movie_id, **_get_view_count("movie_views", "movie_id", movie_id)}
+
+
+@app.post("/actors/{actor_id}/view")
+def track_actor_view(actor_id: int, data: ViewTrackData):
+    result = _track_unique_view("actor_views", "actor_id", actor_id, data.visitor_id)
+    return {"actor_id": actor_id, **result}
+
+
+@app.get("/actors/{actor_id}/views")
+def get_actor_views(actor_id: int):
+    return {"actor_id": actor_id, **_get_view_count("actor_views", "actor_id", actor_id)}
+
+
+@app.post("/articles/{article_id}/view")
+def track_article_view(article_id: int, data: ViewTrackData):
+    result = _track_unique_view("article_views", "article_id", article_id, data.visitor_id)
+    return {"article_id": article_id, **result}
+
+
+@app.get("/articles/{article_id}/views")
+def get_article_views(article_id: int):
+    return {"article_id": article_id, **_get_view_count("article_views", "article_id", article_id)}
+
+
+# ============================================================
 # TRENDING FAN ACTIVITY
 # ============================================================
 
