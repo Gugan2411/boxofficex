@@ -23,7 +23,22 @@
 <meta id="twitterImage" name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Movie Box Office Comparison | BoxOfficeX">
 
-<script id="comparisonStructuredData" type="application/ld+json"></script>
+<script id="comparisonStructuredData" type="application/ld+json">
+function bxShareTools(title){
+    const box=document.createElement("div");box.className="share-tools";
+    box.innerHTML='<button type="button" data-share-native>↗ Share</button><button type="button" data-share-whatsapp>WhatsApp</button><button type="button" data-share-x>𝕏</button><button type="button" data-share-facebook>Facebook</button><button type="button" data-share-copy>🔗 Copy Link</button>';
+    const url=location.href;
+    box.querySelector("[data-share-native]").onclick=async()=>{if(navigator.share){try{await navigator.share({title,url})}catch(e){}}else{navigator.clipboard?.writeText(url)}};
+    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(title+" "+url),"_blank","noopener");
+    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(title)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-facebook]").onclick=()=>window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-copy]").onclick=async e=>{try{await navigator.clipboard.writeText(url);e.currentTarget.textContent="✓ Copied"}catch(_){e.currentTarget.textContent="Copy failed"}};
+    return box;
+}
+
+document.addEventListener("DOMContentLoaded",()=>{const el=document.getElementById("movieCompareShareTools");if(el)el.appendChild(bxShareTools(document.title.replace(" | BoxOfficeX","")))});
+
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#070a12;--panel:#101725;--border:#29334d;--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--red:#ff4655;--green:#3ac47d}
@@ -188,6 +203,11 @@ header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!imp
 .top-fan-comment.show{display:block}.top-fan-label{color:#9a6700;font-size:10px;font-weight:900;text-transform:uppercase}.top-fan-author{margin-top:6px;font-size:12px;font-weight:900}.top-fan-body{margin-top:5px;font-size:13px;color:#344054}.fan-status{min-height:16px;margin-top:8px;color:#667085;font-size:10px}
 @media(max-width:700px){.fan-zone,.fan-comments{padding:13px 10px}.fan-zone h2,.fan-comments h2{font-size:16px}.vote-grid{grid-template-columns:1fr 58px 1fr}.fan-btn,.vote-btn{padding:8px 6px;font-size:10px}}
 
+
+.share-tools{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03)}
+.share-tools button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}
+.share-tools button:hover{border-color:rgba(77,141,255,.40);background:rgba(77,141,255,.10)}
+
 </style>
 </head>
 <body>
@@ -196,7 +216,7 @@ header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!imp
 <nav><a href="/index.html">Home</a><a href="/new-movies.html">New Movies</a><a href="/movie-rankings.html">Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles</a><a class="nav-compare" href="/compare-select.html">⚔️ Actor Comparison</a><a class="nav-compare active" href="/movie-compare-select.html">🎬 Movie Comparison</a></nav>
 </div></header>
 
-<main id="app"><div class="loading">Loading comparison...</div></main>
+<main id="app"><div class="loading">Loading comparison...</div></main><div style="width:min(980px,calc(100% - 36px));margin:auto" id="movieCompareShareTools"></div>
 
 
 <footer class="site-footer"><div class="footer-inner"><a href="/index.html" class="footer-brand">🎬 BOXOFFICE<span>X</span></a><p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p><div class="footer-links">

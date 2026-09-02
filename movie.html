@@ -29,7 +29,22 @@
     <meta id="twitterDescription" name="twitter:description" content="Movie box office collection, budget, worldwide gross and verdict on BoxOfficeX.">
     <meta id="twitterImage" name="twitter:image" content="">
 
-    <script id="movieStructuredData" type="application/ld+json"></script>
+    <script id="movieStructuredData" type="application/ld+json">
+function bxShareTools(title){
+    const box=document.createElement("div");box.className="share-tools";
+    box.innerHTML='<button type="button" data-share-native>↗ Share</button><button type="button" data-share-whatsapp>WhatsApp</button><button type="button" data-share-x>𝕏</button><button type="button" data-share-facebook>Facebook</button><button type="button" data-share-copy>🔗 Copy Link</button>';
+    const url=location.href;
+    box.querySelector("[data-share-native]").onclick=async()=>{if(navigator.share){try{await navigator.share({title,url})}catch(e){}}else{navigator.clipboard?.writeText(url)}};
+    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(title+" "+url),"_blank","noopener");
+    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(title)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-facebook]").onclick=()=>window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-copy]").onclick=async e=>{try{await navigator.clipboard.writeText(url);e.currentTarget.textContent="✓ Copied"}catch(_){e.currentTarget.textContent="Copy failed"}};
+    return box;
+}
+
+document.addEventListener("DOMContentLoaded",()=>{const el=document.getElementById("movieShareTools");if(el)el.appendChild(bxShareTools(document.title.replace(" | BoxOfficeX","")))});
+
+</script>
 
     <meta
         name="theme-color"
@@ -2970,6 +2985,11 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
         .comments-section{margin-top:18px;padding:22px;border:1px solid var(--border);border-radius:18px;background:#fff}.top-fan-comment{display:none;margin:0 0 14px;padding:15px;border:1px solid rgba(197,138,0,.25);border-radius:14px;background:linear-gradient(135deg,#fff8df,#fffdf6)}.top-fan-comment.show{display:block}.top-fan-label{margin-bottom:8px;color:#a86f00;font-size:10px;font-weight:1000;letter-spacing:.7px;text-transform:uppercase}.top-fan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.top-fan-author{font-size:12px;font-weight:1000;color:#26364f}.top-fan-likes{font-size:10px;font-weight:1000;color:#a86f00}.top-fan-body{font-size:13px;line-height:1.6;color:#3d4b61;overflow-wrap:anywhere}.comments-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.comments-title{font-size:18px;font-weight:1000}.comment-sort{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#f7f9fc;color:var(--text);font-weight:800}.comment-form{display:grid;gap:9px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#f8fafd}.comment-name,.comment-text{width:100%;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);font:inherit;outline:none}.comment-name{height:42px;padding:0 12px}.comment-text{min-height:92px;padding:11px 12px;resize:vertical}.comment-name:focus,.comment-text:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(50,111,229,.06)}.comment-submit{justify-self:start;min-height:40px;padding:0 15px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-weight:900;cursor:pointer}.comment-message{min-height:16px;color:var(--muted);font-size:11px}.comments-list{display:grid;gap:10px;margin-top:14px}.comment-card{padding:14px;border:1px solid var(--border);border-radius:13px;background:#fff}.comment-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.comment-author{font-size:12px;font-weight:1000;color:#26364f}.comment-time{font-size:10px;color:var(--muted)}.comment-body{font-size:13px;line-height:1.6;color:#3d4b61;overflow-wrap:anywhere}.comment-tools{display:flex;gap:8px;margin-top:10px}.comment-tool{border:1px solid var(--border);border-radius:9px;background:#f7f9fc;padding:6px 9px;color:#596981;font-size:10px;font-weight:900;cursor:pointer}.comment-tool.active{color:var(--blue);border-color:rgba(50,111,229,.25);background:rgba(50,111,229,.07)}.comments-empty{padding:22px;text-align:center;color:var(--muted);font-size:12px}
         @media(max-width:700px){.engagement-section,.comments-section{padding:15px;border-radius:15px}.engagement-actions{grid-template-columns:1fr 1fr}.fan-vote-buttons{grid-template-columns:1fr 1fr}.comments-head{align-items:flex-start}.comment-submit{width:100%}}
 
+
+.share-tools{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03)}
+.share-tools button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}
+.share-tools button:hover{border-color:rgba(77,141,255,.40);background:rgba(77,141,255,.10)}
+
 </style>
 
 </head>
@@ -3413,6 +3433,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
 
     </div>
 
+<div id="movieShareTools"></div>
 </main>
 
 

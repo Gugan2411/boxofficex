@@ -101,7 +101,75 @@
     <script
         id="websiteStructuredData"
         type="application/ld+json"
-    ></script>
+    >
+/* =========================================================
+   UPCOMING MOVIES + LAUNCH DASHBOARD
+========================================================= */
+function launchEsc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+
+async function loadUpcomingMovies(){
+    const grid=document.getElementById("upcomingMoviesGrid"); if(!grid)return;
+    try{
+        const r=await fetch(`${API_BASE}/movies/upcoming?limit=10`,{cache:"no-store"});
+        const d=await r.json(); if(!r.ok)throw new Error("Upcoming API "+r.status);
+        const items=Array.isArray(d.movies)?d.movies:[];
+        if(!items.length){grid.innerHTML='<div class="movie-empty">No upcoming movies added yet.</div>';return}
+        grid.innerHTML=items.map(m=>`
+            <article class="movie-card" onclick="location.href='movie.html?id=${m.id}'" role="link" tabindex="0">
+                <img class="movie-poster" src="${m.poster?`posters/${encodeURIComponent(m.poster)}`:'posters/coming-soon.png'}" alt="${launchEsc(m.title)}" loading="lazy" onerror="this.onerror=null;this.src='posters/coming-soon.png'">
+                <div class="movie-info"><h3>${launchEsc(m.title)}</h3><p>${launchEsc(m.language||"")} ${m.industry?`• ${launchEsc(m.industry)}`:""}</p>
+                <span class="upcoming-countdown">${m.days_until_release===1?"Tomorrow":`${m.days_until_release} Days Left`}</span></div>
+            </article>`).join("");
+    }catch(e){console.error(e);grid.innerHTML='<div class="movie-empty">Upcoming movies unavailable.</div>'}
+}
+
+async function loadPopularActorsData(){
+    const grid=document.getElementById("actorsGrid"); if(!grid)return;
+    try{
+        const r=await fetch(`${API_BASE}/actors/popular?limit=12`,{cache:"no-store"});
+        const d=await r.json(); if(!r.ok)throw new Error("Popular actors API "+r.status);
+        cachedActors=Array.isArray(d.actors)?d.actors:[];
+        if(!cachedActors.length)return;
+        grid.innerHTML=cachedActors.map(a=>`
+            <article class="actor-card" onclick="location.href='actor.html?id=${a.id}'" role="link" tabindex="0">
+                <img src="${a.photo?`actor-images/${encodeURIComponent(a.photo)}`:'actor-images/coming-soon.png'}" alt="${launchEsc(a.name)}" loading="lazy">
+                <h3>${launchEsc(a.name)}</h3><p>#${a.rank} • ${a.popularity_score} popularity</p>
+            </article>`).join("");
+    }catch(e){console.error(e)}
+}
+
+async function loadBoxOfficeXStats(){
+    const el=document.getElementById("boxOfficeXStats"); if(!el)return;
+    try{const r=await fetch(`${API_BASE}/site/stats`,{cache:"no-store"});const d=await r.json();if(!r.ok)throw 0;
+    const stats=[["Movies Tracked",d.movies_tracked],["Actors",d.actors_tracked],["Articles",d.published_articles],["Box Office Records",d.boxoffice_records]];
+    el.innerHTML=stats.map(x=>`<div class="launch-stat-card"><div class="launch-stat-value">${Number(x[1]||0).toLocaleString("en-IN")}</div><div class="launch-stat-label">${x[0]}</div></div>`).join("");
+    }catch(e){el.innerHTML='<div class="movie-empty">Stats unavailable.</div>'}
+}
+
+async function loadLatestUpdatesFeed(){
+    const el=document.getElementById("latestUpdatesList"); if(!el)return;
+    try{const r=await fetch(`${API_BASE}/latest-updates?limit=8`,{cache:"no-store"});const d=await r.json();if(!r.ok)throw 0;
+    const items=Array.isArray(d.updates)?d.updates:[];
+    el.innerHTML=items.length?items.map(x=>`<article class="update-card" onclick="location.href='${x.url}'"><div class="update-icon">${x.type==="article"?"📰":"🎬"}</div><div class="update-copy"><strong>${launchEsc(x.title)}</strong><small>${launchEsc(x.subtitle||"Latest update")}</small></div></article>`).join(""):'<div class="movie-empty">No updates yet.</div>';
+    }catch(e){el.innerHTML='<div class="movie-empty">Updates unavailable.</div>'}
+}
+
+async function loadFanLeaderboards(){
+    const el=document.getElementById("fanLeaderGrid"); if(!el)return;
+    try{const r=await fetch(`${API_BASE}/fan-leaderboards`,{cache:"no-store"});const d=await r.json();if(!r.ok)throw 0;
+    const items=(Array.isArray(d.leaders)?d.leaders:[]).filter(Boolean);
+    el.innerHTML=items.map(x=>`<article class="leader-card" onclick="location.href='${x.url}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count">${Number(x.count||0).toLocaleString("en-IN")} interactions</div></article>`).join("");
+    }catch(e){el.innerHTML='<div class="movie-empty">Leaderboards unavailable.</div>'}
+}
+
+loadUpcomingMovies();
+loadPopularActorsData();
+loadBoxOfficeXStats();
+loadLatestUpdatesFeed();
+loadFanLeaderboards();
+
+
+</script>
 
 
 <style>
@@ -4612,6 +4680,23 @@ header nav a.nav-compare:focus-visible {
 @media(max-width:900px){.fan-activity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.fan-activity-grid{grid-template-columns:1fr}.fan-activity-card{padding:11px}.fan-activity-thumb{width:50px;height:62px;flex-basis:50px}.fan-activity-icon{width:50px;height:50px;flex-basis:50px}}
 
+
+/* =========================================================
+   BOXOFFICEX LAUNCH FEATURES
+========================================================= */
+.launch-feature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.launch-stat-card,.leader-card,.update-card{border:1px solid var(--border);background:linear-gradient(145deg,var(--surface),var(--surface-2));border-radius:16px;box-shadow:var(--shadow-small)}
+.launch-stat-card{padding:18px;text-align:center}
+.launch-stat-value{font-size:28px;font-weight:900;color:#fff}.launch-stat-label{margin-top:5px;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase}
+.upcoming-countdown{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:rgba(255,204,51,.12);color:var(--gold);font-size:9px;font-weight:900}
+.update-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.update-card{display:flex;gap:12px;padding:12px;align-items:center;cursor:pointer}
+.update-card:hover,.leader-card:hover{border-color:var(--border-strong);transform:translateY(-2px)}
+.update-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:11px;background:rgba(77,141,255,.12);font-size:19px;flex:0 0 auto}
+.update-copy{min-width:0}.update-copy strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.update-copy small{display:block;margin-top:4px;color:var(--muted);font-size:9px}
+.leader-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.leader-card{padding:15px;cursor:pointer}.leader-label{color:var(--gold);font-size:9px;font-weight:900;text-transform:uppercase}.leader-title{margin-top:7px;font-size:13px;font-weight:900}.leader-count{margin-top:5px;color:var(--muted);font-size:9px}
+@media(max-width:700px){.launch-feature-grid,.leader-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.update-list{grid-template-columns:1fr}.launch-stat-value{font-size:22px}}
+
 </style>
 
 
@@ -4913,6 +4998,23 @@ header nav a.nav-compare:focus-visible {
 </section>
 
 
+
+<!-- ======================================================
+     UPCOMING MOVIES + RELEASE COUNTDOWN
+====================================================== -->
+<section class="section" id="upcoming-movies">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <div class="section-label">COMING SOON</div>
+            <h2>📅 Upcoming Movies</h2>
+        </div>
+        <a href="new-movies.html">View All →</a>
+    </div>
+    <div class="movie-grid latest-grid" id="upcomingMoviesGrid">
+        <div class="movie-empty">Loading upcoming movies...</div>
+    </div>
+</section>
+
 <!-- ======================================================
      TRENDING MOVIES
 ====================================================== -->
@@ -5066,6 +5168,31 @@ header nav a.nav-compare:focus-visible {
 
 </section>
 
+
+
+<!-- ======================================================
+     BOXOFFICEX STATS
+====================================================== -->
+<section class="section" id="boxofficex-stats">
+    <div class="section-header"><div class="section-title-wrap"><div class="section-label">DATABASE COVERAGE</div><h2>📊 BoxOfficeX Stats</h2></div></div>
+    <div class="launch-feature-grid" id="boxOfficeXStats"><div class="movie-empty">Loading stats...</div></div>
+</section>
+
+<!-- ======================================================
+     LATEST UPDATES
+====================================================== -->
+<section class="section" id="latest-updates">
+    <div class="section-header"><div class="section-title-wrap"><div class="section-label">FRESH ON BOXOFFICEX</div><h2>🔔 Latest Updates</h2></div></div>
+    <div class="update-list" id="latestUpdatesList"><div class="movie-empty">Loading latest updates...</div></div>
+</section>
+
+<!-- ======================================================
+     FAN LEADERBOARDS
+====================================================== -->
+<section class="section" id="fan-leaderboards">
+    <div class="section-header"><div class="section-title-wrap"><div class="section-label">COMMUNITY LEADERS</div><h2>🏆 Fan Leaderboards</h2></div></div>
+    <div class="leader-grid" id="fanLeaderGrid"><div class="movie-empty">Loading leaders...</div></div>
+</section>
 
 <!-- ======================================================
      FOOTER

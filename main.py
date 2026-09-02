@@ -3057,6 +3057,85 @@ def search_actors(q: str):
 # SINGLE ACTOR
 # ============================================================
 
+
+# ============================================================
+# POPULAR ACTORS
+# Data-driven ranking from views + comparison fan activity
+# IMPORTANT: KEEP BEFORE /actors/{actor_id}
+# ============================================================
+
+@app.get("/actors/popular")
+def popular_actors(limit: int = 10):
+    limit = max(1, min(int(limit or 10), 30))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    a.id,
+                    a.name,
+                    a.profession,
+                    a.photo,
+                    a.bio,
+                    (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id) AS view_count,
+                    (
+                        SELECT COUNT(*)
+                        FROM hero_comparison_likes h
+                        WHERE h.actor1_id=a.id OR h.actor2_id=a.id
+                    ) AS comparison_likes,
+                    (
+                        SELECT COUNT(*)
+                        FROM hero_comparison_hype h
+                        WHERE h.actor1_id=a.id OR h.actor2_id=a.id
+                    ) AS comparison_hype,
+                    (
+                        SELECT COUNT(*)
+                        FROM hero_comparison_votes h
+                        WHERE h.actor1_id=a.id OR h.actor2_id=a.id
+                    ) AS comparison_votes,
+                    (
+                        SELECT COUNT(*)
+                        FROM hero_comparison_comments h
+                        WHERE (h.actor1_id=a.id OR h.actor2_id=a.id)
+                          AND h.is_hidden=FALSE
+                          AND h.is_deleted=FALSE
+                    ) AS comparison_comments
+                FROM actors a
+                ORDER BY
+                    (
+                        (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id)
+                        + 2 * (SELECT COUNT(*) FROM hero_comparison_likes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                        + 3 * (SELECT COUNT(*) FROM hero_comparison_hype h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                        + 2 * (SELECT COUNT(*) FROM hero_comparison_votes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                        + 3 * (SELECT COUNT(*) FROM hero_comparison_comments h WHERE (h.actor1_id=a.id OR h.actor2_id=a.id) AND h.is_hidden=FALSE AND h.is_deleted=FALSE)
+                    ) DESC,
+                    a.id ASC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+
+    actors = []
+    for rank, row in enumerate(rows, start=1):
+        score = int(row[5] or 0) + 2*int(row[6] or 0) + 3*int(row[7] or 0) + 2*int(row[8] or 0) + 3*int(row[9] or 0)
+        actors.append({
+            "rank": rank,
+            "id": row[0],
+            "name": row[1],
+            "profession": row[2],
+            "photo": safe_actor_photo(row[3]),
+            "bio": row[4],
+            "view_count": int(row[5] or 0),
+            "comparison_likes": int(row[6] or 0),
+            "comparison_hype": int(row[7] or 0),
+            "comparison_votes": int(row[8] or 0),
+            "comparison_comments": int(row[9] or 0),
+            "popularity_score": score,
+            "url": f"/actor.html?id={row[0]}",
+        })
+
+    return {"actors": actors}
+
+
 @app.get("/actors/{actor_id}")
 def get_actor(actor_id: int):
 
@@ -7961,3 +8040,154 @@ def trending_fan_activity(limit: int = 8):
             for row in rows
         ]
     }
+
+
+# ============================================================
+# BOXOFFICEX LAUNCH DASHBOARD FEATURES
+# Stats + latest updates + fan leaderboards
+# ============================================================
+
+@app.get("/site/stats")
+def site_stats():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM movies")
+            movies = int(cur.fetchone()[0] or 0)
+            cur.execute("SELECT COUNT(*) FROM actors")
+            actors = int(cur.fetchone()[0] or 0)
+            cur.execute("SELECT COUNT(*) FROM articles WHERE status='published'")
+            articles = int(cur.fetchone()[0] or 0)
+            cur.execute("SELECT COUNT(*) FROM movies WHERE worldwide_collection_crore IS NOT NULL")
+            boxoffice_records = int(cur.fetchone()[0] or 0)
+
+    return {
+        "movies_tracked": movies,
+        "actors_tracked": actors,
+        "published_articles": articles,
+        "boxoffice_records": boxoffice_records,
+    }
+
+
+@app.get("/latest-updates")
+def latest_updates(limit: int = 10):
+    limit = max(1, min(int(limit or 10), 30))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT type, item_id, title, subtitle, image, url, happened_at
+                FROM (
+                    SELECT
+                        'article'::text AS type,
+                        a.id AS item_id,
+                        a.title,
+                        COALESCE(a.category, 'Article') AS subtitle,
+                        COALESCE(a.hero_image, '') AS image,
+                        ('/article/' || a.slug) AS url,
+                        COALESCE(a.published_at, a.created_at) AS happened_at
+                    FROM articles a
+                    WHERE a.status='published'
+
+                    UNION ALL
+
+                    SELECT
+                        'movie'::text,
+                        m.id,
+                        m.title,
+                        COALESCE(m.language, '') ||
+                            CASE WHEN m.industry IS NOT NULL AND m.industry <> ''
+                                 THEN ' • ' || m.industry ELSE '' END,
+                        COALESCE(m.poster, ''),
+                        ('/movie.html?id=' || m.id::text),
+                        m.release_date::timestamp
+                    FROM movies m
+                    WHERE m.release_date IS NOT NULL
+                ) x
+                WHERE happened_at IS NOT NULL
+                ORDER BY happened_at DESC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+
+    return {
+        "updates": [
+            {
+                "type": r[0],
+                "id": r[1],
+                "title": r[2],
+                "subtitle": r[3],
+                "image": r[4],
+                "url": r[5],
+                "happened_at": r[6].isoformat() if r[6] else None,
+            }
+            for r in rows
+        ]
+    }
+
+
+@app.get("/fan-leaderboards")
+def fan_leaderboards():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT m.id, m.title, COALESCE(COUNT(h.id),0) AS total
+                FROM movies m
+                LEFT JOIN movie_hype h ON h.movie_id=m.id
+                GROUP BY m.id, m.title
+                ORDER BY total DESC, m.id ASC
+                LIMIT 1
+            """)
+            hyped = cur.fetchone()
+
+            cur.execute("""
+                SELECT m.id, m.title, COALESCE(COUNT(v.id),0) AS total
+                FROM movies m
+                LEFT JOIN movie_views v ON v.movie_id=m.id
+                GROUP BY m.id, m.title
+                ORDER BY total DESC, m.id ASC
+                LIMIT 1
+            """)
+            viewed = cur.fetchone()
+
+            cur.execute("""
+                SELECT m.id, m.title, COALESCE(COUNT(c.id),0) AS total
+                FROM movies m
+                LEFT JOIN movie_comments c
+                  ON c.movie_id=m.id
+                 AND c.is_hidden=FALSE
+                 AND c.is_deleted=FALSE
+                GROUP BY m.id, m.title
+                ORDER BY total DESC, m.id ASC
+                LIMIT 1
+            """)
+            discussed = cur.fetchone()
+
+            cur.execute("""
+                SELECT a.id, a.name, COALESCE(COUNT(v.id),0) AS total
+                FROM actors a
+                LEFT JOIN actor_views v ON v.actor_id=a.id
+                GROUP BY a.id, a.name
+                ORDER BY total DESC, a.id ASC
+                LIMIT 1
+            """)
+            actor = cur.fetchone()
+
+    def movie_item(row, label):
+        return None if not row else {
+            "label": label, "id": row[0], "title": row[1],
+            "count": int(row[2] or 0), "url": f"/movie.html?id={row[0]}"
+        }
+
+    return {
+        "leaders": [
+            movie_item(hyped, "🔥 Most Hyped Movie"),
+            movie_item(viewed, "👁 Most Viewed Movie"),
+            movie_item(discussed, "💬 Most Discussed Movie"),
+            None if not actor else {
+                "label": "⭐ Most Viewed Actor",
+                "id": actor[0], "title": actor[1],
+                "count": int(actor[2] or 0), "url": f"/actor.html?id={actor[0]}"
+            }
+        ]
+    }
+
