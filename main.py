@@ -2070,6 +2070,60 @@ def get_latest_movies():
 
 
 # ============================================================
+# UPCOMING MOVIES
+# Future releases ordered by nearest release date
+# IMPORTANT: KEEP THIS BEFORE /movies/{movie_id}
+# ============================================================
+
+@app.get("/movies/upcoming")
+def upcoming_movies(limit: int = 10):
+    limit = max(1, min(int(limit or 10), 50))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id,
+                    title,
+                    release_date,
+                    language,
+                    genre,
+                    director,
+                    poster,
+                    industry,
+                    boxoffice_status,
+                    (release_date - CURRENT_DATE) AS days_until_release
+                FROM movies
+                WHERE release_date IS NOT NULL
+                  AND release_date > CURRENT_DATE
+                ORDER BY release_date ASC, id ASC
+                LIMIT %s
+            """, (limit,))
+
+            rows = cur.fetchall()
+
+    return {
+        "movies": [
+            {
+                "rank": position,
+                "id": row[0],
+                "title": row[1],
+                "release_date": row[2].isoformat() if row[2] else None,
+                "language": row[3],
+                "genre": row[4],
+                "director": row[5],
+                "poster": safe_movie_poster(row[6]),
+                "industry": row[7],
+                "boxoffice_status": row[8],
+                "days_until_release": int(row[9]) if row[9] is not None else None,
+                "url": f"/movie.html?id={row[0]}",
+            }
+            for position, row in enumerate(rows, start=1)
+        ]
+    }
+
+
+# ============================================================
 # TRENDING MOVIES
 # Recent 7-day audience activity ranking
 # IMPORTANT: KEEP THIS BEFORE /movies/{movie_id}
