@@ -5597,15 +5597,12 @@ def get_movie_comments(
                     c.comment_text,
                     c.created_at,
                     COUNT(l.id) AS like_count,
-                    CASE
-                        WHEN %s IS NULL THEN FALSE
-                        ELSE EXISTS (
-                            SELECT 1
-                            FROM movie_comment_likes mine
-                            WHERE mine.comment_id = c.id
-                              AND mine.visitor_id = %s
-                        )
-                    END AS liked_by_me
+                    EXISTS (
+                        SELECT 1
+                        FROM movie_comment_likes mine
+                        WHERE mine.comment_id = c.id
+                          AND mine.visitor_id = %s
+                    ) AS liked_by_me
                 FROM movie_comments c
                 LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
                 WHERE c.movie_id = %s
@@ -5614,7 +5611,7 @@ def get_movie_comments(
                 GROUP BY c.id
                 ORDER BY {order_sql}
                 LIMIT %s OFFSET %s
-            """, (clean_visitor, clean_visitor, movie_id, limit, offset))
+            """, (clean_visitor or "", movie_id, limit, offset))
             rows = cur.fetchall()
 
             cur.execute("""
