@@ -33,22 +33,7 @@
     <meta id="twitterImage" name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Actor Box Office Comparison | BoxOfficeX">
 
-    <script id="compareStructuredData" type="application/ld+json">
-function bxShareTools(title){
-    const box=document.createElement("div");box.className="share-tools";
-    box.innerHTML='<button type="button" data-share-native>↗ Share</button><button type="button" data-share-whatsapp>WhatsApp</button><button type="button" data-share-x>𝕏</button><button type="button" data-share-facebook>Facebook</button><button type="button" data-share-copy>🔗 Copy Link</button>';
-    const url=location.href;
-    box.querySelector("[data-share-native]").onclick=async()=>{if(navigator.share){try{await navigator.share({title,url})}catch(e){}}else{navigator.clipboard?.writeText(url)}};
-    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(title+" "+url),"_blank","noopener");
-    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(title)+"&url="+encodeURIComponent(url),"_blank","noopener");
-    box.querySelector("[data-share-facebook]").onclick=()=>window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),"_blank","noopener");
-    box.querySelector("[data-share-copy]").onclick=async e=>{try{await navigator.clipboard.writeText(url);e.currentTarget.textContent="✓ Copied"}catch(_){e.currentTarget.textContent="Copy failed"}};
-    return box;
-}
-
-document.addEventListener("DOMContentLoaded",()=>{const el=document.getElementById("heroShareTools");if(el)el.appendChild(bxShareTools(document.title.replace(" | BoxOfficeX","")))});
-
-</script>
+    <script id="compareStructuredData" type="application/ld+json"></script>
 
     <style>
 
@@ -2498,6 +2483,35 @@ document.addEventListener("DOMContentLoaded",function(){
     const twitterImageTag = document.getElementById("twitterImage");
     if (twitterImageTag && !twitterImageTag.getAttribute("content")) twitterImageTag.setAttribute("content", socialImage);
 })();
+</script>
+
+
+<script>
+function bxShareTools(title){
+    const box=document.createElement("div");
+    box.className="share-tools";
+    box.innerHTML='<button type="button" data-share-native>↗ Share</button><button type="button" data-share-whatsapp>WhatsApp</button><button type="button" data-share-x>𝕏</button><button type="button" data-share-facebook>Facebook</button><button type="button" data-share-copy>🔗 Copy Link</button>';
+    const url=location.href;
+    box.querySelector("[data-share-native]").onclick=async()=>{
+        if(navigator.share){try{await navigator.share({title,url})}catch(e){}}
+        else if(navigator.clipboard){await navigator.clipboard.writeText(url)}
+    };
+    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(title+" "+url),"_blank","noopener");
+    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(title)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-facebook]").onclick=()=>window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-copy]").onclick=async e=>{
+        try{await navigator.clipboard.writeText(url);e.currentTarget.textContent="✓ Copied"}
+        catch(_){e.currentTarget.textContent="Copy failed"}
+    };
+    return box;
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+    const el=document.getElementById("heroShareTools");
+    if(el) el.appendChild(bxShareTools(document.title.replace(" | BoxOfficeX","")));
+});
 </script>
 
 </body>

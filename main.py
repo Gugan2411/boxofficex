@@ -8084,7 +8084,7 @@ def latest_updates(limit: int = 10):
                         COALESCE(a.category, 'Article') AS subtitle,
                         COALESCE(a.hero_image, '') AS image,
                         ('/article/' || a.slug) AS url,
-                        COALESCE(a.published_at, a.created_at) AS happened_at
+                        COALESCE(a.updated_at, a.published_at) AS happened_at
                     FROM articles a
                     WHERE a.status='published'
 
