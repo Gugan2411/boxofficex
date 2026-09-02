@@ -6179,3 +6179,800 @@ def report_hero_comparison_comment(comment_id: int, data: CommentReportData):
                            VALUES(%s,%s,%s) ON CONFLICT(comment_id,visitor_id) DO NOTHING""",(comment_id,visitor_id,reason))
             created=cur.rowcount>0; conn.commit()
     return {"success":True,"reported":True,"new_report":created,"message":"Comment reported for review"}
+
+# ============================================================
+# MOVIE COMPARISON FAN ENGAGEMENT
+# ============================================================
+
+class MovieComparisonVoteData(BaseModel):
+    visitor_id: str
+    choice: Literal["movie1", "tie", "movie2"]
+
+
+class MovieComparisonCommentCreateData(BaseModel):
+    visitor_id: str
+    display_name: str
+    comment_text: str
+
+
+def _movie_comparison_pair(movie1_id: int, movie2_id: int):
+    if movie1_id == movie2_id:
+        raise HTTPException(status_code=400, detail="Choose two different movies")
+    return tuple(sorted((int(movie1_id), int(movie2_id))))
+
+
+def _ensure_movie_comparison_exists(cur, movie1_id: int, movie2_id: int):
+    movie1_id, movie2_id = _movie_comparison_pair(movie1_id, movie2_id)
+    cur.execute("SELECT id FROM movies WHERE id IN (%s, %s)", (movie1_id, movie2_id))
+    found = {row[0] for row in cur.fetchall()}
+    if movie1_id not in found or movie2_id not in found:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return movie1_id, movie2_id
+
+
+def _movie_comparison_summary(cur, movie1_id: int, movie2_id: int, visitor_id: Optional[str] = None):
+    movie1_id, movie2_id = _ensure_movie_comparison_exists(cur, movie1_id, movie2_id)
+
+    cur.execute(
+        "SELECT COUNT(*) FROM movie_comparison_likes WHERE movie1_id=%s AND movie2_id=%s",
+        (movie1_id, movie2_id)
+    )
+    like_count = cur.fetchone()[0]
+
+    cur.execute(
+        "SELECT COUNT(*) FROM movie_comparison_hype WHERE movie1_id=%s AND movie2_id=%s",
+        (movie1_id, movie2_id)
+    )
+    hype_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT choice, COUNT(*)
+        FROM movie_comparison_votes
+        WHERE movie1_id=%s AND movie2_id=%s
+        GROUP BY choice
+    """, (movie1_id, movie2_id))
+
+    counts = {"movie1": 0, "tie": 0, "movie2": 0}
+    for choice, count in cur.fetchall():
+        if choice in counts:
+            counts[choice] = count
+
+    total = sum(counts.values())
+    percentages = {
+        key: round(value * 100 / total, 1) if total else 0
+        for key, value in counts.items()
+    }
+
+    liked = False
+    hyped = False
+    my_vote = None
+
+    if visitor_id:
+        cur.execute("""
+            SELECT 1
+            FROM movie_comparison_likes
+            WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s
+        """, (movie1_id, movie2_id, visitor_id))
+        liked = bool(cur.fetchone())
+
+        cur.execute("""
+            SELECT 1
+            FROM movie_comparison_hype
+            WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s
+        """, (movie1_id, movie2_id, visitor_id))
+        hyped = bool(cur.fetchone())
+
+        cur.execute("""
+            SELECT choice
+            FROM movie_comparison_votes
+            WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s
+        """, (movie1_id, movie2_id, visitor_id))
+        row = cur.fetchone()
+        my_vote = row[0] if row else None
+
+    return {
+        "movie1_id": movie1_id,
+        "movie2_id": movie2_id,
+        "like_count": like_count,
+        "hype_count": hype_count,
+        "liked": liked,
+        "hyped": hyped,
+        "fan_vote": {
+            "total_votes": total,
+            "counts": counts,
+            "percentages": percentages,
+            "my_vote": my_vote,
+        },
+    }
+
+
+@app.get("/movie-comparisons/{movie1_id}/{movie2_id}/engagement")
+def get_movie_comparison_engagement(
+    movie1_id: int,
+    movie2_id: int,
+    visitor_id: Optional[str] = None
+):
+    visitor_id = _clean_visitor_id(visitor_id) if visitor_id else None
+
+    original1 = int(movie1_id)
+    normalized1, normalized2 = _movie_comparison_pair(movie1_id, movie2_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            result = _movie_comparison_summary(
+                cur,
+                normalized1,
+                normalized2,
+                visitor_id
+            )
+
+    if original1 != normalized1:
+        counts = result["fan_vote"]["counts"]
+        percentages = result["fan_vote"]["percentages"]
+
+        result["fan_vote"]["counts"] = {
+            "movie1": counts["movie2"],
+            "tie": counts["tie"],
+            "movie2": counts["movie1"],
+        }
+
+        result["fan_vote"]["percentages"] = {
+            "movie1": percentages["movie2"],
+            "tie": percentages["tie"],
+            "movie2": percentages["movie1"],
+        }
+
+        if result["fan_vote"]["my_vote"] == "movie1":
+            result["fan_vote"]["my_vote"] = "movie2"
+        elif result["fan_vote"]["my_vote"] == "movie2":
+            result["fan_vote"]["my_vote"] = "movie1"
+
+    return result
+
+
+@app.post("/movie-comparisons/{movie1_id}/{movie2_id}/like")
+def toggle_movie_comparison_like(
+    movie1_id: int,
+    movie2_id: int,
+    data: VisitorActionData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            m1, m2 = _ensure_movie_comparison_exists(cur, movie1_id, movie2_id)
+
+            cur.execute("""
+                DELETE FROM movie_comparison_likes
+                WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s
+                RETURNING id
+            """, (m1, m2, visitor_id))
+
+            active = not bool(cur.fetchone())
+
+            if active:
+                cur.execute("""
+                    INSERT INTO movie_comparison_likes (
+                        movie1_id, movie2_id, visitor_id
+                    )
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (m1, m2, visitor_id))
+
+            conn.commit()
+
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM movie_comparison_likes
+                WHERE movie1_id=%s AND movie2_id=%s
+            """, (m1, m2))
+            count = cur.fetchone()[0]
+
+    return {
+        "success": True,
+        "active": active,
+        "like_count": count,
+    }
+
+
+@app.post("/movie-comparisons/{movie1_id}/{movie2_id}/hype")
+def toggle_movie_comparison_hype(
+    movie1_id: int,
+    movie2_id: int,
+    data: VisitorActionData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            m1, m2 = _ensure_movie_comparison_exists(cur, movie1_id, movie2_id)
+
+            cur.execute("""
+                DELETE FROM movie_comparison_hype
+                WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s
+                RETURNING id
+            """, (m1, m2, visitor_id))
+
+            active = not bool(cur.fetchone())
+
+            if active:
+                cur.execute("""
+                    INSERT INTO movie_comparison_hype (
+                        movie1_id, movie2_id, visitor_id
+                    )
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (m1, m2, visitor_id))
+
+            conn.commit()
+
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM movie_comparison_hype
+                WHERE movie1_id=%s AND movie2_id=%s
+            """, (m1, m2))
+            count = cur.fetchone()[0]
+
+    return {
+        "success": True,
+        "active": active,
+        "hype_count": count,
+    }
+
+
+@app.post("/movie-comparisons/{movie1_id}/{movie2_id}/vote")
+def set_movie_comparison_vote(
+    movie1_id: int,
+    movie2_id: int,
+    data: MovieComparisonVoteData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    original1 = int(movie1_id)
+    normalized1, normalized2 = _movie_comparison_pair(movie1_id, movie2_id)
+
+    choice = data.choice
+
+    if original1 != normalized1:
+        if choice == "movie1":
+            choice = "movie2"
+        elif choice == "movie2":
+            choice = "movie1"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_movie_comparison_exists(cur, normalized1, normalized2)
+
+            cur.execute("""
+                INSERT INTO movie_comparison_votes (
+                    movie1_id, movie2_id, visitor_id, choice
+                )
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (movie1_id, movie2_id, visitor_id)
+                DO UPDATE SET
+                    choice=EXCLUDED.choice,
+                    updated_at=NOW()
+            """, (
+                normalized1,
+                normalized2,
+                visitor_id,
+                choice
+            ))
+
+            conn.commit()
+
+            result = _movie_comparison_summary(
+                cur,
+                normalized1,
+                normalized2,
+                visitor_id
+            )
+
+    if original1 != normalized1:
+        counts = result["fan_vote"]["counts"]
+        percentages = result["fan_vote"]["percentages"]
+
+        result["fan_vote"]["counts"] = {
+            "movie1": counts["movie2"],
+            "tie": counts["tie"],
+            "movie2": counts["movie1"],
+        }
+
+        result["fan_vote"]["percentages"] = {
+            "movie1": percentages["movie2"],
+            "tie": percentages["tie"],
+            "movie2": percentages["movie1"],
+        }
+
+        if result["fan_vote"]["my_vote"] == "movie1":
+            result["fan_vote"]["my_vote"] = "movie2"
+        elif result["fan_vote"]["my_vote"] == "movie2":
+            result["fan_vote"]["my_vote"] = "movie1"
+
+    return result
+
+
+@app.get("/movie-comparisons/{movie1_id}/{movie2_id}/comments")
+def get_movie_comparison_comments(
+    movie1_id: int,
+    movie2_id: int,
+    visitor_id: Optional[str] = None,
+    sort: Literal["newest", "top"] = "newest",
+    limit: int = 30,
+    offset: int = 0
+):
+    visitor_id = _clean_visitor_id(visitor_id) if visitor_id else None
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+
+    order_sql = (
+        "like_count DESC, c.created_at DESC"
+        if sort == "top"
+        else "c.created_at DESC"
+    )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            m1, m2 = _ensure_movie_comparison_exists(cur, movie1_id, movie2_id)
+
+            cur.execute(f"""
+                SELECT
+                    c.id,
+                    c.display_name,
+                    c.comment_text,
+                    c.created_at,
+                    COUNT(l.id) AS like_count,
+                    EXISTS (
+                        SELECT 1
+                        FROM movie_comparison_comment_likes mine
+                        WHERE mine.comment_id=c.id
+                          AND mine.visitor_id=%s
+                    ) AS liked_by_me,
+                    (c.visitor_id=%s) AS is_owner
+                FROM movie_comparison_comments c
+                LEFT JOIN movie_comparison_comment_likes l
+                  ON l.comment_id=c.id
+                WHERE c.movie1_id=%s
+                  AND c.movie2_id=%s
+                  AND c.is_hidden=FALSE
+                  AND c.is_deleted=FALSE
+                GROUP BY c.id
+                ORDER BY {order_sql}
+                LIMIT %s OFFSET %s
+            """, (
+                visitor_id or "",
+                visitor_id or "",
+                m1,
+                m2,
+                limit,
+                offset
+            ))
+
+            rows = cur.fetchall()
+
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM movie_comparison_comments
+                WHERE movie1_id=%s
+                  AND movie2_id=%s
+                  AND is_hidden=FALSE
+                  AND is_deleted=FALSE
+            """, (m1, m2))
+
+            total = cur.fetchone()[0]
+
+    return {
+        "movie1_id": m1,
+        "movie2_id": m2,
+        "total": total,
+        "comments": [
+            {
+                "id": row[0],
+                "display_name": row[1],
+                "comment_text": row[2],
+                "created_at": row[3].isoformat() if row[3] else None,
+                "like_count": row[4],
+                "liked_by_me": row[5],
+                "is_owner": row[6],
+            }
+            for row in rows
+        ],
+    }
+
+
+@app.post("/movie-comparisons/{movie1_id}/{movie2_id}/comments")
+def post_movie_comparison_comment(
+    movie1_id: int,
+    movie2_id: int,
+    data: MovieComparisonCommentCreateData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+    display_name = _clean_public_text(
+        data.display_name,
+        "Display name",
+        2,
+        50
+    )
+    comment_text = _clean_public_text(
+        data.comment_text,
+        "Comment",
+        2,
+        1000
+    )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            m1, m2 = _ensure_movie_comparison_exists(cur, movie1_id, movie2_id)
+
+            cur.execute("""
+                SELECT created_at
+                FROM movie_comparison_comments
+                WHERE movie1_id=%s
+                  AND movie2_id=%s
+                  AND visitor_id=%s
+                ORDER BY created_at DESC
+                LIMIT 1
+            """, (m1, m2, visitor_id))
+
+            recent = cur.fetchone()
+
+            if (
+                recent
+                and (
+                    datetime.now(timezone.utc) - recent[0]
+                ).total_seconds() < 30
+            ):
+                raise HTTPException(
+                    status_code=429,
+                    detail="Please wait 30 seconds before posting another comment"
+                )
+
+            cur.execute("""
+                INSERT INTO movie_comparison_comments (
+                    movie1_id,
+                    movie2_id,
+                    visitor_id,
+                    display_name,
+                    comment_text
+                )
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id, created_at
+            """, (
+                m1,
+                m2,
+                visitor_id,
+                display_name,
+                comment_text
+            ))
+
+            row = cur.fetchone()
+            conn.commit()
+
+    return {
+        "success": True,
+        "comment": {
+            "id": row[0],
+            "display_name": display_name,
+            "comment_text": comment_text,
+            "created_at": row[1].isoformat() if row[1] else None,
+            "like_count": 0,
+            "liked_by_me": False,
+            "is_owner": True,
+        },
+    }
+
+
+@app.delete("/movie-comparison-comments/{comment_id}")
+def delete_movie_comparison_comment(
+    comment_id: int,
+    data: VisitorActionData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE movie_comparison_comments
+                SET
+                    is_deleted=TRUE,
+                    updated_at=NOW()
+                WHERE id=%s
+                  AND visitor_id=%s
+                  AND is_deleted=FALSE
+                RETURNING id
+            """, (comment_id, visitor_id))
+
+            deleted = cur.fetchone()
+
+            if not deleted:
+                cur.execute("""
+                    SELECT visitor_id, is_deleted
+                    FROM movie_comparison_comments
+                    WHERE id=%s
+                """, (comment_id,))
+
+                row = cur.fetchone()
+
+                if not row or row[1]:
+                    raise HTTPException(
+                        status_code=404,
+                        detail="Comment not found"
+                    )
+
+                raise HTTPException(
+                    status_code=403,
+                    detail="You can delete only your own comment"
+                )
+
+            conn.commit()
+
+    return {
+        "success": True,
+        "deleted": True,
+        "comment_id": comment_id,
+    }
+
+
+@app.post("/movie-comparison-comments/{comment_id}/like")
+def toggle_movie_comparison_comment_like(
+    comment_id: int,
+    data: VisitorActionData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 1
+                FROM movie_comparison_comments
+                WHERE id=%s
+                  AND is_hidden=FALSE
+                  AND is_deleted=FALSE
+            """, (comment_id,))
+
+            if not cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Comment not found"
+                )
+
+            cur.execute("""
+                DELETE FROM movie_comparison_comment_likes
+                WHERE comment_id=%s
+                  AND visitor_id=%s
+                RETURNING id
+            """, (comment_id, visitor_id))
+
+            active = not bool(cur.fetchone())
+
+            if active:
+                cur.execute("""
+                    INSERT INTO movie_comparison_comment_likes (
+                        comment_id,
+                        visitor_id
+                    )
+                    VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (comment_id, visitor_id))
+
+            conn.commit()
+
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM movie_comparison_comment_likes
+                WHERE comment_id=%s
+            """, (comment_id,))
+
+            count = cur.fetchone()[0]
+
+    return {
+        "success": True,
+        "active": active,
+        "like_count": count,
+    }
+
+
+@app.post("/movie-comparison-comments/{comment_id}/report")
+def report_movie_comparison_comment(
+    comment_id: int,
+    data: CommentReportData
+):
+    visitor_id = _clean_visitor_id(data.visitor_id)
+
+    reason = (data.reason or "Other").strip()
+
+    if len(reason) > 100:
+        raise HTTPException(
+            status_code=400,
+            detail="Report reason is too long"
+        )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 1
+                FROM movie_comparison_comments
+                WHERE id=%s
+                  AND is_deleted=FALSE
+            """, (comment_id,))
+
+            if not cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Comment not found"
+                )
+
+            cur.execute("""
+                INSERT INTO movie_comparison_comment_reports (
+                    comment_id,
+                    visitor_id,
+                    reason
+                )
+                VALUES (%s, %s, %s)
+                ON CONFLICT (comment_id, visitor_id)
+                DO NOTHING
+            """, (
+                comment_id,
+                visitor_id,
+                reason
+            ))
+
+            created = cur.rowcount > 0
+            conn.commit()
+
+    return {
+        "success": True,
+        "reported": True,
+        "new_report": created,
+        "message": "Comment reported for review",
+    }
+
+# ============================================================
+# ARTICLE READER ENGAGEMENT
+# ============================================================
+
+class ArticleCommentCreateData(BaseModel):
+    visitor_id: str
+    display_name: str
+    comment_text: str
+
+
+def _ensure_article_exists(cur, article_id: int):
+    cur.execute("SELECT id FROM articles WHERE id=%s", (article_id,))
+    if not cur.fetchone():
+        raise HTTPException(status_code=404, detail="Article not found")
+
+
+@app.get("/articles/{article_id}/engagement")
+def get_article_engagement(article_id: int, visitor_id: Optional[str] = None):
+    visitor_id = _clean_visitor_id(visitor_id) if visitor_id else None
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_article_exists(cur, article_id)
+            cur.execute("SELECT COUNT(*) FROM article_likes WHERE article_id=%s", (article_id,))
+            like_count=cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM article_hype WHERE article_id=%s", (article_id,))
+            hype_count=cur.fetchone()[0]
+            liked=hyped=False
+            if visitor_id:
+                cur.execute("SELECT 1 FROM article_likes WHERE article_id=%s AND visitor_id=%s",(article_id,visitor_id)); liked=bool(cur.fetchone())
+                cur.execute("SELECT 1 FROM article_hype WHERE article_id=%s AND visitor_id=%s",(article_id,visitor_id)); hyped=bool(cur.fetchone())
+    return {"article_id":article_id,"like_count":like_count,"hype_count":hype_count,"liked":liked,"hyped":hyped}
+
+
+@app.post("/articles/{article_id}/like")
+def toggle_article_like(article_id: int, data: VisitorActionData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_article_exists(cur,article_id)
+            cur.execute("DELETE FROM article_likes WHERE article_id=%s AND visitor_id=%s RETURNING id",(article_id,visitor_id))
+            active=not bool(cur.fetchone())
+            if active:
+                cur.execute("INSERT INTO article_likes(article_id,visitor_id) VALUES(%s,%s) ON CONFLICT DO NOTHING",(article_id,visitor_id))
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM article_likes WHERE article_id=%s",(article_id,)); count=cur.fetchone()[0]
+    return {"success":True,"active":active,"like_count":count}
+
+
+@app.post("/articles/{article_id}/hype")
+def toggle_article_hype(article_id: int, data: VisitorActionData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_article_exists(cur,article_id)
+            cur.execute("DELETE FROM article_hype WHERE article_id=%s AND visitor_id=%s RETURNING id",(article_id,visitor_id))
+            active=not bool(cur.fetchone())
+            if active:
+                cur.execute("INSERT INTO article_hype(article_id,visitor_id) VALUES(%s,%s) ON CONFLICT DO NOTHING",(article_id,visitor_id))
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM article_hype WHERE article_id=%s",(article_id,)); count=cur.fetchone()[0]
+    return {"success":True,"active":active,"hype_count":count}
+
+
+@app.get("/articles/{article_id}/comments")
+def get_article_comments(article_id:int, visitor_id:Optional[str]=None, sort:Literal["newest","top"]="newest", limit:int=30, offset:int=0):
+    visitor_id=_clean_visitor_id(visitor_id) if visitor_id else None
+    limit=max(1,min(limit,100)); offset=max(0,offset)
+    order_sql="like_count DESC, c.created_at DESC" if sort=="top" else "c.created_at DESC"
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_article_exists(cur,article_id)
+            cur.execute(f"""
+                SELECT c.id,c.display_name,c.comment_text,c.created_at,
+                       COUNT(l.id) AS like_count,
+                       EXISTS(SELECT 1 FROM article_comment_likes mine WHERE mine.comment_id=c.id AND mine.visitor_id=%s) AS liked_by_me,
+                       (c.visitor_id=%s) AS is_owner
+                FROM article_comments c
+                LEFT JOIN article_comment_likes l ON l.comment_id=c.id
+                WHERE c.article_id=%s AND c.is_hidden=FALSE AND c.is_deleted=FALSE
+                GROUP BY c.id ORDER BY {order_sql} LIMIT %s OFFSET %s
+            """,(visitor_id or "",visitor_id or "",article_id,limit,offset))
+            rows=cur.fetchall()
+            cur.execute("SELECT COUNT(*) FROM article_comments WHERE article_id=%s AND is_hidden=FALSE AND is_deleted=FALSE",(article_id,))
+            total=cur.fetchone()[0]
+    return {"article_id":article_id,"total":total,"comments":[{"id":r[0],"display_name":r[1],"comment_text":r[2],"created_at":r[3].isoformat() if r[3] else None,"like_count":r[4],"liked_by_me":r[5],"is_owner":r[6]} for r in rows]}
+
+
+@app.post("/articles/{article_id}/comments")
+def post_article_comment(article_id:int,data:ArticleCommentCreateData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    display_name=_clean_public_text(data.display_name,"Display name",2,50)
+    comment_text=_clean_public_text(data.comment_text,"Comment",2,1000)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            _ensure_article_exists(cur,article_id)
+            cur.execute("SELECT created_at FROM article_comments WHERE article_id=%s AND visitor_id=%s ORDER BY created_at DESC LIMIT 1",(article_id,visitor_id))
+            recent=cur.fetchone()
+            if recent and (datetime.now(timezone.utc)-recent[0]).total_seconds()<30:
+                raise HTTPException(status_code=429,detail="Please wait 30 seconds before posting another comment")
+            cur.execute("""INSERT INTO article_comments(article_id,visitor_id,display_name,comment_text)
+                           VALUES(%s,%s,%s,%s) RETURNING id,created_at""",(article_id,visitor_id,display_name,comment_text))
+            row=cur.fetchone(); conn.commit()
+    return {"success":True,"comment":{"id":row[0],"display_name":display_name,"comment_text":comment_text,"created_at":row[1].isoformat() if row[1] else None,"like_count":0,"liked_by_me":False,"is_owner":True}}
+
+
+@app.delete("/article-comments/{comment_id}")
+def delete_article_comment(comment_id:int,data:VisitorActionData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""UPDATE article_comments SET is_deleted=TRUE,updated_at=NOW()
+                           WHERE id=%s AND visitor_id=%s AND is_deleted=FALSE RETURNING id""",(comment_id,visitor_id))
+            deleted=cur.fetchone()
+            if not deleted:
+                cur.execute("SELECT visitor_id,is_deleted FROM article_comments WHERE id=%s",(comment_id,)); row=cur.fetchone()
+                if not row or row[1]: raise HTTPException(status_code=404,detail="Comment not found")
+                raise HTTPException(status_code=403,detail="You can delete only your own comment")
+            conn.commit()
+    return {"success":True,"deleted":True,"comment_id":comment_id}
+
+
+@app.post("/article-comments/{comment_id}/like")
+def toggle_article_comment_like(comment_id:int,data:VisitorActionData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM article_comments WHERE id=%s AND is_hidden=FALSE AND is_deleted=FALSE",(comment_id,))
+            if not cur.fetchone(): raise HTTPException(status_code=404,detail="Comment not found")
+            cur.execute("DELETE FROM article_comment_likes WHERE comment_id=%s AND visitor_id=%s RETURNING id",(comment_id,visitor_id))
+            active=not bool(cur.fetchone())
+            if active: cur.execute("INSERT INTO article_comment_likes(comment_id,visitor_id) VALUES(%s,%s) ON CONFLICT DO NOTHING",(comment_id,visitor_id))
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM article_comment_likes WHERE comment_id=%s",(comment_id,)); count=cur.fetchone()[0]
+    return {"success":True,"active":active,"like_count":count}
+
+
+@app.post("/article-comments/{comment_id}/report")
+def report_article_comment(comment_id:int,data:CommentReportData):
+    visitor_id=_clean_visitor_id(data.visitor_id)
+    reason=(data.reason or "Other").strip()
+    if len(reason)>100: raise HTTPException(status_code=400,detail="Report reason is too long")
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM article_comments WHERE id=%s AND is_deleted=FALSE",(comment_id,))
+            if not cur.fetchone(): raise HTTPException(status_code=404,detail="Comment not found")
+            cur.execute("""INSERT INTO article_comment_reports(comment_id,visitor_id,reason) VALUES(%s,%s,%s)
+                           ON CONFLICT(comment_id,visitor_id) DO NOTHING""",(comment_id,visitor_id,reason))
+            created=cur.rowcount>0; conn.commit()
+    return {"success":True,"reported":True,"new_report":created,"message":"Comment reported for review"}

@@ -164,6 +164,30 @@ header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!imp
  .site-footer{background:#fff!important}
 }
 
+
+/* MOVIE COMPARISON FAN ENGAGEMENT */
+.fan-zone,.fan-comments{margin-top:18px;padding:18px;border:1px solid #dfe5ee;border-radius:15px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+.fan-zone h2,.fan-comments h2{font-size:18px;margin-bottom:12px}
+.fan-actions{display:flex;flex-wrap:wrap;gap:9px}
+.fan-btn,.vote-btn,.comment-action{border:1px solid #dbe4f0;border-radius:10px;background:#f8fafc;color:#344054;padding:9px 12px;font-weight:800;cursor:pointer}
+.fan-btn.active,.vote-btn.active{background:#eef4ff;border-color:#b9ceff;color:#2563eb}
+.fan-vote-title{margin:16px 0 8px;font-size:11px;font-weight:900;color:#667085;text-transform:uppercase}
+.vote-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:8px}
+.vote-btn{min-width:0;overflow-wrap:anywhere}
+.vote-counts{margin-top:9px;color:#667085;font-size:11px;text-align:center}
+.comment-form{display:grid;gap:8px;margin-bottom:14px}
+.comment-form input,.comment-form textarea,.comment-sort{width:100%;border:1px solid #dfe5ee;border-radius:10px;background:#fff;color:#111827;padding:10px;font:inherit}
+.comment-form textarea{min-height:85px;resize:vertical}
+.comment-submit{justify-self:start;background:#2563eb;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
+.comments-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.comment-sort{width:auto;padding:7px 9px}
+.comment-item{padding:12px 0;border-top:1px solid #edf0f4}
+.comment-author{font-size:12px;font-weight:900}.comment-body{margin-top:5px;color:#344054;font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.comment-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.comment-action{padding:6px 8px;font-size:10px}
+.top-fan-comment{display:none;margin:0 0 12px;padding:13px;border:1px solid #ead9a4;border-radius:12px;background:#fff9e8}
+.top-fan-comment.show{display:block}.top-fan-label{color:#9a6700;font-size:10px;font-weight:900;text-transform:uppercase}.top-fan-author{margin-top:6px;font-size:12px;font-weight:900}.top-fan-body{margin-top:5px;font-size:13px;color:#344054}.fan-status{min-height:16px;margin-top:8px;color:#667085;font-size:10px}
+@media(max-width:700px){.fan-zone,.fan-comments{padding:13px 10px}.fan-zone h2,.fan-comments h2{font-size:16px}.vote-grid{grid-template-columns:1fr 58px 1fr}.fan-btn,.vote-btn{padding:8px 6px;font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -407,9 +431,102 @@ ${row("Overseas Gross",a,b,money,w.overseas_collection,"overseas_collection_cror
 ${row("Worldwide Gross",a,b,money,w.worldwide_collection,"worldwide_collection_crore")}
 ${row("Verdict",a,b,text,null,"verdict")}
 </section>
-${overallWinnerHTML(a,b)}`;
+${overallWinnerHTML(a,b)}
+<section class="fan-zone">
+  <h2>🎟️ Fan Zone</h2>
+  <div class="fan-actions">
+    <button class="fan-btn" id="comparisonLikeBtn" type="button">❤️ Like <span id="comparisonLikeCount">0</span></button>
+    <button class="fan-btn" id="comparisonHypeBtn" type="button">🔥 Hype <span id="comparisonHypeCount">0</span></button>
+  </div>
+  <div class="fan-vote-title">Which movie wins your vote?</div>
+  <div class="vote-grid">
+    <button class="vote-btn" data-movie-vote="movie1" type="button">${esc(a.title)}</button>
+    <button class="vote-btn" data-movie-vote="tie" type="button">Tie</button>
+    <button class="vote-btn" data-movie-vote="movie2" type="button">${esc(b.title)}</button>
+  </div>
+  <div class="vote-counts" id="comparisonVoteCounts">0 votes</div>
+  <div class="fan-status" id="fanStatus"></div>
+</section>
+<section class="fan-comments">
+  <div class="comments-head"><h2>💬 Fan Comments</h2><select id="comparisonCommentSort" class="comment-sort"><option value="newest">Newest</option><option value="top">Top</option></select></div>
+  <div class="top-fan-comment" id="comparisonTopFan"></div>
+  <form class="comment-form" id="comparisonCommentForm">
+    <input id="comparisonCommentName" maxlength="50" placeholder="Your name" required>
+    <textarea id="comparisonCommentText" maxlength="1000" placeholder="Write your comment..." required></textarea>
+    <button class="comment-submit" type="submit">Post Comment</button>
+  </form>
+  <div id="comparisonComments"></div>
+</section>`;
+window.currentMovieComparison={a,b};
+loadMovieComparisonEngagement(a.id,b.id);
+loadMovieComparisonComments(a.id,b.id);
 }catch(e){console.error(e);document.getElementById("app").innerHTML=`<div class="error">${esc(e.message)}<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`}
 }
+
+const COMPARISON_VISITOR_KEY="boxofficex_visitor_id";
+function comparisonVisitorId(){
+ let id=localStorage.getItem(COMPARISON_VISITOR_KEY);
+ if(!id){id=(crypto.randomUUID?crypto.randomUUID():("v_"+Date.now()+"_"+Math.random().toString(36).slice(2))).replace(/-/g,"_");localStorage.setItem(COMPARISON_VISITOR_KEY,id)}
+ return id;
+}
+async function comparisonJSON(url,options={}){
+ const r=await fetch(url,options),d=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(d.detail||"Request failed");
+ return d;
+}
+function renderMovieComparisonEngagement(d,aId,bId){
+ document.getElementById("comparisonLikeCount").textContent=d.like_count||0;
+ document.getElementById("comparisonHypeCount").textContent=d.hype_count||0;
+ document.getElementById("comparisonLikeBtn").classList.toggle("active",!!d.liked);
+ document.getElementById("comparisonHypeBtn").classList.toggle("active",!!d.hyped);
+ const v=d.fan_vote||{},c=v.counts||{},p=v.percentages||{};
+ document.getElementById("comparisonVoteCounts").textContent=`${v.total_votes||0} votes • ${p.movie1||0}% / ${p.tie||0}% / ${p.movie2||0}%`;
+ document.querySelectorAll("[data-movie-vote]").forEach(x=>x.classList.toggle("active",x.dataset.movieVote===v.my_vote));
+}
+async function loadMovieComparisonEngagement(aId,bId){
+ try{
+  const d=await comparisonJSON(`/movie-comparisons/${aId}/${bId}/engagement?visitor_id=${encodeURIComponent(comparisonVisitorId())}`);
+  renderMovieComparisonEngagement(d,aId,bId);
+ }catch(e){console.error(e)}
+}
+document.addEventListener("click",async e=>{
+ const pair=window.currentMovieComparison;if(!pair)return;
+ const body={visitor_id:comparisonVisitorId()};
+ try{
+  if(e.target.closest("#comparisonLikeBtn")){await comparisonJSON(`/movie-comparisons/${pair.a.id}/${pair.b.id}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadMovieComparisonEngagement(pair.a.id,pair.b.id)}
+  if(e.target.closest("#comparisonHypeBtn")){await comparisonJSON(`/movie-comparisons/${pair.a.id}/${pair.b.id}/hype`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadMovieComparisonEngagement(pair.a.id,pair.b.id)}
+  const vote=e.target.closest("[data-movie-vote]");
+  if(vote){await comparisonJSON(`/movie-comparisons/${pair.a.id}/${pair.b.id}/vote`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,choice:vote.dataset.movieVote})});return loadMovieComparisonEngagement(pair.a.id,pair.b.id)}
+  const like=e.target.closest("[data-comment-like]");
+  if(like){await comparisonJSON(`/movie-comparison-comments/${like.dataset.commentLike}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadMovieComparisonComments(pair.a.id,pair.b.id)}
+  const report=e.target.closest("[data-comment-report]");
+  if(report){await comparisonJSON(`/movie-comparison-comments/${report.dataset.commentReport}/report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,reason:"User report"})});alert("Comment reported.");return}
+  const del=e.target.closest("[data-comment-delete]");
+  if(del&&confirm("Delete your comment?")){await comparisonJSON(`/movie-comparison-comments/${del.dataset.commentDelete}`,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadMovieComparisonComments(pair.a.id,pair.b.id)}
+ }catch(err){alert(err.message)}
+});
+async function loadMovieComparisonComments(aId,bId){
+ const box=document.getElementById("comparisonComments");if(!box)return;
+ try{
+  const sort=document.getElementById("comparisonCommentSort")?.value||"newest";
+  const d=await comparisonJSON(`/movie-comparisons/${aId}/${bId}/comments?visitor_id=${encodeURIComponent(comparisonVisitorId())}&sort=${sort}&limit=30`);
+  const comments=d.comments||[];
+  box.innerHTML=comments.length?comments.map(c=>`<div class="comment-item"><div class="comment-author">${esc(c.display_name)}</div><div class="comment-body">${esc(c.comment_text)}</div><div class="comment-meta"><button class="comment-action" data-comment-like="${c.id}">👍 ${Number(c.like_count)||0}</button><button class="comment-action" data-comment-report="${c.id}">🚩 Report</button>${c.is_owner?`<button class="comment-action" data-comment-delete="${c.id}">🗑 Delete</button>`:""}</div></div>`).join(""):`<div class="fan-status">No comments yet. Be the first.</div>`;
+  const top=comments.reduce((best,c)=>(Number(c.like_count)||0)>(Number(best?.like_count)||0)?c:best,null),topBox=document.getElementById("comparisonTopFan");
+  if(topBox&&top&&(Number(top.like_count)||0)>0){topBox.classList.add("show");topBox.innerHTML=`<div class="top-fan-label">🏆 Top Fan Comment</div><div class="top-fan-author">${esc(top.display_name)} • 👍 ${Number(top.like_count)||0}</div><div class="top-fan-body">${esc(top.comment_text)}</div>`}else if(topBox){topBox.classList.remove("show");topBox.innerHTML=""}
+ }catch(e){box.innerHTML=`<div class="fan-status">${esc(e.message)}</div>`}
+}
+document.addEventListener("change",e=>{if(e.target.id==="comparisonCommentSort"&&window.currentMovieComparison)loadMovieComparisonComments(window.currentMovieComparison.a.id,window.currentMovieComparison.b.id)});
+document.addEventListener("submit",async e=>{
+ if(e.target.id!=="comparisonCommentForm")return;e.preventDefault();
+ const pair=window.currentMovieComparison,name=document.getElementById("comparisonCommentName"),comment=document.getElementById("comparisonCommentText");
+ try{
+  await comparisonJSON(`/movie-comparisons/${pair.a.id}/${pair.b.id}/comments`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:comparisonVisitorId(),display_name:name.value,comment_text:comment.value})});
+  localStorage.setItem("boxofficex_comment_name",name.value.trim());comment.value="";await loadMovieComparisonComments(pair.a.id,pair.b.id);
+ }catch(err){alert(err.message)}
+});
+document.addEventListener("DOMContentLoaded",()=>{const n=document.getElementById("comparisonCommentName");if(n)n.value=localStorage.getItem("boxofficex_comment_name")||""});
+
 load();
 </script>
 <script>

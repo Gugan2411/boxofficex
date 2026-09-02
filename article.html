@@ -2111,6 +2111,22 @@ footer,
     }
 }
 
+
+/* ARTICLE FAN ENGAGEMENT */
+.article-fan-zone,.article-fan-comments{width:min(100%,700px);margin:24px auto 0;padding:18px;border:1px solid #dfe5ee;border-radius:15px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.06);font-family:Arial,Helvetica,sans-serif}
+.article-fan-zone h2,.article-fan-comments h2{font-size:18px;line-height:1.3;margin:0 0 12px;color:#111827}
+.article-fan-actions{display:flex;gap:9px;flex-wrap:wrap}
+.article-fan-btn,.article-comment-action{border:1px solid #dbe4f0;border-radius:10px;background:#f8fafc;color:#344054;padding:9px 12px;font-weight:800;cursor:pointer}
+.article-fan-btn.active{background:#eef4ff;border-color:#b9ceff;color:#2563eb}
+.article-comment-form{display:grid;gap:8px;margin-bottom:14px}
+.article-comment-form input,.article-comment-form textarea,.article-comment-sort{border:1px solid #dfe5ee;border-radius:10px;background:#fff;color:#111827;padding:10px;font:inherit}
+.article-comment-form textarea{min-height:85px;resize:vertical}.article-comment-submit{justify-self:start;border:0;border-radius:10px;background:#2563eb;color:#fff;padding:10px 14px;font-weight:900;cursor:pointer}
+.article-comments-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.article-comment-sort{width:auto;padding:7px 9px}
+.article-comment-item{padding:12px 0;border-top:1px solid #edf0f4}.article-comment-author{font-size:12px;font-weight:900}.article-comment-body{margin-top:5px;color:#344054;font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.article-comment-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.article-comment-action{padding:6px 8px;font-size:10px}
+.article-top-fan{display:none;margin:0 0 12px;padding:13px;border:1px solid #ead9a4;border-radius:12px;background:#fff9e8}.article-top-fan.show{display:block}.article-top-fan-label{color:#9a6700;font-size:10px;font-weight:900;text-transform:uppercase}.article-top-fan-author{margin-top:6px;font-size:12px;font-weight:900}.article-top-fan-body{margin-top:5px;font-size:13px;color:#344054}.article-fan-status{margin-top:8px;color:#667085;font-size:10px}
+@media(max-width:700px){.article-fan-zone,.article-fan-comments{padding:13px 10px}.article-fan-zone h2,.article-fan-comments h2{font-size:16px}}
+
 </style>
 </head>
 
@@ -2518,10 +2534,38 @@ async function renderArticle(article) {
                     <div class="article-end">
                         BoxOfficeX • Movie box office, entertainment news and career data
                     </div>
+                    <section class="article-fan-zone">
+                        <h2>🎟️ Reader Zone</h2>
+                        <div class="article-fan-actions">
+                            <button type="button" class="article-fan-btn" id="articleLikeBtn">❤️ Like <span id="articleLikeCount">0</span></button>
+                            <button type="button" class="article-fan-btn" id="articleHypeBtn">🔥 Hype <span id="articleHypeCount">0</span></button>
+                        </div>
+                        <div class="article-fan-status" id="articleFanStatus"></div>
+                    </section>
+                    <section class="article-fan-comments">
+                        <div class="article-comments-head"><h2>💬 Reader Comments</h2><select id="articleCommentSort" class="article-comment-sort"><option value="newest">Newest</option><option value="top">Top</option></select></div>
+                        <div class="article-top-fan" id="articleTopFan"></div>
+                        <form id="articleCommentForm" class="article-comment-form">
+                            <input id="articleCommentName" maxlength="50" placeholder="Your name" required>
+                            <textarea id="articleCommentText" maxlength="1000" placeholder="Write your comment..." required></textarea>
+                            <button class="article-comment-submit" type="submit">Post Comment</button>
+                        </form>
+                        <div id="articleComments"></div>
+                    </section>
                 </div>
             </div>
         </article>
     `;
+
+    window.currentBoxOfficeXArticle = article;
+    if (!new URLSearchParams(window.location.search).has("admin_preview") && article.id) {
+        loadArticleEngagement(article.id);
+        loadArticleComments(article.id);
+    }
+
+    const savedReaderName = localStorage.getItem("boxofficex_comment_name");
+    const readerNameInput = document.getElementById("articleCommentName");
+    if (readerNameInput && savedReaderName) readerNameInput.value = savedReaderName;
 
     const copy = document.getElementById("copyLink");
     if (copy) {
@@ -2551,6 +2595,63 @@ async function renderArticle(article) {
         };
     }
 }
+
+
+const ARTICLE_VISITOR_KEY="boxofficex_visitor_id";
+function articleVisitorId(){
+ let id=localStorage.getItem(ARTICLE_VISITOR_KEY);
+ if(!id){id=(crypto.randomUUID?crypto.randomUUID():("v_"+Date.now()+"_"+Math.random().toString(36).slice(2))).replace(/-/g,"_");localStorage.setItem(ARTICLE_VISITOR_KEY,id)}
+ return id;
+}
+async function articleJSON(url,options={}){
+ const r=await fetch(url,options),d=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(d.detail||"Request failed");
+ return d;
+}
+async function loadArticleEngagement(id){
+ try{
+  const d=await articleJSON(`/articles/${id}/engagement?visitor_id=${encodeURIComponent(articleVisitorId())}`);
+  document.getElementById("articleLikeCount").textContent=d.like_count||0;
+  document.getElementById("articleHypeCount").textContent=d.hype_count||0;
+  document.getElementById("articleLikeBtn").classList.toggle("active",!!d.liked);
+  document.getElementById("articleHypeBtn").classList.toggle("active",!!d.hyped);
+ }catch(e){console.error(e)}
+}
+async function loadArticleComments(id){
+ const box=document.getElementById("articleComments");if(!box)return;
+ try{
+  const sort=document.getElementById("articleCommentSort")?.value||"newest";
+  const d=await articleJSON(`/articles/${id}/comments?visitor_id=${encodeURIComponent(articleVisitorId())}&sort=${sort}&limit=30`);
+  const comments=d.comments||[];
+  box.innerHTML=comments.length?comments.map(c=>`<div class="article-comment-item"><div class="article-comment-author">${esc(c.display_name)}</div><div class="article-comment-body">${esc(c.comment_text)}</div><div class="article-comment-meta"><button class="article-comment-action" data-article-comment-like="${c.id}">👍 ${Number(c.like_count)||0}</button><button class="article-comment-action" data-article-comment-report="${c.id}">🚩 Report</button>${c.is_owner?`<button class="article-comment-action" data-article-comment-delete="${c.id}">🗑 Delete</button>`:""}</div></div>`).join(""):`<div class="article-fan-status">No comments yet. Be the first.</div>`;
+  const topData=await articleJSON(`/articles/${id}/comments?visitor_id=${encodeURIComponent(articleVisitorId())}&sort=top&limit=1`);
+  const top=(topData.comments||[])[0],topBox=document.getElementById("articleTopFan");
+  if(topBox&&top&&(Number(top.like_count)||0)>0){topBox.classList.add("show");topBox.innerHTML=`<div class="article-top-fan-label">🏆 Top Reader Comment</div><div class="article-top-fan-author">${esc(top.display_name)} • 👍 ${Number(top.like_count)||0}</div><div class="article-top-fan-body">${esc(top.comment_text)}</div>`}else if(topBox){topBox.classList.remove("show");topBox.innerHTML=""}
+ }catch(e){box.innerHTML=`<div class="article-fan-status">${esc(e.message)}</div>`}
+}
+document.addEventListener("click",async e=>{
+ const a=window.currentBoxOfficeXArticle;if(!a?.id)return;
+ const body={visitor_id:articleVisitorId()};
+ try{
+  if(e.target.closest("#articleLikeBtn")){await articleJSON(`/articles/${a.id}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleEngagement(a.id)}
+  if(e.target.closest("#articleHypeBtn")){await articleJSON(`/articles/${a.id}/hype`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleEngagement(a.id)}
+  const like=e.target.closest("[data-article-comment-like]");
+  if(like){await articleJSON(`/article-comments/${like.dataset.articleCommentLike}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleComments(a.id)}
+  const report=e.target.closest("[data-article-comment-report]");
+  if(report){await articleJSON(`/article-comments/${report.dataset.articleCommentReport}/report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,reason:"User report"})});alert("Comment reported.");return}
+  const del=e.target.closest("[data-article-comment-delete]");
+  if(del&&confirm("Delete your comment?")){await articleJSON(`/article-comments/${del.dataset.articleCommentDelete}`,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleComments(a.id)}
+ }catch(err){alert(err.message)}
+});
+document.addEventListener("change",e=>{if(e.target.id==="articleCommentSort"&&window.currentBoxOfficeXArticle?.id)loadArticleComments(window.currentBoxOfficeXArticle.id)});
+document.addEventListener("submit",async e=>{
+ if(e.target.id!=="articleCommentForm")return;e.preventDefault();
+ const a=window.currentBoxOfficeXArticle,name=document.getElementById("articleCommentName"),comment=document.getElementById("articleCommentText");
+ try{
+  await articleJSON(`/articles/${a.id}/comments`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:articleVisitorId(),display_name:name.value,comment_text:comment.value})});
+  localStorage.setItem("boxofficex_comment_name",name.value.trim());comment.value="";await loadArticleComments(a.id);
+ }catch(err){alert(err.message)}
+});
 
 async function loadArticle() {
     const slug = getSlug();
