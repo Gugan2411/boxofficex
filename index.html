@@ -999,6 +999,37 @@ nav a.active {
 }
 
 
+
+.search-group-label{
+    padding:9px 15px 7px;
+    color:var(--blue-light);
+    background:rgba(77,141,255,.055);
+    border-bottom:1px solid var(--border);
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+}
+.search-result-type{
+    margin-left:auto;
+    flex-shrink:0;
+    padding:4px 7px;
+    border-radius:999px;
+    background:rgba(255,255,255,.06);
+    color:var(--muted);
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:.35px;
+    text-transform:uppercase;
+}
+.search-status{
+    padding:18px 15px;
+    color:var(--muted);
+    text-align:center;
+    font-size:12px;
+    line-height:1.5;
+}
+
 /* =========================================================
    SEARCH ACTIVE MODE
 ========================================================= */
@@ -2090,6 +2121,110 @@ body.search-active #searchResults {
         aspect-ratio: 2 / 2.75;
     }
 }
+
+/* =========================================================
+   TRENDING ARTICLES
+========================================================= */
+
+.article-trending-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.article-trending-card {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(17,25,43,.98), rgba(11,17,30,.98));
+    transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.article-trending-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow);
+}
+
+.article-trending-image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: block;
+    object-fit: cover;
+    background: #172139;
+}
+
+.article-trending-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #172139, #0e1628);
+    font-size: 34px;
+}
+
+.article-trending-copy {
+    padding: 12px;
+}
+
+.article-trending-type {
+    margin-bottom: 6px;
+    color: var(--blue-light);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+}
+
+.article-trending-title {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.article-trending-stats {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .article-trending-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .article-trending-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 11px;
+        padding: 2px 1px 8px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+    }
+
+    .article-trending-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .article-trending-card {
+        flex: 0 0 240px;
+        scroll-snap-align: start;
+    }
+
+    .article-trending-grid .movie-empty {
+        min-width: 100%;
+        flex: 0 0 100%;
+    }
+}
+
 
 /* =========================================================
    FOOTER
@@ -4614,7 +4749,7 @@ header nav a.nav-compare:focus-visible {
                 <input
                     type="search"
                     id="globalSearch"
-                    placeholder="Search movies or actors..."
+                    placeholder="Search movies, actors or articles..."
                     autocomplete="off"
                     enterkeyhint="search"
                     aria-label="Search movies or actors"
@@ -4792,6 +4927,25 @@ header nav a.nav-compare:focus-visible {
 
     <div class="movie-grid ranking-grid" id="trendingMoviesGrid">
         <div class="movie-empty">Loading trending movies...</div>
+    </div>
+</section>
+
+
+<!-- ======================================================
+     TRENDING ARTICLES
+====================================================== -->
+
+<section class="section" id="trending-articles">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <div class="section-label">READER ACTIVITY • LAST 7 DAYS</div>
+            <h2>📰 Trending Articles</h2>
+        </div>
+        <a href="articles.html">View All →</a>
+    </div>
+
+    <div class="article-trending-grid" id="trendingArticlesGrid">
+        <div class="movie-empty">Loading trending articles...</div>
     </div>
 </section>
 
@@ -6000,6 +6154,103 @@ async function loadTrendingMovies() {
 
 
 /* =========================================================
+   TRENDING ARTICLES
+========================================================= */
+
+async function loadTrendingArticles() {
+    const grid = document.getElementById("trendingArticlesGrid");
+    if (!grid) return;
+
+    try {
+        const response = await fetch(
+            `${API_BASE}/articles/trending?limit=10`,
+            {cache: "no-store"}
+        );
+
+        if (!response.ok) {
+            throw new Error("Trending articles API error: " + response.status);
+        }
+
+        const data = await response.json();
+        const articles = Array.isArray(data.articles) ? data.articles : [];
+
+        grid.innerHTML = "";
+
+        if (!articles.length) {
+            grid.innerHTML = `
+                <div class="movie-empty">
+                    Trending articles will appear as readers view, like,
+                    hype and comment on articles.
+                </div>
+            `;
+            return;
+        }
+
+        articles.forEach((article, index) => {
+            const card = document.createElement("article");
+            card.className = "article-trending-card";
+            card.tabIndex = 0;
+            card.setAttribute("role", "link");
+
+            const views = Number(article.view_count || 0);
+            const likes = Number(article.like_count || 0);
+            const hype = Number(article.hype_count || 0);
+            const comments = Number(article.comment_count || 0);
+
+            const image = article.hero_image
+                ? `<img class="article-trending-image"
+                        src="/article-images/${encodeURIComponent(article.hero_image)}"
+                        alt="${escapeHTML(article.title || "Article")}"
+                        loading="lazy"
+                        decoding="async"
+                        onerror="this.style.display='none'">`
+                : `<div class="article-trending-placeholder">📰</div>`;
+
+            card.innerHTML = `
+                <div class="ranking-number">#${Number(article.rank || index + 1)}</div>
+                ${image}
+                <div class="article-trending-copy">
+                    <div class="article-trending-type">
+                        ${escapeHTML(article.category || "BoxOfficeX Article")}
+                    </div>
+                    <h3 class="article-trending-title">
+                        ${escapeHTML(article.title || "Untitled Article")}
+                    </h3>
+                    <div class="article-trending-stats">
+                        👁 ${views.toLocaleString()} • ❤️ ${likes.toLocaleString()}
+                        • 🔥 ${hype.toLocaleString()} • 💬 ${comments.toLocaleString()}
+                    </div>
+                </div>
+            `;
+
+            const openArticle = () => {
+                window.location.href =
+                    "article.html?slug=" + encodeURIComponent(article.slug || "");
+            };
+
+            card.addEventListener("click", openArticle);
+            card.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openArticle();
+                }
+            });
+
+            grid.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error("Trending articles loading error:", error);
+        grid.innerHTML = `
+            <div class="movie-empty">
+                Unable to load trending articles.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
    MOST HYPED MOVIES
 ========================================================= */
 
@@ -6327,440 +6578,220 @@ async function loadTop10() {
 
 
 /* =========================================================
-   SEARCH ELEMENTS
+   IMPROVED UNIFIED SEARCH
+   Movies + Actors + Articles
 ========================================================= */
 
 const searchInput =
-    document.getElementById(
-        "globalSearch"
-    );
-
+    document.getElementById("globalSearch");
 
 const searchResults =
-    document.getElementById(
-        "searchResults"
-    );
+    document.getElementById("searchResults");
 
+const searchForm =
+    document.getElementById("searchForm");
 
-/* =========================================================
-   ENTER SEARCH MODE
-========================================================= */
+let unifiedSearchRequest = 0;
 
 function enterSearchMode() {
-
-    document.body.classList.add(
-        "search-active"
-    );
-
+    document.body.classList.add("search-active");
 }
-
-
-/* =========================================================
-   EXIT SEARCH MODE
-========================================================= */
 
 function exitSearchMode() {
-
-    document.body.classList.remove(
-        "search-active"
-    );
-
-    searchResults.innerHTML =
-        "";
-
+    document.body.classList.remove("search-active");
+    searchResults.innerHTML = "";
 }
 
+function renderSearchStatus(message) {
+    searchResults.innerHTML = `
+        <div class="search-status">
+            ${escapeHTML(message)}
+        </div>
+    `;
+}
 
-/* =========================================================
-   SEARCH INPUT
-========================================================= */
+function createUnifiedSearchResult(item, type) {
+    const result = document.createElement("div");
+    result.className = "search-result";
+    result.setAttribute("role", "option");
+    result.tabIndex = 0;
 
-searchInput.addEventListener(
-    "input",
-    function() {
+    let icon = "🔎";
+    let title = "";
+    let meta = "";
+    let url = "";
 
-        const query =
-            searchInput.value
-                .trim()
-                .toLowerCase();
+    if (type === "movie") {
+        icon = "🎬";
+        title = item.title || "Untitled Movie";
+        meta = [
+            item.language,
+            item.verdict,
+            item.director ? `Dir. ${item.director}` : ""
+        ].filter(Boolean).join(" • ");
+        url = `movie.html?id=${encodeURIComponent(item.id)}`;
+    }
+    else if (type === "actor") {
+        icon = "⭐";
+        title = item.name || "Actor";
+        meta = item.profession || "Actor";
+        url = `actor.html?id=${encodeURIComponent(item.id)}`;
+    }
+    else {
+        icon = "📰";
+        title = item.title || "Untitled Article";
+        meta = [
+            item.category,
+            item.author
+        ].filter(Boolean).join(" • ");
+        url = `article.html?slug=${encodeURIComponent(item.slug || "")}`;
+    }
 
+    result.innerHTML = `
+        <div class="search-result-icon">${icon}</div>
+        <div class="search-result-text">
+            <strong>${escapeHTML(title)}</strong>
+            <small>${escapeHTML(meta || "BoxOfficeX")}</small>
+        </div>
+        <span class="search-result-type">${escapeHTML(type)}</span>
+    `;
 
-        clearTimeout(
-            searchTimer
+    const openResult = () => {
+        window.location.href = url;
+    };
+
+    result.addEventListener("click", openResult);
+    result.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openResult();
+        }
+    });
+
+    return result;
+}
+
+function appendUnifiedSearchGroup(label, items, type) {
+    if (!items.length) return;
+
+    const heading = document.createElement("div");
+    heading.className = "search-group-label";
+    heading.textContent = label;
+    searchResults.appendChild(heading);
+
+    items.forEach(item => {
+        searchResults.appendChild(
+            createUnifiedSearchResult(item, type)
+        );
+    });
+}
+
+async function performSearch(query) {
+    const cleanQuery = String(query || "").trim();
+
+    if (cleanQuery.length < 2) {
+        exitSearchMode();
+        return;
+    }
+
+    const requestId = ++unifiedSearchRequest;
+    enterSearchMode();
+    renderSearchStatus("Searching BoxOfficeX...");
+
+    try {
+        const response = await fetch(
+            `${API_BASE}/search?q=${encodeURIComponent(cleanQuery)}&limit=8`,
+            {cache: "no-store"}
         );
 
-
-        /*
-            Activate clean search mode
-            once user types 2+ characters.
-        */
-
-        if (
-            query.length >= 2
-        ) {
-
-            enterSearchMode();
-
-        }
-        else {
-
-            exitSearchMode();
-
+        if (!response.ok) {
+            throw new Error("Search API returned HTTP " + response.status);
         }
 
+        const data = await response.json();
 
-        if (
-            query.length < 2
-        ) {
-
+        if (requestId !== unifiedSearchRequest) {
             return;
-
         }
 
+        const movies = Array.isArray(data.movies) ? data.movies : [];
+        const actors = Array.isArray(data.actors) ? data.actors : [];
+        const articles = Array.isArray(data.articles) ? data.articles : [];
 
-        searchTimer =
-            setTimeout(
-                function() {
+        searchResults.innerHTML = "";
 
-                    performSearch(
-                        query
-                    );
-
-                },
-                180
+        if (!movies.length && !actors.length && !articles.length) {
+            renderSearchStatus(
+                "No results found. Try another movie, actor or article."
             );
+            return;
+        }
 
+        appendUnifiedSearchGroup("🎬 Movies", movies, "movie");
+        appendUnifiedSearchGroup("⭐ Actors", actors, "actor");
+        appendUnifiedSearchGroup("📰 Articles", articles, "article");
     }
-);
+    catch (error) {
+        if (requestId !== unifiedSearchRequest) {
+            return;
+        }
 
-
-/* =========================================================
-   PERFORM SEARCH
-========================================================= */
-
-function performSearch(query) {
-
-    const actorMatches =
-        cachedActors
-            .filter(
-                actor =>
-                    String(
-                        actor.name || ""
-                    )
-                        .toLowerCase()
-                        .includes(query)
-            )
-            .slice(0, 4);
-
-
-    const movieMatches =
-        cachedMovies
-            .filter(
-                movie =>
-                    String(
-                        movie.title || ""
-                    )
-                        .toLowerCase()
-                        .includes(query)
-            )
-            .slice(0, 4);
-
-
-    searchResults.innerHTML =
-        "";
-
-
-    if (
-        actorMatches.length === 0 &&
-        movieMatches.length === 0
-    ) {
-
-        searchResults.innerHTML = `
-
-            <div class="search-result">
-
-                <div class="search-result-icon">
-                    🔎
-                </div>
-
-                <div class="search-result-text">
-
-                    <strong>
-                        No results found
-                    </strong>
-
-                    <small>
-                        Try another movie or actor name
-                    </small>
-
-                </div>
-
-            </div>
-
-        `;
-
-        return;
-
+        console.error("Unified search error:", error);
+        renderSearchStatus("Unable to search right now.");
     }
-
-
-    /* =====================================================
-       ACTOR RESULTS
-    ===================================================== */
-
-    actorMatches.forEach(
-        function(actor) {
-
-            const result =
-                document.createElement(
-                    "div"
-                );
-
-
-            result.className =
-                "search-result";
-
-
-            result.setAttribute(
-                "role",
-                "option"
-            );
-
-
-            result.innerHTML = `
-
-                <div class="search-result-icon">
-                    🎭
-                </div>
-
-
-                <div class="search-result-text">
-
-                    <strong>
-                        ${escapeHTML(
-                            actor.name
-                        )}
-                    </strong>
-
-
-                    <small>
-                        Actor • ${
-                            escapeHTML(
-                                actor.profession ||
-                                "Actor"
-                            )
-                        }
-                    </small>
-
-                </div>
-
-            `;
-
-
-            result.addEventListener(
-                "click",
-                function() {
-
-                    window.location.href =
-                        "actor.html?id=" +
-                        encodeURIComponent(
-                            actor.id
-                        );
-
-                }
-            );
-
-
-            searchResults.appendChild(
-                result
-            );
-
-        }
-    );
-
-
-    /* =====================================================
-       MOVIE RESULTS
-    ===================================================== */
-
-    movieMatches.forEach(
-        function(movie) {
-
-            const result =
-                document.createElement(
-                    "div"
-                );
-
-
-            result.className =
-                "search-result";
-
-
-            result.setAttribute(
-                "role",
-                "option"
-            );
-
-
-            result.innerHTML = `
-
-                <div class="search-result-icon">
-                    🎬
-                </div>
-
-
-                <div class="search-result-text">
-
-                    <strong>
-                        ${escapeHTML(
-                            movie.title
-                        )}
-                    </strong>
-
-
-                    <small>
-                        Movie • ${
-                            escapeHTML(
-                                movie.language ||
-                                "Indian Cinema"
-                            )
-                        }
-                    </small>
-
-                </div>
-
-            `;
-
-
-            result.addEventListener(
-                "click",
-                function() {
-
-                    window.location.href =
-                        "movie.html?id=" +
-                        encodeURIComponent(
-                            movie.id
-                        );
-
-                }
-            );
-
-
-            searchResults.appendChild(
-                result
-            );
-
-        }
-    );
-
 }
 
+searchInput.addEventListener("input", function() {
+    const query = searchInput.value.trim();
 
-/* =========================================================
-   SEARCH FORM
-========================================================= */
+    clearTimeout(searchTimer);
 
-document
-    .getElementById("searchForm")
-    .addEventListener(
-        "submit",
-        function(event) {
+    if (query.length < 2) {
+        unifiedSearchRequest++;
+        exitSearchMode();
+        return;
+    }
 
-            event.preventDefault();
+    enterSearchMode();
 
-
-            const query =
-                searchInput.value
-                    .trim()
-                    .toLowerCase();
-
-
-            if (!query) {
-
-                searchInput.focus();
-
-                return;
-
-            }
-
-
-            if (
-                cachedMovies.length === 0 &&
-                cachedActors.length === 0
-            ) {
-
-                return;
-
-            }
-
-
-            enterSearchMode();
-
-
-            performSearch(
-                query
-            );
-
-        }
+    searchTimer = setTimeout(
+        () => performSearch(query),
+        180
     );
+});
 
+searchForm.addEventListener("submit", function(event) {
+    event.preventDefault();
 
-/* =========================================================
-   ESCAPE KEY
-========================================================= */
+    const query = searchInput.value.trim();
 
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key === "Escape"
-        ) {
-
-            searchInput.value =
-                "";
-
-            exitSearchMode();
-
-            searchInput.blur();
-
-        }
-
+    if (query.length < 2) {
+        searchInput.focus();
+        return;
     }
-);
 
+    clearTimeout(searchTimer);
+    enterSearchMode();
+    performSearch(query);
+});
 
-/* =========================================================
-   CLOSE SEARCH RESULTS
-========================================================= */
-
-document.addEventListener(
-    "click",
-    function(event) {
-
-        if (
-            !event.target.closest(
-                ".global-search"
-            )
-        ) {
-
-            /*
-                Only close search mode when
-                search input is empty.
-            */
-
-            if (
-                searchInput.value.trim() === ""
-            ) {
-
-                exitSearchMode();
-
-            }
-
-        }
-
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        unifiedSearchRequest++;
+        searchInput.value = "";
+        exitSearchMode();
+        searchInput.blur();
     }
-);
+});
+
+document.addEventListener("click", function(event) {
+    if (
+        !event.target.closest(".global-search") &&
+        searchInput.value.trim() === ""
+    ) {
+        exitSearchMode();
+    }
+});
 
 
 /* =========================================================
@@ -6829,6 +6860,7 @@ async function startHomePage() {
     await Promise.all([
         loadTop10(),
         loadTrendingMovies(),
+        loadTrendingArticles(),
         loadMostHypedMovies(),
         loadTrendingFanActivity()
     ]);

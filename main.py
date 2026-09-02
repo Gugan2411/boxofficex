@@ -2393,6 +2393,143 @@ def admin_update_movie_boxoffice_status(
     }
 
 
+
+# ============================================================
+# RELATED CONTENT FOR MOVIE PAGE
+# Related movies + published articles
+# IMPORTANT: KEEP BEFORE /movies/{movie_id}
+# ============================================================
+
+@app.get("/movies/{movie_id}/related")
+def get_related_movie_content(movie_id: int, limit: int = 6):
+    limit = max(1, min(int(limit or 6), 12))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, language, industry, genre, director
+                FROM movies
+                WHERE id = %s
+            """, (movie_id,))
+            source = cur.fetchone()
+
+            if not source:
+                raise HTTPException(status_code=404, detail="Movie not found")
+
+            _, source_title, language, industry, genre, director = source
+
+            cur.execute("""
+                SELECT
+                    m.id,
+                    m.title,
+                    m.release_date,
+                    m.language,
+                    m.genre,
+                    m.worldwide_collection_crore,
+                    m.verdict,
+                    m.poster,
+                    (
+                        CASE WHEN m.language = %s THEN 4 ELSE 0 END +
+                        CASE WHEN m.industry = %s THEN 3 ELSE 0 END +
+                        CASE WHEN m.genre = %s THEN 3 ELSE 0 END +
+                        CASE WHEN m.director = %s THEN 2 ELSE 0 END +
+                        (
+                            SELECT COUNT(*) * 5
+                            FROM actor_movies source_am
+                            JOIN actor_movies candidate_am
+                              ON candidate_am.actor_id = source_am.actor_id
+                            WHERE source_am.movie_id = %s
+                              AND candidate_am.movie_id = m.id
+                        )
+                    ) AS relevance_score
+                FROM movies m
+                WHERE m.id <> %s
+                ORDER BY
+                    relevance_score DESC,
+                    m.release_date DESC NULLS LAST,
+                    m.worldwide_collection_crore DESC NULLS LAST,
+                    m.id DESC
+                LIMIT %s
+            """, (
+                language, industry, genre, director,
+                movie_id, movie_id, limit
+            ))
+            movie_rows = cur.fetchall()
+
+            # Articles explicitly linked to this movie rank first.
+            # Same-title matches provide a safe fallback for older articles.
+            cur.execute("""
+                SELECT DISTINCT
+                    a.id,
+                    a.title,
+                    a.slug,
+                    a.subtitle,
+                    a.category,
+                    a.author,
+                    a.hero_image,
+                    a.published_at,
+                    CASE
+                        WHEN am.movie_id IS NOT NULL THEN 10
+                        WHEN LOWER(a.title) LIKE LOWER(%s) THEN 5
+                        ELSE 0
+                    END AS relevance_score
+                FROM articles a
+                LEFT JOIN article_movies am
+                  ON am.article_id = a.id
+                 AND am.movie_id = %s
+                WHERE a.status = 'published'
+                  AND (
+                      am.movie_id IS NOT NULL
+                      OR LOWER(a.title) LIKE LOWER(%s)
+                  )
+                ORDER BY
+                    relevance_score DESC,
+                    a.published_at DESC NULLS LAST,
+                    a.id DESC
+                LIMIT %s
+            """, (
+                f"%{source_title}%",
+                movie_id,
+                f"%{source_title}%",
+                limit
+            ))
+            article_rows = cur.fetchall()
+
+    return {
+        "movie_id": movie_id,
+        "related_movies": [
+            {
+                "id": r[0],
+                "title": r[1],
+                "release_date": str(r[2]) if r[2] else None,
+                "language": r[3],
+                "genre": r[4],
+                "worldwide_collection_crore": float(r[5] or 0),
+                "verdict": r[6],
+                "poster": safe_movie_poster(r[7]),
+                "relevance_score": int(r[8] or 0),
+                "url": f"/movie.html?id={r[0]}",
+            }
+            for r in movie_rows
+        ],
+        "related_articles": [
+            {
+                "id": r[0],
+                "title": r[1],
+                "slug": r[2],
+                "subtitle": r[3],
+                "category": r[4],
+                "author": r[5],
+                "hero_image": r[6],
+                "published_at": r[7].isoformat() if r[7] else None,
+                "relevance_score": int(r[8] or 0),
+                "url": f"/article/{r[2]}",
+            }
+            for r in article_rows
+        ],
+    }
+
+
 @app.get("/movies/{movie_id}")
 def get_movie(movie_id: int):
 
@@ -2624,6 +2761,201 @@ def get_actors():
 
     return {
         "actors": actors
+    }
+
+
+# ============================================================
+# BOXOFFICEX UNIFIED SEARCH
+# Movies + Actors + Published Articles
+# ============================================================
+
+@app.get("/search")
+def unified_search(q: str = "", limit: int = 8):
+    query = (q or "").strip()
+    limit = max(1, min(int(limit or 8), 20))
+
+    if len(query) < 2:
+        return {
+            "query": query,
+            "movies": [],
+            "actors": [],
+            "articles": [],
+            "total": 0,
+        }
+
+    contains = f"%{query}%"
+    starts = f"{query}%"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+
+            # Movies:
+            # exact title > title starts with > title contains >
+            # director/language/industry/genre contains.
+            cur.execute("""
+                SELECT
+                    id,
+                    title,
+                    release_date,
+                    language,
+                    industry,
+                    genre,
+                    director,
+                    worldwide_collection_crore,
+                    verdict,
+                    poster
+                FROM movies
+                WHERE
+                    title ILIKE %s
+                    OR director ILIKE %s
+                    OR language ILIKE %s
+                    OR industry ILIKE %s
+                    OR genre ILIKE %s
+                ORDER BY
+                    CASE
+                        WHEN LOWER(title) = LOWER(%s) THEN 0
+                        WHEN title ILIKE %s THEN 1
+                        WHEN title ILIKE %s THEN 2
+                        WHEN director ILIKE %s THEN 3
+                        WHEN language ILIKE %s THEN 4
+                        WHEN industry ILIKE %s THEN 5
+                        WHEN genre ILIKE %s THEN 6
+                        ELSE 7
+                    END,
+                    worldwide_collection_crore DESC NULLS LAST,
+                    release_date DESC NULLS LAST,
+                    id DESC
+                LIMIT %s
+            """, (
+                contains, contains, contains, contains, contains,
+                query, starts, contains, contains, contains, contains, contains,
+                limit
+            ))
+            movie_rows = cur.fetchall()
+
+            # Actors:
+            # exact name > name starts with > name contains > profession contains.
+            cur.execute("""
+                SELECT
+                    id,
+                    name,
+                    profession,
+                    photo,
+                    bio
+                FROM actors
+                WHERE
+                    name ILIKE %s
+                    OR profession ILIKE %s
+                ORDER BY
+                    CASE
+                        WHEN LOWER(name) = LOWER(%s) THEN 0
+                        WHEN name ILIKE %s THEN 1
+                        WHEN name ILIKE %s THEN 2
+                        WHEN profession ILIKE %s THEN 3
+                        ELSE 4
+                    END,
+                    name ASC,
+                    id ASC
+                LIMIT %s
+            """, (
+                contains, contains,
+                query, starts, contains, contains,
+                limit
+            ))
+            actor_rows = cur.fetchall()
+
+            # Articles:
+            # published only. Exact title > title starts with > title/subtitle/category contains.
+            cur.execute("""
+                SELECT
+                    id,
+                    title,
+                    slug,
+                    subtitle,
+                    category,
+                    author,
+                    hero_image,
+                    published_at
+                FROM articles
+                WHERE
+                    status = 'published'
+                    AND (
+                        title ILIKE %s
+                        OR COALESCE(subtitle, '') ILIKE %s
+                        OR COALESCE(category, '') ILIKE %s
+                    )
+                ORDER BY
+                    CASE
+                        WHEN LOWER(title) = LOWER(%s) THEN 0
+                        WHEN title ILIKE %s THEN 1
+                        WHEN title ILIKE %s THEN 2
+                        WHEN COALESCE(subtitle, '') ILIKE %s THEN 3
+                        WHEN COALESCE(category, '') ILIKE %s THEN 4
+                        ELSE 5
+                    END,
+                    published_at DESC NULLS LAST,
+                    id DESC
+                LIMIT %s
+            """, (
+                contains, contains, contains,
+                query, starts, contains, contains, contains,
+                limit
+            ))
+            article_rows = cur.fetchall()
+
+    movies = [
+        {
+            "type": "movie",
+            "id": row[0],
+            "title": row[1],
+            "release_date": str(row[2]) if row[2] else None,
+            "language": row[3],
+            "industry": row[4],
+            "genre": row[5],
+            "director": row[6],
+            "worldwide_collection_crore": float(row[7] or 0),
+            "verdict": row[8],
+            "poster": safe_movie_poster(row[9]),
+            "url": f"/movie.html?id={row[0]}",
+        }
+        for row in movie_rows
+    ]
+
+    actors = [
+        {
+            "type": "actor",
+            "id": row[0],
+            "name": row[1],
+            "profession": row[2],
+            "photo": safe_actor_photo(row[3]),
+            "bio": row[4],
+            "url": f"/actor.html?id={row[0]}",
+        }
+        for row in actor_rows
+    ]
+
+    articles = [
+        {
+            "type": "article",
+            "id": row[0],
+            "title": row[1],
+            "slug": row[2],
+            "subtitle": row[3],
+            "category": row[4],
+            "author": row[5],
+            "hero_image": row[6],
+            "published_at": row[7].isoformat() if row[7] else None,
+            "url": f"/article/{row[2]}",
+        }
+        for row in article_rows
+    ]
+
+    return {
+        "query": query,
+        "movies": movies,
+        "actors": actors,
+        "articles": articles,
+        "total": len(movies) + len(actors) + len(articles),
     }
 
 
@@ -4447,6 +4779,129 @@ def get_articles():
          "published_at":r[10],"updated_at":r[11]}
         for r in rows
     ]}
+
+
+
+# ============================================================
+# TRENDING ARTICLES
+# Recent 7-day reader activity ranking
+# IMPORTANT: KEEP BEFORE /articles/{article_id}/... routes
+# ============================================================
+
+@app.get("/articles/trending")
+def trending_articles(limit: int = 10):
+    limit = max(1, min(int(limit or 10), 50))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                WITH article_activity AS (
+                    SELECT
+                        a.id,
+                        a.title,
+                        a.slug,
+                        a.subtitle,
+                        a.category,
+                        a.author,
+                        a.hero_image,
+                        a.published_at,
+
+                        (
+                            SELECT COUNT(*)
+                            FROM article_views v
+                            WHERE v.article_id = a.id
+                              AND v.viewed_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS view_count,
+
+                        (
+                            SELECT COUNT(*)
+                            FROM article_likes l
+                            WHERE l.article_id = a.id
+                              AND l.created_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS like_count,
+
+                        (
+                            SELECT COUNT(*)
+                            FROM article_hype h
+                            WHERE h.article_id = a.id
+                              AND h.created_at >= NOW() - INTERVAL '7 days'
+                        )::bigint AS hype_count,
+
+                        (
+                            SELECT COUNT(*)
+                            FROM article_comments c
+                            WHERE c.article_id = a.id
+                              AND c.created_at >= NOW() - INTERVAL '7 days'
+                              AND c.is_hidden = FALSE
+                              AND c.is_deleted = FALSE
+                        )::bigint AS comment_count
+
+                    FROM articles a
+                    WHERE a.status = 'published'
+                ),
+                ranked AS (
+                    SELECT
+                        *,
+                        (
+                            view_count
+                            + (like_count * 2)
+                            + (hype_count * 3)
+                            + (comment_count * 3)
+                        )::bigint AS trending_score
+                    FROM article_activity
+                )
+                SELECT
+                    id,
+                    title,
+                    slug,
+                    subtitle,
+                    category,
+                    author,
+                    hero_image,
+                    published_at,
+                    view_count,
+                    like_count,
+                    hype_count,
+                    comment_count,
+                    trending_score
+                FROM ranked
+                WHERE trending_score > 0
+                ORDER BY
+                    trending_score DESC,
+                    hype_count DESC,
+                    view_count DESC,
+                    published_at DESC NULLS LAST,
+                    id DESC
+                LIMIT %s
+            """, (limit,))
+
+            rows = cur.fetchall()
+
+    articles = []
+
+    for position, row in enumerate(rows, start=1):
+        articles.append({
+            "rank": position,
+            "id": row[0],
+            "title": row[1],
+            "slug": row[2],
+            "subtitle": row[3],
+            "category": row[4],
+            "author": row[5],
+            "hero_image": row[6],
+            "published_at": row[7].isoformat() if row[7] else None,
+            "view_count": int(row[8] or 0),
+            "like_count": int(row[9] or 0),
+            "hype_count": int(row[10] or 0),
+            "comment_count": int(row[11] or 0),
+            "trending_score": int(row[12] or 0),
+            "url": f"/article/{row[2]}",
+        })
+
+    return {
+        "period_days": 7,
+        "articles": articles,
+    }
 
 
 @app.get("/articles/latest")
@@ -6966,6 +7421,130 @@ def _ensure_article_exists(cur, article_id: int):
     cur.execute("SELECT id FROM articles WHERE id=%s", (article_id,))
     if not cur.fetchone():
         raise HTTPException(status_code=404, detail="Article not found")
+
+
+
+# ============================================================
+# RELATED CONTENT FOR ARTICLE PAGE
+# Related articles + linked movies
+# IMPORTANT: KEEP BEFORE dynamic /articles/{article_id}/... routes
+# ============================================================
+
+@app.get("/articles/{article_id}/related")
+def get_related_article_content(article_id: int, limit: int = 6):
+    limit = max(1, min(int(limit or 6), 12))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, category
+                FROM articles
+                WHERE id = %s
+                  AND status = 'published'
+            """, (article_id,))
+            source = cur.fetchone()
+
+            if not source:
+                raise HTTPException(status_code=404, detail="Article not found")
+
+            _, source_title, source_category = source
+
+            cur.execute("""
+                SELECT
+                    a.id,
+                    a.title,
+                    a.slug,
+                    a.subtitle,
+                    a.category,
+                    a.author,
+                    a.hero_image,
+                    a.published_at,
+                    (
+                        CASE WHEN a.category = %s THEN 4 ELSE 0 END +
+                        (
+                            SELECT COUNT(*) * 5
+                            FROM article_movies source_am
+                            JOIN article_movies candidate_am
+                              ON candidate_am.movie_id = source_am.movie_id
+                            WHERE source_am.article_id = %s
+                              AND candidate_am.article_id = a.id
+                        ) +
+                        (
+                            SELECT COUNT(*) * 4
+                            FROM article_actors source_aa
+                            JOIN article_actors candidate_aa
+                              ON candidate_aa.actor_id = source_aa.actor_id
+                            WHERE source_aa.article_id = %s
+                              AND candidate_aa.article_id = a.id
+                        )
+                    ) AS relevance_score
+                FROM articles a
+                WHERE a.status = 'published'
+                  AND a.id <> %s
+                ORDER BY
+                    relevance_score DESC,
+                    a.published_at DESC NULLS LAST,
+                    a.id DESC
+                LIMIT %s
+            """, (
+                source_category,
+                article_id,
+                article_id,
+                article_id,
+                limit
+            ))
+            article_rows = cur.fetchall()
+
+            cur.execute("""
+                SELECT DISTINCT
+                    m.id,
+                    m.title,
+                    m.release_date,
+                    m.language,
+                    m.genre,
+                    m.worldwide_collection_crore,
+                    m.verdict,
+                    m.poster
+                FROM article_movies am
+                JOIN movies m ON m.id = am.movie_id
+                WHERE am.article_id = %s
+                ORDER BY m.release_date DESC NULLS LAST, m.id DESC
+                LIMIT %s
+            """, (article_id, limit))
+            movie_rows = cur.fetchall()
+
+    return {
+        "article_id": article_id,
+        "related_articles": [
+            {
+                "id": r[0],
+                "title": r[1],
+                "slug": r[2],
+                "subtitle": r[3],
+                "category": r[4],
+                "author": r[5],
+                "hero_image": r[6],
+                "published_at": r[7].isoformat() if r[7] else None,
+                "relevance_score": int(r[8] or 0),
+                "url": f"/article/{r[2]}",
+            }
+            for r in article_rows
+        ],
+        "related_movies": [
+            {
+                "id": r[0],
+                "title": r[1],
+                "release_date": str(r[2]) if r[2] else None,
+                "language": r[3],
+                "genre": r[4],
+                "worldwide_collection_crore": float(r[5] or 0),
+                "verdict": r[6],
+                "poster": safe_movie_poster(r[7]),
+                "url": f"/movie.html?id={r[0]}",
+            }
+            for r in movie_rows
+        ],
+    }
 
 
 @app.get("/articles/{article_id}/engagement")

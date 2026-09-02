@@ -2831,6 +2831,136 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
 
 
         /* =====================================================
+           RELATED CONTENT
+        ===================================================== */
+        .related-content-section{
+            margin-top:28px;
+            padding:22px;
+            border:1px solid var(--border);
+            border-radius:18px;
+            background:linear-gradient(145deg,#fff,#f7f9fd);
+            box-shadow:0 12px 30px rgba(28,44,70,.07);
+        }
+        .related-content-head{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:14px;
+        }
+        .related-content-title{
+            font-size:20px;
+            font-weight:1000;
+            color:var(--text);
+        }
+        .related-content-subtitle{
+            margin-top:4px;
+            color:var(--muted);
+            font-size:11px;
+            line-height:1.5;
+        }
+        .related-block + .related-block{margin-top:22px}
+        .related-block-title{
+            margin-bottom:10px;
+            color:var(--blue);
+            font-size:11px;
+            font-weight:1000;
+            letter-spacing:.6px;
+            text-transform:uppercase;
+        }
+        .related-grid{
+            display:grid;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:11px;
+        }
+        .related-card{
+            min-width:0;
+            overflow:hidden;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#fff;
+            cursor:pointer;
+            transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+        }
+        .related-card:hover{
+            transform:translateY(-3px);
+            border-color:var(--border-strong);
+            box-shadow:0 12px 28px rgba(28,44,70,.10);
+        }
+        .related-movie-card{
+            display:grid;
+            grid-template-columns:74px minmax(0,1fr);
+            min-height:112px;
+        }
+        .related-movie-poster{
+            width:74px;
+            height:112px;
+            display:block;
+            object-fit:cover;
+            background:#e7edf6;
+        }
+        .related-copy{
+            min-width:0;
+            padding:12px;
+        }
+        .related-type{
+            margin-bottom:5px;
+            color:var(--blue);
+            font-size:9px;
+            font-weight:1000;
+            letter-spacing:.45px;
+            text-transform:uppercase;
+        }
+        .related-name{
+            color:var(--text);
+            font-size:13px;
+            font-weight:1000;
+            line-height:1.35;
+            overflow-wrap:anywhere;
+        }
+        .related-meta{
+            margin-top:7px;
+            color:var(--muted);
+            font-size:10px;
+            font-weight:700;
+            line-height:1.5;
+        }
+        .related-article-card{min-height:118px}
+        .related-empty{
+            grid-column:1/-1;
+            padding:18px;
+            border:1px dashed var(--border);
+            border-radius:12px;
+            color:var(--muted);
+            text-align:center;
+            font-size:11px;
+        }
+        @media(max-width:900px){
+            .related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+        }
+        @media(max-width:700px){
+            .related-content-section{padding:16px}
+            .related-grid{
+                display:flex;
+                overflow-x:auto;
+                gap:10px;
+                padding:1px 1px 7px;
+                scroll-snap-type:x mandatory;
+                scrollbar-width:none;
+            }
+            .related-grid::-webkit-scrollbar{display:none}
+            .related-card{
+                flex:0 0 250px;
+                scroll-snap-align:start;
+            }
+            .related-empty{
+                flex:0 0 100%;
+                width:100%;
+            }
+        }
+
+
+        /* =====================================================
            FAN ENGAGEMENT
         ===================================================== */
         .engagement-section{margin-top:28px;padding:22px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,#fff,#f7f9fd);box-shadow:0 12px 30px rgba(28,44,70,.07)}
@@ -3211,6 +3341,35 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
 
                 </div>
 
+            </section>
+
+
+            <!-- =================================================
+                 RELATED CONTENT
+            ================================================= -->
+            <section class="related-content-section" id="relatedContentSection">
+                <div class="related-content-head">
+                    <div>
+                        <div class="related-content-title">🔗 Related Content</div>
+                        <div class="related-content-subtitle">
+                            More movies and articles connected to this title.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="related-block" id="relatedMoviesBlock">
+                    <div class="related-block-title">🎬 Related Movies</div>
+                    <div class="related-grid" id="relatedMoviesGrid">
+                        <div class="related-empty">Loading related movies...</div>
+                    </div>
+                </div>
+
+                <div class="related-block" id="relatedArticlesBlock">
+                    <div class="related-block-title">📰 Related Articles</div>
+                    <div class="related-grid" id="relatedArticlesGrid">
+                        <div class="related-empty">Loading related articles...</div>
+                    </div>
+                </div>
             </section>
 
 
@@ -4886,6 +5045,128 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
 
 
     /* =====================================================
+       RELATED CONTENT
+    ===================================================== */
+    function escapeRelatedHTML(value){
+        const div=document.createElement("div");
+        div.textContent=value ?? "";
+        return div.innerHTML;
+    }
+
+    function relatedMoviePoster(value){
+        if(!value)return "/posters/default.jpg";
+        const poster=String(value).trim();
+        if(!poster)return "/posters/default.jpg";
+        if(/^https?:\/\//i.test(poster) || poster.startsWith("/"))return poster;
+        return "/posters/" + encodeURIComponent(poster);
+    }
+
+    async function loadRelatedContent(){
+        if(!movieId)return;
+
+        const moviesGrid=document.getElementById("relatedMoviesGrid");
+        const articlesGrid=document.getElementById("relatedArticlesGrid");
+        const moviesBlock=document.getElementById("relatedMoviesBlock");
+        const articlesBlock=document.getElementById("relatedArticlesBlock");
+
+        try{
+            const response=await fetch(
+                `${API_BASE}/movies/${encodeURIComponent(movieId)}/related?limit=6`,
+                {cache:"no-store"}
+            );
+
+            if(!response.ok){
+                throw new Error("Related content API returned HTTP " + response.status);
+            }
+
+            const data=await response.json();
+            const movies=Array.isArray(data.related_movies) ? data.related_movies : [];
+            const articles=Array.isArray(data.related_articles) ? data.related_articles : [];
+
+            if(movies.length){
+                moviesGrid.innerHTML="";
+                movies.forEach(movie=>{
+                    const card=document.createElement("article");
+                    card.className="related-card related-movie-card";
+                    card.tabIndex=0;
+                    card.setAttribute("role","link");
+
+                    const collection=Number(movie.worldwide_collection_crore || 0);
+                    card.innerHTML=`
+                        <img
+                            class="related-movie-poster"
+                            src="${relatedMoviePoster(movie.poster)}"
+                            alt="${escapeRelatedHTML(movie.title || "Movie")} poster"
+                            loading="lazy"
+                            decoding="async"
+                            onerror="this.src='/posters/default.jpg';this.onerror=null"
+                        >
+                        <div class="related-copy">
+                            <div class="related-type">${escapeRelatedHTML(movie.language || movie.genre || "Movie")}</div>
+                            <div class="related-name">${escapeRelatedHTML(movie.title || "Untitled Movie")}</div>
+                            <div class="related-meta">
+                                ${escapeRelatedHTML(movie.verdict || "Box Office")}
+                                ${collection > 0 ? ` • ₹${collection.toLocaleString()} Cr WW` : ""}
+                            </div>
+                        </div>
+                    `;
+
+                    const open=()=>window.location.href=`movie.html?id=${encodeURIComponent(movie.id)}`;
+                    card.addEventListener("click",open);
+                    card.addEventListener("keydown",event=>{
+                        if(event.key==="Enter" || event.key===" "){
+                            event.preventDefault();
+                            open();
+                        }
+                    });
+                    moviesGrid.appendChild(card);
+                });
+            }else{
+                moviesBlock.style.display="none";
+            }
+
+            if(articles.length){
+                articlesGrid.innerHTML="";
+                articles.forEach(article=>{
+                    const card=document.createElement("article");
+                    card.className="related-card related-article-card";
+                    card.tabIndex=0;
+                    card.setAttribute("role","link");
+
+                    card.innerHTML=`
+                        <div class="related-copy">
+                            <div class="related-type">📰 ${escapeRelatedHTML(article.category || "Article")}</div>
+                            <div class="related-name">${escapeRelatedHTML(article.title || "Untitled Article")}</div>
+                            <div class="related-meta">${escapeRelatedHTML(article.subtitle || "Read on BoxOfficeX")}</div>
+                        </div>
+                    `;
+
+                    const open=()=>window.location.href=`article.html?slug=${encodeURIComponent(article.slug || "")}`;
+                    card.addEventListener("click",open);
+                    card.addEventListener("keydown",event=>{
+                        if(event.key==="Enter" || event.key===" "){
+                            event.preventDefault();
+                            open();
+                        }
+                    });
+                    articlesGrid.appendChild(card);
+                });
+            }else{
+                articlesBlock.style.display="none";
+            }
+
+            if(!movies.length && !articles.length){
+                document.getElementById("relatedContentSection").style.display="none";
+            }
+
+        }catch(error){
+            console.error("Related content loading error:",error);
+            document.getElementById("relatedContentSection").style.display="none";
+        }
+    }
+
+
+    /* =====================================================
        BOXOFFICEX FAN ENGAGEMENT V1
     ===================================================== */
     function getBoxOfficeXVisitorId(){
@@ -5210,6 +5491,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
 
                 fetchCollectionBreakdown();
                 trackMovieView();
+                loadRelatedContent();
                 loadEngagement();
                 loadComments();
 

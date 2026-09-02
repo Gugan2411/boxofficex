@@ -2138,6 +2138,109 @@ footer,
     white-space:nowrap;
 }
 
+
+/* =========================================================
+   RELATED CONTENT RECOMMENDATIONS
+========================================================= */
+.bx-related-section{
+    width:min(100%,860px);
+    margin:34px auto 0;
+    padding:20px;
+    border:1px solid #dfe5ee;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:0 8px 24px rgba(15,23,42,.05);
+}
+.bx-related-head{margin-bottom:15px}
+.bx-related-title{color:#111827;font-size:20px;font-weight:900}
+.bx-related-subtitle{margin-top:3px;color:#667085;font-size:11px}
+.bx-related-block + .bx-related-block{margin-top:22px}
+.bx-related-block-title{
+    margin-bottom:10px;
+    color:#2563eb;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.55px;
+    text-transform:uppercase;
+}
+.bx-related-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+.bx-related-item{
+    min-width:0;
+    overflow:hidden;
+    border:1px solid #dfe5ee;
+    border-radius:14px;
+    background:#f8fafc;
+    cursor:pointer;
+    transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.bx-related-item:hover{
+    transform:translateY(-2px);
+    border-color:#b9cdf7;
+    box-shadow:0 8px 20px rgba(15,23,42,.07);
+}
+.bx-related-movie{
+    display:grid;
+    grid-template-columns:72px minmax(0,1fr);
+    min-height:108px;
+}
+.bx-related-poster{
+    width:72px;
+    height:108px;
+    display:block;
+    object-fit:cover;
+    background:#eef2f7;
+}
+.bx-related-copy{padding:11px}
+.bx-related-type{
+    margin-bottom:5px;
+    color:#2563eb;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+}
+.bx-related-name{
+    color:#111827;
+    font-size:13px;
+    font-weight:900;
+    line-height:1.35;
+    overflow-wrap:anywhere;
+}
+.bx-related-meta{
+    margin-top:6px;
+    color:#667085;
+    font-size:10px;
+    line-height:1.45;
+}
+.bx-related-empty{
+    grid-column:1/-1;
+    padding:16px;
+    border:1px dashed #d0d5dd;
+    border-radius:12px;
+    color:#667085;
+    text-align:center;
+    font-size:11px;
+}
+@media(max-width:700px){
+    .bx-related-section{margin-top:27px;padding:15px 12px;border-radius:15px}
+    .bx-related-title{font-size:18px}
+    .bx-related-grid{
+        display:flex;
+        overflow-x:auto;
+        gap:9px;
+        padding:1px 1px 7px;
+        scroll-snap-type:x mandatory;
+        scrollbar-width:none;
+    }
+    .bx-related-grid::-webkit-scrollbar{display:none}
+    .bx-related-item{flex:0 0 245px;scroll-snap-align:start}
+    .bx-related-empty{flex:0 0 100%}
+}
+
 </style>
 </head>
 
@@ -2205,6 +2308,28 @@ footer,
 <main id="app">
     <div class="loading-state">Loading article...</div>
 </main>
+
+
+<section class="bx-related-section" id="bxRelatedSection">
+    <div class="bx-related-head">
+        <div class="bx-related-title">🔗 Related Content</div>
+        <div class="bx-related-subtitle">More stories and movies connected to this article.</div>
+    </div>
+
+    <div class="bx-related-block" id="bxRelatedArticlesBlock">
+        <div class="bx-related-block-title">📰 Related Articles</div>
+        <div class="bx-related-grid" id="bxRelatedArticlesGrid">
+            <div class="bx-related-empty">Loading related articles...</div>
+        </div>
+    </div>
+
+    <div class="bx-related-block" id="bxRelatedMoviesBlock">
+        <div class="bx-related-block-title">🎬 Related Movies</div>
+        <div class="bx-related-grid" id="bxRelatedMoviesGrid">
+            <div class="bx-related-empty">Loading related movies...</div>
+        </div>
+    </div>
+</section>
 
 <footer>
     <div class="footer-inner">
@@ -2570,6 +2695,7 @@ async function renderArticle(article) {
     `;
 
     window.currentBoxOfficeXArticle = article;
+            loadArticleRelatedContent(window.currentBoxOfficeXArticle?.id);
     if (!new URLSearchParams(window.location.search).has("admin_preview") && article.id) {
         trackArticleView(article.id);
     loadArticleEngagement(article.id);
@@ -2609,6 +2735,110 @@ async function renderArticle(article) {
     }
 }
 
+
+
+/* =========================================================
+   RELATED CONTENT RECOMMENDATIONS
+========================================================= */
+function bxRelatedEsc(value){
+    const div=document.createElement("div");
+    div.textContent=value ?? "";
+    return div.innerHTML;
+}
+function bxRelatedPoster(value){
+    if(!value)return "/posters/default.jpg";
+    const poster=String(value).trim();
+    if(!poster)return "/posters/default.jpg";
+    if(/^https?:\/\//i.test(poster) || poster.startsWith("/"))return poster;
+    return "/posters/" + encodeURIComponent(poster);
+}
+async function loadArticleRelatedContent(id){
+    if(!id)return;
+
+    const section=document.getElementById("bxRelatedSection");
+    const articleBlock=document.getElementById("bxRelatedArticlesBlock");
+    const movieBlock=document.getElementById("bxRelatedMoviesBlock");
+    const articleGrid=document.getElementById("bxRelatedArticlesGrid");
+    const movieGrid=document.getElementById("bxRelatedMoviesGrid");
+    if(!section || !articleGrid || !movieGrid)return;
+
+    try{
+        const response=await fetch(
+            `${API_BASE}/articles/${encodeURIComponent(id)}/related?limit=6`,
+            {cache:"no-store"}
+        );
+        if(!response.ok)throw new Error("Related content API returned HTTP " + response.status);
+
+        const data=await response.json();
+        const articles=Array.isArray(data.related_articles)?data.related_articles:[];
+        const movies=Array.isArray(data.related_movies)?data.related_movies:[];
+
+        if(articles.length){
+            articleGrid.innerHTML="";
+            articles.forEach(article=>{
+                const card=document.createElement("article");
+                card.className="bx-related-item";
+                card.tabIndex=0;
+                card.setAttribute("role","link");
+                card.innerHTML=`
+                    <div class="bx-related-copy">
+                        <div class="bx-related-type">📰 ${bxRelatedEsc(article.category || "Article")}</div>
+                        <div class="bx-related-name">${bxRelatedEsc(article.title || "Untitled Article")}</div>
+                        <div class="bx-related-meta">${bxRelatedEsc(article.subtitle || "Read on BoxOfficeX")}</div>
+                    </div>
+                `;
+                const open=()=>window.location.href=`article.html?slug=${encodeURIComponent(article.slug || "")}`;
+                card.addEventListener("click",open);
+                card.addEventListener("keydown",event=>{
+                    if(event.key==="Enter" || event.key===" "){event.preventDefault();open();}
+                });
+                articleGrid.appendChild(card);
+            });
+        }else{
+            articleBlock.style.display="none";
+        }
+
+        if(movies.length){
+            movieGrid.innerHTML="";
+            movies.forEach(movie=>{
+                const card=document.createElement("article");
+                card.className="bx-related-item bx-related-movie";
+                card.tabIndex=0;
+                card.setAttribute("role","link");
+                const collection=Number(movie.worldwide_collection_crore || 0);
+                card.innerHTML=`
+                    <img class="bx-related-poster"
+                         src="${bxRelatedPoster(movie.poster)}"
+                         alt="${bxRelatedEsc(movie.title || "Movie")} poster"
+                         loading="lazy"
+                         decoding="async"
+                         onerror="this.src='/posters/default.jpg';this.onerror=null">
+                    <div class="bx-related-copy">
+                        <div class="bx-related-type">${bxRelatedEsc(movie.language || movie.genre || "Movie")}</div>
+                        <div class="bx-related-name">${bxRelatedEsc(movie.title || "Untitled Movie")}</div>
+                        <div class="bx-related-meta">
+                            ${bxRelatedEsc(movie.verdict || "Box Office")}
+                            ${collection>0?` • ₹${collection.toLocaleString()} Cr WW`:""}
+                        </div>
+                    </div>
+                `;
+                const open=()=>window.location.href=`movie.html?id=${encodeURIComponent(movie.id)}`;
+                card.addEventListener("click",open);
+                card.addEventListener("keydown",event=>{
+                    if(event.key==="Enter" || event.key===" "){event.preventDefault();open();}
+                });
+                movieGrid.appendChild(card);
+            });
+        }else{
+            movieBlock.style.display="none";
+        }
+
+        if(!articles.length && !movies.length)section.style.display="none";
+    }catch(error){
+        console.error("Article related content loading error:",error);
+        section.style.display="none";
+    }
+}
 
 const ARTICLE_VISITOR_KEY="boxofficex_visitor_id";
 function articleVisitorId(){
