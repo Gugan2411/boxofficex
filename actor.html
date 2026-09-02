@@ -1804,6 +1804,87 @@ footer{background:#fff !important;border-top:1px solid #dbe3ee !important}.foote
             font-weight:800;
         }
 
+
+        /* ==========================================
+           RELATED ARTICLES
+        ========================================== */
+        #relatedArticles {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .related-article-card {
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: transform .2s, border-color .2s, box-shadow .2s;
+        }
+
+        .related-article-card:hover {
+            transform: translateY(-3px);
+            border-color: #bfdbfe;
+            box-shadow: 0 10px 24px rgba(15,23,42,.08);
+        }
+
+        .related-article-card img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            display: block;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+
+        .related-article-copy {
+            padding: 12px;
+        }
+
+        .related-article-category {
+            margin-bottom: 6px;
+            color: #2563eb;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .related-article-title {
+            margin: 0;
+            color: #111827;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .related-article-subtitle {
+            margin: 7px 0 0;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 700px) {
+            #relatedArticles {
+                display: flex;
+                gap: 10px;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                padding: 2px 2px 8px;
+                scrollbar-width: none;
+            }
+
+            #relatedArticles::-webkit-scrollbar {
+                display: none;
+            }
+
+            .related-article-card {
+                flex: 0 0 230px;
+                width: 230px;
+                scroll-snap-align: start;
+            }
+        }
+
 </style>
 
 </head>
@@ -2011,6 +2092,17 @@ footer{background:#fff !important;border-top:1px solid #dbe3ee !important}.foote
 
         </div>
 
+    </section>
+
+
+    <!-- ==========================================
+         RELATED ARTICLES
+    ========================================== -->
+
+    <section class="section" id="relatedArticlesSection" style="display:none;">
+        <h2>📰 Related Articles</h2>
+        <div class="swipe-hint">↔ Swipe to explore more</div>
+        <div id="relatedArticles"></div>
     </section>
 
 
@@ -3491,6 +3583,104 @@ function getVerdictIcon(verdict) {
 }
 
 
+
+
+    // ==========================================
+    // RELATED ARTICLES
+    // ==========================================
+
+    function escapeRelatedArticleHTML(value) {
+        const div = document.createElement("div");
+        div.textContent = value ?? "";
+        return div.innerHTML;
+    }
+
+    async function loadRelatedArticles() {
+        const section = document.getElementById("relatedArticlesSection");
+        const container = document.getElementById("relatedArticles");
+
+        if (!section || !container || !actorId) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                "/actors/" + encodeURIComponent(actorId) + "/articles",
+                { cache: "no-store" }
+            );
+
+            if (!response.ok) {
+                throw new Error("Related articles API error: " + response.status);
+            }
+
+            const data = await response.json();
+            const articles = Array.isArray(data.articles) ? data.articles : [];
+
+            if (articles.length === 0) {
+                section.style.display = "none";
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = "";
+
+            articles.forEach(article => {
+                const card = document.createElement("article");
+                card.className = "related-article-card";
+                card.tabIndex = 0;
+                card.setAttribute("role", "link");
+
+                const image = article.hero_image
+                    ? "/article-images/" + encodeURIComponent(article.hero_image)
+                    : "";
+
+                card.innerHTML = `
+                    ${image ? `
+                        <img
+                            src="${image}"
+                            alt="${escapeRelatedArticleHTML(article.title || "Related article")}"
+                            onerror="this.style.display='none';"
+                        >
+                    ` : ""}
+                    <div class="related-article-copy">
+                        <div class="related-article-category">
+                            ${escapeRelatedArticleHTML(article.category || "Article")}
+                        </div>
+                        <h3 class="related-article-title">
+                            ${escapeRelatedArticleHTML(article.title || "Article")}
+                        </h3>
+                        ${article.subtitle ? `
+                            <p class="related-article-subtitle">
+                                ${escapeRelatedArticleHTML(article.subtitle)}
+                            </p>
+                        ` : ""}
+                    </div>
+                `;
+
+                const openArticle = () => {
+                    window.location.href =
+                        "/article/" + encodeURIComponent(article.slug);
+                };
+
+                card.addEventListener("click", openArticle);
+                card.addEventListener("keydown", event => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openArticle();
+                    }
+                });
+
+                container.appendChild(card);
+            });
+
+            section.style.display = "";
+        } catch (error) {
+            console.error("Related articles loading error:", error);
+            section.style.display = "none";
+        }
+    }
+
+    loadRelatedArticles();
 
 function setSiteNewBadge(ids,visible){
     ids.forEach(id=>{
