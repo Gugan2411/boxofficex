@@ -1336,14 +1336,28 @@ MAX_ADMIN_IMAGE_BYTES = 8 * 1024 * 1024
 
 
 def _cloudinary_ready():
-    """Return True when Cloudinary was configured from CLOUDINARY_URL."""
+    """Check Cloudinary configuration without exposing credentials."""
     config = cloudinary.config()
-    return bool(
-        CLOUDINARY_URL
-        and getattr(config, "cloud_name", None)
-        and getattr(config, "api_key", None)
-        and getattr(config, "api_secret", None)
+
+    url_present = bool(os.getenv("CLOUDINARY_URL"))
+    cloud_name_present = bool(getattr(config, "cloud_name", None))
+    api_key_present = bool(getattr(config, "api_key", None))
+    api_secret_present = bool(getattr(config, "api_secret", None))
+
+    print(
+        "CLOUDINARY STATUS:",
+        f"url_present={url_present}",
+        f"cloud_name_present={cloud_name_present}",
+        f"api_key_present={api_key_present}",
+        f"api_secret_present={api_secret_present}",
     )
+
+    return all([
+        url_present,
+        cloud_name_present,
+        api_key_present,
+        api_secret_present,
+    ])
 
 
 async def _upload_admin_image_to_cloudinary(
