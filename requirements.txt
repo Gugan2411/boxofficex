@@ -5,3 +5,5 @@ pydantic
 python-multipart
 itsdangerous
 tzdata
+cloudinary
+python-multipart

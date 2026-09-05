@@ -6,6 +6,15 @@ from starlette.middleware.sessions import SessionMiddleware
 from pathlib import Path
 from datetime import date
 import os
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 import secrets
 import re
 import psycopg
@@ -35,21 +44,43 @@ DEFAULT_MOVIE_POSTER = "coming-soon.png"
 DEFAULT_ACTOR_PHOTO = "default-actor.png"
 
 
+def _is_remote_image(value):
+    if not value:
+        return False
+
+    value = str(value).strip().lower()
+
+    return (
+        value.startswith("https://")
+        or value.startswith("http://")
+    )
+
+
 def safe_movie_poster(filename):
-    """Return a real poster filename or the BoxOfficeX fallback."""
+    """Support Cloudinary URLs and existing local posters."""
     if filename:
         filename = str(filename).strip()
-        if filename and (POSTERS_DIR / filename).is_file():
+
+        if _is_remote_image(filename):
             return filename
+
+        if (POSTERS_DIR / filename).is_file():
+            return filename
+
     return DEFAULT_MOVIE_POSTER
 
 
 def safe_actor_photo(filename):
-    """Return a real actor-photo filename or the BoxOfficeX fallback."""
+    """Support Cloudinary URLs and existing local actor photos."""
     if filename:
         filename = str(filename).strip()
-        if filename and (ACTORS_DIR / filename).is_file():
+
+        if _is_remote_image(filename):
             return filename
+
+        if (ACTORS_DIR / filename).is_file():
+            return filename
+
     return DEFAULT_ACTOR_PHOTO
 
 
@@ -1282,42 +1313,38 @@ app.mount(
 
 # ============================================================
 # ADMIN MOVIE / ACTOR IMAGE UPLOADS
+# Cloudinary-backed permanent storage
 # ============================================================
 
-def _safe_uploaded_image_name(
-    original_name: str,
-    default_stem: str,
-    extension: str
-):
-    stem = Path(original_name or default_stem).stem
-    stem = re.sub(
-        r"[^a-zA-Z0-9_-]+",
-        "-",
-        stem
-    ).strip("-").lower()
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
 
-    if not stem:
-        stem = default_stem
-
-    return (
-        f"{stem}-"
-        f"{secrets.token_hex(4)}"
-        f"{extension}"
-    )
+MAX_ADMIN_IMAGE_BYTES = 8 * 1024 * 1024
 
 
-async def _save_admin_image(
+def _cloudinary_ready():
+    return all([
+        os.getenv("CLOUDINARY_CLOUD_NAME"),
+        os.getenv("CLOUDINARY_API_KEY"),
+        os.getenv("CLOUDINARY_API_SECRET"),
+    ])
+
+
+async def _upload_admin_image_to_cloudinary(
     file: UploadFile,
-    destination_dir: Path,
+    folder: str,
     default_stem: str
 ):
-    allowed_types = {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/webp": ".webp",
-    }
+    if not _cloudinary_ready():
+        raise HTTPException(
+            status_code=500,
+            detail="Cloudinary is not configured on the server"
+        )
 
-    if file.content_type not in allowed_types:
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=400,
             detail="Only JPG, PNG and WEBP images are allowed"
@@ -1331,35 +1358,61 @@ async def _save_admin_image(
             detail="Uploaded image is empty"
         )
 
-    if len(raw) > 8 * 1024 * 1024:
+    if len(raw) > MAX_ADMIN_IMAGE_BYTES:
         raise HTTPException(
             status_code=400,
             detail="Image must be 8 MB or smaller"
         )
 
-    extension = allowed_types[file.content_type]
+    original_stem = Path(file.filename or default_stem).stem
+    safe_stem = re.sub(
+        r"[^a-zA-Z0-9_-]+",
+        "-",
+        original_stem
+    ).strip("-").lower()
 
-    filename = _safe_uploaded_image_name(
-        file.filename or default_stem,
-        default_stem,
-        extension
+    if not safe_stem:
+        safe_stem = default_stem
+
+    public_id = (
+        f"{safe_stem}-"
+        f"{secrets.token_hex(4)}"
     )
 
-    destination_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    destination = destination_dir / filename
-    destination.write_bytes(raw)
-
-    if not destination.is_file():
+    try:
+        result = cloudinary.uploader.upload(
+            raw,
+            folder=folder,
+            public_id=public_id,
+            resource_type="image",
+            overwrite=False,
+            use_filename=False,
+            unique_filename=False,
+        )
+    except Exception as exc:
+        print("CLOUDINARY UPLOAD ERROR:", exc)
         raise HTTPException(
-            status_code=500,
-            detail="Image could not be saved"
+            status_code=502,
+            detail="Image upload failed"
         )
 
-    return filename
+    secure_url = result.get("secure_url")
+    returned_public_id = result.get("public_id")
+
+    if not secure_url:
+        raise HTTPException(
+            status_code=502,
+            detail="Cloudinary did not return an image URL"
+        )
+
+    return {
+        "url": secure_url,
+        "public_id": returned_public_id,
+        "format": result.get("format"),
+        "width": result.get("width"),
+        "height": result.get("height"),
+        "bytes": result.get("bytes"),
+    }
 
 
 @app.post(
@@ -1369,16 +1422,22 @@ async def _save_admin_image(
 async def admin_upload_movie_poster(
     file: UploadFile = File(...)
 ):
-    filename = await _save_admin_image(
-        file,
-        POSTERS_DIR,
-        "movie-poster"
+    uploaded = await _upload_admin_image_to_cloudinary(
+        file=file,
+        folder="boxofficex/movie-posters",
+        default_stem="movie-poster"
     )
 
     return {
         "success": True,
-        "filename": filename,
-        "url": f"/posters/{filename}",
+        # Keep "filename" for compatibility with your current admin JS.
+        # It now contains the permanent Cloudinary URL.
+        "filename": uploaded["url"],
+        "url": uploaded["url"],
+        "public_id": uploaded["public_id"],
+        "width": uploaded["width"],
+        "height": uploaded["height"],
+        "bytes": uploaded["bytes"],
     }
 
 
@@ -1389,16 +1448,22 @@ async def admin_upload_movie_poster(
 async def admin_upload_actor_photo(
     file: UploadFile = File(...)
 ):
-    filename = await _save_admin_image(
-        file,
-        ACTORS_DIR,
-        "actor-photo"
+    uploaded = await _upload_admin_image_to_cloudinary(
+        file=file,
+        folder="boxofficex/actor-photos",
+        default_stem="actor-photo"
     )
 
     return {
         "success": True,
-        "filename": filename,
-        "url": f"/actor-images/{filename}",
+        # Keep "filename" for compatibility with your current admin JS.
+        # It now contains the permanent Cloudinary URL.
+        "filename": uploaded["url"],
+        "url": uploaded["url"],
+        "public_id": uploaded["public_id"],
+        "width": uploaded["width"],
+        "height": uploaded["height"],
+        "bytes": uploaded["bytes"],
     }
 
 
