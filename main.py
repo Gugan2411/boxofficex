@@ -1336,28 +1336,18 @@ MAX_ADMIN_IMAGE_BYTES = 8 * 1024 * 1024
 
 
 def _cloudinary_ready():
-    """Check Cloudinary configuration without exposing credentials."""
+    """Check Cloudinary configuration without exposing credential values."""
     config = cloudinary.config()
 
-    url_present = bool(os.getenv("CLOUDINARY_URL"))
-    cloud_name_present = bool(getattr(config, "cloud_name", None))
-    api_key_present = bool(getattr(config, "api_key", None))
-    api_secret_present = bool(getattr(config, "api_secret", None))
+    status = {
+        "url_present": bool(os.getenv("CLOUDINARY_URL")),
+        "cloud_name_present": bool(getattr(config, "cloud_name", None)),
+        "api_key_present": bool(getattr(config, "api_key", None)),
+        "api_secret_present": bool(getattr(config, "api_secret", None)),
+    }
 
-    print(
-        "CLOUDINARY STATUS:",
-        f"url_present={url_present}",
-        f"cloud_name_present={cloud_name_present}",
-        f"api_key_present={api_key_present}",
-        f"api_secret_present={api_secret_present}",
-    )
-
-    return all([
-        url_present,
-        cloud_name_present,
-        api_key_present,
-        api_secret_present,
-    ])
+    print("CLOUDINARY STATUS:", status, flush=True)
+    return all(status.values())
 
 
 async def _upload_admin_image_to_cloudinary(
@@ -1366,9 +1356,16 @@ async def _upload_admin_image_to_cloudinary(
     default_stem: str
 ):
     if not _cloudinary_ready():
+        config = cloudinary.config()
         raise HTTPException(
             status_code=500,
-            detail="Cloudinary is not configured on the server"
+            detail={
+                "message": "Cloudinary is not configured on the server",
+                "url_present": bool(os.getenv("CLOUDINARY_URL")),
+                "cloud_name_present": bool(getattr(config, "cloud_name", None)),
+                "api_key_present": bool(getattr(config, "api_key", None)),
+                "api_secret_present": bool(getattr(config, "api_secret", None)),
+            }
         )
 
     if file.content_type not in ALLOWED_IMAGE_TYPES:
