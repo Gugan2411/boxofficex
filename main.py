@@ -9,12 +9,22 @@ import os
 import cloudinary
 import cloudinary.uploader
 
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-    secure=True
-)
+# ============================================================
+# CLOUDINARY CONFIGURATION
+# Uses the single CLOUDINARY_URL value from Render.
+# Example format:
+# cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+# Never hard-code the real value in this file.
+# ============================================================
+
+CLOUDINARY_URL = (os.getenv("CLOUDINARY_URL") or "").strip()
+
+if CLOUDINARY_URL:
+    # Normalize the environment value before Cloudinary reads it.
+    os.environ["CLOUDINARY_URL"] = CLOUDINARY_URL
+
+# Cloudinary's Python SDK automatically reads CLOUDINARY_URL.
+cloudinary.config(secure=True)
 import secrets
 import re
 import psycopg
@@ -1326,11 +1336,14 @@ MAX_ADMIN_IMAGE_BYTES = 8 * 1024 * 1024
 
 
 def _cloudinary_ready():
-    return all([
-        os.getenv("CLOUDINARY_CLOUD_NAME"),
-        os.getenv("CLOUDINARY_API_KEY"),
-        os.getenv("CLOUDINARY_API_SECRET"),
-    ])
+    """Return True when Cloudinary was configured from CLOUDINARY_URL."""
+    config = cloudinary.config()
+    return bool(
+        CLOUDINARY_URL
+        and getattr(config, "cloud_name", None)
+        and getattr(config, "api_key", None)
+        and getattr(config, "api_secret", None)
+    )
 
 
 async def _upload_admin_image_to_cloudinary(
