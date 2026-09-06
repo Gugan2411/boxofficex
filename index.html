@@ -4678,6 +4678,37 @@ header nav a.nav-compare:focus-visible {
     }
 }
 
+
+
+/* =========================================================
+   HOMEPAGE ACTOR IMAGE FALLBACK
+   If an actor photo is missing/broken, show the actor name
+   inside the image area instead of PHOTO COMING SOON.
+========================================================= */
+.actor-image-name-fallback{
+    width:100%;
+    aspect-ratio:.82;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    border-radius:11px;
+    background:linear-gradient(145deg,#eef3fb,#dfe8f5);
+    border:1px solid #d7e0ec;
+    color:#172033;
+    font-size:18px;
+    font-weight:900;
+    line-height:1.25;
+    text-align:center;
+}
+
+@media(max-width:700px){
+    .actor-image-name-fallback{
+        font-size:14px;
+        padding:10px;
+    }
+}
+
 </style>
 
 </head>
@@ -7100,77 +7131,76 @@ async function loadUpcomingMovies(){
 }
 
 async function loadPopularActorsData(){
-    const grid=document.getElementById("actorsGrid"); if(!grid)return;
+    const grid = document.getElementById("actorsGrid");
+    if(!grid) return;
 
     try{
+        const response = await fetch(`${API_BASE}/actors`, {cache:"no-store"});
+
+        if(!response.ok){
+            throw new Error("Actors API " + response.status);
+        }
+
+        const data = await response.json();
+        const allActors = Array.isArray(data.actors) ? data.actors : [];
+
         /*
-            Keep the existing popularity ranking/order, but always use the
-            canonical actor record from /actors for name/photo/profession.
-            This makes homepage photos match actors.html, including
-            Cloudinary URLs saved through Admin.
+            Homepage Popular Actors must match the Tamil featured row
+            on actors.html exactly:
+            Vijay, Ajith Kumar, Rajinikanth, Kamal Haasan, Suriya
         */
-        const [popularResponse, actorsResponse] = await Promise.all([
-            fetch(`${API_BASE}/actors/popular?limit=12`,{cache:"no-store"}),
-            fetch(`${API_BASE}/actors`,{cache:"no-store"})
-        ]);
-
-        const popularData = await popularResponse.json();
-        const actorsData = await actorsResponse.json();
-
-        if(!popularResponse.ok){
-            throw new Error("Popular actors API "+popularResponse.status);
-        }
-
-        if(!actorsResponse.ok){
-            throw new Error("Actors API "+actorsResponse.status);
-        }
-
-        const popularActors = Array.isArray(popularData.actors)
-            ? popularData.actors
-            : [];
-
-        const canonicalActors = Array.isArray(actorsData.actors)
-            ? actorsData.actors
-            : [];
-
-        if(!popularActors.length) return;
+        const featuredIds = [7, 8, 9, 10, 11];
 
         const actorById = new Map(
-            canonicalActors.map(actor => [Number(actor.id), actor])
+            allActors.map(actor => [Number(actor.id), actor])
         );
 
-        const actors = popularActors.map(popularActor => {
-            const canonical = actorById.get(Number(popularActor.id));
+        const actors = featuredIds
+            .map(id => actorById.get(id))
+            .filter(Boolean);
 
-            if(!canonical){
-                return popularActor;
-            }
+        if(!actors.length){
+            grid.innerHTML = `
+                <div class="movie-empty">
+                    Unable to load popular actors.
+                </div>
+            `;
+            return;
+        }
 
-            return {
-                ...popularActor,
-                name: canonical.name || popularActor.name,
-                photo: canonical.photo || popularActor.photo,
-                profession: canonical.profession || popularActor.profession
-            };
-        });
+        grid.innerHTML = actors.map(actor => `
+            <article
+                class="actor-card"
+                onclick="location.href='actor.html?id=${actor.id}'"
+                role="link"
+                tabindex="0"
+            >
+                <div class="actor-image-wrap">
+                    <img
+                        src="${actorImage(actor.photo)}"
+                        alt="${launchEsc(actor.name)}"
+                        loading="lazy"
+                        decoding="async"
+                        onerror="this.onerror=null;this.src='/actor-images/coming-soon.png';"
+                    >
+                </div>
 
-        grid.innerHTML=actors.map(a=>`
-            <article class="actor-card" onclick="location.href='actor.html?id=${a.id}'" role="link" tabindex="0">
-                <img
-                    src="${actorImage(a.photo)}"
-                    alt="${launchEsc(a.name)}"
-                    loading="lazy"
-                    decoding="async"
-                    onerror="setActorFallback(this)"
-                >
-                <h3>${launchEsc(a.name)}</h3>
-                <p>#${a.rank} • ${a.popularity_score} popularity</p>
-            </article>`).join("");
+                <h3>${launchEsc(actor.name)}</h3>
+                <p>${launchEsc(actor.profession || "Actor")}</p>
+            </article>
+        `).join("");
 
-    }catch(e){
-        console.error("Popular actors:",e);
+    }catch(error){
+        console.error("Popular actors:", error);
+
+        grid.innerHTML = `
+            <div class="movie-empty">
+                Unable to load popular actors.
+            </div>
+        `;
     }
 }
+
 
 async function loadBoxOfficeXStats(){
     const el=document.getElementById("boxOfficeXStats"); if(!el)return;
