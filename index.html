@@ -7101,17 +7101,75 @@ async function loadUpcomingMovies(){
 
 async function loadPopularActorsData(){
     const grid=document.getElementById("actorsGrid"); if(!grid)return;
+
     try{
-        const r=await fetch(`${API_BASE}/actors/popular?limit=12`,{cache:"no-store"});
-        const d=await r.json(); if(!r.ok)throw new Error("Popular actors API "+r.status);
-        const actors=Array.isArray(d.actors)?d.actors:[];
-        if(!actors.length)return;
+        /*
+            Keep the existing popularity ranking/order, but always use the
+            canonical actor record from /actors for name/photo/profession.
+            This makes homepage photos match actors.html, including
+            Cloudinary URLs saved through Admin.
+        */
+        const [popularResponse, actorsResponse] = await Promise.all([
+            fetch(`${API_BASE}/actors/popular?limit=12`,{cache:"no-store"}),
+            fetch(`${API_BASE}/actors`,{cache:"no-store"})
+        ]);
+
+        const popularData = await popularResponse.json();
+        const actorsData = await actorsResponse.json();
+
+        if(!popularResponse.ok){
+            throw new Error("Popular actors API "+popularResponse.status);
+        }
+
+        if(!actorsResponse.ok){
+            throw new Error("Actors API "+actorsResponse.status);
+        }
+
+        const popularActors = Array.isArray(popularData.actors)
+            ? popularData.actors
+            : [];
+
+        const canonicalActors = Array.isArray(actorsData.actors)
+            ? actorsData.actors
+            : [];
+
+        if(!popularActors.length) return;
+
+        const actorById = new Map(
+            canonicalActors.map(actor => [Number(actor.id), actor])
+        );
+
+        const actors = popularActors.map(popularActor => {
+            const canonical = actorById.get(Number(popularActor.id));
+
+            if(!canonical){
+                return popularActor;
+            }
+
+            return {
+                ...popularActor,
+                name: canonical.name || popularActor.name,
+                photo: canonical.photo || popularActor.photo,
+                profession: canonical.profession || popularActor.profession
+            };
+        });
+
         grid.innerHTML=actors.map(a=>`
             <article class="actor-card" onclick="location.href='actor.html?id=${a.id}'" role="link" tabindex="0">
-                <img src="${actorImage(a.photo)}" alt="${launchEsc(a.name)}" loading="lazy">
-                <h3>${launchEsc(a.name)}</h3><p>#${a.rank} • ${a.popularity_score} popularity</p>
+                <img
+                    src="${actorImage(a.photo)}"
+                    alt="${launchEsc(a.name)}"
+                    loading="lazy"
+                    decoding="async"
+                    onerror="setActorFallback(this)"
+                >
+                <h3>${launchEsc(a.name)}</h3>
+                <p>#${a.rank} • ${a.popularity_score} popularity</p>
             </article>`).join("");
-    }catch(e){console.error("Popular actors:",e)}
+
+    }catch(e){
+        console.error("Popular actors:",e);
+    }
 }
 
 async function loadBoxOfficeXStats(){
