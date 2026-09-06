@@ -1778,6 +1778,26 @@ footer{background:#fff !important;border-top:1px solid #e2e8f0 !important}.foote
 
 <script>
 
+/* Cloudinary-safe image URLs: supports full remote URLs and legacy local filenames. */
+function boxOfficeXMoviePosterUrl(poster) {
+    const value = poster == null ? "" : String(poster).trim();
+    if (!value) return "/posters/coming-soon.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("posters/")) return "/" + value;
+    return boxOfficeXMoviePosterUrl(value);
+}
+
+function boxOfficeXActorPhotoUrl(photo) {
+    const value = photo == null ? "" : String(photo).trim();
+    if (!value) return "/actor-images/coming-soon.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("actor-images/")) return "/" + value;
+    return boxOfficeXActorPhotoUrl(value);
+}
+
+
 /* ==========================================
    NEW MOVIES SEO
 ========================================== */

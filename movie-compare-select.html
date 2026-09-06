@@ -264,12 +264,19 @@ header nav.mobile-menu-open{display:flex!important}
 </script>
 
 <script>
-const FALLBACK="posters/coming-soon.png";
+const FALLBACK="/posters/coming-soon.png";
 let movies=[];
 let selectedA=null,selectedB=null;
 
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-function poster(m){return m.poster?"posters/"+encodeURIComponent(m.poster):FALLBACK}
+function poster(m){
+    const value = m && m.poster != null ? String(m.poster).trim() : "";
+    if(!value) return FALLBACK;
+    if(/^https?:\/\//i.test(value)) return value;
+    if(value.startsWith("/")) return value;
+    if(value.startsWith("posters/")) return "/" + value;
+    return "/posters/" + encodeURIComponent(value);
+}
 function renderSelected(target,m){
 const box=document.getElementById(target);
 if(!m){box.innerHTML="<p>No movie selected</p>";return}

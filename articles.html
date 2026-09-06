@@ -1529,7 +1529,14 @@ let allArticles=[];
 
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 function date(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"" : d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
-function img(a){return a.hero_image?"/article-images/"+encodeURIComponent(a.hero_image):FALLBACK}
+function img(a){
+    const value = a && a.hero_image != null ? String(a.hero_image).trim() : "";
+    if(!value) return FALLBACK;
+    if(/^https?:\/\//i.test(value)) return value;
+    if(value.startsWith("/")) return value;
+    if(value.startsWith("article-images/")) return "/" + value;
+    return "/article-images/" + encodeURIComponent(value);
+}
 function openArticle(a){window.location.href="/article/"+encodeURIComponent(a.slug)}
 function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'">`}
 function meta(a){return `${esc(a.author||"BoxOfficeX")}${a.published_at?" • "+date(a.published_at):""}`}
@@ -1745,4 +1752,4 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 </body>
-</html>cd
+</html>

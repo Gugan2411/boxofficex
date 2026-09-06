@@ -5671,32 +5671,31 @@ function escapeHTML(value) {
 ========================================================= */
 
 function actorImage(photo) {
-
-    if (!photo) {
-
-        return "actor-images/coming-soon.png";
-
-    }
-
-    return (
-        "actor-images/" +
-        encodeURIComponent(photo)
-    );
+    const value = photo == null ? "" : String(photo).trim();
+    if (!value) return "/actor-images/coming-soon.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("actor-images/")) return "/" + value;
+    return "/actor-images/" + encodeURIComponent(value);
 }
 
 
 function movieImage(poster) {
+    const value = poster == null ? "" : String(poster).trim();
+    if (!value) return "/posters/coming-soon.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("posters/")) return "/" + value;
+    return "/posters/" + encodeURIComponent(value);
+}
 
-    if (!poster) {
-
-        return "posters/coming-soon.png";
-
-    }
-
-    return (
-        "posters/" +
-        encodeURIComponent(poster)
-    );
+function articleImage(image) {
+    const value = image == null ? "" : String(image).trim();
+    if (!value) return "";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("article-images/")) return "/" + value;
+    return "/article-images/" + encodeURIComponent(value);
 }
 
 
@@ -6258,7 +6257,7 @@ async function loadTrendingArticles() {
 
             const image = article.hero_image
                 ? `<img class="article-trending-image"
-                        src="/article-images/${encodeURIComponent(article.hero_image)}"
+                        src="${articleImage(article.hero_image)}"
                         alt="${escapeHTML(article.title || "Article")}"
                         loading="lazy"
                         decoding="async"
@@ -6376,7 +6375,7 @@ async function loadTrendingFanActivity(){
             if(item.type==="movie"&&item.image){
                 visual=`<img class="fan-activity-thumb" src="${movieImage(item.image)}" alt="${escapeHTML(item.title||"Movie")} poster" loading="lazy" onerror="setMovieFallback(this)">`;
             }else if(item.type==="article"&&item.image){
-                visual=`<img class="fan-activity-thumb" src="/article-images/${encodeURIComponent(item.image)}" alt="${escapeHTML(item.title||"Article")}" loading="lazy" onerror="this.style.display='none'">`;
+                visual=`<img class="fan-activity-thumb" src="${articleImage(item.image)}" alt="${escapeHTML(item.title||"Article")}" loading="lazy" onerror="this.style.display='none'">`;
             }
             return `<article class="fan-activity-card" tabindex="0" role="link" data-fan-url="${escapeHTML(item.url||"#")}">
                 ${visual}
@@ -7132,7 +7131,7 @@ async function loadUpcomingMovies(){
         if(!items.length){grid.innerHTML='<div class="movie-empty">No upcoming movies added yet.</div>';return}
         grid.innerHTML=items.map(m=>`
             <article class="movie-card" onclick="location.href='movie.html?id=${m.id}'" role="link" tabindex="0">
-                <img class="movie-poster" src="${m.poster?`posters/${encodeURIComponent(m.poster)}`:'posters/coming-soon.png'}" alt="${launchEsc(m.title)}" loading="lazy" onerror="this.onerror=null;this.src='posters/coming-soon.png'">
+                <img class="movie-poster" src="${movieImage(m.poster)}" alt="${launchEsc(m.title)}" loading="lazy" onerror="this.onerror=null;this.src='posters/coming-soon.png'">
                 <div class="movie-info"><h3>${launchEsc(m.title)}</h3><p>${launchEsc(m.language||"")} ${m.industry?`• ${launchEsc(m.industry)}`:""}</p>
                 <span class="upcoming-countdown">${m.days_until_release===1?"Tomorrow":`${m.days_until_release} Days Left`}</span></div>
             </article>`).join("");
@@ -7148,7 +7147,7 @@ async function loadPopularActorsData(){
         if(!actors.length)return;
         grid.innerHTML=actors.map(a=>`
             <article class="actor-card" onclick="location.href='actor.html?id=${a.id}'" role="link" tabindex="0">
-                <img src="${a.photo?`actor-images/${encodeURIComponent(a.photo)}`:'actor-images/coming-soon.png'}" alt="${launchEsc(a.name)}" loading="lazy">
+                <img src="${actorImage(a.photo)}" alt="${launchEsc(a.name)}" loading="lazy">
                 <h3>${launchEsc(a.name)}</h3><p>#${a.rank} • ${a.popularity_score} popularity</p>
             </article>`).join("");
     }catch(e){console.error("Popular actors:",e)}

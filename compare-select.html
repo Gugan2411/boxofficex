@@ -965,6 +965,17 @@ main{color:var(--bx-text)!important}
 
 <script>
 
+
+// Cloudinary-safe actor photo URL. Keeps legacy local actor images working.
+function boxOfficeXActorImageUrl(photo) {
+    const value = photo == null ? "" : String(photo).trim();
+    if (!value) return "/actor-images/default-actor.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("actor-images/")) return "/" + value;
+    return "/actor-images/" + encodeURIComponent(value);
+}
+
 // ==========================================
 // COMPARE SELECT SEO
 // ==========================================
@@ -1211,10 +1222,10 @@ function selectActor(
         selected1.innerHTML = `
 
             <img
-                src="actor-images/${actor.photo}"
+                src="${boxOfficeXActorImageUrl(actor.photo)}"
                 alt="${actor.name}"
                 loading="lazy"
-                onerror="this.onerror=null;this.src='actor-images/default-actor.png';"
+                onerror="this.onerror=null;this.src='/actor-images/default-actor.png';"
             >
 
             <div class="selected-hero-name">
@@ -1247,10 +1258,10 @@ function selectActor(
         selected2.innerHTML = `
 
             <img
-                src="actor-images/${actor.photo}"
+                src="${boxOfficeXActorImageUrl(actor.photo)}"
                 alt="${actor.name}"
                 loading="lazy"
-                onerror="this.onerror=null;this.src='actor-images/default-actor.png';"
+                onerror="this.onerror=null;this.src='/actor-images/default-actor.png';"
             >
 
             <div class="selected-hero-name">

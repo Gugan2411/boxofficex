@@ -2509,6 +2509,18 @@ footer{background:#fff!important;border-top:1px solid #dbe3ef!important}
 
 <script>
 
+/* Cloudinary-safe movie poster URL. Keeps legacy local poster filenames working. */
+function boxOfficeXMoviePosterUrl(poster) {
+    const value = poster == null ? "" : String(poster).trim();
+    if (!value) return "/posters/coming-soon.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("posters/")) return "/" + value;
+    return boxOfficeXMoviePosterUrl(value);
+}
+
+
+
 
 const API_BASE = "";
 
@@ -2807,8 +2819,7 @@ async function loadMovies(
                     <img
                         src="${
                             movie.poster
-                                ? "posters/" +
-                                  encodeURIComponent(
+                                ? boxOfficeXMoviePosterUrl(
                                       movie.poster
                                   )
                                 : "posters/coming-soon.png"

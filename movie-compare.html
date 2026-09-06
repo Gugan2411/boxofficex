@@ -215,7 +215,18 @@ header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!imp
 <script>
 const FALLBACK="/posters/coming-soon.png";
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-function poster(m){return m.poster?"/posters/"+encodeURIComponent(m.poster):FALLBACK}
+function poster(m){
+    const value = m && m.poster != null ? String(m.poster).trim() : "";
+    if(!value) return FALLBACK;
+    if(/^https?:\/\//i.test(value)) return value;
+    if(value.startsWith("/")) return value;
+    if(value.startsWith("posters/")) return "/" + value;
+    return "/posters/" + encodeURIComponent(value);
+}
+function absolutePoster(m){
+    const url = poster(m);
+    return /^https?:\/\//i.test(url) ? url : window.location.origin + url;
+}
 function money(v){return v===null||v===undefined?"N/A":"₹"+Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})+" Cr"}
 function text(v){return v===null||v===undefined||v===""?"N/A":esc(String(v))}
 function date(v){if(!v)return"N/A";const d=new Date(v);return isNaN(d)?esc(v):d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
@@ -359,13 +370,8 @@ function updateComparisonSEO(a,b){
         window.location.pathname +
         `?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`;
 
-    const imageA = a.poster
-        ? window.location.origin + `/posters/${encodeURIComponent(a.poster)}`
-        : window.location.origin + FALLBACK;
-
-    const imageB = b.poster
-        ? window.location.origin + `/posters/${encodeURIComponent(b.poster)}`
-        : window.location.origin + FALLBACK;
+    const imageA = absolutePoster(a);
+    const imageB = absolutePoster(b);
 
     document.title = title;
     document.getElementById("metaDescription").setAttribute("content", description);
