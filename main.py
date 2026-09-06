@@ -1280,6 +1280,10 @@ app.mount(
     name="images"
 )
 
+@app.get("/ai-prediction")
+def ai_prediction_page():
+    return FileResponse(BASE_DIR / "ai-prediction.html")
+
 
 
 # ============================================================
