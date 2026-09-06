@@ -4648,26 +4648,33 @@ header nav a.nav-compare:focus-visible {
     font-weight: 800 !important;
 }
 
+
+
+
 /* =========================================================
-   BOXOFFICEX STICKY HEADER OVERLAP FIX
-   Keeps section headings visible when the browser restores,
-   jumps, or scrolls to homepage sections.
+   BOXOFFICEX INDEX HEADER OVERLAP — FINAL
+   Desktop header stays in normal document flow so it cannot
+   cover section titles while scrolling. Existing mobile fixed
+   113px header behavior is preserved.
 ========================================================= */
-html{
-    scroll-padding-top:78px !important;
+@media (min-width:701px){
+    header{
+        position:relative !important;
+        top:auto !important;
+    }
 }
 
-.section{
-    scroll-margin-top:78px !important;
-}
-
-@media(max-width:700px){
-    html{
-        scroll-padding-top:125px !important;
+@media (max-width:700px){
+    body{
+        padding-top:113px !important;
     }
 
-    .section{
-        scroll-margin-top:125px !important;
+    header{
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        height:113px !important;
     }
 }
 
@@ -4935,11 +4942,11 @@ html{
         <div class="section-title-wrap">
 
             <div class="section-label">
-                RELEASE WINDOW
+                NOW IN THEATRES
             </div>
 
             <h2>
-                🆕 Upcoming & Running
+                🎬 Running Movies
             </h2>
 
         </div>
@@ -4955,7 +4962,7 @@ html{
         id="latestMoviesGrid"
     >
         <div class="movie-empty">
-            Loading upcoming & running movies...
+            Loading running movies...
         </div>
     </div>
 
@@ -5400,18 +5407,14 @@ async function loadLatestMovies() {
             await response.json();
 
         /*
-            Combine all new-movie groups first.
-
-            Homepage rule:
-            - Upcoming appears only during the final 3 days
-              BEFORE release.
-            - Running appears from release day through Day 10.
-            - After Day 10 it automatically disappears from
-              the homepage release strip.
+            Homepage RUNNING MOVIES rule:
+            - Only movies already released are shown here.
+            - Release day through Day 10 is considered running.
+            - Upcoming movies are NOT mixed into this section.
+            - The separate Upcoming Movies section follows this one.
         */
 
         const combined = [
-            ...(data.upcoming || []),
             ...(data.running || []),
             ...(data.recent || [])
         ];
@@ -5428,7 +5431,7 @@ async function loadLatestMovies() {
                 ).values()
             );
 
-        const releaseWindowMovies =
+        const runningMovies =
             uniqueMovies
             .map(movie => {
 
@@ -5437,89 +5440,47 @@ async function loadLatestMovies() {
                         movie.release_date
                     );
 
-                if (offset === null) {
+                if (
+                    offset === null ||
+                    offset > 0 ||
+                    offset < -9
+                ) {
                     return null;
                 }
 
-                if (
-                    offset >= 1 &&
-                    offset <= 3
-                ) {
-
-                    return {
-                        ...movie,
-                        homepage_status:
-                            "upcoming",
-                        homepage_offset:
-                            offset
-                    };
-                }
-
-                if (
-                    offset <= 0 &&
-                    offset >= -9
-                ) {
-
-                    return {
-                        ...movie,
-                        homepage_status:
-                            "running",
-                        homepage_offset:
-                            offset
-                    };
-                }
-
-                return null;
+                return {
+                    ...movie,
+                    homepage_status:
+                        "running",
+                    homepage_offset:
+                        offset
+                };
             })
             .filter(Boolean)
-            .sort((a, b) => {
-
-                if (
-                    a.homepage_status !==
-                    b.homepage_status
-                ) {
-                    return (
-                        a.homepage_status ===
-                        "upcoming"
-                            ? -1
-                            : 1
-                    );
-                }
-
-                if (
-                    a.homepage_status ===
-                    "upcoming"
-                ) {
-                    return (
-                        a.homepage_offset -
-                        b.homepage_offset
-                    );
-                }
-
-                return (
+            .sort(
+                (a, b) =>
                     b.homepage_offset -
                     a.homepage_offset
-                );
-            })
+            )
             .slice(0, 5);
 
         grid.innerHTML = "";
 
         if (
-            releaseWindowMovies.length === 0
+            runningMovies.length === 0
         ) {
 
             grid.innerHTML = `
                 <div class="movie-empty">
-                    No movies are inside the
-                    3-day upcoming or 10-day running window.
+                    No running movies are inside the
+                    current 10-day release window.
                 </div>
             `;
 
             return;
         }
 
-        releaseWindowMovies
+        runningMovies
         .forEach(movie => {
 
             const card =
@@ -5528,40 +5489,29 @@ async function loadLatestMovies() {
                 );
 
             card.className =
-                "movie-card home-release-card";
-
-            card.tabIndex = 0;
+                "movie-card";
 
             card.setAttribute(
                 "role",
                 "link"
             );
 
-            const openMovie = () => {
+            card.setAttribute(
+                "tabindex",
+                "0"
+            );
 
-                window.location.href =
-                    "movie.html?id=" +
-                    encodeURIComponent(
-                        movie.id
-                    );
-            };
+            const releaseDay =
+                Math.abs(
+                    Number(
+                        movie.homepage_offset
+                    )
+                ) + 1;
 
-            card.onclick =
-                openMovie;
-
-            card.onkeydown =
-                function (event) {
-
-                    if (
-                        event.key ===
-                        "Enter" ||
-                        event.key ===
-                        " "
-                    ) {
-                        event.preventDefault();
-                        openMovie();
-                    }
-                };
+            const timingText =
+                releaseDay === 1
+                    ? "Running • Day 1"
+                    : `Running • Day ${releaseDay}`;
 
             const collection =
                 Number(
@@ -5569,49 +5519,37 @@ async function loadLatestMovies() {
                     0
                 );
 
-            let badgeText = "";
-            let timingText = "";
-
-            if (
-                movie.homepage_status ===
-                "upcoming"
-            ) {
-
-                badgeText =
-                    "UPCOMING";
-
-                timingText =
-                    movie.homepage_offset === 1
-                        ? "Releases tomorrow"
-                        : `Releases in ${movie.homepage_offset} days`;
-
-            } else {
-
-                badgeText =
-                    "RUNNING";
-
-                const runningDay =
-                    Math.abs(
-                        movie.homepage_offset
-                    ) + 1;
-
-                timingText =
-                    runningDay === 1
-                        ? "Released today"
-                        : `Running • Day ${runningDay}`;
-            }
-
             const showCollection =
-                movie.homepage_status ===
-                "running";
+                Number.isFinite(collection) &&
+                collection > 0;
+
+            const openMovie =
+                () => {
+                    window.location.href =
+                        "movie.html?id=" +
+                        encodeURIComponent(
+                            movie.id
+                        );
+                };
+
+            card.onclick =
+                openMovie;
+
+            card.onkeydown =
+                event => {
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
+                        event.preventDefault();
+                        openMovie();
+                    }
+                };
 
             card.innerHTML = `
-                <span
-                    class="home-release-badge
-                    ${movie.homepage_status}"
-                >
-                    ${badgeText}
-                </span>
+                <div class="home-release-badge running">
+                    RUNNING
+                </div>
 
                 <img
                     class="movie-poster"
@@ -5660,18 +5598,17 @@ async function loadLatestMovies() {
     } catch (error) {
 
         console.error(
-            "Homepage release window error:",
+            "Homepage running movies error:",
             error
         );
 
         grid.innerHTML = `
             <div class="movie-empty">
-                Unable to load upcoming & running movies.
+                Unable to load running movies.
             </div>
         `;
     }
 }
-
 
 
 /* =========================================================
