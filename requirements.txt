@@ -6,7 +6,7 @@ python-multipart
 itsdangerous
 tzdata
 cloudinary
-python-multipartjoblib
 pandas
 numpy
 scikit-learn
+joblib
