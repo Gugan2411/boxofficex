@@ -2516,7 +2516,7 @@ function boxOfficeXMoviePosterUrl(poster) {
     if (/^https?:\/\//i.test(value)) return value;
     if (value.startsWith("/")) return value;
     if (value.startsWith("posters/")) return "/" + value;
-    return boxOfficeXMoviePosterUrl(value);
+    return "/posters/" + encodeURIComponent(value);
 }
 
 

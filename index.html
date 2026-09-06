@@ -4647,6 +4647,30 @@ header nav a.nav-compare:focus-visible {
     -webkit-text-fill-color: #ffffff !important;
     font-weight: 800 !important;
 }
+
+/* =========================================================
+   BOXOFFICEX STICKY HEADER OVERLAP FIX
+   Keeps section headings visible when the browser restores,
+   jumps, or scrolls to homepage sections.
+========================================================= */
+html{
+    scroll-padding-top:78px !important;
+}
+
+.section{
+    scroll-margin-top:78px !important;
+}
+
+@media(max-width:700px){
+    html{
+        scroll-padding-top:125px !important;
+    }
+
+    .section{
+        scroll-margin-top:125px !important;
+    }
+}
+
 </style>
 
 </head>

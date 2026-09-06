@@ -1358,6 +1358,29 @@ footer{background:#eef2f7 !important;border-top:1px solid #dfe5ee !important}.fo
  .language-grid .actor-card{flex:0 0 43% !important;min-width:43% !important;scroll-snap-align:start}
 }
 @media(max-width:380px){.language-grid .actor-card{flex-basis:47% !important;min-width:47% !important}}
+
+
+/* =========================================================
+   BOXOFFICEX COMPARISON BUTTON HOVER FIX
+   Prevent the normal nav hover rule from overriding red buttons.
+========================================================= */
+header nav a.nav-compare,
+header nav a.nav-compare:link,
+header nav a.nav-compare:visited {
+    background: linear-gradient(135deg,#e53945,#c92d39) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+
+header nav a.nav-compare:hover,
+header nav a.nav-compare:active,
+header nav a.nav-compare:focus,
+header nav a.nav-compare:focus-visible {
+    background: linear-gradient(135deg,#f04b57,#d93643) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+
 </style>
 
 </head>
