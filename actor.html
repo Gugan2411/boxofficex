@@ -2143,6 +2143,52 @@ footer{background:#fff !important;border-top:1px solid #dbe3ee !important}.foote
 
 <script>
 
+function boxOfficeXActorImageUrl(value, absolute = false) {
+    const photo = value == null ? "" : String(value).trim();
+    let url;
+
+    if (!photo) {
+        url = "/actor-images/coming-soon.png";
+    } else if (/^https?:\/\//i.test(photo)) {
+        url = photo;
+    } else if (photo.startsWith("/")) {
+        url = photo;
+    } else if (photo.startsWith("actor-images/")) {
+        url = "/" + photo;
+    } else {
+        url = "/actor-images/" + encodeURIComponent(photo);
+    }
+
+    if (absolute && !/^https?:\/\//i.test(url)) {
+        return "https://boxoffice-x.com" + url;
+    }
+    return url;
+}
+
+function boxOfficeXMoviePosterUrl(value, absolute = false) {
+    const poster = value == null ? "" : String(value).trim();
+    let url;
+
+    if (!poster) {
+        url = "/posters/coming-soon.png";
+    } else if (/^https?:\/\//i.test(poster)) {
+        url = poster;
+    } else if (poster.startsWith("/")) {
+        url = poster;
+    } else if (poster.startsWith("posters/")) {
+        url = "/" + poster;
+    } else {
+        url = "/posters/" + encodeURIComponent(poster);
+    }
+
+    if (absolute && !/^https?:\/\//i.test(url)) {
+        return "https://boxoffice-x.com" + url;
+    }
+    return url;
+}
+
+
+
 
 
 // ==========================================
@@ -2390,11 +2436,7 @@ function updateActorSEO(actor) {
         "https://boxoffice-x.com/actor.html?id=" +
         encodeURIComponent(actorId);
 
-    const photoUrl =
-        actor.photo
-            ? "https://boxoffice-x.com/actor-images/" +
-              encodeURIComponent(actor.photo)
-            : "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const photoUrl = actor.photo ? boxOfficeXActorImageUrl(actor.photo, true) : "https://boxoffice-x.com/images/boxofficex-share.jpg";
 
     document.title = title;
 
@@ -2733,8 +2775,7 @@ else {
             document.getElementById(
                 "actorPhoto"
             ).src =
-                "actor-images/" +
-                actor.photo;
+                boxOfficeXActorImageUrl(actor.photo);
 
         }
 
@@ -2832,9 +2873,7 @@ else {
 
                 <img
                     src="${
-                        movie.poster
-                            ? "posters/" + movie.poster
-                            : "posters/coming-soon.png"
+                        boxOfficeXMoviePosterUrl(movie.poster)
                     }"
                     alt="${movie.title}"
                     onerror="this.onerror=null;this.src='posters/coming-soon.png';"
@@ -3148,9 +3187,7 @@ else {
 
                     <img
                         src="${
-                        movie.poster
-                            ? "posters/" + movie.poster
-                            : "posters/coming-soon.png"
+                        boxOfficeXMoviePosterUrl(movie.poster)
                     }"
                         alt="${movie.title}"
                         loading="lazy"
@@ -3427,9 +3464,7 @@ function openVerdict(verdict) {
 
                 <img
                     src="${
-                        movie.poster
-                            ? "posters/" + movie.poster
-                            : "posters/coming-soon.png"
+                        boxOfficeXMoviePosterUrl(movie.poster)
                     }"
                     alt="${movie.title}"
                     loading="lazy"

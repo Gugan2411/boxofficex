@@ -2392,10 +2392,45 @@ function getSlug() {
     return "";
 }
 
-function imageUrl(filename) {
-    return filename
-        ? `/article-images/${encodeURIComponent(filename)}`
-        : ARTICLE_FALLBACK_IMAGE;
+function imageUrl(filename, absolute = false) {
+    const value = filename == null ? "" : String(filename).trim();
+    let url;
+
+    if (!value) {
+        url = ARTICLE_FALLBACK_IMAGE;
+    } else if (/^https?:\/\//i.test(value)) {
+        url = value;
+    } else if (value.startsWith("/")) {
+        url = value;
+    } else if (value.startsWith("article-images/")) {
+        url = "/" + value;
+    } else {
+        url = "/article-images/" + encodeURIComponent(value);
+    }
+
+    if (absolute && !/^https?:\/\//i.test(url)) {
+        return window.location.origin + url;
+    }
+
+    return url;
+}
+
+function moviePosterUrl(poster) {
+    const value = poster == null ? "" : String(poster).trim();
+    if (!value) return ARTICLE_FALLBACK_IMAGE;
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("posters/")) return "/" + value;
+    return "/posters/" + encodeURIComponent(value);
+}
+
+function actorPhotoUrl(photo) {
+    const value = photo == null ? "" : String(photo).trim();
+    if (!value) return ACTOR_FALLBACK_IMAGE;
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/")) return value;
+    if (value.startsWith("actor-images/")) return "/" + value;
+    return "/actor-images/" + encodeURIComponent(value);
 }
 
 function setSEO(article) {
@@ -2423,9 +2458,7 @@ function setSEO(article) {
     document.getElementById("ogDescription")?.setAttribute("content", description);
     document.getElementById("ogUrl")?.setAttribute("content", publicCanonical);
 
-    const hero = article.hero_image
-        ? `${window.location.origin}/article-images/${encodeURIComponent(article.hero_image)}`
-        : window.location.origin + ARTICLE_FALLBACK_IMAGE;
+    const hero = imageUrl(article.hero_image, true);
 
     document.getElementById("ogImage")?.setAttribute("content", hero);
     document.getElementById("twitterTitle")?.setAttribute("content", title);
@@ -2490,7 +2523,7 @@ if(!data||!data.movie_id)return"";
 try{
 const [mr,cr]=await Promise.all([fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}`,{cache:"no-store"}),fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}/collection-breakdown`,{cache:"no-store"})]);
 const movie=await mr.json();if(!mr.ok||movie.error)return"";
-const photo=movie.poster?`/posters/${encodeURIComponent(movie.poster)}`:ARTICLE_FALLBACK_IMAGE;
+const photo=moviePosterUrl(movie.poster);
 let collectionHTML="";
 if(cr.ok){const cd=await cr.json();const records=Array.isArray(cd.records)?cd.records:[];const grouped={};records.forEach(r=>{const date=r.date||r.collection_date;if(!date)return;if(!grouped[date])grouped[date]={date,tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};const st=(r.state||"").trim(),a=Number(r.collection_crore||0);if(st==="Tamil Nadu")grouped[date].tamil_nadu+=a;else if(st==="Kerala")grouped[date].kerala+=a;else if(st==="Karnataka")grouped[date].karnataka+=a;else if(["Telugu States","Andhra Pradesh","Telangana"].includes(st))grouped[date].telugu_states+=a;else if(st==="Rest of India")grouped[date].rest_of_india+=a;else if(st==="Overseas")grouped[date].overseas+=a});const days=Object.values(grouped).sort((a,b)=>String(a.date).localeCompare(String(b.date)));if(days.length)collectionHTML=renderBoxOffice({budget:movie.budget_crore,verdict:movie.verdict,days})}
 const release=movie.release_date?new Date(movie.release_date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"}):"N/A";
@@ -2507,9 +2540,7 @@ async function renderActorBlock(data) {
 
         if (!response.ok || actor.error) return "";
 
-        const photo = actor.photo
-            ? `/actor-images/${encodeURIComponent(actor.photo)}`
-            : ACTOR_FALLBACK_IMAGE;
+        const photo = actorPhotoUrl(actor.photo);
 
         return `
             <div class="related-card" onclick="window.location.href='/actor.html?id=${actor.id}'">

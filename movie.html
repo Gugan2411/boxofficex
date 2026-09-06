@@ -3491,6 +3491,31 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
 
 <script>
 
+function boxOfficeXMoviePosterUrl(value, absolute = false) {
+    const poster = value == null ? "" : String(value).trim();
+    let url;
+
+    if (!poster) {
+        url = "/posters/coming-soon.png";
+    } else if (/^https?:\/\//i.test(poster)) {
+        url = poster;
+    } else if (poster.startsWith("/")) {
+        url = poster;
+    } else if (poster.startsWith("posters/")) {
+        url = "/" + poster;
+    } else {
+        url = "/posters/" + encodeURIComponent(poster);
+    }
+
+    if (absolute && !/^https?:\/\//i.test(url)) {
+        return "https://boxoffice-x.com" + url;
+    }
+
+    return url;
+}
+
+
+
     /* =====================================================
        BOXOFFICEX MOVIE PAGE JAVASCRIPT
        NEW DAILY + STATE COLLECTION SYSTEM
@@ -4952,11 +4977,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
             "https://boxoffice-x.com/movie.html?id=" +
             encodeURIComponent(movieId);
 
-        const posterUrl =
-            movie.poster
-                ? "https://boxoffice-x.com/posters/" +
-                  encodeURIComponent(movie.poster)
-                : "https://boxoffice-x.com/posters/coming-soon.png";
+        const posterUrl = boxOfficeXMoviePosterUrl(movie.poster, true);
 
         document.title = title;
 
@@ -5064,6 +5085,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
         const poster=String(value).trim();
         if(!poster)return "/posters/default.jpg";
         if(/^https?:\/\//i.test(poster) || poster.startsWith("/"))return poster;
+        if(poster.startsWith("posters/"))return "/" + poster;
         return "/posters/" + encodeURIComponent(poster);
     }
 
@@ -5378,11 +5400,7 @@ footer{background:linear-gradient(180deg,#f2f5fa,#e9eef6);}
                     movie.poster
                 ) {
 
-                    poster.src =
-                        "posters/" +
-                        encodeURIComponent(
-                            movie.poster
-                        );
+                    poster.src = boxOfficeXMoviePosterUrl(movie.poster);
 
                     poster.alt =
                         movie.title +

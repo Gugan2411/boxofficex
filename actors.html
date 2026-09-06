@@ -1510,6 +1510,19 @@ footer{background:#eef2f7 !important;border-top:1px solid #dfe5ee !important}.fo
 
 <script>
 
+function boxOfficeXActorImageUrl(value) {
+    const photo = value == null ? "" : String(value).trim();
+
+    if (!photo) return "/actor-images/coming-soon.png";
+    if (/^https?:\/\//i.test(photo)) return photo;
+    if (photo.startsWith("/")) return photo;
+    if (photo.startsWith("actor-images/")) return "/" + photo;
+
+    return "/actor-images/" + encodeURIComponent(photo);
+}
+
+
+
 // ==========================================
 // ACTORS LIST SEO
 // ==========================================
@@ -1692,17 +1705,14 @@ function displayActors(actors) {
                If filename exists in DB but the actual file is missing ->
                onerror automatically switches to default image.
             */
-            const photo =
-                actor.photo && String(actor.photo).trim()
-                    ? `actor-images/${actor.photo}`
-                    : "actor-images/coming-soon.png";
+            const photo = boxOfficeXActorImageUrl(actor.photo);
 
             card.innerHTML = `
                 <img
                     src="${photo}"
                     alt="${escapeSearchHTML(actor.name)}"
                     loading="lazy"
-                    onerror="this.onerror=null; this.src='actor-images/coming-soon.png';"
+                    onerror="this.onerror=null; this.src='/actor-images/coming-soon.png';"
                 >
 
                 <div class="actor-name">

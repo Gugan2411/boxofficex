@@ -5130,6 +5130,49 @@ function renderMovieManagementSearch() {
    OPEN MOVIE EDIT MODAL
 ===================================================== */
 
+function adminMoviePosterUrl(poster, cacheBust = false) {
+    const value = poster == null ? "" : String(poster).trim();
+    if (!value) return "";
+
+    let url;
+    if (/^https?:\/\//i.test(value)) {
+        url = value;
+    } else if (value.startsWith("/")) {
+        url = value;
+    } else if (value.startsWith("posters/")) {
+        url = "/" + value;
+    } else {
+        url = "/posters/" + encodeURIComponent(value);
+    }
+
+    if (cacheBust) {
+        url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+    }
+    return url;
+}
+
+function adminActorPhotoUrl(photo, cacheBust = false) {
+    const value = photo == null ? "" : String(photo).trim();
+    if (!value) return "";
+
+    let url;
+    if (/^https?:\/\//i.test(value)) {
+        url = value;
+    } else if (value.startsWith("/")) {
+        url = value;
+    } else if (value.startsWith("actor-images/")) {
+        url = "/" + value;
+    } else {
+        url = "/actor-images/" + encodeURIComponent(value);
+    }
+
+    if (cacheBust) {
+        url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+    }
+    return url;
+}
+
+
 function openMovieEditModal(movieId) {
 
     document.getElementById("movieEditMessage").className = "message";
@@ -5163,10 +5206,7 @@ function openMovieEditModal(movieId) {
     if (editMoviePreview) {
         if (movie.poster) {
             editMoviePreview.src =
-                "/posters/" +
-                encodeURIComponent(movie.poster) +
-                "?v=" +
-                Date.now();
+                adminMoviePosterUrl(movie.poster, true);
 
             editMoviePreview.style.display =
                 "block";
@@ -6024,10 +6064,7 @@ function renderActorManagementSearch() {
             document.createElement("tr");
 
         const photoSrc =
-            actor.photo
-                ? "/actor-images/" +
-                  encodeURIComponent(actor.photo)
-                : "";
+            adminActorPhotoUrl(actor.photo);
 
         row.innerHTML = `
             <td>
@@ -6131,10 +6168,7 @@ function openActorEditModal(actorId) {
     if (editActorPreview) {
         if (actor.photo) {
             editActorPreview.src =
-                "/actor-images/" +
-                encodeURIComponent(actor.photo) +
-                "?v=" +
-                Date.now();
+                adminActorPhotoUrl(actor.photo, true);
 
             editActorPreview.style.display =
                 "block";
