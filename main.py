@@ -8759,10 +8759,33 @@ def _clean_optional_ad_text(value: Optional[str]):
 
 
 AD_PLACEMENT_GROUPS = {
-    "homepage", "movie_pages", "actor_pages", "article_pages",
-    "movie_compare", "actor_compare", "rankings", "search",
-    "boxoffice_pages", "regional_pages", "discovery_pages",
-    "sponsors_page", "selected_pages", "sitewide",
+    # Exact ad-enabled public pages.
+    "homepage", "new_movies", "movie_detail", "actors_list",
+    "actor_detail", "actor_movies", "articles_list", "article_detail",
+    "movie_rankings", "actor_rankings", "actor_compare_select",
+    "actor_compare_results", "movie_compare_select", "movie_compare_results",
+
+    # Legacy/broad groups retained so existing campaigns continue to work.
+    "movie_pages", "actor_pages", "article_pages", "movie_compare",
+    "actor_compare", "rankings", "search", "boxoffice_pages",
+    "regional_pages", "discovery_pages", "sponsors_page",
+    "selected_pages", "sitewide",
+}
+
+AD_PLACEMENT_LEGACY_ALIASES = {
+    "new_movies": {"discovery_pages"},
+    "movie_detail": {"movie_pages"},
+    "actors_list": {"actor_pages"},
+    "actor_detail": {"actor_pages"},
+    "actor_movies": {"actor_pages"},
+    "articles_list": {"article_pages"},
+    "article_detail": {"article_pages"},
+    "movie_rankings": {"rankings"},
+    "actor_rankings": {"rankings"},
+    "actor_compare_select": {"actor_compare"},
+    "actor_compare_results": {"actor_compare"},
+    "movie_compare_select": {"movie_compare"},
+    "movie_compare_results": {"movie_compare"},
 }
 
 def _normalize_ad_placements(value: str) -> str:
@@ -9368,7 +9391,14 @@ def get_active_public_advertisements(
         }
 
         if placement:
-            allowed = placement in placement_groups or "sitewide" in placement_groups
+            compatible_placements = {placement}
+            compatible_placements.update(
+                AD_PLACEMENT_LEGACY_ALIASES.get(placement, set())
+            )
+            allowed = (
+                "sitewide" in placement_groups
+                or bool(placement_groups.intersection(compatible_placements))
+            )
             if not allowed:
                 continue
 

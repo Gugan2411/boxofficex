@@ -1893,7 +1893,7 @@ footer{
     align-items:center;
     justify-content:center;
     padding:18px;
-    background:rgba(0,0,0,.94);
+    background:rgba(226,232,240,.90);\n    backdrop-filter:blur(8px);
 }
 
 .bx-fullscreen-inner{
@@ -1986,26 +1986,28 @@ footer{
     align-items:center;
     justify-content:space-between;
     gap:16px;
-    padding:14px 16px;
-    border:1px solid rgba(255,204,51,.18);
+    padding:15px 17px;
+    border:1px solid #dbe3ef;
     border-radius:14px;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,204,51,.06),
-            rgba(77,141,255,.05)
-        ),
-        #0d1423;
-    box-shadow:var(--shadow-small);
+    background:linear-gradient(135deg,#ffffff 0%,#f7f9ff 58%,#fffaf0 100%);
+    box-shadow:0 8px 24px rgba(15,23,42,.08);
+    color:#111827;
+    text-decoration:none;
+    cursor:pointer;
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
 }
 
-.bx-sponsored-link-copy{
-    min-width:0;
+.bx-sponsored-link-card:hover{
+    transform:translateY(-1px);
+    border-color:#c9d5e8;
+    box-shadow:0 12px 30px rgba(15,23,42,.12);
 }
+
+.bx-sponsored-link-copy{ min-width:0; }
 
 .bx-sponsored-link-label{
     margin-bottom:5px;
-    color:var(--gold);
+    color:#b77900;
     font-size:8px;
     font-weight:900;
     letter-spacing:.8px;
@@ -2014,7 +2016,7 @@ footer{
 
 .bx-sponsored-link-title{
     margin:0;
-    color:#fff;
+    color:#111827;
     font-size:14px;
     line-height:1.35;
     font-weight:900;
@@ -2022,25 +2024,16 @@ footer{
 
 .bx-sponsored-link-sub{
     margin-top:4px;
-    color:var(--muted);
+    color:#64748b;
     font-size:10px;
     line-height:1.5;
 }
 
-.bx-sponsored-link-btn{
+.bx-sponsored-link-open{
     flex-shrink:0;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-height:38px;
-    padding:9px 13px;
-    border-radius:10px;
-    background:var(--gold);
-    color:#111;
-    font-size:10px;
+    color:#2563eb;
+    font-size:18px;
     font-weight:900;
-    text-decoration:none;
-    white-space:nowrap;
 }
 
 @media(max-width:700px){
@@ -2053,8 +2046,8 @@ footer{
         flex-direction:column;
     }
 
-    .bx-sponsored-link-btn{
-        width:100%;
+    .bx-sponsored-link-open{
+        align-self:flex-end;
     }
 }
 
@@ -2072,6 +2065,10 @@ footer{
     z-index:1700;
     width:min(980px, calc(100vw - 28px));
     padding:0;
+}
+
+body.bx-bottom-ad-visible{
+    padding-bottom:150px !important;
 }
 
 #bxTopStickyAd{ top:76px; }
@@ -2756,6 +2753,9 @@ updateSiteNewBadges();
         `;
 
         root.style.display = "block";
+        if(elementId === "bxBottomStickyAd"){
+            document.body.classList.add("bx-bottom-ad-visible");
+        }
         bindClicks(root);
 
         const video = root.querySelector("video");
@@ -2763,6 +2763,9 @@ updateSiteNewBadges();
 
         root.querySelector(".bx-sticky-close").addEventListener("click", () => {
             root.style.display = "none";
+            if(elementId === "bxBottomStickyAd"){
+                document.body.classList.remove("bx-bottom-ad-visible");
+            }
             if(video) video.pause();
             adPost(ad.id, "skip");
         });
@@ -2921,20 +2924,19 @@ updateSiteNewBadges();
                 : (ad.advertiser_name || "Sponsored Partner");
 
             return `
-                <div class="bx-sponsored-link-card">
+                <a class="bx-sponsored-link-card"
+                   href="${escapeAd(ad.target_url)}"
+                   target="_blank"
+                   rel="sponsored noopener"
+                   data-ad-id="${Number(ad.id)}"
+                   aria-label="Open sponsored link: ${escapeAd(title)}">
                     <div class="bx-sponsored-link-copy">
                         <div class="bx-sponsored-link-label">Sponsored</div>
                         <h3 class="bx-sponsored-link-title">${escapeAd(title)}</h3>
                         <div class="bx-sponsored-link-sub">${escapeAd(subtitle)}</div>
                     </div>
-                    <a class="bx-sponsored-link-btn"
-                       href="${escapeAd(ad.target_url)}"
-                       target="_blank"
-                       rel="sponsored noopener"
-                       data-ad-id="${Number(ad.id)}">
-                        Visit Sponsor →
-                    </a>
-                </div>
+                    <span class="bx-sponsored-link-open" aria-hidden="true">↗</span>
+                </a>
             `;
         }).join("");
 
@@ -3017,7 +3019,7 @@ updateSiteNewBadges();
     async function loadActorRankingsAds(){
         try{
             const response = await fetch(
-                `/ads/active?placement=rankings&page=${encodeURIComponent(AD_PAGE)}`,
+                `/ads/active?placement=actor_rankings&page=${encodeURIComponent(AD_PAGE)}`,
                 {cache:"no-store"}
             );
 

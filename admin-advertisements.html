@@ -547,7 +547,7 @@
             z-index: 5000;
             padding: 20px;
             overflow-y: auto;
-            background: rgba(0,0,0,.78);
+            background: rgba(226,232,240,.90);
         }
 
         .modal-card {
@@ -774,7 +774,7 @@
             align-items: center;
             justify-content: center;
             padding: 28px;
-            background: rgba(0,0,0,.78);
+            background: rgba(226,232,240,.90);
         }
 
         .preview-fullscreen-inner {
@@ -801,15 +801,16 @@
             justify-content: space-between;
             gap: 14px;
             padding: 15px;
-            border: 1px solid #d7dce5;
+            border: 1px solid #dbe3ef;
             border-radius: 12px;
-            background: white;
-            box-shadow: 0 7px 20px rgba(0,0,0,.08);
+            background: linear-gradient(135deg,#ffffff 0%,#f7f9ff 58%,#fffaf0 100%);
+            box-shadow: 0 7px 20px rgba(15,23,42,.08);
+            color: #111827;
         }
 
         .preview-sponsored-link strong { display: block; font-size: 15px; }
         .preview-sponsored-link small { display: block; margin-top: 4px; color: #667085; }
-        .preview-sponsored-link .cta { white-space: nowrap; font-weight: 900; color: #1f4f99; }
+        .preview-sponsored-link .cta { white-space: nowrap; font-weight: 900; color: #2563eb; font-size:18px; }
 
         .preview-close-x {
             position: absolute;
@@ -1155,22 +1156,7 @@
                 <input id="targetUrl" type="url" placeholder="https://advertiser-site.com/...">
             </div>
 
-            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="createPlacementGrid">
-<label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="create"> All Public Pages / Sitewide</label>
-<label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="create"> Homepage</label>
-<label class="placement-option"><input type="checkbox" value="movie_pages" data-placement-group="create"> Movie Pages</label>
-<label class="placement-option"><input type="checkbox" value="actor_pages" data-placement-group="create"> Actor Pages</label>
-<label class="placement-option"><input type="checkbox" value="article_pages" data-placement-group="create"> Article Pages</label>
-<label class="placement-option"><input type="checkbox" value="movie_compare" data-placement-group="create"> Movie Compare</label>
-<label class="placement-option"><input type="checkbox" value="actor_compare" data-placement-group="create"> Actor Compare</label>
-<label class="placement-option"><input type="checkbox" value="rankings" data-placement-group="create"> Rankings</label>
-<label class="placement-option"><input type="checkbox" value="search" data-placement-group="create"> Search / Results</label>
-<label class="placement-option"><input type="checkbox" value="boxoffice_pages" data-placement-group="create"> Box Office / Collections</label>
-<label class="placement-option"><input type="checkbox" value="regional_pages" data-placement-group="create"> Regional / Industry Pages</label>
-<label class="placement-option"><input type="checkbox" value="discovery_pages" data-placement-group="create"> Movies / Discovery / Lists</label>
-<label class="placement-option"><input type="checkbox" value="sponsors_page" data-placement-group="create"> Sponsors / Partners</label>
-<label class="placement-option"><input type="checkbox" value="selected_pages" data-placement-group="create"> Custom / Selected Pages</label>
-</div><div class="helper">Select one or many groups. Choose All Public Pages / Sitewide to cover the whole public site.</div></div>
+            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="createPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="create"> All 14 Advertising Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="create"> Homepage</label><label class="placement-option"><input type="checkbox" value="new_movies" data-placement-group="create"> New Movies</label><label class="placement-option"><input type="checkbox" value="movie_detail" data-placement-group="create"> Movie Detail</label><label class="placement-option"><input type="checkbox" value="actors_list" data-placement-group="create"> Actors List</label><label class="placement-option"><input type="checkbox" value="actor_detail" data-placement-group="create"> Actor Detail</label><label class="placement-option"><input type="checkbox" value="actor_movies" data-placement-group="create"> Actor Movies</label><label class="placement-option"><input type="checkbox" value="articles_list" data-placement-group="create"> Articles List</label><label class="placement-option"><input type="checkbox" value="article_detail" data-placement-group="create"> Article Detail</label><label class="placement-option"><input type="checkbox" value="movie_rankings" data-placement-group="create"> Movie Rankings</label><label class="placement-option"><input type="checkbox" value="actor_rankings" data-placement-group="create"> Actor Rankings</label><label class="placement-option"><input type="checkbox" value="actor_compare_select" data-placement-group="create"> Actor Compare Selection</label><label class="placement-option"><input type="checkbox" value="actor_compare_results" data-placement-group="create"> Actor Compare Results</label><label class="placement-option"><input type="checkbox" value="movie_compare_select" data-placement-group="create"> Movie Compare Selection</label><label class="placement-option"><input type="checkbox" value="movie_compare_results" data-placement-group="create"> Movie Compare Results</label></div><div class="helper">Select one or more exact public pages. Choose Sitewide to cover all 14 advertising-enabled pages.</div></div>
 
             <div id="pageTargetGroup" class="form-group" style="display:none">
                 <label>Selected Page Target</label>
@@ -1495,7 +1481,7 @@
                 <input id="editTargetUrl" type="url">
             </div>
 
-            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="editPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="edit"> All Public Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="edit"> Homepage</label><label class="placement-option"><input type="checkbox" value="movie_pages" data-placement-group="edit"> Movie Pages</label><label class="placement-option"><input type="checkbox" value="actor_pages" data-placement-group="edit"> Actor Pages</label><label class="placement-option"><input type="checkbox" value="article_pages" data-placement-group="edit"> Article Pages</label><label class="placement-option"><input type="checkbox" value="movie_compare" data-placement-group="edit"> Movie Compare</label><label class="placement-option"><input type="checkbox" value="actor_compare" data-placement-group="edit"> Actor Compare</label><label class="placement-option"><input type="checkbox" value="rankings" data-placement-group="edit"> Rankings</label><label class="placement-option"><input type="checkbox" value="search" data-placement-group="edit"> Search / Results</label><label class="placement-option"><input type="checkbox" value="boxoffice_pages" data-placement-group="edit"> Box Office / Collections</label><label class="placement-option"><input type="checkbox" value="regional_pages" data-placement-group="edit"> Regional / Industry Pages</label><label class="placement-option"><input type="checkbox" value="discovery_pages" data-placement-group="edit"> Movies / Discovery / Lists</label><label class="placement-option"><input type="checkbox" value="sponsors_page" data-placement-group="edit"> Sponsors / Partners</label><label class="placement-option"><input type="checkbox" value="selected_pages" data-placement-group="edit"> Custom / Selected Pages</label></div></div>
+            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="editPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="edit"> All 14 Advertising Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="edit"> Homepage</label><label class="placement-option"><input type="checkbox" value="new_movies" data-placement-group="edit"> New Movies</label><label class="placement-option"><input type="checkbox" value="movie_detail" data-placement-group="edit"> Movie Detail</label><label class="placement-option"><input type="checkbox" value="actors_list" data-placement-group="edit"> Actors List</label><label class="placement-option"><input type="checkbox" value="actor_detail" data-placement-group="edit"> Actor Detail</label><label class="placement-option"><input type="checkbox" value="actor_movies" data-placement-group="edit"> Actor Movies</label><label class="placement-option"><input type="checkbox" value="articles_list" data-placement-group="edit"> Articles List</label><label class="placement-option"><input type="checkbox" value="article_detail" data-placement-group="edit"> Article Detail</label><label class="placement-option"><input type="checkbox" value="movie_rankings" data-placement-group="edit"> Movie Rankings</label><label class="placement-option"><input type="checkbox" value="actor_rankings" data-placement-group="edit"> Actor Rankings</label><label class="placement-option"><input type="checkbox" value="actor_compare_select" data-placement-group="edit"> Actor Compare Selection</label><label class="placement-option"><input type="checkbox" value="actor_compare_results" data-placement-group="edit"> Actor Compare Results</label><label class="placement-option"><input type="checkbox" value="movie_compare_select" data-placement-group="edit"> Movie Compare Selection</label><label class="placement-option"><input type="checkbox" value="movie_compare_results" data-placement-group="edit"> Movie Compare Results</label></div></div>
 
             <div class="form-group">
                 <label>Page Target</label>
@@ -2257,7 +2243,7 @@
                     <div class="preview-ad-label">Sponsored</div>
                     <div class="preview-sponsored-link">
                         <div><strong>${campaign}</strong><small>${advertiser} • ${category}</small></div>
-                        <div class="cta">Visit Sponsor →</div>
+                        <div class="cta">↗</div>
                     </div>
                 </div>`;
             return;
