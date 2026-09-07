@@ -981,6 +981,426 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
 .share-tools button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}
 .share-tools button:hover{border-color:rgba(77,141,255,.40);background:rgba(77,141,255,.10)}
 
+
+/* =========================================================
+   BOXOFFICEX DIRECT ADVERTISING - ACTOR COMPARE RESULTS
+========================================================= */
+
+.bx-ad-label{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-bottom:7px;
+    color:var(--muted-2);
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+}
+
+#bxTopBannerAd,
+#bxHomepageAd{
+    display:none;
+    width:100%;
+    max-width:var(--content-width);
+    margin:14px auto 0;
+    padding:0 18px;
+}
+
+.bx-ad-card{
+    position:relative;
+    overflow:hidden;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:#0c1322;
+    box-shadow:var(--shadow-small);
+}
+
+.bx-ad-click{
+    display:block;
+    cursor:pointer;
+}
+
+.bx-ad-banner-media{
+    display:block;
+    width:100%;
+    max-height:190px;
+    object-fit:cover;
+    background:#0b1020;
+}
+
+.bx-ad-content-media{
+    display:block;
+    width:100%;
+    max-height:330px;
+    object-fit:cover;
+    background:#0b1020;
+}
+
+.bx-ad-sponsored{
+    position:absolute;
+    top:8px;
+    left:8px;
+    z-index:4;
+    padding:5px 8px;
+    border-radius:999px;
+    background:rgba(0,0,0,.70);
+    color:#fff;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+}
+
+#bxSmallVideoAd{
+    display:none;
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:1800;
+    width:min(360px, calc(100vw - 28px));
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:16px;
+    background:#05070d;
+    box-shadow:0 18px 55px rgba(0,0,0,.55);
+}
+
+#bxSmallVideoAd video{
+    display:block;
+    width:100%;
+    max-height:220px;
+    background:#000;
+}
+
+.bx-video-ad-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 10px;
+    color:#cbd5e8;
+    background:#0c1322;
+    font-size:9px;
+    font-weight:800;
+}
+
+.bx-video-ad-close{
+    width:28px;
+    height:28px;
+    border:0;
+    border-radius:50%;
+    background:rgba(255,255,255,.10);
+    color:#fff;
+    cursor:pointer;
+}
+
+#bxFullscreenAd{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:rgba(0,0,0,.94);
+}
+
+.bx-fullscreen-inner{
+    position:relative;
+    width:min(1100px, 100%);
+    max-height:94vh;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:18px;
+    background:#05070d;
+    box-shadow:0 25px 80px rgba(0,0,0,.7);
+}
+
+.bx-fullscreen-media{
+    display:block;
+    width:100%;
+    max-height:88vh;
+    object-fit:contain;
+    background:#000;
+}
+
+.bx-fullscreen-controls{
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.bx-fullscreen-countdown,
+.bx-fullscreen-skip{
+    min-height:36px;
+    padding:8px 11px;
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:10px;
+    background:rgba(0,0,0,.72);
+    color:#fff;
+    font-size:10px;
+    font-weight:900;
+}
+
+.bx-fullscreen-skip{
+    cursor:pointer;
+}
+
+.bx-fullscreen-skip:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+@media(max-width:700px){
+    #bxTopBannerAd,
+    #bxHomepageAd{
+        padding:0 13px;
+    }
+
+    .bx-ad-banner-media{
+        max-height:145px;
+    }
+
+    #bxSmallVideoAd{
+        right:10px;
+        bottom:78px;
+        width:min(320px, calc(100vw - 20px));
+    }
+
+    #bxFullscreenAd{
+        padding:8px;
+    }
+
+    .bx-fullscreen-inner{
+        border-radius:13px;
+    }
+}
+
+
+
+.bx-sponsored-link-wrap{
+    display:none;
+    width:100%;
+    max-width:var(--content-width);
+    margin:14px auto 0;
+    padding:0 18px;
+}
+
+.bx-sponsored-link-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 16px;
+    border:1px solid rgba(255,204,51,.18);
+    border-radius:14px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,204,51,.06),
+            rgba(77,141,255,.05)
+        ),
+        #0d1423;
+    box-shadow:var(--shadow-small);
+}
+
+.bx-sponsored-link-copy{
+    min-width:0;
+}
+
+.bx-sponsored-link-label{
+    margin-bottom:5px;
+    color:var(--gold);
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+}
+
+.bx-sponsored-link-title{
+    margin:0;
+    color:#fff;
+    font-size:14px;
+    line-height:1.35;
+    font-weight:900;
+}
+
+.bx-sponsored-link-sub{
+    margin-top:4px;
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.5;
+}
+
+.bx-sponsored-link-btn{
+    flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:9px 13px;
+    border-radius:10px;
+    background:var(--gold);
+    color:#111;
+    font-size:10px;
+    font-weight:900;
+    text-decoration:none;
+    white-space:nowrap;
+}
+
+@media(max-width:700px){
+    .bx-sponsored-link-wrap{
+        padding:0 13px;
+    }
+
+    .bx-sponsored-link-card{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .bx-sponsored-link-btn{
+        width:100%;
+    }
+}
+
+
+
+/* =========================================================
+   BOXOFFICEX V1+ AD SLOT EXTENSIONS
+========================================================= */
+#bxTopStickyAd,
+#bxBottomStickyAd{
+    display:none;
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1700;
+    width:min(980px, calc(100vw - 28px));
+    padding:0;
+}
+
+#bxTopStickyAd{ top:76px; }
+#bxBottomStickyAd{ bottom:12px; }
+
+.bx-sticky-shell{
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:14px;
+    background:#080c15;
+    box-shadow:0 16px 45px rgba(0,0,0,.42);
+}
+
+.bx-sticky-shell img,
+.bx-sticky-shell video{
+    display:block;
+    width:100%;
+    max-height:110px;
+    object-fit:cover;
+    background:#000;
+}
+
+.bx-sticky-close{
+    position:absolute;
+    top:7px;
+    right:7px;
+    z-index:6;
+    width:28px;
+    height:28px;
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:50%;
+    background:rgba(0,0,0,.72);
+    color:#fff;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+}
+
+#bxSponsoredLinkAd{
+    gap:10px;
+}
+
+#bxSponsoredLinkAd.bx-sponsored-link-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+.bx-sponsored-link-card{
+    min-width:0;
+}
+
+#bxInContentVideoAds{
+    display:none;
+    width:100%;
+    max-width:var(--content-width);
+    margin:14px auto 0;
+    padding:0 18px;
+}
+
+.bx-invideo-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+}
+
+.bx-invideo-card{
+    overflow:hidden;
+    border:1px solid var(--border);
+    border-radius:15px;
+    background:#0c1322;
+    box-shadow:var(--shadow-small);
+}
+
+.bx-invideo-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 10px;
+    color:#cbd5e8;
+    font-size:9px;
+    font-weight:800;
+}
+
+.bx-invideo-card video{
+    display:block;
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    background:#000;
+}
+
+@media(max-width:700px){
+    #bxTopStickyAd{
+        top:68px;
+        width:calc(100vw - 16px);
+    }
+
+    #bxBottomStickyAd{
+        bottom:8px;
+        width:calc(100vw - 16px);
+    }
+
+    .bx-sticky-shell img,
+    .bx-sticky-shell video{
+        max-height:82px;
+    }
+
+    #bxSponsoredLinkAd.bx-sponsored-link-grid,
+    .bx-invideo-grid{
+        grid-template-columns:1fr;
+    }
+
+    #bxInContentVideoAds{
+        padding:0 13px;
+    }
+}
+
 </style>
 
 </head>
@@ -1015,6 +1435,8 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
 </nav>
     </div>
 </header>
+<div id="bxTopBannerAd" aria-label="Sponsored advertisement"></div>
+
 
 
 <main>
@@ -1041,6 +1463,8 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
          CONTENT
     ============================== -->
 
+    <section id="bxActorCompareAd" aria-label="Sponsored advertisement"></section>
+
     <div id="comparisonContent">
 
         <div class="loading">
@@ -1051,9 +1475,17 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
 
 
 <div id="heroShareTools"></div>
+<section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
+
 </main>
 
 
+
+<div id="bxTopStickyAd" aria-label="Top sticky sponsored advertisement"></div>
+<div id="bxBottomStickyAd" aria-label="Bottom sticky sponsored advertisement"></div>
+<div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
+<div id="bxFullscreenAd" aria-label="Full screen sponsored advertisement"></div>
 
 <footer class="site-footer">
 <div class="footer-inner">
@@ -2540,6 +2972,459 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 </script>
 
+<script>
+/* =========================================================
+   BOXOFFICEX ACTOR COMPARE RESULTS ADVERTISEMENT RENDERER
+   - one-at-a-time rotation for exclusive slots
+   - up to 5 sponsored links
+   - top/bottom sticky slots
+   - multiple safe in-content videos
+========================================================= */
+(function(){
+
+    const AD_PAGE = location.pathname || "/";
+    const MAX_SPONSORED_LINKS = 5;
+    const MAX_INCONTENT_VIDEOS = 3;
+
+    function adPost(id, eventName){
+        fetch(`/ads/${id}/${eventName}`, {
+            method: "POST",
+            keepalive: true
+        }).catch(() => {});
+    }
+
+    function mediaUrl(ad){
+        const mobile = window.matchMedia("(max-width: 700px)").matches;
+        return mobile && ad.mobile_media_url
+            ? ad.mobile_media_url
+            : ad.media_url;
+    }
+
+    function frequencyKey(ad){
+        return `boxofficex_ad_${ad.id}_${ad.frequency}`;
+    }
+
+    function eligibleByFrequency(ad){
+        if(ad.frequency === "always") return true;
+
+        const key = frequencyKey(ad);
+
+        if(ad.frequency === "once_session"){
+            return !sessionStorage.getItem(key);
+        }
+
+        const raw = localStorage.getItem(key);
+        if(!raw) return true;
+
+        const last = Number(raw);
+        const hours = ad.frequency === "once_12h" ? 12 : 24;
+
+        return !Number.isFinite(last)
+            || (Date.now() - last) >= hours * 60 * 60 * 1000;
+    }
+
+    function markFrequency(ad){
+        if(ad.frequency === "always") return;
+
+        const key = frequencyKey(ad);
+
+        if(ad.frequency === "once_session"){
+            sessionStorage.setItem(key, "1");
+        } else {
+            localStorage.setItem(key, String(Date.now()));
+        }
+    }
+
+    function escapeAd(value){
+        return String(value || "")
+            .replaceAll("&","&amp;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;");
+    }
+
+    function bindClicks(root){
+        root.querySelectorAll("[data-ad-id]").forEach(el => {
+            el.addEventListener("click", () => {
+                adPost(el.dataset.adId, "click");
+            });
+        });
+    }
+
+    function clickableMedia(ad, className){
+        const url = mediaUrl(ad);
+        const media = ad.media_type === "video"
+            ? `<video class="${className}" src="${escapeAd(url)}" muted autoplay loop playsinline></video>`
+            : `<img class="${className}" src="${escapeAd(url)}" alt="Sponsored advertisement">`;
+
+        return `
+            <div class="bx-ad-card">
+                <span class="bx-ad-sponsored">Sponsored</span>
+                <a class="bx-ad-click"
+                   href="${escapeAd(ad.target_url)}"
+                   target="_blank"
+                   rel="sponsored noopener"
+                   data-ad-id="${Number(ad.id)}">
+                    ${media}
+                </a>
+            </div>
+        `;
+    }
+
+    function eligibleAds(ads, type){
+        return ads.filter(ad => ad.ad_type === type && eligibleByFrequency(ad));
+    }
+
+    function pickOne(ads, type){
+        const matches = eligibleAds(ads, type);
+        if(!matches.length) return null;
+        return matches[Math.floor(Math.random() * matches.length)];
+    }
+
+    function showStandardAd(ad, elementId, mediaClass){
+        if(!ad || !eligibleByFrequency(ad)) return false;
+
+        const root = document.getElementById(elementId);
+        if(!root) return false;
+
+        root.innerHTML = `
+            <div class="bx-ad-label">Advertisement</div>
+            ${clickableMedia(ad, mediaClass)}
+        `;
+        root.style.display = "block";
+        bindClicks(root);
+
+        markFrequency(ad);
+        adPost(ad.id, "impression");
+        return true;
+    }
+
+    function showStickyAd(ad, elementId){
+        if(!ad || !eligibleByFrequency(ad)) return false;
+
+        const root = document.getElementById(elementId);
+        if(!root) return false;
+
+        const url = mediaUrl(ad);
+        const media = ad.media_type === "video"
+            ? `<video src="${escapeAd(url)}" muted autoplay loop playsinline></video>`
+            : `<img src="${escapeAd(url)}" alt="Sponsored advertisement">`;
+
+        root.innerHTML = `
+            <div class="bx-sticky-shell">
+                <span class="bx-ad-sponsored">Sponsored</span>
+                <button class="bx-sticky-close" type="button" aria-label="Close advertisement">×</button>
+                <a href="${escapeAd(ad.target_url)}"
+                   target="_blank"
+                   rel="sponsored noopener"
+                   data-ad-id="${Number(ad.id)}">
+                    ${media}
+                </a>
+            </div>
+        `;
+
+        root.style.display = "block";
+        bindClicks(root);
+
+        const video = root.querySelector("video");
+        if(video) video.play().catch(() => {});
+
+        root.querySelector(".bx-sticky-close").addEventListener("click", () => {
+            root.style.display = "none";
+            if(video) video.pause();
+            adPost(ad.id, "skip");
+        });
+
+        markFrequency(ad);
+        adPost(ad.id, "impression");
+        return true;
+    }
+
+    function showSmallVideo(ad){
+        if(!ad || !eligibleByFrequency(ad)) return false;
+
+        const root = document.getElementById("bxSmallVideoAd");
+        if(!root) return false;
+
+        const url = mediaUrl(ad);
+        let completed = false;
+
+        root.innerHTML = `
+            <div class="bx-video-ad-head">
+                <span>Sponsored • ${escapeAd(ad.advertiser_name || "Advertisement")}</span>
+                <button class="bx-video-ad-close" type="button" aria-label="Close advertisement">×</button>
+            </div>
+            <a href="${escapeAd(ad.target_url)}"
+               target="_blank"
+               rel="sponsored noopener"
+               data-ad-id="${Number(ad.id)}">
+                <video src="${escapeAd(url)}" muted autoplay playsinline controls></video>
+            </a>
+        `;
+
+        root.style.display = "block";
+        bindClicks(root);
+
+        const video = root.querySelector("video");
+        if(video){
+            video.addEventListener("ended", () => {
+                completed = true;
+                adPost(ad.id, "complete");
+            }, {once:true});
+            video.play().catch(() => {});
+        }
+
+        root.querySelector(".bx-video-ad-close").addEventListener("click", () => {
+            root.style.display = "none";
+            if(video) video.pause();
+            if(!completed) adPost(ad.id, "skip");
+        });
+
+        markFrequency(ad);
+        adPost(ad.id, "impression");
+        return true;
+    }
+
+    function showFullscreen(ad){
+        if(!ad || !eligibleByFrequency(ad)) return false;
+
+        const root = document.getElementById("bxFullscreenAd");
+        if(!root) return false;
+
+        const duration = Math.max(1, Math.min(Number(ad.duration_seconds || 5), 60));
+        const skipAfter = Math.min(5, duration);
+        const url = mediaUrl(ad);
+
+        const media = ad.media_type === "video"
+            ? `<video class="bx-fullscreen-media" src="${escapeAd(url)}" muted autoplay playsinline></video>`
+            : `<img class="bx-fullscreen-media" src="${escapeAd(url)}" alt="Sponsored advertisement">`;
+
+        root.innerHTML = `
+            <div class="bx-fullscreen-inner">
+                <a href="${escapeAd(ad.target_url)}"
+                   target="_blank"
+                   rel="sponsored noopener"
+                   data-ad-id="${Number(ad.id)}">
+                    ${media}
+                </a>
+                <span class="bx-ad-sponsored">Sponsored</span>
+                <div class="bx-fullscreen-controls">
+                    <span class="bx-fullscreen-countdown">Ad ${duration}s</span>
+                    <button class="bx-fullscreen-skip" type="button" disabled>
+                        Skip in ${skipAfter}s
+                    </button>
+                </div>
+            </div>
+        `;
+
+        root.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        bindClicks(root);
+
+        const countdown = root.querySelector(".bx-fullscreen-countdown");
+        const skip = root.querySelector(".bx-fullscreen-skip");
+        const video = root.querySelector("video");
+
+        let remaining = duration;
+        let skipRemaining = skipAfter;
+        let closed = false;
+
+        function closeAd(skipped){
+            if(closed) return;
+            closed = true;
+            clearInterval(timer);
+            root.style.display = "none";
+            document.body.style.overflow = "";
+            if(video) video.pause();
+            adPost(ad.id, skipped ? "skip" : "complete");
+        }
+
+        const timer = setInterval(() => {
+            remaining -= 1;
+            skipRemaining -= 1;
+
+            countdown.textContent = `Ad ${Math.max(remaining, 0)}s`;
+
+            if(skipRemaining > 0){
+                skip.textContent = `Skip in ${skipRemaining}s`;
+            } else {
+                skip.disabled = false;
+                skip.textContent = "Skip Ad";
+            }
+
+            if(remaining <= 0){
+                closeAd(false);
+            }
+        }, 1000);
+
+        skip.addEventListener("click", () => {
+            if(!skip.disabled) closeAd(true);
+        });
+
+        if(video){
+            video.play().catch(() => {});
+            video.addEventListener("ended", () => closeAd(false), {once:true});
+        }
+
+        markFrequency(ad);
+        adPost(ad.id, "impression");
+        return true;
+    }
+
+    function showSponsoredLinks(ads){
+        const root = document.getElementById("bxSponsoredLinkAd");
+        if(!root) return 0;
+
+        const selected = ads
+            .filter(ad => ad.ad_type === "sponsored_link" && eligibleByFrequency(ad))
+            .slice(0, MAX_SPONSORED_LINKS);
+
+        if(!selected.length) return 0;
+
+        root.classList.add("bx-sponsored-link-grid");
+        root.innerHTML = selected.map(ad => {
+            const title = ad.campaign_name || ad.advertiser_name || "Sponsored Partner";
+            const subtitle = ad.business_category
+                ? `${ad.advertiser_name || "Sponsor"} • ${ad.business_category}`
+                : (ad.advertiser_name || "Sponsored Partner");
+
+            return `
+                <div class="bx-sponsored-link-card">
+                    <div class="bx-sponsored-link-copy">
+                        <div class="bx-sponsored-link-label">Sponsored</div>
+                        <h3 class="bx-sponsored-link-title">${escapeAd(title)}</h3>
+                        <div class="bx-sponsored-link-sub">${escapeAd(subtitle)}</div>
+                    </div>
+                    <a class="bx-sponsored-link-btn"
+                       href="${escapeAd(ad.target_url)}"
+                       target="_blank"
+                       rel="sponsored noopener"
+                       data-ad-id="${Number(ad.id)}">
+                        Visit Sponsor →
+                    </a>
+                </div>
+            `;
+        }).join("");
+
+        root.style.display = "grid";
+        bindClicks(root);
+
+        selected.forEach(ad => {
+            markFrequency(ad);
+            adPost(ad.id, "impression");
+        });
+
+        return selected.length;
+    }
+
+    function showInContentVideos(ads){
+        const root = document.getElementById("bxInContentVideoAds");
+        if(!root) return 0;
+
+        const selected = ads
+            .filter(ad => ad.ad_type === "in_content_video" && eligibleByFrequency(ad))
+            .slice(0, MAX_INCONTENT_VIDEOS);
+
+        if(!selected.length) return 0;
+
+        root.innerHTML = `
+            <div class="bx-ad-label">Advertisement</div>
+            <div class="bx-invideo-grid">
+                ${selected.map(ad => `
+                    <div class="bx-invideo-card">
+                        <div class="bx-invideo-head">
+                            <span>Sponsored • ${escapeAd(ad.advertiser_name || "Advertisement")}</span>
+                        </div>
+                        <a href="${escapeAd(ad.target_url)}"
+                           target="_blank"
+                           rel="sponsored noopener"
+                           data-ad-id="${Number(ad.id)}">
+                            <video src="${escapeAd(mediaUrl(ad))}" muted playsinline controls preload="metadata"></video>
+                        </a>
+                    </div>
+                `).join("")}
+            </div>
+        `;
+
+        root.style.display = "block";
+        bindClicks(root);
+
+        const cards = [...root.querySelectorAll(".bx-invideo-card")];
+        cards.forEach((card, index) => {
+            const ad = selected[index];
+            const video = card.querySelector("video");
+            if(!video) return;
+
+            let completed = false;
+            video.addEventListener("ended", () => {
+                if(completed) return;
+                completed = true;
+                adPost(ad.id, "complete");
+            });
+
+            if("IntersectionObserver" in window){
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if(entry.isIntersecting && entry.intersectionRatio >= 0.6){
+                            video.play().catch(() => {});
+                        }else{
+                            video.pause();
+                        }
+                    });
+                }, {threshold:[0,.6,1]});
+                observer.observe(video);
+            }
+
+            markFrequency(ad);
+            adPost(ad.id, "impression");
+        });
+
+        return selected.length;
+    }
+
+    async function loadActorCompareAds(){
+        try{
+            const response = await fetch(
+                `/ads/active?placement=actor_compare&page=${encodeURIComponent(AD_PAGE)}`,
+                {cache:"no-store"}
+            );
+
+            if(!response.ok) return;
+
+            const data = await response.json();
+            const ads = Array.isArray(data.advertisements)
+                ? data.advertisements
+                : [];
+
+            const fullscreen = pickOne(ads, "full_screen");
+            const topBanner = pickOne(ads, "top_banner");
+            const compareAd = pickOne(ads, "homepage");
+            const smallVideo = pickOne(ads, "small_video");
+            const topSticky = pickOne(ads, "top_sticky");
+            const bottomSticky = pickOne(ads, "bottom_sticky");
+
+            if(topBanner) showStandardAd(topBanner, "bxTopBannerAd", "bx-ad-banner-media");
+            showSponsoredLinks(ads);
+            showInContentVideos(ads);
+            if(compareAd) showStandardAd(compareAd, "bxActorCompareAd", "bx-ad-content-media");
+            if(smallVideo) showSmallVideo(smallVideo);
+            if(topSticky) showStickyAd(topSticky, "bxTopStickyAd");
+            if(bottomSticky) showStickyAd(bottomSticky, "bxBottomStickyAd");
+            if(fullscreen) setTimeout(() => showFullscreen(fullscreen), 500);
+
+        }catch(error){
+            console.warn("BoxOfficeX advertisements unavailable:", error);
+        }
+    }
+
+    if(document.readyState === "loading"){
+        document.addEventListener("DOMContentLoaded", loadActorCompareAds);
+    }else{
+        loadActorCompareAds();
+    }
+
+})();
+</script>
 </body>
 
 </html>

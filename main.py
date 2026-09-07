@@ -259,6 +259,9 @@ class AdvertisementCreateData(BaseModel):
     ad_type: Literal[
         "full_screen",
         "top_banner",
+        "top_sticky",
+        "bottom_sticky",
+        "in_content_video",
         "homepage",
         "movie_page",
         "actor_page",
@@ -275,17 +278,8 @@ class AdvertisementCreateData(BaseModel):
     mobile_media_url: Optional[str] = None
     target_url: str
 
-    placement: Literal[
-        "homepage",
-        "movie_pages",
-        "actor_pages",
-        "article_pages",
-        "rankings_compare",
-        "search",
-        "sponsors_page",
-        "selected_pages",
-        "sitewide",
-    ]
+    # Comma-separated placement groups; supports one or many public page groups.
+    placement: str
 
     page_target: Optional[str] = None
     duration_seconds: Optional[int] = None
@@ -314,6 +308,9 @@ class AdvertisementUpdateData(BaseModel):
         Literal[
             "full_screen",
             "top_banner",
+            "top_sticky",
+            "bottom_sticky",
+            "in_content_video",
             "homepage",
             "movie_page",
             "actor_page",
@@ -331,19 +328,8 @@ class AdvertisementUpdateData(BaseModel):
     mobile_media_url: Optional[str] = None
     target_url: Optional[str] = None
 
-    placement: Optional[
-        Literal[
-            "homepage",
-            "movie_pages",
-            "actor_pages",
-            "article_pages",
-            "rankings_compare",
-            "search",
-            "sponsors_page",
-            "selected_pages",
-            "sitewide",
-        ]
-    ] = None
+    # Comma-separated placement groups; supports one or many public page groups.
+    placement: Optional[str] = None
 
     page_target: Optional[str] = None
     duration_seconds: Optional[int] = None
@@ -756,6 +742,12 @@ def initialize_advertisement_system():
                     CHECK (end_date >= start_date)
                 )
             """)
+
+            # V1.1 advertising upgrade: existing installs originally used CHECK
+            # constraints for one placement and the first ad-type set. Placement is
+            # now validated by the app and may contain comma-separated page groups.
+            cur.execute("ALTER TABLE advertisements DROP CONSTRAINT IF EXISTS advertisements_placement_check")
+            cur.execute("ALTER TABLE advertisements DROP CONSTRAINT IF EXISTS advertisements_ad_type_check")
 
             cur.execute("""
                 CREATE INDEX IF NOT EXISTS
@@ -8766,6 +8758,26 @@ def _clean_optional_ad_text(value: Optional[str]):
     return value or None
 
 
+AD_PLACEMENT_GROUPS = {
+    "homepage", "movie_pages", "actor_pages", "article_pages",
+    "movie_compare", "actor_compare", "rankings", "search",
+    "boxoffice_pages", "regional_pages", "discovery_pages",
+    "sponsors_page", "selected_pages", "sitewide",
+}
+
+def _normalize_ad_placements(value: str) -> str:
+    items = [item.strip() for item in (value or "").split(",") if item.strip()]
+    if not items:
+        raise HTTPException(status_code=400, detail="At least one advertisement placement is required")
+    if "sitewide" in items:
+        return "sitewide"
+    invalid = [item for item in items if item not in AD_PLACEMENT_GROUPS]
+    if invalid:
+        raise HTTPException(status_code=400, detail=f"Invalid advertisement placement: {invalid[0]}")
+    # Preserve selection order while removing duplicates.
+    return ",".join(dict.fromkeys(items))
+
+
 def _validate_advertisement_values(
     *,
     start_date_value: date,
@@ -8986,6 +8998,8 @@ def admin_create_advertisement(
         "Target URL"
     )
 
+    normalized_placement = _normalize_ad_placements(data.placement)
+
     _validate_advertisement_values(
         start_date_value=data.start_date,
         end_date_value=data.end_date,
@@ -9038,7 +9052,7 @@ def admin_create_advertisement(
                 media_url,
                 _clean_optional_ad_text(data.mobile_media_url),
                 target_url,
-                data.placement,
+                normalized_placement,
                 _clean_optional_ad_text(data.page_target),
                 data.duration_seconds,
                 data.frequency,
@@ -9173,6 +9187,9 @@ def admin_update_advertisement(
                 "is_active",
                 "amount_paid",
             }
+
+            if "placement" in update_data:
+                update_data["placement"] = _normalize_ad_placements(update_data["placement"])
 
             fields = []
             values = []
@@ -9324,7 +9341,7 @@ def get_active_public_advertisements(
                 WHERE is_active = TRUE
                   AND start_date <= %s
                   AND end_date >= %s
-                ORDER BY id DESC
+                ORDER BY random()
                 """,
                 (today, today)
             )
@@ -9344,15 +9361,18 @@ def get_active_public_advertisements(
             row
         ))
 
+        placement_groups = {
+            item.strip()
+            for item in (ad.get("placement") or "").split(",")
+            if item.strip()
+        }
+
         if placement:
-            allowed = (
-                ad["placement"] == placement
-                or ad["placement"] == "sitewide"
-            )
+            allowed = placement in placement_groups or "sitewide" in placement_groups
             if not allowed:
                 continue
 
-        if ad["placement"] == "selected_pages":
+        if "selected_pages" in placement_groups:
             target = (ad.get("page_target") or "").strip()
             if not page or not target:
                 continue

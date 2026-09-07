@@ -578,6 +578,266 @@
             font-size: 20px;
         }
 
+
+
+        /* ============================================================
+           CAMPAIGN PREVIEW
+           ============================================================ */
+        .preview-modal-card {
+            width: min(1040px, 100%);
+        }
+
+        .preview-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .preview-device-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preview-device-toggle button.active {
+            border-color: #526a9d;
+            background: #243455;
+            color: #dbe8ff;
+        }
+
+        .preview-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .preview-meta-item {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-3);
+        }
+
+        .preview-meta-item span {
+            display: block;
+            color: var(--muted);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .preview-meta-item strong {
+            display: block;
+            margin-top: 5px;
+            color: white;
+            font-size: 12px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .preview-stage-shell {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: #05070d;
+            overflow: auto;
+        }
+
+        .preview-stage {
+            position: relative;
+            width: min(100%, 920px);
+            min-height: 520px;
+            margin: 0 auto;
+            border: 1px solid #28334b;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f5f6f8;
+            color: #111827;
+            box-shadow: 0 18px 50px rgba(0,0,0,.28);
+        }
+
+        .preview-stage.mobile {
+            width: 390px;
+            max-width: 100%;
+            min-height: 680px;
+        }
+
+        .preview-site-header {
+            min-height: 64px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #0c1220;
+            color: white;
+        }
+
+        .preview-site-brand {
+            font-size: 18px;
+            font-weight: 1000;
+            letter-spacing: .8px;
+        }
+
+        .preview-site-brand span { color: #ffcc33; }
+
+        .preview-site-nav {
+            color: #b8c3d8;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .preview-page-content {
+            padding: 22px;
+        }
+
+        .preview-content-block {
+            height: 70px;
+            margin-bottom: 14px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #e4e7ec, #f1f3f6);
+        }
+
+        .preview-content-block.short { width: 65%; height: 22px; }
+        .preview-content-block.medium { height: 110px; }
+
+        .preview-ad-label {
+            display: inline-block;
+            margin-bottom: 7px;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .7px;
+            text-transform: uppercase;
+            color: #667085;
+        }
+
+        .preview-ad-card {
+            position: relative;
+            width: 100%;
+            border: 1px solid #d7dce5;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .preview-ad-card img,
+        .preview-ad-card video {
+            display: block;
+            width: 100%;
+            max-height: 310px;
+            object-fit: contain;
+            background: #05070d;
+        }
+
+        .preview-top-banner { margin: 12px 16px 0; }
+        .preview-in-content { margin: 20px 0; }
+
+        .preview-sticky {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            z-index: 10;
+            padding: 7px;
+            border: 1px solid #d7dce5;
+            border-radius: 10px;
+            background: rgba(255,255,255,.98);
+            box-shadow: 0 8px 25px rgba(0,0,0,.18);
+        }
+
+        .preview-sticky.top { top: 72px; }
+        .preview-sticky.bottom { bottom: 10px; }
+        .preview-sticky img, .preview-sticky video { width: 100%; max-height: 90px; object-fit: contain; display: block; }
+
+        .preview-floating-video {
+            position: absolute;
+            right: 14px;
+            bottom: 14px;
+            width: min(320px, calc(100% - 28px));
+            z-index: 12;
+            border: 1px solid #d7dce5;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #05070d;
+            box-shadow: 0 12px 32px rgba(0,0,0,.28);
+        }
+
+        .preview-floating-video video, .preview-floating-video img { width: 100%; display: block; }
+
+        .preview-fullscreen {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            background: rgba(0,0,0,.78);
+        }
+
+        .preview-fullscreen-inner {
+            width: min(720px, 100%);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #111827;
+            color: white;
+            box-shadow: 0 22px 60px rgba(0,0,0,.45);
+        }
+
+        .preview-fullscreen-inner img,
+        .preview-fullscreen-inner video {
+            display: block;
+            width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            background: #05070d;
+        }
+
+        .preview-sponsored-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 15px;
+            border: 1px solid #d7dce5;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 7px 20px rgba(0,0,0,.08);
+        }
+
+        .preview-sponsored-link strong { display: block; font-size: 15px; }
+        .preview-sponsored-link small { display: block; margin-top: 4px; color: #667085; }
+        .preview-sponsored-link .cta { white-space: nowrap; font-weight: 900; color: #1f4f99; }
+
+        .preview-close-x {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(0,0,0,.70);
+            color: white;
+            font-weight: 900;
+        }
+
+        .preview-empty {
+            padding: 30px;
+            text-align: center;
+            color: #667085;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 700px) {
+            .preview-meta { grid-template-columns: 1fr; }
+            .preview-site-nav { display: none; }
+            .preview-stage-shell { padding: 10px; }
+        }
+
         @media (max-width: 1050px) {
             .admin-topbar {
                 flex-wrap: wrap;
@@ -651,6 +911,11 @@
                 width: 100%;
             }
         }
+
+        .placement-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:6px; }
+        .placement-option { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel-2); font-size:11px; font-weight:800; cursor:pointer; }
+        .placement-option input { width:auto; }
+        @media (max-width:650px){ .placement-grid { grid-template-columns:1fr 1fr; } }
     </style>
 </head>
 
@@ -768,6 +1033,9 @@
                 <select id="adType" onchange="syncDurationVisibility()">
                     <option value="full_screen">Full Screen</option>
                     <option value="top_banner">Top Banner</option>
+                    <option value="top_sticky">Top Sticky</option>
+                    <option value="bottom_sticky">Bottom Sticky</option>
+                    <option value="in_content_video">In-content Video</option>
                     <option value="homepage">Homepage Ad</option>
                     <option value="movie_page">Movie Page Ad</option>
                     <option value="actor_page">Actor Page Ad</option>
@@ -887,20 +1155,22 @@
                 <input id="targetUrl" type="url" placeholder="https://advertiser-site.com/...">
             </div>
 
-            <div class="form-group">
-                <label>Placement *</label>
-                <select id="placement" onchange="syncPageTargetVisibility()">
-                    <option value="homepage">Homepage</option>
-                    <option value="movie_pages">All Movie Pages</option>
-                    <option value="actor_pages">All Actor Pages</option>
-                    <option value="article_pages">All Article Pages</option>
-                    <option value="rankings_compare">Rankings & Compare</option>
-                    <option value="search">Search</option>
-                    <option value="sponsors_page">Sponsors Page</option>
-                    <option value="selected_pages">Selected Pages</option>
-                    <option value="sitewide">Site-wide</option>
-                </select>
-            </div>
+            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="createPlacementGrid">
+<label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="create"> All Public Pages / Sitewide</label>
+<label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="create"> Homepage</label>
+<label class="placement-option"><input type="checkbox" value="movie_pages" data-placement-group="create"> Movie Pages</label>
+<label class="placement-option"><input type="checkbox" value="actor_pages" data-placement-group="create"> Actor Pages</label>
+<label class="placement-option"><input type="checkbox" value="article_pages" data-placement-group="create"> Article Pages</label>
+<label class="placement-option"><input type="checkbox" value="movie_compare" data-placement-group="create"> Movie Compare</label>
+<label class="placement-option"><input type="checkbox" value="actor_compare" data-placement-group="create"> Actor Compare</label>
+<label class="placement-option"><input type="checkbox" value="rankings" data-placement-group="create"> Rankings</label>
+<label class="placement-option"><input type="checkbox" value="search" data-placement-group="create"> Search / Results</label>
+<label class="placement-option"><input type="checkbox" value="boxoffice_pages" data-placement-group="create"> Box Office / Collections</label>
+<label class="placement-option"><input type="checkbox" value="regional_pages" data-placement-group="create"> Regional / Industry Pages</label>
+<label class="placement-option"><input type="checkbox" value="discovery_pages" data-placement-group="create"> Movies / Discovery / Lists</label>
+<label class="placement-option"><input type="checkbox" value="sponsors_page" data-placement-group="create"> Sponsors / Partners</label>
+<label class="placement-option"><input type="checkbox" value="selected_pages" data-placement-group="create"> Custom / Selected Pages</label>
+</div><div class="helper">Select one or many groups. Choose All Public Pages / Sitewide to cover the whole public site.</div></div>
 
             <div id="pageTargetGroup" class="form-group" style="display:none">
                 <label>Selected Page Target</label>
@@ -960,6 +1230,10 @@
                 💾 CREATE CAMPAIGN
             </button>
 
+            <button type="button" class="secondary-btn" onclick="openCampaignPreview()">
+                👁️ PREVIEW CAMPAIGN
+            </button>
+
             <button class="secondary-btn" onclick="resetCreateForm()">
                 Clear
             </button>
@@ -1008,6 +1282,9 @@
                 <option value="">All Ad Types</option>
                 <option value="full_screen">Full Screen</option>
                 <option value="top_banner">Top Banner</option>
+                    <option value="top_sticky">Top Sticky</option>
+                    <option value="bottom_sticky">Bottom Sticky</option>
+                    <option value="in_content_video">In-content Video</option>
                 <option value="homepage">Homepage</option>
                 <option value="movie_page">Movie Page</option>
                 <option value="actor_page">Actor Page</option>
@@ -1059,6 +1336,38 @@
 </main>
 
 
+
+
+<div id="previewModal" class="modal" aria-hidden="true">
+    <div class="modal-card preview-modal-card">
+        <div class="modal-head">
+            <div>
+                <h2>👁️ Campaign Preview</h2>
+                <div class="muted">Preview only. No impression or click is counted.</div>
+            </div>
+            <button class="modal-close" onclick="closeCampaignPreview()">×</button>
+        </div>
+
+        <div class="preview-toolbar">
+            <div class="preview-device-toggle">
+                <button id="previewDesktopButton" type="button" class="mini-btn active" onclick="setPreviewDevice('desktop')">🖥️ Desktop</button>
+                <button id="previewMobileButton" type="button" class="mini-btn" onclick="setPreviewDevice('mobile')">📱 Mobile</button>
+            </div>
+            <div class="muted" id="previewUrlNote"></div>
+        </div>
+
+        <div class="preview-meta">
+            <div class="preview-meta-item"><span>Campaign</span><strong id="previewCampaignName">—</strong></div>
+            <div class="preview-meta-item"><span>Format</span><strong id="previewFormat">—</strong></div>
+            <div class="preview-meta-item"><span>Show On</span><strong id="previewPlacements">—</strong></div>
+        </div>
+
+        <div class="preview-stage-shell">
+            <div id="previewStage" class="preview-stage"></div>
+        </div>
+    </div>
+</div>
+
 <div id="editModal" class="modal">
 
     <div class="modal-card">
@@ -1092,6 +1401,9 @@
                 <select id="editAdType">
                     <option value="full_screen">Full Screen</option>
                     <option value="top_banner">Top Banner</option>
+                    <option value="top_sticky">Top Sticky</option>
+                    <option value="bottom_sticky">Bottom Sticky</option>
+                    <option value="in_content_video">In-content Video</option>
                     <option value="homepage">Homepage Ad</option>
                     <option value="movie_page">Movie Page Ad</option>
                     <option value="actor_page">Actor Page Ad</option>
@@ -1183,20 +1495,7 @@
                 <input id="editTargetUrl" type="url">
             </div>
 
-            <div class="form-group">
-                <label>Placement *</label>
-                <select id="editPlacement">
-                    <option value="homepage">Homepage</option>
-                    <option value="movie_pages">All Movie Pages</option>
-                    <option value="actor_pages">All Actor Pages</option>
-                    <option value="article_pages">All Article Pages</option>
-                    <option value="rankings_compare">Rankings & Compare</option>
-                    <option value="search">Search</option>
-                    <option value="sponsors_page">Sponsors Page</option>
-                    <option value="selected_pages">Selected Pages</option>
-                    <option value="sitewide">Site-wide</option>
-                </select>
-            </div>
+            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="editPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="edit"> All Public Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="edit"> Homepage</label><label class="placement-option"><input type="checkbox" value="movie_pages" data-placement-group="edit"> Movie Pages</label><label class="placement-option"><input type="checkbox" value="actor_pages" data-placement-group="edit"> Actor Pages</label><label class="placement-option"><input type="checkbox" value="article_pages" data-placement-group="edit"> Article Pages</label><label class="placement-option"><input type="checkbox" value="movie_compare" data-placement-group="edit"> Movie Compare</label><label class="placement-option"><input type="checkbox" value="actor_compare" data-placement-group="edit"> Actor Compare</label><label class="placement-option"><input type="checkbox" value="rankings" data-placement-group="edit"> Rankings</label><label class="placement-option"><input type="checkbox" value="search" data-placement-group="edit"> Search / Results</label><label class="placement-option"><input type="checkbox" value="boxoffice_pages" data-placement-group="edit"> Box Office / Collections</label><label class="placement-option"><input type="checkbox" value="regional_pages" data-placement-group="edit"> Regional / Industry Pages</label><label class="placement-option"><input type="checkbox" value="discovery_pages" data-placement-group="edit"> Movies / Discovery / Lists</label><label class="placement-option"><input type="checkbox" value="sponsors_page" data-placement-group="edit"> Sponsors / Partners</label><label class="placement-option"><input type="checkbox" value="selected_pages" data-placement-group="edit"> Custom / Selected Pages</label></div></div>
 
             <div class="form-group">
                 <label>Page Target</label>
@@ -1422,15 +1721,39 @@
     }
 
 
+    function getSelectedPlacements(scope) {
+        const boxes = [...document.querySelectorAll(`input[data-placement-group="${scope}"]`)];
+        const sitewide = boxes.find(box => box.value === "sitewide");
+        if (sitewide && sitewide.checked) return "sitewide";
+        return boxes.filter(box => box.checked).map(box => box.value).join(",");
+    }
+
+    function setSelectedPlacements(scope, value) {
+        const selected = new Set(String(value || "").split(",").map(v => v.trim()).filter(Boolean));
+        document.querySelectorAll(`input[data-placement-group="${scope}"]`).forEach(box => { box.checked = selected.has(box.value); });
+    }
+
+    function wirePlacementGroups(scope) {
+        document.querySelectorAll(`input[data-placement-group="${scope}"]`).forEach(box => {
+            box.addEventListener("change", () => {
+                if (box.value === "sitewide" && box.checked) {
+                    document.querySelectorAll(`input[data-placement-group="${scope}"]`).forEach(other => { if (other !== box) other.checked = false; });
+                } else if (box.checked) {
+                    const all = document.querySelector(`input[data-placement-group="${scope}"][value="sitewide"]`);
+                    if (all) all.checked = false;
+                }
+                syncPageTargetVisibility();
+            });
+        });
+    }
+
     function syncPageTargetVisibility() {
-
-        const placement = document.getElementById("placement").value;
-
-        document.getElementById("pageTargetGroup").style.display =
-            placement === "selected_pages"
-                ? "block"
-                : "none";
-
+        const createSelected = getSelectedPlacements("create").split(",");
+        const editSelected = getSelectedPlacements("edit").split(",");
+        const createGroup = document.getElementById("pageTargetGroup");
+        if (createGroup) createGroup.style.display = createSelected.includes("selected_pages") ? "block" : "none";
+        const editTarget = document.getElementById("editPageTarget");
+        if (editTarget && editTarget.parentElement) editTarget.parentElement.style.display = editSelected.includes("selected_pages") ? "block" : "none";
     }
 
 
@@ -1454,7 +1777,7 @@
 
         document.getElementById("adType").value = "full_screen";
         document.getElementById("mediaType").value = "image";
-        document.getElementById("placement").value = "homepage";
+        setSelectedPlacements("create", "homepage");
         document.getElementById("frequency").value = "once_24h";
         document.getElementById("isActive").checked = true;
 
@@ -1767,6 +2090,229 @@
     }
 
 
+
+
+    // ============================================================
+    // CREATE-CAMPAIGN PREVIEW
+    // ============================================================
+    let campaignPreviewDevice = "desktop";
+
+    function previewEscape(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function getCreatePreviewData() {
+        return {
+            advertiser_name: document.getElementById("advertiserName").value.trim(),
+            business_category: document.getElementById("businessCategory").value.trim(),
+            campaign_name: document.getElementById("campaignName").value.trim(),
+            ad_type: document.getElementById("adType").value,
+            media_type: document.getElementById("mediaType").value,
+            media_url: document.getElementById("mediaUrl").value.trim(),
+            mobile_media_url: document.getElementById("mobileMediaUrl").value.trim(),
+            target_url: document.getElementById("targetUrl").value.trim(),
+            placement: getSelectedPlacements("create"),
+            duration_seconds: numberOrNull(document.getElementById("durationSeconds").value)
+        };
+    }
+
+    function previewFormatLabel(type) {
+        const labels = {
+            full_screen: "Full Screen",
+            top_banner: "Top Banner",
+            top_sticky: "Top Sticky",
+            bottom_sticky: "Bottom Sticky",
+            in_content_video: "In-content Video",
+            homepage: "Homepage / In-content",
+            movie_page: "Movie Page Ad",
+            actor_page: "Actor Page Ad",
+            article: "Article Ad",
+            small_video: "Small Floating Video",
+            sponsored_movie: "Sponsored Movie",
+            sponsored_article: "Sponsored Article",
+            sponsored_link: "Sponsored Link",
+            search_result: "Search Result Ad"
+        };
+        return labels[type] || type || "—";
+    }
+
+    function previewPlacementLabel(value) {
+        const labels = {
+            sitewide: "All Public Pages / Sitewide",
+            homepage: "Homepage",
+            movie_pages: "Movie Pages",
+            actor_pages: "Actor Pages",
+            article_pages: "Article Pages",
+            movie_compare: "Movie Compare",
+            actor_compare: "Actor Compare",
+            rankings: "Rankings",
+            search: "Search / Results",
+            boxoffice_pages: "Box Office / Collections",
+            regional_pages: "Regional / Industry",
+            discovery_pages: "Movies / Discovery / Lists",
+            sponsors_page: "Sponsors / Partners",
+            selected_pages: "Custom / Selected Pages"
+        };
+        if (!value) return "No page selected";
+        return String(value).split(",").map(v => labels[v] || v).join(", ");
+    }
+
+    function buildPreviewMedia(ad, mediaUrl) {
+        const safeUrl = previewEscape(mediaUrl);
+        if (!safeUrl) {
+            return '<div class="preview-empty">Upload or paste a media URL to see the creative here.</div>';
+        }
+        if (ad.media_type === "video") {
+            return `<video src="${safeUrl}" controls muted playsinline ${ad.ad_type === "small_video" || ad.ad_type === "in_content_video" ? "autoplay" : ""}></video>`;
+        }
+        return `<img src="${safeUrl}" alt="Advertisement preview">`;
+    }
+
+    function renderCampaignPreview() {
+        const ad = getCreatePreviewData();
+        const stage = document.getElementById("previewStage");
+        if (!stage) return;
+
+        stage.className = `preview-stage ${campaignPreviewDevice === "mobile" ? "mobile" : ""}`;
+
+        const mediaUrl = campaignPreviewDevice === "mobile"
+            ? (ad.mobile_media_url || ad.media_url)
+            : ad.media_url;
+
+        document.getElementById("previewCampaignName").textContent = ad.campaign_name || "Untitled Campaign";
+        document.getElementById("previewFormat").textContent = previewFormatLabel(ad.ad_type);
+        document.getElementById("previewPlacements").textContent = previewPlacementLabel(ad.placement);
+        document.getElementById("previewUrlNote").textContent = ad.target_url ? `Click target: ${ad.target_url}` : "Target URL not entered";
+
+        const site = `
+            <div class="preview-site-header">
+                <div class="preview-site-brand">BOXOFFICE<span>X</span></div>
+                <div class="preview-site-nav">Movies &nbsp; Actors &nbsp; Rankings &nbsp; Compare</div>
+            </div>
+            <div class="preview-page-content">
+                <div class="preview-content-block short"></div>
+                <div class="preview-content-block medium"></div>
+                <div id="previewContentSlot"></div>
+                <div class="preview-content-block"></div>
+                <div class="preview-content-block medium"></div>
+            </div>`;
+
+        stage.innerHTML = site;
+        const media = buildPreviewMedia(ad, mediaUrl);
+        const campaign = previewEscape(ad.campaign_name || ad.advertiser_name || "Sponsored");
+        const advertiser = previewEscape(ad.advertiser_name || "Advertiser");
+        const category = previewEscape(ad.business_category || "Sponsored");
+
+        if (ad.ad_type === "full_screen") {
+            stage.insertAdjacentHTML("beforeend", `
+                <div class="preview-fullscreen">
+                    <div class="preview-fullscreen-inner">
+                        <div style="padding:10px 12px;font-size:10px;font-weight:900;">Sponsored • ${advertiser}</div>
+                        ${media}
+                        <div style="padding:10px 12px;font-size:11px;">Preview • ${ad.duration_seconds || 5}s</div>
+                    </div>
+                </div>`);
+            return;
+        }
+
+        if (ad.ad_type === "top_banner") {
+            stage.querySelector(".preview-site-header").insertAdjacentHTML("afterend", `
+                <div class="preview-top-banner">
+                    <div class="preview-ad-label">Advertisement • Sponsored</div>
+                    <div class="preview-ad-card">${media}</div>
+                </div>`);
+            return;
+        }
+
+        if (ad.ad_type === "top_sticky" || ad.ad_type === "bottom_sticky") {
+            stage.insertAdjacentHTML("beforeend", `
+                <div class="preview-sticky ${ad.ad_type === "top_sticky" ? "top" : "bottom"}">
+                    <button class="preview-close-x" type="button">×</button>
+                    <div class="preview-ad-label">Sponsored</div>
+                    ${media}
+                </div>`);
+            return;
+        }
+
+        if (ad.ad_type === "small_video") {
+            stage.insertAdjacentHTML("beforeend", `
+                <div class="preview-floating-video">
+                    <button class="preview-close-x" type="button">×</button>
+                    <div style="padding:7px 9px;background:#111827;color:white;font-size:9px;font-weight:900;">Sponsored • ${advertiser}</div>
+                    ${media}
+                </div>`);
+            return;
+        }
+
+        const contentSlot = stage.querySelector("#previewContentSlot");
+
+        if (ad.ad_type === "sponsored_link") {
+            contentSlot.innerHTML = `
+                <div class="preview-in-content">
+                    <div class="preview-ad-label">Sponsored</div>
+                    <div class="preview-sponsored-link">
+                        <div><strong>${campaign}</strong><small>${advertiser} • ${category}</small></div>
+                        <div class="cta">Visit Sponsor →</div>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        contentSlot.innerHTML = `
+            <div class="preview-in-content">
+                <div class="preview-ad-label">Advertisement • Sponsored</div>
+                <div class="preview-ad-card">${media}</div>
+            </div>`;
+    }
+
+    function openCampaignPreview() {
+        const ad = getCreatePreviewData();
+        if (!ad.campaign_name || !ad.advertiser_name) {
+            showMessage("createMessage", "Enter Advertiser / Company and Campaign Name before previewing.", "bad");
+            return;
+        }
+        if (!ad.media_url && ad.ad_type !== "sponsored_link") {
+            showMessage("createMessage", "Upload or enter the main media before previewing this format.", "bad");
+            return;
+        }
+        if (!ad.placement) {
+            showMessage("createMessage", "Select at least one page group before previewing.", "bad");
+            return;
+        }
+        hideMessage("createMessage");
+        campaignPreviewDevice = "desktop";
+        setPreviewDevice("desktop", false);
+        renderCampaignPreview();
+        const modal = document.getElementById("previewModal");
+        modal.style.display = "block";
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeCampaignPreview() {
+        const modal = document.getElementById("previewModal");
+        if (!modal) return;
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        modal.querySelectorAll("video").forEach(video => { try { video.pause(); } catch (_) {} });
+    }
+
+    function setPreviewDevice(device, rerender = true) {
+        campaignPreviewDevice = device === "mobile" ? "mobile" : "desktop";
+        const desktop = document.getElementById("previewDesktopButton");
+        const mobile = document.getElementById("previewMobileButton");
+        if (desktop) desktop.classList.toggle("active", campaignPreviewDevice === "desktop");
+        if (mobile) mobile.classList.toggle("active", campaignPreviewDevice === "mobile");
+        if (rerender) renderCampaignPreview();
+    }
+
+
     async function createAdvertisement() {
 
         hideMessage("createMessage");
@@ -1799,7 +2345,7 @@
                 document.getElementById("targetUrl").value.trim(),
 
             placement:
-                document.getElementById("placement").value,
+                getSelectedPlacements("create"),
 
             page_target:
                 document.getElementById("pageTarget").value.trim() || null,
@@ -1833,6 +2379,7 @@
             || !payload.campaign_name
             || !payload.media_url
             || !payload.target_url
+            || !payload.placement
             || !payload.start_date
             || !payload.end_date
         ) {
@@ -1864,7 +2411,9 @@
                 true
             );
 
-            resetCreateForm();
+            wirePlacementGroups("create");
+        wirePlacementGroups("edit");
+        resetCreateForm();
 
             showMessage(
                 "createMessage",
@@ -2147,7 +2696,8 @@
         document.getElementById("editMediaUrl").value = ad.media_url || "";
         document.getElementById("editMobileMediaUrl").value = ad.mobile_media_url || "";
         document.getElementById("editTargetUrl").value = ad.target_url || "";
-        document.getElementById("editPlacement").value = ad.placement;
+        setSelectedPlacements("edit", ad.placement);
+        syncPageTargetVisibility();
         document.getElementById("editPageTarget").value = ad.page_target || "";
         document.getElementById("editDurationSeconds").value =
             ad.duration_seconds ?? "";
@@ -2214,7 +2764,7 @@
                 document.getElementById("editTargetUrl").value.trim(),
 
             placement:
-                document.getElementById("editPlacement").value,
+                getSelectedPlacements("edit"),
 
             page_target:
                 document.getElementById("editPageTarget").value.trim() || null,
@@ -2352,11 +2902,15 @@
 
     window.addEventListener("click", event => {
 
-        const modal =
-            document.getElementById("editModal");
+        const modal = document.getElementById("editModal");
+        const previewModal = document.getElementById("previewModal");
 
         if (event.target === modal) {
             closeEditModal();
+        }
+
+        if (event.target === previewModal) {
+            closeCampaignPreview();
         }
 
     });
@@ -2366,6 +2920,7 @@
 
         if (event.key === "Escape") {
             closeEditModal();
+            closeCampaignPreview();
         }
 
     });
