@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertisements | BoxOfficeX Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #080b14;
+            --panel: #111827;
+            --panel-2: #151d31;
+            --panel-3: #101625;
+            --border: #29334d;
+            --text: #ffffff;
+            --muted: #aeb8ce;
+            --yellow: #ffcc33;
+            --blue: #8db5ff;
+            --green: #7de2bb;
+            --red: #ff9a9a;
+            --orange: #ffc46b;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .admin-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            padding: 12px 24px;
+            background: rgba(10, 15, 28, 0.97);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+        }
+
+        .brand {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: 1.4px;
+        }
+
+        .brand span {
+            color: var(--yellow);
+        }
+
+        .admin-nav {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1 1 auto;
+            overflow-x: auto;
+        }
+
+        .admin-nav a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            padding: 9px 11px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            color: #c7d1e6;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .admin-nav a:hover,
+        .admin-nav a.active {
+            background: #17233a;
+            border-color: #35507d;
+            color: var(--blue);
+        }
+
+        .account-area {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-chip {
+            padding: 8px 10px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 9px;
+            background: #101725;
+            color: #aebbd4;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .logout-btn {
+            padding: 9px 11px;
+            border: 1px solid #703535;
+            border-radius: 9px;
+            background: #351919;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .container {
+            width: min(1240px, calc(100% - 28px));
+            margin: 30px auto 60px;
+        }
+
+        .hero {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: clamp(28px, 4vw, 42px);
+            line-height: 1.05;
+        }
+
+        .hero p {
+            margin-top: 10px;
+            max-width: 760px;
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .primary-btn,
+        .secondary-btn,
+        .danger-btn,
+        .good-btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 14px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .primary-btn {
+            background: var(--yellow);
+            color: #080b14;
+        }
+
+        .secondary-btn {
+            border: 1px solid var(--border);
+            background: var(--panel-2);
+            color: white;
+        }
+
+        .danger-btn {
+            border: 1px solid #703535;
+            background: #351919;
+            color: var(--red);
+        }
+
+        .good-btn {
+            border: 1px solid #2e6b4f;
+            background: #142c22;
+            color: var(--green);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel);
+        }
+
+        .summary-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 24px;
+        }
+
+        .panel {
+            margin-bottom: 24px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--panel);
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .panel-head h2 {
+            font-size: 24px;
+        }
+
+        .panel-head p {
+            margin-top: 7px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            min-width: 0;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #e8edf8;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-2);
+            color: white;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #526a9d;
+        }
+
+        .media-upload-box {
+            margin-top: 9px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--panel-3);
+        }
+
+        .media-upload-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 9px;
+            align-items: center;
+        }
+
+        .media-upload-row input[type="file"] {
+            padding: 9px;
+        }
+
+        .upload-btn {
+            min-height: 42px;
+            padding: 9px 13px;
+            border: 1px solid #526a9d;
+            border-radius: 9px;
+            background: #202b44;
+            color: #a9c6ff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .upload-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .upload-status {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .upload-status.ok {
+            color: var(--green);
+        }
+
+        .upload-status.bad {
+            color: var(--red);
+        }
+
+        .media-preview {
+            display: none;
+            max-width: 100%;
+            max-height: 260px;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #05070d;
+        }
+
+        @media (max-width: 650px) {
+            .media-upload-row {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-btn {
+                width: 100%;
+            }
+        }
+
+        .helper {
+            margin-top: 6px;
+            color: #8390aa;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .switch-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 44px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-2);
+        }
+
+        .switch-row input {
+            width: auto;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .message {
+            display: none;
+            margin-top: 14px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .message.ok {
+            display: block;
+            border: 1px solid #2e6b4f;
+            background: #142c22;
+            color: var(--green);
+        }
+
+        .message.bad {
+            display: block;
+            border: 1px solid #703535;
+            background: #351919;
+            color: var(--red);
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) 190px 190px auto;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1120px;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 13px;
+            background: var(--panel-2);
+            color: var(--yellow);
+            text-align: left;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px;
+            border-top: 1px solid var(--border);
+            color: #dbe2f0;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        tr:hover td {
+            background: #121b2d;
+        }
+
+        .campaign-name {
+            font-weight: 900;
+            color: white;
+        }
+
+        .muted {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        .badge {
+            display: inline-flex;
+            padding: 5px 8px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .badge.active {
+            background: #142c22;
+            color: var(--green);
+        }
+
+        .badge.scheduled {
+            background: #18263c;
+            color: var(--blue);
+        }
+
+        .badge.paused {
+            background: #2b2510;
+            color: var(--yellow);
+        }
+
+        .badge.expired {
+            background: #351919;
+            color: var(--red);
+        }
+
+        .badge.type {
+            background: #202b44;
+            color: #a9c6ff;
+        }
+
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .mini-btn {
+            padding: 7px 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #202b44;
+            color: #dce5f5;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 900;
+        }
+
+        .mini-btn.good {
+            border-color: #2e6b4f;
+            background: #142c22;
+            color: var(--green);
+        }
+
+        .mini-btn.warn {
+            border-color: #745f2b;
+            background: #2b2510;
+            color: var(--yellow);
+        }
+
+        .mini-btn.danger {
+            border-color: #703535;
+            background: #351919;
+            color: var(--red);
+        }
+
+        .empty-state {
+            padding: 36px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            padding: 20px;
+            overflow-y: auto;
+            background: rgba(0,0,0,.78);
+        }
+
+        .modal-card {
+            width: min(820px, 100%);
+            margin: 4vh auto;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--panel);
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            width: 35px;
+            height: 35px;
+            border: 0;
+            border-radius: 50%;
+            background: #29334d;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        @media (max-width: 1050px) {
+            .admin-topbar {
+                flex-wrap: wrap;
+            }
+
+            .admin-nav {
+                order: 3;
+                width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .admin-topbar {
+                padding: 10px 12px;
+            }
+
+            .brand {
+                width: 100%;
+                font-size: 18px;
+            }
+
+            .account-area {
+                width: 100%;
+            }
+
+            .user-chip {
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .container {
+                width: min(100% - 20px, 1240px);
+                margin-top: 20px;
+            }
+
+            .hero {
+                flex-direction: column;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .panel {
+                padding: 17px;
+            }
+
+            .form-grid,
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .panel-head {
+                flex-direction: column;
+            }
+
+            .panel-head .secondary-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="admin-topbar">
+
+    <div class="brand">
+        🎬 BOXOFFICE<span>X</span> ADMIN
+    </div>
+
+    <nav class="admin-nav">
+        <a href="/admin.html">🏠 Admin Home</a>
+        <a href="/admin-new-movies.html">🆕 New Movies</a>
+        <a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
+        <a href="/admin-regional-boxoffice.html">📍 Regional</a>
+        <a href="/admin-articles.html">📰 Articles</a>
+        <a class="active" href="/admin-advertisements.html">📢 Advertisements</a>
+        <a href="/admin-team.html">👥 Admin Team</a>
+    </nav>
+
+    <div class="account-area">
+        <div id="adminUserChip" class="user-chip">Checking Owner...</div>
+        <button class="logout-btn" onclick="logoutAdmin()">🚪 Logout</button>
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <section class="hero">
+        <div>
+            <h1>📢 Advertisement Management</h1>
+            <p>
+                Create, schedule and manage BoxOfficeX direct advertising campaigns.
+                Campaign status is automatically determined from its active setting and start/end dates.
+            </p>
+        </div>
+
+        <button class="primary-btn" onclick="scrollToCreate()">
+            ➕ New Campaign
+        </button>
+    </section>
+
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+            <span>TOTAL CAMPAIGNS</span>
+            <strong id="sumTotal">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>ACTIVE</span>
+            <strong id="sumActive">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>SCHEDULED</span>
+            <strong id="sumScheduled">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>PAUSED</span>
+            <strong id="sumPaused">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>IMPRESSIONS</span>
+            <strong id="sumImpressions">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>CLICKS / CTR</span>
+            <strong id="sumClicks">0</strong>
+            <div class="muted" id="sumCtr">0.00% CTR</div>
+        </div>
+
+    </section>
+
+
+    <section id="createCampaign" class="panel">
+
+        <div class="panel-head">
+            <div>
+                <h2>➕ Create Advertisement</h2>
+                <p>
+                    Add the advertiser, creative, page placement and campaign schedule.
+                    Fixed public pricing is intentionally not required.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Advertiser / Company *</label>
+                <input id="advertiserName" type="text" placeholder="Example: XYZ Mobile">
+            </div>
+
+            <div class="form-group">
+                <label>Business Category</label>
+                <input id="businessCategory" type="text" placeholder="Example: Electronics">
+            </div>
+
+            <div class="form-group full">
+                <label>Campaign Name *</label>
+                <input id="campaignName" type="text" placeholder="Example: September Smartphone Launch">
+            </div>
+
+            <div class="form-group">
+                <label>Advertisement Type *</label>
+                <select id="adType" onchange="syncDurationVisibility()">
+                    <option value="full_screen">Full Screen</option>
+                    <option value="top_banner">Top Banner</option>
+                    <option value="homepage">Homepage Ad</option>
+                    <option value="movie_page">Movie Page Ad</option>
+                    <option value="actor_page">Actor Page Ad</option>
+                    <option value="article">Article Ad</option>
+                    <option value="small_video">Small Video Ad</option>
+                    <option value="sponsored_movie">Sponsored Movie</option>
+                    <option value="sponsored_article">Sponsored Article</option>
+                    <option value="sponsored_link">Sponsored Link</option>
+                    <option value="search_result">Search Result Ad</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Media Type *</label>
+                <select id="mediaType" onchange="syncDurationVisibility()">
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                </select>
+            </div>
+
+            <div class="form-group full">
+                <label>Desktop / Main Media *</label>
+
+                <input
+                    id="mediaUrl"
+                    type="url"
+                    placeholder="Uploaded Cloudinary URL appears here automatically"
+                >
+
+                <div class="media-upload-box">
+
+                    <div class="media-upload-row">
+
+                        <input
+                            id="mainMediaFile"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                        >
+
+                        <button
+                            id="mainMediaUploadButton"
+                            type="button"
+                            class="upload-btn"
+                            onclick="uploadAdvertisementMedia('main')"
+                        >
+                            ⬆️ UPLOAD MEDIA
+                        </button>
+
+                    </div>
+
+                    <div id="mainMediaUploadStatus" class="upload-status">
+                        JPG, PNG, WEBP, MP4, WEBM or MOV. Maximum 50 MB.
+                    </div>
+
+                    <img id="mainMediaImagePreview" class="media-preview" alt="Advertisement preview">
+
+                    <video
+                        id="mainMediaVideoPreview"
+                        class="media-preview"
+                        controls
+                        muted
+                        playsinline
+                    ></video>
+
+                </div>
+            </div>
+
+            <div class="form-group full">
+                <label>Mobile Media</label>
+
+                <input
+                    id="mobileMediaUrl"
+                    type="url"
+                    placeholder="Optional mobile creative URL"
+                >
+
+                <div class="media-upload-box">
+
+                    <div class="media-upload-row">
+
+                        <input
+                            id="mobileMediaFile"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                        >
+
+                        <button
+                            id="mobileMediaUploadButton"
+                            type="button"
+                            class="upload-btn"
+                            onclick="uploadAdvertisementMedia('mobile')"
+                        >
+                            ⬆️ UPLOAD MOBILE MEDIA
+                        </button>
+
+                    </div>
+
+                    <div id="mobileMediaUploadStatus" class="upload-status">
+                        Optional separate creative for mobile visitors.
+                    </div>
+
+                    <img id="mobileMediaImagePreview" class="media-preview" alt="Mobile advertisement preview">
+
+                    <video
+                        id="mobileMediaVideoPreview"
+                        class="media-preview"
+                        controls
+                        muted
+                        playsinline
+                    ></video>
+
+                </div>
+            </div>
+
+            <div class="form-group full">
+                <label>Advertiser Target URL *</label>
+                <input id="targetUrl" type="url" placeholder="https://advertiser-site.com/...">
+            </div>
+
+            <div class="form-group">
+                <label>Placement *</label>
+                <select id="placement" onchange="syncPageTargetVisibility()">
+                    <option value="homepage">Homepage</option>
+                    <option value="movie_pages">All Movie Pages</option>
+                    <option value="actor_pages">All Actor Pages</option>
+                    <option value="article_pages">All Article Pages</option>
+                    <option value="rankings_compare">Rankings & Compare</option>
+                    <option value="search">Search</option>
+                    <option value="sponsors_page">Sponsors Page</option>
+                    <option value="selected_pages">Selected Pages</option>
+                    <option value="sitewide">Site-wide</option>
+                </select>
+            </div>
+
+            <div id="pageTargetGroup" class="form-group" style="display:none">
+                <label>Selected Page Target</label>
+                <input id="pageTarget" type="text" placeholder="/movie.html?id=123 or comma-separated targets">
+            </div>
+
+            <div id="durationGroup" class="form-group">
+                <label>Duration (seconds)</label>
+                <input id="durationSeconds" type="number" min="1" max="60" placeholder="5">
+                <div class="helper">
+                    Required for Full Screen / Small Video when media type is Video.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Frequency</label>
+                <select id="frequency">
+                    <option value="once_24h">Once per 24 hours</option>
+                    <option value="once_12h">Once per 12 hours</option>
+                    <option value="once_session">Once per session</option>
+                    <option value="always">Every eligible load</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Start Date *</label>
+                <input id="startDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>End Date *</label>
+                <input id="endDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>Internal Amount Paid (₹)</label>
+                <input id="amountPaid" type="number" min="0" step="0.01" placeholder="Optional">
+                <div class="helper">
+                    Private bookkeeping only. Not shown publicly.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Campaign Enabled</label>
+                <div class="switch-row">
+                    <input id="isActive" type="checkbox" checked>
+                    <span>Activate automatically during campaign dates</span>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button id="createButton" class="primary-btn" onclick="createAdvertisement()">
+                💾 CREATE CAMPAIGN
+            </button>
+
+            <button class="secondary-btn" onclick="resetCreateForm()">
+                Clear
+            </button>
+
+        </div>
+
+        <div id="createMessage" class="message"></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="panel-head">
+            <div>
+                <h2>📋 Campaigns</h2>
+                <p>
+                    Search campaigns and manage Active, Scheduled, Paused or Expired advertisements.
+                </p>
+            </div>
+
+            <button class="secondary-btn" onclick="loadAdvertisements()">
+                🔄 Refresh
+            </button>
+        </div>
+
+
+        <div class="toolbar">
+
+            <input
+                id="campaignSearch"
+                type="search"
+                placeholder="Search advertiser or campaign..."
+                oninput="renderCampaigns()"
+            >
+
+            <select id="statusFilter" onchange="renderCampaigns()">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="paused">Paused</option>
+                <option value="expired">Expired</option>
+            </select>
+
+            <select id="typeFilter" onchange="renderCampaigns()">
+                <option value="">All Ad Types</option>
+                <option value="full_screen">Full Screen</option>
+                <option value="top_banner">Top Banner</option>
+                <option value="homepage">Homepage</option>
+                <option value="movie_page">Movie Page</option>
+                <option value="actor_page">Actor Page</option>
+                <option value="article">Article</option>
+                <option value="small_video">Small Video</option>
+                <option value="sponsored_movie">Sponsored Movie</option>
+                <option value="sponsored_article">Sponsored Article</option>
+                <option value="sponsored_link">Sponsored Link</option>
+                <option value="search_result">Search Result</option>
+            </select>
+
+            <button class="secondary-btn" onclick="clearCampaignFilters()">
+                Clear Filters
+            </button>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Campaign</th>
+                        <th>Type / Placement</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                        <th>Performance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="campaignBody">
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">Loading campaigns...</div>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<div id="editModal" class="modal">
+
+    <div class="modal-card">
+
+        <div class="modal-head">
+            <h2>✏️ Edit Advertisement</h2>
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+        </div>
+
+        <input id="editId" type="hidden">
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Advertiser / Company *</label>
+                <input id="editAdvertiserName" type="text">
+            </div>
+
+            <div class="form-group">
+                <label>Business Category</label>
+                <input id="editBusinessCategory" type="text">
+            </div>
+
+            <div class="form-group full">
+                <label>Campaign Name *</label>
+                <input id="editCampaignName" type="text">
+            </div>
+
+            <div class="form-group">
+                <label>Advertisement Type *</label>
+                <select id="editAdType">
+                    <option value="full_screen">Full Screen</option>
+                    <option value="top_banner">Top Banner</option>
+                    <option value="homepage">Homepage Ad</option>
+                    <option value="movie_page">Movie Page Ad</option>
+                    <option value="actor_page">Actor Page Ad</option>
+                    <option value="article">Article Ad</option>
+                    <option value="small_video">Small Video Ad</option>
+                    <option value="sponsored_movie">Sponsored Movie</option>
+                    <option value="sponsored_article">Sponsored Article</option>
+                    <option value="sponsored_link">Sponsored Link</option>
+                    <option value="search_result">Search Result Ad</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Media Type *</label>
+                <select id="editMediaType">
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                </select>
+            </div>
+
+            <div class="form-group full">
+                <label>Main Media *</label>
+
+                <input id="editMediaUrl" type="url">
+
+                <div class="media-upload-box">
+
+                    <div class="media-upload-row">
+
+                        <input
+                            id="editMainMediaFile"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                        >
+
+                        <button
+                            id="editMainMediaUploadButton"
+                            type="button"
+                            class="upload-btn"
+                            onclick="uploadAdvertisementMedia('edit-main')"
+                        >
+                            ⬆️ REPLACE MEDIA
+                        </button>
+
+                    </div>
+
+                    <div id="editMainMediaUploadStatus" class="upload-status">
+                        Uploading a new file replaces the URL above.
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-group full">
+                <label>Mobile Media</label>
+
+                <input id="editMobileMediaUrl" type="url">
+
+                <div class="media-upload-box">
+
+                    <div class="media-upload-row">
+
+                        <input
+                            id="editMobileMediaFile"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                        >
+
+                        <button
+                            id="editMobileMediaUploadButton"
+                            type="button"
+                            class="upload-btn"
+                            onclick="uploadAdvertisementMedia('edit-mobile')"
+                        >
+                            ⬆️ REPLACE MOBILE MEDIA
+                        </button>
+
+                    </div>
+
+                    <div id="editMobileMediaUploadStatus" class="upload-status">
+                        Optional mobile-specific replacement.
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-group full">
+                <label>Target URL *</label>
+                <input id="editTargetUrl" type="url">
+            </div>
+
+            <div class="form-group">
+                <label>Placement *</label>
+                <select id="editPlacement">
+                    <option value="homepage">Homepage</option>
+                    <option value="movie_pages">All Movie Pages</option>
+                    <option value="actor_pages">All Actor Pages</option>
+                    <option value="article_pages">All Article Pages</option>
+                    <option value="rankings_compare">Rankings & Compare</option>
+                    <option value="search">Search</option>
+                    <option value="sponsors_page">Sponsors Page</option>
+                    <option value="selected_pages">Selected Pages</option>
+                    <option value="sitewide">Site-wide</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Page Target</label>
+                <input id="editPageTarget" type="text">
+            </div>
+
+            <div class="form-group">
+                <label>Duration Seconds</label>
+                <input id="editDurationSeconds" type="number" min="1" max="60">
+            </div>
+
+            <div class="form-group">
+                <label>Frequency</label>
+                <select id="editFrequency">
+                    <option value="once_24h">Once per 24 hours</option>
+                    <option value="once_12h">Once per 12 hours</option>
+                    <option value="once_session">Once per session</option>
+                    <option value="always">Every eligible load</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Start Date *</label>
+                <input id="editStartDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>End Date *</label>
+                <input id="editEndDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>Internal Amount Paid (₹)</label>
+                <input id="editAmountPaid" type="number" min="0" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>Campaign Enabled</label>
+                <div class="switch-row">
+                    <input id="editIsActive" type="checkbox">
+                    <span>Enabled</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button class="primary-btn" onclick="saveAdvertisementEdit()">
+                💾 SAVE CHANGES
+            </button>
+
+            <button class="secondary-btn" onclick="closeEditModal()">
+                Cancel
+            </button>
+        </div>
+
+        <div id="editMessage" class="message"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+    let allAdvertisements = [];
+
+
+    function escapeHtml(value) {
+
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    function formatNumber(value) {
+
+        return Number(value || 0).toLocaleString("en-IN");
+
+    }
+
+
+    function formatType(value) {
+
+        return String(value || "")
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, c => c.toUpperCase());
+
+    }
+
+
+    function showMessage(id, text, ok = true) {
+
+        const el = document.getElementById(id);
+
+        el.className = "message " + (ok ? "ok" : "bad");
+        el.textContent = text;
+
+    }
+
+
+    function hideMessage(id) {
+
+        const el = document.getElementById(id);
+
+        el.className = "message";
+        el.textContent = "";
+
+    }
+
+
+    async function apiRequest(url, options = {}) {
+
+        const response = await fetch(url, {
+            credentials: "include",
+            cache: "no-store",
+            ...options,
+            headers: {
+                ...(options.body ? {"Content-Type": "application/json"} : {}),
+                ...(options.headers || {})
+            }
+        });
+
+        let data = {};
+
+        try {
+            data = await response.json();
+        } catch (_) {}
+
+        if (response.status === 401) {
+            location.href = "/admin-login.html";
+            throw new Error("Admin login required");
+        }
+
+        if (response.status === 403) {
+            location.href = "/admin.html";
+            throw new Error("Owner access required");
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                typeof data.detail === "string"
+                    ? data.detail
+                    : "Request failed"
+            );
+        }
+
+        return data;
+
+    }
+
+
+    async function verifyOwner() {
+
+        const response = await fetch("/admin/session", {
+            credentials: "include",
+            cache: "no-store"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.logged_in || !data.admin) {
+            location.href = "/admin-login.html";
+            return false;
+        }
+
+        if (data.admin.role !== "owner") {
+            location.href = "/admin.html";
+            return false;
+        }
+
+        document.getElementById("adminUserChip").textContent =
+            `${data.admin.display_name || data.admin.email} • OWNER`;
+
+        return true;
+
+    }
+
+
+    async function logoutAdmin() {
+
+        try {
+
+            await fetch("/admin/logout", {
+                method: "POST",
+                credentials: "include"
+            });
+
+        } finally {
+
+            location.href = "/admin-login.html";
+
+        }
+
+    }
+
+
+    function scrollToCreate() {
+
+        document.getElementById("createCampaign")
+            .scrollIntoView({behavior: "smooth"});
+
+    }
+
+
+    function syncDurationVisibility() {
+
+        const adType = document.getElementById("adType").value;
+        const mediaType = document.getElementById("mediaType").value;
+
+        const relevant =
+            adType === "full_screen"
+            || adType === "small_video"
+            || mediaType === "video";
+
+        document.getElementById("durationGroup").style.display =
+            relevant ? "block" : "none";
+
+    }
+
+
+    function syncPageTargetVisibility() {
+
+        const placement = document.getElementById("placement").value;
+
+        document.getElementById("pageTargetGroup").style.display =
+            placement === "selected_pages"
+                ? "block"
+                : "none";
+
+    }
+
+
+    function resetCreateForm() {
+
+        [
+            "advertiserName",
+            "businessCategory",
+            "campaignName",
+            "mediaUrl",
+            "mobileMediaUrl",
+            "targetUrl",
+            "pageTarget",
+            "durationSeconds",
+            "startDate",
+            "endDate",
+            "amountPaid"
+        ].forEach(id => {
+            document.getElementById(id).value = "";
+        });
+
+        document.getElementById("adType").value = "full_screen";
+        document.getElementById("mediaType").value = "image";
+        document.getElementById("placement").value = "homepage";
+        document.getElementById("frequency").value = "once_24h";
+        document.getElementById("isActive").checked = true;
+
+        hideMessage("createMessage");
+
+        document.getElementById("mainMediaFile").value = "";
+        document.getElementById("mobileMediaFile").value = "";
+
+        setMediaUploadStatus(
+            "mainMediaUploadStatus",
+            "JPG, PNG, WEBP, MP4, WEBM or MOV. Maximum 50 MB."
+        );
+
+        setMediaUploadStatus(
+            "mobileMediaUploadStatus",
+            "Optional separate creative for mobile visitors."
+        );
+
+        document.getElementById("mainMediaImagePreview").style.display = "none";
+        document.getElementById("mainMediaVideoPreview").style.display = "none";
+        document.getElementById("mobileMediaImagePreview").style.display = "none";
+        document.getElementById("mobileMediaVideoPreview").style.display = "none";
+
+        syncDurationVisibility();
+        syncPageTargetVisibility();
+
+    }
+
+
+    function numberOrNull(value) {
+
+        if (value === "" || value === null || value === undefined) {
+            return null;
+        }
+
+        const num = Number(value);
+
+        return Number.isFinite(num)
+            ? num
+            : null;
+
+    }
+
+
+    function setMediaUploadStatus(id, text, state = "") {
+
+        const el = document.getElementById(id);
+
+        el.className = "upload-status";
+
+        if (state) {
+            el.classList.add(state);
+        }
+
+        el.textContent = text;
+
+    }
+
+
+    function showMediaPreview(scope, url, resourceType) {
+
+        if (scope !== "main" && scope !== "mobile") {
+            return;
+        }
+
+        const image =
+            document.getElementById(
+                scope === "main"
+                    ? "mainMediaImagePreview"
+                    : "mobileMediaImagePreview"
+            );
+
+        const video =
+            document.getElementById(
+                scope === "main"
+                    ? "mainMediaVideoPreview"
+                    : "mobileMediaVideoPreview"
+            );
+
+        image.style.display = "none";
+        video.style.display = "none";
+
+        image.removeAttribute("src");
+        video.removeAttribute("src");
+
+        if (resourceType === "video") {
+
+            video.src = url;
+            video.style.display = "block";
+
+        } else {
+
+            image.src = url;
+            image.style.display = "block";
+
+        }
+
+    }
+
+
+    async function uploadAdvertisementMedia(scope) {
+
+        const config = {
+
+            "main": {
+                file: "mainMediaFile",
+                button: "mainMediaUploadButton",
+                status: "mainMediaUploadStatus",
+                url: "mediaUrl"
+            },
+
+            "mobile": {
+                file: "mobileMediaFile",
+                button: "mobileMediaUploadButton",
+                status: "mobileMediaUploadStatus",
+                url: "mobileMediaUrl"
+            },
+
+            "edit-main": {
+                file: "editMainMediaFile",
+                button: "editMainMediaUploadButton",
+                status: "editMainMediaUploadStatus",
+                url: "editMediaUrl"
+            },
+
+            "edit-mobile": {
+                file: "editMobileMediaFile",
+                button: "editMobileMediaUploadButton",
+                status: "editMobileMediaUploadStatus",
+                url: "editMobileMediaUrl"
+            }
+
+        }[scope];
+
+
+        if (!config) {
+            return;
+        }
+
+
+        const input =
+            document.getElementById(config.file);
+
+        const button =
+            document.getElementById(config.button);
+
+        const file =
+            input.files && input.files[0];
+
+
+        if (!file) {
+
+            setMediaUploadStatus(
+                config.status,
+                "Choose an image or video file first.",
+                "bad"
+            );
+
+            return;
+
+        }
+
+
+        if (file.size > 50 * 1024 * 1024) {
+
+            setMediaUploadStatus(
+                config.status,
+                "File must be 50 MB or smaller.",
+                "bad"
+            );
+
+            return;
+
+        }
+
+
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        button.disabled = true;
+        button.textContent = "Uploading...";
+
+        setMediaUploadStatus(
+            config.status,
+            "Uploading to Cloudinary..."
+        );
+
+
+        try {
+
+            const response = await fetch(
+                "/admin/upload/advertisement-media",
+                {
+                    method: "POST",
+                    credentials: "include",
+                    body: formData
+                }
+            );
+
+            let data = {};
+
+            try {
+                data = await response.json();
+            } catch (_) {}
+
+
+            if (response.status === 401) {
+
+                location.href = "/admin-login.html";
+                return;
+
+            }
+
+
+            if (response.status === 403) {
+
+                location.href = "/admin.html";
+                return;
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : (
+                            data.detail?.message
+                            || "Advertisement media upload failed"
+                        )
+                );
+
+            }
+
+
+            document.getElementById(config.url).value =
+                data.url || data.filename || "";
+
+
+            if (scope === "main" || scope === "edit-main") {
+
+                document.getElementById(
+                    scope === "main"
+                        ? "mediaType"
+                        : "editMediaType"
+                ).value =
+                    data.resource_type === "video"
+                        ? "video"
+                        : "image";
+
+            }
+
+
+            if (scope === "main") {
+
+                syncDurationVisibility();
+
+            }
+
+
+            if (scope === "main" || scope === "mobile") {
+
+                showMediaPreview(
+                    scope,
+                    data.url,
+                    data.resource_type
+                );
+
+            }
+
+
+            const extra =
+                data.resource_type === "video" && data.duration
+                    ? ` • ${Number(data.duration).toFixed(1)} sec`
+                    : "";
+
+
+            setMediaUploadStatus(
+                config.status,
+                `Upload complete${extra}. URL filled automatically.`,
+                "ok"
+            );
+
+
+        } catch (error) {
+
+            setMediaUploadStatus(
+                config.status,
+                error.message,
+                "bad"
+            );
+
+        } finally {
+
+            button.disabled = false;
+
+            button.textContent =
+                scope === "mobile"
+                    ? "⬆️ UPLOAD MOBILE MEDIA"
+                    : scope === "edit-main"
+                        ? "⬆️ REPLACE MEDIA"
+                        : scope === "edit-mobile"
+                            ? "⬆️ REPLACE MOBILE MEDIA"
+                            : "⬆️ UPLOAD MEDIA";
+
+        }
+
+    }
+
+
+    async function createAdvertisement() {
+
+        hideMessage("createMessage");
+
+        const button = document.getElementById("createButton");
+
+        const payload = {
+            advertiser_name:
+                document.getElementById("advertiserName").value.trim(),
+
+            business_category:
+                document.getElementById("businessCategory").value.trim() || null,
+
+            campaign_name:
+                document.getElementById("campaignName").value.trim(),
+
+            ad_type:
+                document.getElementById("adType").value,
+
+            media_type:
+                document.getElementById("mediaType").value,
+
+            media_url:
+                document.getElementById("mediaUrl").value.trim(),
+
+            mobile_media_url:
+                document.getElementById("mobileMediaUrl").value.trim() || null,
+
+            target_url:
+                document.getElementById("targetUrl").value.trim(),
+
+            placement:
+                document.getElementById("placement").value,
+
+            page_target:
+                document.getElementById("pageTarget").value.trim() || null,
+
+            duration_seconds:
+                numberOrNull(
+                    document.getElementById("durationSeconds").value
+                ),
+
+            frequency:
+                document.getElementById("frequency").value,
+
+            start_date:
+                document.getElementById("startDate").value,
+
+            end_date:
+                document.getElementById("endDate").value,
+
+            is_active:
+                document.getElementById("isActive").checked,
+
+            amount_paid:
+                numberOrNull(
+                    document.getElementById("amountPaid").value
+                )
+        };
+
+
+        if (
+            !payload.advertiser_name
+            || !payload.campaign_name
+            || !payload.media_url
+            || !payload.target_url
+            || !payload.start_date
+            || !payload.end_date
+        ) {
+            showMessage(
+                "createMessage",
+                "Please complete all required fields.",
+                false
+            );
+            return;
+        }
+
+
+        button.disabled = true;
+        button.textContent = "Creating...";
+
+        try {
+
+            const data = await apiRequest(
+                "/admin/advertisements",
+                {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            showMessage(
+                "createMessage",
+                data.message || "Campaign created successfully.",
+                true
+            );
+
+            resetCreateForm();
+
+            showMessage(
+                "createMessage",
+                data.message || "Campaign created successfully.",
+                true
+            );
+
+            await loadAdvertisements();
+
+        } catch (error) {
+
+            showMessage(
+                "createMessage",
+                error.message,
+                false
+            );
+
+        } finally {
+
+            button.disabled = false;
+            button.textContent = "💾 CREATE CAMPAIGN";
+
+        }
+
+    }
+
+
+    async function loadAdvertisements() {
+
+        const body = document.getElementById("campaignBody");
+
+        body.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    <div class="empty-state">Loading campaigns...</div>
+                </td>
+            </tr>
+        `;
+
+        try {
+
+            const data =
+                await apiRequest("/admin/advertisements");
+
+            allAdvertisements =
+                Array.isArray(data.advertisements)
+                    ? data.advertisements
+                    : [];
+
+            const summary = data.summary || {};
+
+            document.getElementById("sumTotal").textContent =
+                formatNumber(summary.total);
+
+            document.getElementById("sumActive").textContent =
+                formatNumber(summary.active);
+
+            document.getElementById("sumScheduled").textContent =
+                formatNumber(summary.scheduled);
+
+            document.getElementById("sumPaused").textContent =
+                formatNumber(summary.paused);
+
+            document.getElementById("sumImpressions").textContent =
+                formatNumber(summary.impressions);
+
+            document.getElementById("sumClicks").textContent =
+                formatNumber(summary.clicks);
+
+            document.getElementById("sumCtr").textContent =
+                `${Number(summary.ctr_percent || 0).toFixed(2)}% CTR`;
+
+            renderCampaigns();
+
+        } catch (error) {
+
+            body.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            ${escapeHtml(error.message)}
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+        }
+
+    }
+
+
+    function renderCampaigns() {
+
+        const body = document.getElementById("campaignBody");
+
+        const query =
+            document.getElementById("campaignSearch")
+                .value
+                .trim()
+                .toLowerCase();
+
+        const status =
+            document.getElementById("statusFilter").value;
+
+        const type =
+            document.getElementById("typeFilter").value;
+
+
+        const filtered = allAdvertisements.filter(ad => {
+
+            const haystack = [
+                ad.advertiser_name,
+                ad.campaign_name,
+                ad.business_category,
+                ad.placement,
+                ad.ad_type
+            ]
+                .join(" ")
+                .toLowerCase();
+
+            if (query && !haystack.includes(query)) {
+                return false;
+            }
+
+            if (status && ad.status !== status) {
+                return false;
+            }
+
+            if (type && ad.ad_type !== type) {
+                return false;
+            }
+
+            return true;
+
+        });
+
+
+        if (!filtered.length) {
+
+            body.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            No matching advertisement campaigns.
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        body.innerHTML = filtered.map(ad => {
+
+            const actionLabel =
+                ad.is_active
+                    ? "Pause"
+                    : "Activate";
+
+            const actionClass =
+                ad.is_active
+                    ? "warn"
+                    : "good";
+
+            return `
+                <tr>
+
+                    <td>#${escapeHtml(ad.id)}</td>
+
+                    <td>
+                        <div class="campaign-name">
+                            ${escapeHtml(ad.campaign_name)}
+                        </div>
+
+                        <div class="muted">
+                            ${escapeHtml(ad.advertiser_name)}
+                            ${ad.business_category
+                                ? " • " + escapeHtml(ad.business_category)
+                                : ""}
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="badge type">
+                            ${escapeHtml(formatType(ad.ad_type))}
+                        </span>
+
+                        <div class="muted">
+                            ${escapeHtml(formatType(ad.placement))}
+                            • ${escapeHtml(formatType(ad.media_type))}
+                        </div>
+                    </td>
+
+                    <td>
+                        ${escapeHtml(ad.start_date || "—")}
+                        <div class="muted">
+                            to ${escapeHtml(ad.end_date || "—")}
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="badge ${escapeHtml(ad.status)}">
+                            ${escapeHtml(ad.status)}
+                        </span>
+                    </td>
+
+                    <td>
+                        <strong>${formatNumber(ad.impressions)}</strong> impressions
+
+                        <div class="muted">
+                            ${formatNumber(ad.clicks)} clicks
+                            • ${Number(ad.ctr_percent || 0).toFixed(2)}% CTR
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="action-row">
+
+                            <button
+                                class="mini-btn"
+                                onclick="openEditModal(${Number(ad.id)})"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                class="mini-btn ${actionClass}"
+                                onclick="toggleAdvertisement(${Number(ad.id)})"
+                            >
+                                ${actionLabel}
+                            </button>
+
+                            <button
+                                class="mini-btn danger"
+                                onclick="deleteAdvertisement(${Number(ad.id)})"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+
+    }
+
+
+    function clearCampaignFilters() {
+
+        document.getElementById("campaignSearch").value = "";
+        document.getElementById("statusFilter").value = "";
+        document.getElementById("typeFilter").value = "";
+
+        renderCampaigns();
+
+    }
+
+
+    function openEditModal(id) {
+
+        const ad =
+            allAdvertisements.find(item => Number(item.id) === Number(id));
+
+        if (!ad) {
+            alert("Advertisement not found.");
+            return;
+        }
+
+        document.getElementById("editId").value = ad.id;
+        document.getElementById("editAdvertiserName").value = ad.advertiser_name || "";
+        document.getElementById("editBusinessCategory").value = ad.business_category || "";
+        document.getElementById("editCampaignName").value = ad.campaign_name || "";
+        document.getElementById("editAdType").value = ad.ad_type;
+        document.getElementById("editMediaType").value = ad.media_type;
+        document.getElementById("editMediaUrl").value = ad.media_url || "";
+        document.getElementById("editMobileMediaUrl").value = ad.mobile_media_url || "";
+        document.getElementById("editTargetUrl").value = ad.target_url || "";
+        document.getElementById("editPlacement").value = ad.placement;
+        document.getElementById("editPageTarget").value = ad.page_target || "";
+        document.getElementById("editDurationSeconds").value =
+            ad.duration_seconds ?? "";
+
+        document.getElementById("editFrequency").value =
+            ad.frequency || "once_24h";
+
+        document.getElementById("editStartDate").value =
+            ad.start_date || "";
+
+        document.getElementById("editEndDate").value =
+            ad.end_date || "";
+
+        document.getElementById("editAmountPaid").value =
+            ad.amount_paid ?? "";
+
+        document.getElementById("editIsActive").checked =
+            Boolean(ad.is_active);
+
+        hideMessage("editMessage");
+
+        document.getElementById("editModal").style.display = "block";
+
+    }
+
+
+    function closeEditModal() {
+
+        document.getElementById("editModal").style.display = "none";
+
+    }
+
+
+    async function saveAdvertisementEdit() {
+
+        hideMessage("editMessage");
+
+        const id =
+            Number(document.getElementById("editId").value);
+
+        const payload = {
+            advertiser_name:
+                document.getElementById("editAdvertiserName").value.trim(),
+
+            business_category:
+                document.getElementById("editBusinessCategory").value.trim() || null,
+
+            campaign_name:
+                document.getElementById("editCampaignName").value.trim(),
+
+            ad_type:
+                document.getElementById("editAdType").value,
+
+            media_type:
+                document.getElementById("editMediaType").value,
+
+            media_url:
+                document.getElementById("editMediaUrl").value.trim(),
+
+            mobile_media_url:
+                document.getElementById("editMobileMediaUrl").value.trim() || null,
+
+            target_url:
+                document.getElementById("editTargetUrl").value.trim(),
+
+            placement:
+                document.getElementById("editPlacement").value,
+
+            page_target:
+                document.getElementById("editPageTarget").value.trim() || null,
+
+            duration_seconds:
+                numberOrNull(
+                    document.getElementById("editDurationSeconds").value
+                ),
+
+            frequency:
+                document.getElementById("editFrequency").value,
+
+            start_date:
+                document.getElementById("editStartDate").value,
+
+            end_date:
+                document.getElementById("editEndDate").value,
+
+            amount_paid:
+                numberOrNull(
+                    document.getElementById("editAmountPaid").value
+                ),
+
+            is_active:
+                document.getElementById("editIsActive").checked
+        };
+
+
+        try {
+
+            const data = await apiRequest(
+                `/admin/advertisements/${id}`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            showMessage(
+                "editMessage",
+                data.message || "Advertisement updated.",
+                true
+            );
+
+            await loadAdvertisements();
+
+            setTimeout(() => {
+                closeEditModal();
+            }, 450);
+
+        } catch (error) {
+
+            showMessage(
+                "editMessage",
+                error.message,
+                false
+            );
+
+        }
+
+    }
+
+
+    async function toggleAdvertisement(id) {
+
+        const ad =
+            allAdvertisements.find(item => Number(item.id) === Number(id));
+
+        if (!ad) {
+            return;
+        }
+
+        const action =
+            ad.is_active
+                ? "pause"
+                : "activate";
+
+        if (!confirm(`Are you sure you want to ${action} "${ad.campaign_name}"?`)) {
+            return;
+        }
+
+        try {
+
+            await apiRequest(
+                `/admin/advertisements/${id}/toggle`,
+                {method: "PATCH"}
+            );
+
+            await loadAdvertisements();
+
+        } catch (error) {
+
+            alert(error.message);
+
+        }
+
+    }
+
+
+    async function deleteAdvertisement(id) {
+
+        const ad =
+            allAdvertisements.find(item => Number(item.id) === Number(id));
+
+        if (!ad) {
+            return;
+        }
+
+        if (
+            !confirm(
+                `Delete "${ad.campaign_name}" permanently?\n\n`
+                + "This cannot be undone."
+            )
+        ) {
+            return;
+        }
+
+        try {
+
+            await apiRequest(
+                `/admin/advertisements/${id}`,
+                {method: "DELETE"}
+            );
+
+            await loadAdvertisements();
+
+        } catch (error) {
+
+            alert(error.message);
+
+        }
+
+    }
+
+
+    window.addEventListener("click", event => {
+
+        const modal =
+            document.getElementById("editModal");
+
+        if (event.target === modal) {
+            closeEditModal();
+        }
+
+    });
+
+
+    document.addEventListener("keydown", event => {
+
+        if (event.key === "Escape") {
+            closeEditModal();
+        }
+
+    });
+
+
+    async function initializePage() {
+
+        const owner = await verifyOwner();
+
+        if (!owner) {
+            return;
+        }
+
+        syncDurationVisibility();
+        syncPageTargetVisibility();
+
+        await loadAdvertisements();
+
+    }
+
+
+    initializePage();
+</script>
+
+</body>
+</html>

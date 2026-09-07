@@ -1786,6 +1786,7 @@ tr:hover td {
         <a href="#actor-links">🔗 Actor Links</a>
         <a href="#collections">📊 Collections</a>
         <a id="commentModerationNav" class="owner-only" href="#comment-moderation">💬 Comments</a>
+        <a id="advertisementNav" class="owner-only" href="/admin-advertisements.html">📢 Advertisements</a>
         <a id="teamNavLink" class="owner-only" href="/admin-team.html">👥 Admin Team</a>
     </nav>
 <div class="admin-account-actions">
@@ -8679,7 +8680,11 @@ async function loadCurrentAdminIdentity() {
 
         if (data.admin.role === "owner") {
             document.querySelectorAll(".owner-only").forEach(el => {
-                if (el.id === "teamNavLink") {
+                if (
+                    el.id === "teamNavLink"
+                    || el.id === "advertisementNav"
+                    || el.id === "commentModerationNav"
+                ) {
                     el.style.display = "inline-flex";
                 } else {
                     el.style.display = "block";

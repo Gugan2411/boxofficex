@@ -246,6 +246,123 @@ class AdminSelfPasswordChangeData(BaseModel):
     new_password: str
 
 
+# ============================================================
+# ADVERTISEMENT MANAGEMENT MODELS
+# Owner-only paid campaign management
+# ============================================================
+
+class AdvertisementCreateData(BaseModel):
+    advertiser_name: str
+    business_category: Optional[str] = None
+    campaign_name: str
+
+    ad_type: Literal[
+        "full_screen",
+        "top_banner",
+        "homepage",
+        "movie_page",
+        "actor_page",
+        "article",
+        "small_video",
+        "sponsored_movie",
+        "sponsored_article",
+        "sponsored_link",
+        "search_result",
+    ]
+
+    media_type: Literal["image", "video"]
+    media_url: str
+    mobile_media_url: Optional[str] = None
+    target_url: str
+
+    placement: Literal[
+        "homepage",
+        "movie_pages",
+        "actor_pages",
+        "article_pages",
+        "rankings_compare",
+        "search",
+        "sponsors_page",
+        "selected_pages",
+        "sitewide",
+    ]
+
+    page_target: Optional[str] = None
+    duration_seconds: Optional[int] = None
+
+    frequency: Literal[
+        "always",
+        "once_session",
+        "once_12h",
+        "once_24h",
+    ] = "once_24h"
+
+    start_date: date
+    end_date: date
+    is_active: bool = True
+
+    # Internal bookkeeping only. This is not a public fixed rate.
+    amount_paid: Optional[float] = None
+
+
+class AdvertisementUpdateData(BaseModel):
+    advertiser_name: Optional[str] = None
+    business_category: Optional[str] = None
+    campaign_name: Optional[str] = None
+
+    ad_type: Optional[
+        Literal[
+            "full_screen",
+            "top_banner",
+            "homepage",
+            "movie_page",
+            "actor_page",
+            "article",
+            "small_video",
+            "sponsored_movie",
+            "sponsored_article",
+            "sponsored_link",
+            "search_result",
+        ]
+    ] = None
+
+    media_type: Optional[Literal["image", "video"]] = None
+    media_url: Optional[str] = None
+    mobile_media_url: Optional[str] = None
+    target_url: Optional[str] = None
+
+    placement: Optional[
+        Literal[
+            "homepage",
+            "movie_pages",
+            "actor_pages",
+            "article_pages",
+            "rankings_compare",
+            "search",
+            "sponsors_page",
+            "selected_pages",
+            "sitewide",
+        ]
+    ] = None
+
+    page_target: Optional[str] = None
+    duration_seconds: Optional[int] = None
+
+    frequency: Optional[
+        Literal[
+            "always",
+            "once_session",
+            "once_12h",
+            "once_24h",
+        ]
+    ] = None
+
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    is_active: Optional[bool] = None
+    amount_paid: Optional[float] = None
+
+
 def current_admin(request: Request):
     admin_id = request.session.get("admin_id")
     email = request.session.get("admin_email")
@@ -526,6 +643,148 @@ def initialize_multi_admin_security():
                 ))
 
         conn.commit()
+
+
+
+
+# ============================================================
+# ADVERTISEMENT DATABASE
+# ============================================================
+
+@app.on_event("startup")
+def initialize_advertisement_system():
+    """
+    Create the direct-advertising campaign table and indexes.
+
+    Campaign state is intentionally derived from:
+    - is_active
+    - start_date
+    - end_date
+
+    This avoids stale manually-maintained scheduled/expired states.
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS advertisements (
+                    id BIGSERIAL PRIMARY KEY,
+
+                    advertiser_name TEXT NOT NULL,
+                    business_category TEXT,
+                    campaign_name TEXT NOT NULL,
+
+                    ad_type TEXT NOT NULL CHECK (
+                        ad_type IN (
+                            'full_screen',
+                            'top_banner',
+                            'homepage',
+                            'movie_page',
+                            'actor_page',
+                            'article',
+                            'small_video',
+                            'sponsored_movie',
+                            'sponsored_article',
+                            'sponsored_link',
+                            'search_result'
+                        )
+                    ),
+
+                    media_type TEXT NOT NULL CHECK (
+                        media_type IN ('image', 'video')
+                    ),
+
+                    media_url TEXT NOT NULL,
+                    mobile_media_url TEXT,
+                    target_url TEXT NOT NULL,
+
+                    placement TEXT NOT NULL CHECK (
+                        placement IN (
+                            'homepage',
+                            'movie_pages',
+                            'actor_pages',
+                            'article_pages',
+                            'rankings_compare',
+                            'search',
+                            'sponsors_page',
+                            'selected_pages',
+                            'sitewide'
+                        )
+                    ),
+
+                    page_target TEXT,
+
+                    duration_seconds INTEGER CHECK (
+                        duration_seconds IS NULL
+                        OR (
+                            duration_seconds >= 1
+                            AND duration_seconds <= 60
+                        )
+                    ),
+
+                    frequency TEXT NOT NULL DEFAULT 'once_24h'
+                        CHECK (
+                            frequency IN (
+                                'always',
+                                'once_session',
+                                'once_12h',
+                                'once_24h'
+                            )
+                        ),
+
+                    start_date DATE NOT NULL,
+                    end_date DATE NOT NULL,
+
+                    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+                    amount_paid NUMERIC(12, 2) CHECK (
+                        amount_paid IS NULL OR amount_paid >= 0
+                    ),
+
+                    impressions BIGINT NOT NULL DEFAULT 0 CHECK (impressions >= 0),
+                    clicks BIGINT NOT NULL DEFAULT 0 CHECK (clicks >= 0),
+                    completed_views BIGINT NOT NULL DEFAULT 0 CHECK (completed_views >= 0),
+                    skips BIGINT NOT NULL DEFAULT 0 CHECK (skips >= 0),
+
+                    created_by BIGINT
+                        REFERENCES admins(id)
+                        ON DELETE SET NULL,
+
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                    CHECK (end_date >= start_date)
+                )
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS
+                    idx_advertisements_active_dates
+                ON advertisements (
+                    is_active,
+                    start_date,
+                    end_date
+                )
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS
+                    idx_advertisements_placement
+                ON advertisements (placement)
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS
+                    idx_advertisements_type
+                ON advertisements (ad_type)
+            """)
+
+        conn.commit()
+
+    print(
+        "BOXOFFICEX ADVERTISEMENT SYSTEM: READY",
+        flush=True
+    )
 
 
 @app.post("/admin/login")
@@ -1335,6 +1594,137 @@ ALLOWED_IMAGE_TYPES = {
 MAX_ADMIN_IMAGE_BYTES = 8 * 1024 * 1024
 
 
+ALLOWED_AD_MEDIA_TYPES = {
+    "image/jpeg": "image",
+    "image/png": "image",
+    "image/webp": "image",
+    "video/mp4": "video",
+    "video/webm": "video",
+    "video/quicktime": "video",
+}
+
+MAX_ADMIN_AD_MEDIA_BYTES = 50 * 1024 * 1024
+
+
+async def _upload_ad_media_to_cloudinary(
+    file: UploadFile,
+    folder: str = "boxofficex/advertisements"
+):
+    """
+    Owner-only advertisement media uploader.
+
+    Supports:
+    - JPG
+    - PNG
+    - WEBP
+    - MP4
+    - WEBM
+    - MOV
+
+    Maximum file size: 50 MB.
+    """
+
+    if not _cloudinary_ready():
+        config = cloudinary.config()
+
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Cloudinary is not configured on the server",
+                "url_present": bool(os.getenv("CLOUDINARY_URL")),
+                "cloud_name_present": bool(getattr(config, "cloud_name", None)),
+                "api_key_present": bool(getattr(config, "api_key", None)),
+                "api_secret_present": bool(getattr(config, "api_secret", None)),
+            }
+        )
+
+    content_type = (file.content_type or "").lower().strip()
+
+    resource_type = ALLOWED_AD_MEDIA_TYPES.get(content_type)
+
+    if not resource_type:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Advertisement media must be JPG, PNG, WEBP, "
+                "MP4, WEBM or MOV"
+            )
+        )
+
+    raw = await file.read()
+
+    if not raw:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded advertisement media is empty"
+        )
+
+    if len(raw) > MAX_ADMIN_AD_MEDIA_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="Advertisement media must be 50 MB or smaller"
+        )
+
+    original_stem = Path(
+        file.filename or "advertisement-media"
+    ).stem
+
+    safe_stem = re.sub(
+        r"[^a-zA-Z0-9_-]+",
+        "-",
+        original_stem
+    ).strip("-").lower()
+
+    if not safe_stem:
+        safe_stem = "advertisement-media"
+
+    public_id = (
+        f"{safe_stem}-"
+        f"{secrets.token_hex(5)}"
+    )
+
+    try:
+        result = cloudinary.uploader.upload(
+            raw,
+            folder=folder,
+            public_id=public_id,
+            resource_type=resource_type,
+            overwrite=False,
+            use_filename=False,
+            unique_filename=False,
+        )
+    except Exception as exc:
+        print(
+            "ADVERTISEMENT CLOUDINARY UPLOAD ERROR:",
+            exc,
+            flush=True
+        )
+
+        raise HTTPException(
+            status_code=502,
+            detail="Advertisement media upload failed"
+        )
+
+    secure_url = result.get("secure_url")
+
+    if not secure_url:
+        raise HTTPException(
+            status_code=502,
+            detail="Cloudinary did not return an advertisement media URL"
+        )
+
+    return {
+        "url": secure_url,
+        "public_id": result.get("public_id"),
+        "resource_type": result.get("resource_type") or resource_type,
+        "format": result.get("format"),
+        "width": result.get("width"),
+        "height": result.get("height"),
+        "duration": result.get("duration"),
+        "bytes": result.get("bytes"),
+    }
+
+
 def _cloudinary_ready():
     """Check Cloudinary configuration without exposing credential values."""
     config = cloudinary.config()
@@ -1487,6 +1877,39 @@ async def admin_upload_actor_photo(
         "public_id": uploaded["public_id"],
         "width": uploaded["width"],
         "height": uploaded["height"],
+        "bytes": uploaded["bytes"],
+    }
+
+
+
+
+# ============================================================
+# OWNER: ADVERTISEMENT MEDIA UPLOAD
+# Cloudinary-backed permanent image/video storage
+# ============================================================
+
+@app.post(
+    "/admin/upload/advertisement-media",
+    dependencies=[Depends(require_owner)]
+)
+async def admin_upload_advertisement_media(
+    file: UploadFile = File(...)
+):
+    uploaded = await _upload_ad_media_to_cloudinary(
+        file=file,
+        folder="boxofficex/advertisements"
+    )
+
+    return {
+        "success": True,
+        "url": uploaded["url"],
+        "filename": uploaded["url"],
+        "public_id": uploaded["public_id"],
+        "resource_type": uploaded["resource_type"],
+        "format": uploaded["format"],
+        "width": uploaded["width"],
+        "height": uploaded["height"],
+        "duration": uploaded["duration"],
         "bytes": uploaded["bytes"],
     }
 
@@ -1746,6 +2169,16 @@ def admin_page():
 @app.get("/admin-team.html", dependencies=[Depends(require_owner)])
 def admin_team_page():
     return FileResponse(BASE_DIR / "admin-team.html")
+
+
+@app.get(
+    "/admin-advertisements.html",
+    dependencies=[Depends(require_owner)]
+)
+def admin_advertisements_page():
+    return FileResponse(
+        BASE_DIR / "admin-advertisements.html"
+    )
 
 @app.get("/new-movies.html")
 def new_movies_page():
@@ -8279,3 +8712,760 @@ def fan_leaderboards():
             }
         ]
     }
+
+
+# ============================================================
+# OWNER: ADVERTISEMENT MANAGEMENT
+# ============================================================
+
+ADVERTISEMENT_SELECT_COLUMNS = """
+    id,
+    advertiser_name,
+    business_category,
+    campaign_name,
+    ad_type,
+    media_type,
+    media_url,
+    mobile_media_url,
+    target_url,
+    placement,
+    page_target,
+    duration_seconds,
+    frequency,
+    start_date,
+    end_date,
+    is_active,
+    amount_paid,
+    impressions,
+    clicks,
+    completed_views,
+    skips,
+    created_by,
+    created_at,
+    updated_at
+"""
+
+
+def _clean_required_ad_text(value: str, field_name: str) -> str:
+    value = (value or "").strip()
+
+    if not value:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{field_name} is required"
+        )
+
+    return value
+
+
+def _clean_optional_ad_text(value: Optional[str]):
+    if value is None:
+        return None
+
+    value = value.strip()
+    return value or None
+
+
+def _validate_advertisement_values(
+    *,
+    start_date_value: date,
+    end_date_value: date,
+    ad_type: str,
+    media_type: str,
+    duration_seconds: Optional[int],
+    amount_paid: Optional[float]
+):
+    if end_date_value < start_date_value:
+        raise HTTPException(
+            status_code=400,
+            detail="End date cannot be before start date"
+        )
+
+    if duration_seconds is not None:
+        if duration_seconds < 1 or duration_seconds > 60:
+            raise HTTPException(
+                status_code=400,
+                detail="Advertisement duration must be between 1 and 60 seconds"
+            )
+
+    if (
+        ad_type in {"full_screen", "small_video"}
+        and media_type == "video"
+        and not duration_seconds
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Video advertisements require duration_seconds"
+        )
+
+    if amount_paid is not None and amount_paid < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Amount paid cannot be negative"
+        )
+
+
+def advertisement_status(
+    is_active: bool,
+    start_date_value: date,
+    end_date_value: date
+):
+    today = date.today()
+
+    if not is_active:
+        return "paused"
+
+    if today < start_date_value:
+        return "scheduled"
+
+    if today > end_date_value:
+        return "expired"
+
+    return "active"
+
+
+def advertisement_row_to_dict(row):
+    impressions = int(row[17] or 0)
+    clicks = int(row[18] or 0)
+
+    ctr = (
+        round((clicks / impressions) * 100, 2)
+        if impressions > 0
+        else 0.0
+    )
+
+    return {
+        "id": row[0],
+        "advertiser_name": row[1],
+        "business_category": row[2],
+        "campaign_name": row[3],
+        "ad_type": row[4],
+        "media_type": row[5],
+        "media_url": row[6],
+        "mobile_media_url": row[7],
+        "target_url": row[8],
+        "placement": row[9],
+        "page_target": row[10],
+        "duration_seconds": row[11],
+        "frequency": row[12],
+        "start_date": row[13].isoformat() if row[13] else None,
+        "end_date": row[14].isoformat() if row[14] else None,
+        "is_active": row[15],
+        "amount_paid": (
+            float(row[16])
+            if row[16] is not None
+            else None
+        ),
+        "impressions": impressions,
+        "clicks": clicks,
+        "ctr_percent": ctr,
+        "completed_views": int(row[19] or 0),
+        "skips": int(row[20] or 0),
+        "created_by": row[21],
+        "created_at": row[22].isoformat() if row[22] else None,
+        "updated_at": row[23].isoformat() if row[23] else None,
+        "status": advertisement_status(
+            row[15],
+            row[13],
+            row[14]
+        )
+    }
+
+
+@app.get(
+    "/admin/advertisements",
+    dependencies=[Depends(require_owner)]
+)
+def admin_list_advertisements():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                SELECT
+                    {ADVERTISEMENT_SELECT_COLUMNS}
+                FROM advertisements
+                ORDER BY
+                    created_at DESC,
+                    id DESC
+            """)
+            rows = cur.fetchall()
+
+    advertisements = [
+        advertisement_row_to_dict(row)
+        for row in rows
+    ]
+
+    summary = {
+        "total": len(advertisements),
+        "active": 0,
+        "scheduled": 0,
+        "paused": 0,
+        "expired": 0,
+        "impressions": 0,
+        "clicks": 0,
+    }
+
+    for ad in advertisements:
+        status = ad["status"]
+
+        if status in summary:
+            summary[status] += 1
+
+        summary["impressions"] += ad["impressions"]
+        summary["clicks"] += ad["clicks"]
+
+    summary["ctr_percent"] = (
+        round(
+            (summary["clicks"] / summary["impressions"]) * 100,
+            2
+        )
+        if summary["impressions"] > 0
+        else 0.0
+    )
+
+    return {
+        "summary": summary,
+        "advertisements": advertisements
+    }
+
+
+@app.get(
+    "/admin/advertisements/{advertisement_id}",
+    dependencies=[Depends(require_owner)]
+)
+def admin_get_advertisement(
+    advertisement_id: int
+):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                    SELECT
+                        {ADVERTISEMENT_SELECT_COLUMNS}
+                    FROM advertisements
+                    WHERE id = %s
+                """,
+                (advertisement_id,)
+            )
+            row = cur.fetchone()
+
+    if not row:
+        raise HTTPException(
+            status_code=404,
+            detail="Advertisement not found"
+        )
+
+    return {
+        "advertisement": advertisement_row_to_dict(row)
+    }
+
+
+@app.post(
+    "/admin/advertisements",
+    dependencies=[Depends(require_owner)]
+)
+def admin_create_advertisement(
+    data: AdvertisementCreateData,
+    request: Request
+):
+    admin = current_admin(request)
+
+    advertiser_name = _clean_required_ad_text(
+        data.advertiser_name,
+        "Advertiser name"
+    )
+    campaign_name = _clean_required_ad_text(
+        data.campaign_name,
+        "Campaign name"
+    )
+    media_url = _clean_required_ad_text(
+        data.media_url,
+        "Media URL"
+    )
+    target_url = _clean_required_ad_text(
+        data.target_url,
+        "Target URL"
+    )
+
+    _validate_advertisement_values(
+        start_date_value=data.start_date,
+        end_date_value=data.end_date,
+        ad_type=data.ad_type,
+        media_type=data.media_type,
+        duration_seconds=data.duration_seconds,
+        amount_paid=data.amount_paid
+    )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO advertisements (
+                    advertiser_name,
+                    business_category,
+                    campaign_name,
+                    ad_type,
+                    media_type,
+                    media_url,
+                    mobile_media_url,
+                    target_url,
+                    placement,
+                    page_target,
+                    duration_seconds,
+                    frequency,
+                    start_date,
+                    end_date,
+                    is_active,
+                    amount_paid,
+                    created_by
+                )
+                VALUES (
+                    %s, %s, %s,
+                    %s, %s,
+                    %s, %s,
+                    %s,
+                    %s, %s,
+                    %s, %s,
+                    %s, %s,
+                    %s, %s,
+                    %s
+                )
+                RETURNING id
+            """, (
+                advertiser_name,
+                _clean_optional_ad_text(data.business_category),
+                campaign_name,
+                data.ad_type,
+                data.media_type,
+                media_url,
+                _clean_optional_ad_text(data.mobile_media_url),
+                target_url,
+                data.placement,
+                _clean_optional_ad_text(data.page_target),
+                data.duration_seconds,
+                data.frequency,
+                data.start_date,
+                data.end_date,
+                data.is_active,
+                data.amount_paid,
+                admin["id"]
+            ))
+
+            advertisement_id = cur.fetchone()[0]
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "message": "Advertisement created successfully",
+        "advertisement_id": advertisement_id
+    }
+
+
+@app.put(
+    "/admin/advertisements/{advertisement_id}",
+    dependencies=[Depends(require_owner)]
+)
+def admin_update_advertisement(
+    advertisement_id: int,
+    data: AdvertisementUpdateData
+):
+    update_data = data.model_dump(
+        exclude_unset=True
+    )
+
+    if not update_data:
+        raise HTTPException(
+            status_code=400,
+            detail="No advertisement changes supplied"
+        )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    advertiser_name,
+                    campaign_name,
+                    ad_type,
+                    media_type,
+                    media_url,
+                    target_url,
+                    start_date,
+                    end_date,
+                    duration_seconds,
+                    amount_paid
+                FROM advertisements
+                WHERE id = %s
+            """, (advertisement_id,))
+
+            existing = cur.fetchone()
+
+            if not existing:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Advertisement not found"
+                )
+
+            prospective_ad_type = update_data.get(
+                "ad_type",
+                existing[2]
+            )
+            prospective_media_type = update_data.get(
+                "media_type",
+                existing[3]
+            )
+            prospective_start_date = update_data.get(
+                "start_date",
+                existing[6]
+            )
+            prospective_end_date = update_data.get(
+                "end_date",
+                existing[7]
+            )
+            prospective_duration = update_data.get(
+                "duration_seconds",
+                existing[8]
+            )
+            prospective_amount = update_data.get(
+                "amount_paid",
+                existing[9]
+            )
+
+            _validate_advertisement_values(
+                start_date_value=prospective_start_date,
+                end_date_value=prospective_end_date,
+                ad_type=prospective_ad_type,
+                media_type=prospective_media_type,
+                duration_seconds=prospective_duration,
+                amount_paid=(
+                    float(prospective_amount)
+                    if prospective_amount is not None
+                    else None
+                )
+            )
+
+            required_text_fields = {
+                "advertiser_name": "Advertiser name",
+                "campaign_name": "Campaign name",
+                "media_url": "Media URL",
+                "target_url": "Target URL",
+            }
+
+            optional_text_fields = {
+                "business_category",
+                "mobile_media_url",
+                "page_target",
+            }
+
+            allowed_fields = {
+                "advertiser_name",
+                "business_category",
+                "campaign_name",
+                "ad_type",
+                "media_type",
+                "media_url",
+                "mobile_media_url",
+                "target_url",
+                "placement",
+                "page_target",
+                "duration_seconds",
+                "frequency",
+                "start_date",
+                "end_date",
+                "is_active",
+                "amount_paid",
+            }
+
+            fields = []
+            values = []
+
+            for field, value in update_data.items():
+                if field not in allowed_fields:
+                    continue
+
+                if field in required_text_fields:
+                    value = _clean_required_ad_text(
+                        value,
+                        required_text_fields[field]
+                    )
+                elif field in optional_text_fields:
+                    value = _clean_optional_ad_text(value)
+
+                fields.append(f"{field} = %s")
+                values.append(value)
+
+            if not fields:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No valid advertisement changes supplied"
+                )
+
+            fields.append("updated_at = NOW()")
+            values.append(advertisement_id)
+
+            cur.execute(
+                f"""
+                    UPDATE advertisements
+                    SET {", ".join(fields)}
+                    WHERE id = %s
+                """,
+                tuple(values)
+            )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "message": "Advertisement updated successfully"
+    }
+
+
+@app.patch(
+    "/admin/advertisements/{advertisement_id}/toggle",
+    dependencies=[Depends(require_owner)]
+)
+def admin_toggle_advertisement(
+    advertisement_id: int
+):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE advertisements
+                SET
+                    is_active = NOT is_active,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING is_active
+            """, (advertisement_id,))
+
+            row = cur.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Advertisement not found"
+                )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "is_active": row[0],
+        "message": (
+            "Advertisement activated"
+            if row[0]
+            else "Advertisement paused"
+        )
+    }
+
+
+@app.delete(
+    "/admin/advertisements/{advertisement_id}",
+    dependencies=[Depends(require_owner)]
+)
+def admin_delete_advertisement(
+    advertisement_id: int
+):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM advertisements
+                WHERE id = %s
+            """, (advertisement_id,))
+
+            if cur.rowcount == 0:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Advertisement not found"
+                )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "message": "Advertisement deleted successfully"
+    }
+
+# ============================================================
+# PUBLIC ADVERTISEMENT DELIVERY + TRACKING
+# ============================================================
+
+PUBLIC_AD_SELECT_COLUMNS = """
+    id,
+    advertiser_name,
+    business_category,
+    campaign_name,
+    ad_type,
+    media_type,
+    media_url,
+    mobile_media_url,
+    target_url,
+    placement,
+    page_target,
+    duration_seconds,
+    frequency,
+    start_date,
+    end_date,
+    is_active
+"""
+
+
+@app.get("/ads/active")
+def get_active_public_advertisements(
+    placement: Optional[str] = None,
+    page: Optional[str] = None
+):
+    today = date.today()
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {PUBLIC_AD_SELECT_COLUMNS}
+                FROM advertisements
+                WHERE is_active = TRUE
+                  AND start_date <= %s
+                  AND end_date >= %s
+                ORDER BY id DESC
+                """,
+                (today, today)
+            )
+            rows = cur.fetchall()
+
+    ads = []
+
+    for row in rows:
+        ad = dict(zip(
+            [
+                "id", "advertiser_name", "business_category",
+                "campaign_name", "ad_type", "media_type",
+                "media_url", "mobile_media_url", "target_url",
+                "placement", "page_target", "duration_seconds",
+                "frequency", "start_date", "end_date", "is_active"
+            ],
+            row
+        ))
+
+        if placement:
+            allowed = (
+                ad["placement"] == placement
+                or ad["placement"] == "sitewide"
+            )
+            if not allowed:
+                continue
+
+        if ad["placement"] == "selected_pages":
+            target = (ad.get("page_target") or "").strip()
+            if not page or not target:
+                continue
+
+            targets = [
+                item.strip()
+                for item in target.split(",")
+                if item.strip()
+            ]
+
+            if page not in targets:
+                continue
+
+        for key in ("start_date", "end_date"):
+            if ad.get(key):
+                ad[key] = ad[key].isoformat()
+
+        ads.append(ad)
+
+    return {
+        "advertisements": ads
+    }
+
+
+@app.post("/ads/{advertisement_id}/impression")
+def track_advertisement_impression(advertisement_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE advertisements
+                SET impressions = impressions + 1,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+                """,
+                (advertisement_id,)
+            )
+            row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    return {"success": True}
+
+
+@app.post("/ads/{advertisement_id}/click")
+def track_advertisement_click(advertisement_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE advertisements
+                SET clicks = clicks + 1,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+                """,
+                (advertisement_id,)
+            )
+            row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    return {"success": True}
+
+
+@app.post("/ads/{advertisement_id}/complete")
+def track_advertisement_complete(advertisement_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE advertisements
+                SET completed_views = completed_views + 1,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+                """,
+                (advertisement_id,)
+            )
+            row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    return {"success": True}
+
+
+@app.post("/ads/{advertisement_id}/skip")
+def track_advertisement_skip(advertisement_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE advertisements
+                SET skips = skips + 1,
+                    updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+                """,
+                (advertisement_id,)
+            )
+            row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    return {"success": True}
+
+
