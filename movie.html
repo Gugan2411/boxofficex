@@ -3395,6 +3395,35 @@ body.bx-bottom-ad-visible{
 
 </style>
 
+
+<style id="bx-ad-v12-fixes">
+/* BoxOfficeX advertising-only V1.2 responsive fixes */
+.bx-ad-banner-media{max-height:120px!important;object-fit:contain!important;background:#f8fafc!important}
+.bx-ad-content-media{max-height:220px!important;object-fit:contain!important;background:#f8fafc!important}
+#bxSmallVideoAd{width:min(300px,calc(100vw - 28px))!important}
+#bxSmallVideoAd video{max-height:170px!important;object-fit:contain!important}
+.bx-fullscreen-inner,.bx-fullscreen-media{background:#f8fafc!important}
+.bx-fullscreen-media{max-height:86vh!important;object-fit:contain!important}
+.bx-sticky-shell img,.bx-sticky-shell video{max-height:72px!important;object-fit:contain!important;background:#f8fafc!important}
+body.bx-bottom-ad-visible{padding-bottom:100px!important}
+body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
+#bxInContentVideoAds{max-width:900px!important}
+.bx-invideo-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),620px))!important;justify-content:center!important}
+.bx-invideo-card{position:relative}
+.bx-invideo-close{width:26px;height:26px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:16px;line-height:1}
+.bx-invideo-card video{object-fit:contain!important}
+@media(max-width:700px){
+ .bx-ad-banner-media{max-height:90px!important}
+ .bx-ad-content-media{max-height:170px!important}
+ #bxSmallVideoAd{width:min(240px,calc(100vw - 20px))!important;right:10px!important;bottom:74px!important}
+ #bxSmallVideoAd video{max-height:135px!important}
+ .bx-sticky-shell img,.bx-sticky-shell video{max-height:56px!important}
+ body.bx-bottom-ad-visible{padding-bottom:76px!important}
+ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,64px)!important}
+ #bxSponsoredLinkAd.bx-sponsored-link-grid{grid-template-columns:1fr!important}
+}
+</style>
+
 </head>
 
 
@@ -3805,9 +3834,6 @@ body.bx-bottom-ad-visible{
             </section>
 
 
-            <section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
-
-
             <!-- =================================================
                  FAN ENGAGEMENT
             ================================================= -->
@@ -3848,6 +3874,7 @@ body.bx-bottom-ad-visible{
 
     </div>
 
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 <div id="movieShareTools"></div>
 </main>
 
@@ -6144,7 +6171,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 (function(){
 
     const AD_PAGE = location.pathname || "/";
-    const MAX_SPONSORED_LINKS = 5;
+    const MAX_SPONSORED_LINKS = 4;
     const MAX_INCONTENT_VIDEOS = 3;
 
     function adPost(id, eventName){
@@ -6236,10 +6263,36 @@ document.addEventListener("DOMContentLoaded",()=>{
         return ads.filter(ad => ad.ad_type === type && eligibleByFrequency(ad));
     }
 
+    function adWeight(ad){
+        const value = Number(ad && ad.traffic_weight);
+        return Number.isFinite(value) && value > 0 ? value : 1;
+    }
+
+    function weightedPick(list){
+        if(!list.length) return null;
+        const total = list.reduce((sum, ad) => sum + adWeight(ad), 0);
+        let roll = Math.random() * total;
+        for(const ad of list){
+            roll -= adWeight(ad);
+            if(roll <= 0) return ad;
+        }
+        return list[list.length - 1];
+    }
+
+    function weightedSample(list, count){
+        const pool = [...list];
+        const chosen = [];
+        while(pool.length && chosen.length < count){
+            const ad = weightedPick(pool);
+            if(!ad) break;
+            chosen.push(ad);
+            pool.splice(pool.indexOf(ad), 1);
+        }
+        return chosen;
+    }
+
     function pickOne(ads, type){
-        const matches = eligibleAds(ads, type);
-        if(!matches.length) return null;
-        return matches[Math.floor(Math.random() * matches.length)];
+        return weightedPick(eligibleAds(ads, type));
     }
 
     function showStandardAd(ad, elementId, mediaClass){
@@ -6287,6 +6340,11 @@ document.addEventListener("DOMContentLoaded",()=>{
         root.style.display = "block";
         if(elementId === "bxBottomStickyAd"){
             document.body.classList.add("bx-bottom-ad-visible");
+        } else if(elementId === "bxTopStickyAd"){
+            requestAnimationFrame(() => {
+                document.documentElement.style.setProperty("--bx-top-sticky-space", `${root.offsetHeight + 10}px`);
+                document.body.classList.add("bx-top-ad-visible");
+            });
         }
         bindClicks(root);
 
@@ -6297,6 +6355,9 @@ document.addEventListener("DOMContentLoaded",()=>{
             root.style.display = "none";
             if(elementId === "bxBottomStickyAd"){
                 document.body.classList.remove("bx-bottom-ad-visible");
+            } else if(elementId === "bxTopStickyAd"){
+                document.body.classList.remove("bx-top-ad-visible");
+                document.documentElement.style.removeProperty("--bx-top-sticky-space");
             }
             if(video) video.pause();
             adPost(ad.id, "skip");
@@ -6442,9 +6503,10 @@ document.addEventListener("DOMContentLoaded",()=>{
         const root = document.getElementById("bxSponsoredLinkAd");
         if(!root) return 0;
 
-        const selected = ads
-            .filter(ad => ad.ad_type === "sponsored_link" && eligibleByFrequency(ad))
-            .slice(0, MAX_SPONSORED_LINKS);
+        const selected = weightedSample(
+            ads.filter(ad => ad.ad_type === "sponsored_link" && eligibleByFrequency(ad)),
+            MAX_SPONSORED_LINKS
+        );
 
         if(!selected.length) return 0;
 
@@ -6487,9 +6549,10 @@ document.addEventListener("DOMContentLoaded",()=>{
         const root = document.getElementById("bxInContentVideoAds");
         if(!root) return 0;
 
-        const selected = ads
-            .filter(ad => ad.ad_type === "in_content_video" && eligibleByFrequency(ad))
-            .slice(0, MAX_INCONTENT_VIDEOS);
+        const selected = weightedSample(
+            ads.filter(ad => ad.ad_type === "in_content_video" && eligibleByFrequency(ad)),
+            MAX_INCONTENT_VIDEOS
+        );
 
         if(!selected.length) return 0;
 
@@ -6500,6 +6563,7 @@ document.addEventListener("DOMContentLoaded",()=>{
                     <div class="bx-invideo-card">
                         <div class="bx-invideo-head">
                             <span>Sponsored • ${escapeAd(ad.advertiser_name || "Advertisement")}</span>
+                            <button class="bx-invideo-close" type="button" aria-label="Close advertisement">×</button>
                         </div>
                         <a href="${escapeAd(ad.target_url)}"
                            target="_blank"
@@ -6519,9 +6583,18 @@ document.addEventListener("DOMContentLoaded",()=>{
         cards.forEach((card, index) => {
             const ad = selected[index];
             const video = card.querySelector("video");
+            const close = card.querySelector(".bx-invideo-close");
             if(!video) return;
 
             let completed = false;
+            if(close){
+                close.addEventListener("click", () => {
+                    video.pause();
+                    card.remove();
+                    if(!completed) adPost(ad.id, "skip");
+                    if(!root.querySelector(".bx-invideo-card")) root.style.display = "none";
+                });
+            }
             video.addEventListener("ended", () => {
                 if(completed) return;
                 completed = true;
@@ -6573,10 +6646,18 @@ document.addEventListener("DOMContentLoaded",()=>{
             showSponsoredLinks(ads);
             showInContentVideos(ads);
             if(moviePage) showStandardAd(moviePage, "bxMoviePageAd", "bx-ad-content-media");
-            if(smallVideo) showSmallVideo(smallVideo);
-            if(topSticky) showStickyAd(topSticky, "bxTopStickyAd");
-            if(bottomSticky) showStickyAd(bottomSticky, "bxBottomStickyAd");
-            if(fullscreen) setTimeout(() => showFullscreen(fullscreen), 500);
+            const showFloatingSlots = () => {
+                if(smallVideo) showSmallVideo(smallVideo);
+                if(topSticky) showStickyAd(topSticky, "bxTopStickyAd");
+                if(bottomSticky) showStickyAd(bottomSticky, "bxBottomStickyAd");
+            };
+            if(fullscreen){
+                const waitMs = (Math.max(1, Math.min(Number(fullscreen.duration_seconds || 5), 60)) + 1) * 1000;
+                setTimeout(() => showFullscreen(fullscreen), 500);
+                setTimeout(showFloatingSlots, waitMs);
+            }else{
+                showFloatingSlots();
+            }
 
         }catch(error){
             console.warn("BoxOfficeX advertisements unavailable:", error);

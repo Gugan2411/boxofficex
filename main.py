@@ -4,10 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime
 import os
 import cloudinary
 import cloudinary.uploader
+from urllib.parse import urlparse
+import textwrap
 
 # ============================================================
 # CLOUDINARY CONFIGURATION
@@ -295,8 +297,17 @@ class AdvertisementCreateData(BaseModel):
     end_date: date
     is_active: bool = True
 
-    # Internal bookkeeping only. This is not a public fixed rate.
+    # Private billing / traffic controls.
+    total_amount: Optional[float] = None
     amount_paid: Optional[float] = None
+    traffic_weight: float = 1.0
+    client_email: Optional[str] = None
+    client_phone: Optional[str] = None
+    billing_address: Optional[str] = None
+    invoice_number: Optional[str] = None
+    invoice_date: Optional[date] = None
+    payment_due_date: Optional[date] = None
+    billing_notes: Optional[str] = None
 
 
 class AdvertisementUpdateData(BaseModel):
@@ -346,7 +357,16 @@ class AdvertisementUpdateData(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     is_active: Optional[bool] = None
+    total_amount: Optional[float] = None
     amount_paid: Optional[float] = None
+    traffic_weight: Optional[float] = None
+    client_email: Optional[str] = None
+    client_phone: Optional[str] = None
+    billing_address: Optional[str] = None
+    invoice_number: Optional[str] = None
+    invoice_date: Optional[date] = None
+    payment_due_date: Optional[date] = None
+    billing_notes: Optional[str] = None
 
 
 def current_admin(request: Request):
@@ -748,6 +768,48 @@ def initialize_advertisement_system():
             # now validated by the app and may contain comma-separated page groups.
             cur.execute("ALTER TABLE advertisements DROP CONSTRAINT IF EXISTS advertisements_placement_check")
             cur.execute("ALTER TABLE advertisements DROP CONSTRAINT IF EXISTS advertisements_ad_type_check")
+
+            # V1.2 billing + weighted traffic upgrade. Safe for existing databases.
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS total_amount NUMERIC(12,2)")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS traffic_weight NUMERIC(10,2) NOT NULL DEFAULT 1")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS client_email TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS client_phone TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS billing_address TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS invoice_number TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS invoice_date DATE")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS payment_due_date DATE")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS billing_notes TEXT")
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS advertisement_invoices (
+                    id BIGSERIAL PRIMARY KEY,
+                    advertisement_id BIGINT NOT NULL REFERENCES advertisements(id) ON DELETE CASCADE,
+                    invoice_number TEXT NOT NULL UNIQUE,
+                    invoice_date DATE NOT NULL,
+                    advertiser_name TEXT NOT NULL,
+                    client_email TEXT,
+                    client_phone TEXT,
+                    billing_address TEXT,
+                    campaign_name TEXT NOT NULL,
+                    ad_type TEXT NOT NULL,
+                    placement TEXT NOT NULL,
+                    start_date DATE NOT NULL,
+                    end_date DATE NOT NULL,
+                    traffic_weight NUMERIC(10,2) NOT NULL DEFAULT 1,
+                    total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+                    amount_paid NUMERIC(12,2) NOT NULL DEFAULT 0,
+                    pending_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+                    payment_status TEXT NOT NULL,
+                    payment_due_date DATE,
+                    billing_notes TEXT,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ad_invoices_advertisement
+                ON advertisement_invoices (advertisement_id, created_at DESC)
+            """)
 
             cur.execute("""
                 CREATE INDEX IF NOT EXISTS
@@ -4499,7 +4561,7 @@ def admin_get_movies():
 
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 
 
 
@@ -4685,7 +4747,7 @@ def admin_add_collection(
 
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 
 
 class AdminMovieData(BaseModel):
@@ -8734,7 +8796,16 @@ ADVERTISEMENT_SELECT_COLUMNS = """
     skips,
     created_by,
     created_at,
-    updated_at
+    updated_at,
+    total_amount,
+    traffic_weight,
+    client_email,
+    client_phone,
+    billing_address,
+    invoice_number,
+    invoice_date,
+    payment_due_date,
+    billing_notes
 """
 
 
@@ -8801,6 +8872,29 @@ def _normalize_ad_placements(value: str) -> str:
     return ",".join(dict.fromkeys(items))
 
 
+
+
+def _normalize_target_url(value: str) -> str:
+    value = _clean_required_ad_text(value, "Target URL")
+    if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", value):
+        value = "https://" + value
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise HTTPException(status_code=400, detail="Target URL must be a valid http/https address")
+    return value
+
+
+def _payment_status(total_amount, amount_paid, due_date=None):
+    total = float(total_amount or 0)
+    paid = float(amount_paid or 0)
+    if total <= 0:
+        return "paid" if paid > 0 else "unpaid"
+    if paid >= total:
+        return "paid"
+    if due_date and date.today() > due_date:
+        return "overdue"
+    return "partially_paid" if paid > 0 else "unpaid"
+
 def _validate_advertisement_values(
     *,
     start_date_value: date,
@@ -8808,7 +8902,9 @@ def _validate_advertisement_values(
     ad_type: str,
     media_type: str,
     duration_seconds: Optional[int],
-    amount_paid: Optional[float]
+    total_amount: Optional[float],
+    amount_paid: Optional[float],
+    traffic_weight: Optional[float]
 ):
     if end_date_value < start_date_value:
         raise HTTPException(
@@ -8833,11 +8929,14 @@ def _validate_advertisement_values(
             detail="Video advertisements require duration_seconds"
         )
 
+    if total_amount is not None and total_amount < 0:
+        raise HTTPException(status_code=400, detail="Total amount cannot be negative")
     if amount_paid is not None and amount_paid < 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Amount paid cannot be negative"
-        )
+        raise HTTPException(status_code=400, detail="Amount paid cannot be negative")
+    if total_amount is not None and amount_paid is not None and amount_paid > total_amount:
+        raise HTTPException(status_code=400, detail="Amount paid cannot exceed total amount")
+    if traffic_weight is not None and (traffic_weight <= 0 or traffic_weight > 1000):
+        raise HTTPException(status_code=400, detail="Traffic weight must be greater than 0 and at most 1000")
 
 
 def advertisement_status(
@@ -8899,6 +8998,17 @@ def advertisement_row_to_dict(row):
         "created_by": row[21],
         "created_at": row[22].isoformat() if row[22] else None,
         "updated_at": row[23].isoformat() if row[23] else None,
+        "total_amount": float(row[24]) if row[24] is not None else 0.0,
+        "traffic_weight": float(row[25]) if row[25] is not None else 1.0,
+        "client_email": row[26],
+        "client_phone": row[27],
+        "billing_address": row[28],
+        "invoice_number": row[29] or f"BX-AD-{int(row[0]):06d}",
+        "invoice_date": row[30].isoformat() if row[30] else None,
+        "payment_due_date": row[31].isoformat() if row[31] else None,
+        "billing_notes": row[32],
+        "pending_amount": max(0.0, round(float(row[24] or 0) - float(row[16] or 0), 2)),
+        "payment_status": _payment_status(row[24], row[16], row[31]),
         "status": advertisement_status(
             row[15],
             row[13],
@@ -9016,10 +9126,7 @@ def admin_create_advertisement(
         data.media_url,
         "Media URL"
     )
-    target_url = _clean_required_ad_text(
-        data.target_url,
-        "Target URL"
-    )
+    target_url = _normalize_target_url(data.target_url)
 
     normalized_placement = _normalize_ad_placements(data.placement)
 
@@ -9029,7 +9136,9 @@ def admin_create_advertisement(
         ad_type=data.ad_type,
         media_type=data.media_type,
         duration_seconds=data.duration_seconds,
-        amount_paid=data.amount_paid
+        total_amount=data.total_amount,
+        amount_paid=data.amount_paid,
+        traffic_weight=data.traffic_weight
     )
 
     with get_connection() as conn:
@@ -9052,7 +9161,16 @@ def admin_create_advertisement(
                     end_date,
                     is_active,
                     amount_paid,
-                    created_by
+                    created_by,
+                    total_amount,
+                    traffic_weight,
+                    client_email,
+                    client_phone,
+                    billing_address,
+                    invoice_number,
+                    invoice_date,
+                    payment_due_date,
+                    billing_notes
                 )
                 VALUES (
                     %s, %s, %s,
@@ -9063,7 +9181,9 @@ def admin_create_advertisement(
                     %s, %s,
                     %s, %s,
                     %s, %s,
-                    %s
+                    %s, %s, %s,
+                    %s, %s, %s,
+                    %s, %s, %s, %s
                 )
                 RETURNING id
             """, (
@@ -9083,7 +9203,16 @@ def admin_create_advertisement(
                 data.end_date,
                 data.is_active,
                 data.amount_paid,
-                admin["id"]
+                admin["id"],
+                data.total_amount,
+                data.traffic_weight or 1.0,
+                _clean_optional_ad_text(data.client_email),
+                _clean_optional_ad_text(data.client_phone),
+                _clean_optional_ad_text(data.billing_address),
+                _clean_optional_ad_text(data.invoice_number),
+                data.invoice_date,
+                data.payment_due_date,
+                _clean_optional_ad_text(data.billing_notes)
             ))
 
             advertisement_id = cur.fetchone()[0]
@@ -9128,7 +9257,9 @@ def admin_update_advertisement(
                     start_date,
                     end_date,
                     duration_seconds,
-                    amount_paid
+                    amount_paid,
+                    total_amount,
+                    traffic_weight
                 FROM advertisements
                 WHERE id = %s
             """, (advertisement_id,))
@@ -9161,10 +9292,9 @@ def admin_update_advertisement(
                 "duration_seconds",
                 existing[8]
             )
-            prospective_amount = update_data.get(
-                "amount_paid",
-                existing[9]
-            )
+            prospective_amount = update_data.get("amount_paid", existing[9])
+            prospective_total = update_data.get("total_amount", existing[10])
+            prospective_weight = update_data.get("traffic_weight", existing[11])
 
             _validate_advertisement_values(
                 start_date_value=prospective_start_date,
@@ -9172,11 +9302,9 @@ def admin_update_advertisement(
                 ad_type=prospective_ad_type,
                 media_type=prospective_media_type,
                 duration_seconds=prospective_duration,
-                amount_paid=(
-                    float(prospective_amount)
-                    if prospective_amount is not None
-                    else None
-                )
+                total_amount=float(prospective_total) if prospective_total is not None else None,
+                amount_paid=float(prospective_amount) if prospective_amount is not None else None,
+                traffic_weight=float(prospective_weight) if prospective_weight is not None else None
             )
 
             required_text_fields = {
@@ -9190,6 +9318,11 @@ def admin_update_advertisement(
                 "business_category",
                 "mobile_media_url",
                 "page_target",
+                "client_email",
+                "client_phone",
+                "billing_address",
+                "invoice_number",
+                "billing_notes",
             }
 
             allowed_fields = {
@@ -9209,6 +9342,15 @@ def admin_update_advertisement(
                 "end_date",
                 "is_active",
                 "amount_paid",
+                "total_amount",
+                "traffic_weight",
+                "client_email",
+                "client_phone",
+                "billing_address",
+                "invoice_number",
+                "invoice_date",
+                "payment_due_date",
+                "billing_notes",
             }
 
             if "placement" in update_data:
@@ -9221,7 +9363,9 @@ def admin_update_advertisement(
                 if field not in allowed_fields:
                     continue
 
-                if field in required_text_fields:
+                if field == "target_url":
+                    value = _normalize_target_url(value)
+                elif field in required_text_fields:
                     value = _clean_required_ad_text(
                         value,
                         required_text_fields[field]
@@ -9324,6 +9468,146 @@ def admin_delete_advertisement(
         "message": "Advertisement deleted successfully"
     }
 
+
+
+# ============================================================
+# OWNER: ADVERTISEMENT BILLING / PDF INVOICES
+# ============================================================
+
+def _pdf_escape(value):
+    return str(value or "").replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def _build_simple_invoice_pdf(invoice: dict) -> bytes:
+    lines = [
+        "BOXOFFICEX - ADVERTISING INVOICE",
+        "",
+        f"Invoice: {invoice['invoice_number']}",
+        f"Invoice date: {invoice['invoice_date']}",
+        f"Advertiser: {invoice['advertiser_name']}",
+        f"Email: {invoice.get('client_email') or '-'}",
+        f"Phone: {invoice.get('client_phone') or '-'}",
+        f"Billing address: {invoice.get('billing_address') or '-'}",
+        "",
+        f"Campaign: {invoice['campaign_name']}",
+        f"Ad type: {invoice['ad_type']}",
+        f"Pages: {invoice['placement']}",
+        f"Campaign period: {invoice['start_date']} to {invoice['end_date']}",
+        f"Traffic weight: {invoice['traffic_weight']}",
+        "",
+        f"Total amount: INR {float(invoice['total_amount'] or 0):,.2f}",
+        f"Amount paid: INR {float(invoice['amount_paid'] or 0):,.2f}",
+        f"Pending balance: INR {float(invoice['pending_amount'] or 0):,.2f}",
+        f"Payment status: {str(invoice['payment_status']).replace('_', ' ').title()}",
+        f"Payment due: {invoice.get('payment_due_date') or '-'}",
+        "",
+        f"Notes: {invoice.get('billing_notes') or '-'}",
+        "",
+        "Thank you for advertising with BoxOfficeX.",
+    ]
+    wrapped=[]
+    for line in lines:
+        wrapped.extend(textwrap.wrap(str(line), width=88) or [""])
+    y=790
+    content=["BT", "/F1 16 Tf", "50 815 Td", f"({_pdf_escape(wrapped[0])}) Tj", "/F1 10 Tf"]
+    first=True
+    for line in wrapped[1:]:
+        content.append("0 -18 Td")
+        content.append(f"({_pdf_escape(line)}) Tj")
+    content.append("ET")
+    stream="\n".join(content).encode("latin-1", "replace")
+    objects=[]
+    objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
+    objects.append(b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>")
+    objects.append(b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>")
+    objects.append(b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream")
+    objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    pdf=bytearray(b"%PDF-1.4\n")
+    offsets=[0]
+    for i,obj in enumerate(objects,1):
+        offsets.append(len(pdf)); pdf.extend(f"{i} 0 obj\n".encode()); pdf.extend(obj); pdf.extend(b"\nendobj\n")
+    xref=len(pdf)
+    pdf.extend(f"xref\n0 {len(objects)+1}\n".encode()); pdf.extend(b"0000000000 65535 f \n")
+    for off in offsets[1:]: pdf.extend(f"{off:010d} 00000 n \n".encode())
+    pdf.extend(f"trailer\n<< /Size {len(objects)+1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF".encode())
+    return bytes(pdf)
+
+
+@app.post("/admin/advertisements/{advertisement_id}/invoice", dependencies=[Depends(require_owner)])
+def admin_generate_advertisement_invoice(advertisement_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT advertiser_name, client_email, client_phone, billing_address,
+                       campaign_name, ad_type, placement, start_date, end_date,
+                       traffic_weight, total_amount, amount_paid, payment_due_date,
+                       billing_notes, invoice_number, invoice_date
+                FROM advertisements WHERE id = %s
+            """, (advertisement_id,))
+            row=cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Advertisement not found")
+            total=float(row[10] or 0); paid=float(row[11] or 0); pending=max(0.0, round(total-paid,2))
+            inv_date=row[15] or date.today()
+            base=(row[14] or f"BX-AD-{advertisement_id:06d}").strip()
+            invoice_number=f"{base}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            status=_payment_status(total, paid, row[12])
+            cur.execute("""
+                INSERT INTO advertisement_invoices (
+                    advertisement_id, invoice_number, invoice_date, advertiser_name,
+                    client_email, client_phone, billing_address, campaign_name, ad_type,
+                    placement, start_date, end_date, traffic_weight, total_amount,
+                    amount_paid, pending_amount, payment_status, payment_due_date, billing_notes
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                RETURNING id
+            """, (advertisement_id, invoice_number, inv_date, row[0], row[1], row[2], row[3],
+                  row[4], row[5], row[6], row[7], row[8], row[9] or 1, total, paid, pending,
+                  status, row[12], row[13]))
+            invoice_id=cur.fetchone()[0]
+        conn.commit()
+    return {"success": True, "invoice_id": invoice_id, "invoice_number": invoice_number,
+            "download_url": f"/admin/invoices/{invoice_id}/pdf"}
+
+
+@app.get("/admin/advertisements/{advertisement_id}/invoices", dependencies=[Depends(require_owner)])
+def admin_advertisement_invoice_history(advertisement_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, invoice_number, invoice_date, total_amount, amount_paid,
+                       pending_amount, payment_status, created_at
+                FROM advertisement_invoices WHERE advertisement_id=%s
+                ORDER BY created_at DESC
+            """, (advertisement_id,))
+            rows=cur.fetchall()
+    return {"invoices": [{"id":r[0],"invoice_number":r[1],"invoice_date":r[2].isoformat(),
+                           "total_amount":float(r[3] or 0),"amount_paid":float(r[4] or 0),
+                           "pending_amount":float(r[5] or 0),"payment_status":r[6],
+                           "created_at":r[7].isoformat()} for r in rows]}
+
+
+@app.get("/admin/invoices/{invoice_id}/pdf", dependencies=[Depends(require_owner)])
+def admin_download_invoice_pdf(invoice_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT invoice_number, invoice_date, advertiser_name, client_email, client_phone,
+                       billing_address, campaign_name, ad_type, placement, start_date, end_date,
+                       traffic_weight, total_amount, amount_paid, pending_amount, payment_status,
+                       payment_due_date, billing_notes
+                FROM advertisement_invoices WHERE id=%s
+            """, (invoice_id,))
+            row=cur.fetchone()
+    if not row: raise HTTPException(status_code=404, detail="Invoice not found")
+    keys=["invoice_number","invoice_date","advertiser_name","client_email","client_phone","billing_address",
+          "campaign_name","ad_type","placement","start_date","end_date","traffic_weight","total_amount",
+          "amount_paid","pending_amount","payment_status","payment_due_date","billing_notes"]
+    invoice=dict(zip(keys,row))
+    pdf=_build_simple_invoice_pdf(invoice)
+    filename=re.sub(r"[^A-Za-z0-9._-]+","-",invoice["invoice_number"])+".pdf"
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
 # ============================================================
 # PUBLIC ADVERTISEMENT DELIVERY + TRACKING
 # ============================================================
@@ -9344,7 +9628,8 @@ PUBLIC_AD_SELECT_COLUMNS = """
     frequency,
     start_date,
     end_date,
-    is_active
+    is_active,
+    traffic_weight
 """
 
 
@@ -9379,7 +9664,8 @@ def get_active_public_advertisements(
                 "campaign_name", "ad_type", "media_type",
                 "media_url", "mobile_media_url", "target_url",
                 "placement", "page_target", "duration_seconds",
-                "frequency", "start_date", "end_date", "is_active"
+                "frequency", "start_date", "end_date", "is_active",
+                "traffic_weight"
             ],
             row
         ))

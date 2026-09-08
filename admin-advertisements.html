@@ -1192,11 +1192,55 @@
             </div>
 
             <div class="form-group">
-                <label>Internal Amount Paid (₹)</label>
-                <input id="amountPaid" type="number" min="0" step="0.01" placeholder="Optional">
-                <div class="helper">
-                    Private bookkeeping only. Not shown publicly.
-                </div>
+                <label>Total Campaign Price (₹)</label>
+                <input id="totalAmount" type="number" min="0" step="0.01" placeholder="Example: 50000">
+            </div>
+
+            <div class="form-group">
+                <label>Amount Paid (₹)</label>
+                <input id="amountPaid" type="number" min="0" step="0.01" placeholder="Example: 20000">
+                <div class="helper">Pending balance and payment status are calculated automatically.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Traffic Weight</label>
+                <input id="trafficWeight" type="number" min="0.01" max="1000" step="0.01" value="1">
+                <div class="helper">Relative campaign priority. Example: 60, 15, 10, 10, 5.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Client Email</label>
+                <input id="clientEmail" type="email" placeholder="billing@client.com">
+            </div>
+
+            <div class="form-group">
+                <label>Client Phone</label>
+                <input id="clientPhone" type="text" placeholder="+91 ...">
+            </div>
+
+            <div class="form-group full">
+                <label>Billing Address</label>
+                <input id="billingAddress" type="text" placeholder="Client billing address">
+            </div>
+
+            <div class="form-group">
+                <label>Invoice Base Number</label>
+                <input id="invoiceNumber" type="text" placeholder="Auto: BX-AD-000001">
+            </div>
+
+            <div class="form-group">
+                <label>Invoice Date</label>
+                <input id="invoiceDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>Payment Due Date</label>
+                <input id="paymentDueDate" type="date">
+            </div>
+
+            <div class="form-group full">
+                <label>Billing / Package Notes</label>
+                <input id="billingNotes" type="text" placeholder="Example: Top Banner + Sponsored Links + 60 traffic weight">
             </div>
 
             <div class="form-group">
@@ -1514,8 +1558,44 @@
             </div>
 
             <div class="form-group">
-                <label>Internal Amount Paid (₹)</label>
+                <label>Total Campaign Price (₹)</label>
+                <input id="editTotalAmount" type="number" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Amount Paid (₹)</label>
                 <input id="editAmountPaid" type="number" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Traffic Weight</label>
+                <input id="editTrafficWeight" type="number" min="0.01" max="1000" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Client Email</label>
+                <input id="editClientEmail" type="email">
+            </div>
+            <div class="form-group">
+                <label>Client Phone</label>
+                <input id="editClientPhone" type="text">
+            </div>
+            <div class="form-group full">
+                <label>Billing Address</label>
+                <input id="editBillingAddress" type="text">
+            </div>
+            <div class="form-group">
+                <label>Invoice Base Number</label>
+                <input id="editInvoiceNumber" type="text">
+            </div>
+            <div class="form-group">
+                <label>Invoice Date</label>
+                <input id="editInvoiceDate" type="date">
+            </div>
+            <div class="form-group">
+                <label>Payment Due Date</label>
+                <input id="editPaymentDueDate" type="date">
+            </div>
+            <div class="form-group full">
+                <label>Billing / Package Notes</label>
+                <input id="editBillingNotes" type="text">
             </div>
 
             <div class="form-group">
@@ -1756,7 +1836,15 @@
             "durationSeconds",
             "startDate",
             "endDate",
-            "amountPaid"
+            "totalAmount",
+            "amountPaid",
+            "clientEmail",
+            "clientPhone",
+            "billingAddress",
+            "invoiceNumber",
+            "invoiceDate",
+            "paymentDueDate",
+            "billingNotes"
         ].forEach(id => {
             document.getElementById(id).value = "";
         });
@@ -1765,6 +1853,7 @@
         document.getElementById("mediaType").value = "image";
         setSelectedPlacements("create", "homepage");
         document.getElementById("frequency").value = "once_24h";
+        document.getElementById("trafficWeight").value = "1";
         document.getElementById("isActive").checked = true;
 
         hideMessage("createMessage");
@@ -2354,9 +2443,25 @@
                 document.getElementById("isActive").checked,
 
             amount_paid:
-                numberOrNull(
-                    document.getElementById("amountPaid").value
-                )
+                numberOrNull(document.getElementById("amountPaid").value),
+            total_amount:
+                numberOrNull(document.getElementById("totalAmount").value),
+            traffic_weight:
+                Number(document.getElementById("trafficWeight").value || 1),
+            client_email:
+                document.getElementById("clientEmail").value.trim() || null,
+            client_phone:
+                document.getElementById("clientPhone").value.trim() || null,
+            billing_address:
+                document.getElementById("billingAddress").value.trim() || null,
+            invoice_number:
+                document.getElementById("invoiceNumber").value.trim() || null,
+            invoice_date:
+                document.getElementById("invoiceDate").value || null,
+            payment_due_date:
+                document.getElementById("paymentDueDate").value || null,
+            billing_notes:
+                document.getElementById("billingNotes").value.trim() || null
         };
 
 
@@ -2615,6 +2720,8 @@
                             ${formatNumber(ad.clicks)} clicks
                             • ${Number(ad.ctr_percent || 0).toFixed(2)}% CTR
                         </div>
+                        <div class="muted">Weight ${Number(ad.traffic_weight || 1)} • ${escapeHtml((ad.payment_status || "unpaid").replaceAll("_", " "))}</div>
+                        <div class="muted">₹${Number(ad.amount_paid || 0).toLocaleString("en-IN")} paid • ₹${Number(ad.pending_amount || 0).toLocaleString("en-IN")} pending</div>
                     </td>
 
                     <td>
@@ -2634,6 +2741,8 @@
                                 ${actionLabel}
                             </button>
 
+                            <button class="mini-btn good" onclick="generateInvoice(${Number(ad.id)})">Invoice PDF</button>
+                            <button class="mini-btn" onclick="showInvoiceHistory(${Number(ad.id)})">Invoices</button>
                             <button
                                 class="mini-btn danger"
                                 onclick="deleteAdvertisement(${Number(ad.id)})"
@@ -2697,8 +2806,16 @@
         document.getElementById("editEndDate").value =
             ad.end_date || "";
 
-        document.getElementById("editAmountPaid").value =
-            ad.amount_paid ?? "";
+        document.getElementById("editTotalAmount").value = ad.total_amount ?? "";
+        document.getElementById("editAmountPaid").value = ad.amount_paid ?? "";
+        document.getElementById("editTrafficWeight").value = ad.traffic_weight ?? 1;
+        document.getElementById("editClientEmail").value = ad.client_email || "";
+        document.getElementById("editClientPhone").value = ad.client_phone || "";
+        document.getElementById("editBillingAddress").value = ad.billing_address || "";
+        document.getElementById("editInvoiceNumber").value = ad.invoice_number || "";
+        document.getElementById("editInvoiceDate").value = ad.invoice_date || "";
+        document.getElementById("editPaymentDueDate").value = ad.payment_due_date || "";
+        document.getElementById("editBillingNotes").value = ad.billing_notes || "";
 
         document.getElementById("editIsActive").checked =
             Boolean(ad.is_active);
@@ -2769,10 +2886,16 @@
             end_date:
                 document.getElementById("editEndDate").value,
 
-            amount_paid:
-                numberOrNull(
-                    document.getElementById("editAmountPaid").value
-                ),
+            amount_paid: numberOrNull(document.getElementById("editAmountPaid").value),
+            total_amount: numberOrNull(document.getElementById("editTotalAmount").value),
+            traffic_weight: Number(document.getElementById("editTrafficWeight").value || 1),
+            client_email: document.getElementById("editClientEmail").value.trim() || null,
+            client_phone: document.getElementById("editClientPhone").value.trim() || null,
+            billing_address: document.getElementById("editBillingAddress").value.trim() || null,
+            invoice_number: document.getElementById("editInvoiceNumber").value.trim() || null,
+            invoice_date: document.getElementById("editInvoiceDate").value || null,
+            payment_due_date: document.getElementById("editPaymentDueDate").value || null,
+            billing_notes: document.getElementById("editBillingNotes").value.trim() || null,
 
             is_active:
                 document.getElementById("editIsActive").checked
@@ -2849,6 +2972,23 @@
 
     }
 
+
+    async function generateInvoice(id) {
+        try {
+            const data = await apiRequest(`/admin/advertisements/${id}/invoice`, {method:"POST"});
+            window.open(data.download_url, "_blank");
+        } catch (error) { alert(error.message || "Invoice generation failed."); }
+    }
+
+    async function showInvoiceHistory(id) {
+        try {
+            const data = await apiRequest(`/admin/advertisements/${id}/invoices`);
+            const rows = data.invoices || [];
+            if (!rows.length) { alert("No invoices generated yet."); return; }
+            const text = rows.slice(0, 12).map(x => `${x.invoice_number} | ${x.invoice_date} | ₹${Number(x.total_amount||0).toLocaleString("en-IN")} | ${String(x.payment_status||"").replaceAll("_"," ")}`).join("\n");
+            alert(`Invoice History\n\n${text}`);
+        } catch (error) { alert(error.message || "Could not load invoice history."); }
+    }
 
     async function deleteAdvertisement(id) {
 
