@@ -5158,6 +5158,189 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 }
 </style>
 
+
+<style id="bx-advertise-footer-visibility-fix">
+footer a.footer-advertise-link{
+    display:inline-flex!important;
+    align-items:center!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    white-space:nowrap!important;
+}
+@media(max-width:700px){
+    footer a.footer-advertise-link{
+        display:inline-flex!important;
+        min-height:32px!important;
+        padding:6px 4px!important;
+    }
+}
+</style>
+
+
+<style id="bx-responsive-standard-ad-sizing">
+/* BoxOfficeX responsive Standard Ad sizing — desktop/tablet/mobile */
+#bxTopBannerAd,
+#bxHomepageAd{
+    width:100%!important;
+    max-width:1000px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    box-sizing:border-box!important;
+}
+#bxTopBannerAd .bx-ad-card,
+#bxHomepageAd .bx-ad-card{
+    width:100%!important;
+    max-width:970px!important;
+    margin:0 auto!important;
+}
+.bx-ad-banner-media,
+#bxTopBannerAd img,
+#bxTopBannerAd video,
+#bxHomepageAd img,
+#bxHomepageAd video{
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:250px!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:#f8fafc!important;
+}
+
+#bxTopStickyAd,
+#bxBottomStickyAd{
+    width:min(970px,calc(100vw - 32px))!important;
+    max-width:970px!important;
+}
+.bx-sticky-shell img,
+.bx-sticky-shell video{
+    width:100%!important;
+    height:auto!important;
+    max-height:90px!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:#f8fafc!important;
+}
+
+#bxSmallVideoAd{
+    width:min(360px,calc(100vw - 32px))!important;
+    max-width:360px!important;
+}
+#bxSmallVideoAd video,
+#bxSmallVideoAd img{
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    aspect-ratio:16 / 9!important;
+    max-height:203px!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:#000!important;
+}
+
+#bxFullscreenAd{
+    padding:20px!important;
+    box-sizing:border-box!important;
+}
+#bxFullscreenAd .bx-fullscreen-inner{
+    width:min(960px,calc(100vw - 40px))!important;
+    max-width:960px!important;
+    max-height:calc(100vh - 40px)!important;
+}
+#bxFullscreenAd .bx-fullscreen-media,
+#bxFullscreenAd img,
+#bxFullscreenAd video{
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:calc(100vh - 40px)!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:#000!important;
+}
+
+@media(min-width:701px) and (max-width:1100px){
+    .bx-ad-banner-media,
+    #bxTopBannerAd img,
+    #bxTopBannerAd video,
+    #bxHomepageAd img,
+    #bxHomepageAd video{max-height:210px!important}
+    #bxTopStickyAd,#bxBottomStickyAd{width:min(900px,calc(100vw - 28px))!important}
+}
+
+@media(max-width:700px){
+    #bxTopBannerAd,
+    #bxHomepageAd{
+        width:100%!important;
+        max-width:100%!important;
+        padding-left:10px!important;
+        padding-right:10px!important;
+    }
+    #bxTopBannerAd .bx-ad-card,
+    #bxHomepageAd .bx-ad-card{
+        width:100%!important;
+        max-width:100%!important;
+    }
+    .bx-ad-banner-media,
+    #bxTopBannerAd img,
+    #bxTopBannerAd video,
+    #bxHomepageAd img,
+    #bxHomepageAd video{
+        width:100%!important;
+        height:auto!important;
+        max-height:120px!important;
+        object-fit:contain!important;
+    }
+
+    #bxTopStickyAd,
+    #bxBottomStickyAd{
+        width:calc(100vw - 16px)!important;
+        max-width:none!important;
+    }
+    .bx-sticky-shell img,
+    .bx-sticky-shell video{
+        width:100%!important;
+        height:auto!important;
+        max-height:64px!important;
+        object-fit:contain!important;
+    }
+
+    #bxSmallVideoAd{
+        right:10px!important;
+        bottom:74px!important;
+        width:min(260px,calc(100vw - 20px))!important;
+        max-width:260px!important;
+    }
+    #bxSmallVideoAd video,
+    #bxSmallVideoAd img{
+        width:100%!important;
+        height:auto!important;
+        aspect-ratio:16 / 9!important;
+        max-height:146px!important;
+        object-fit:contain!important;
+    }
+
+    #bxFullscreenAd{
+        padding:8px!important;
+    }
+    #bxFullscreenAd .bx-fullscreen-inner{
+        width:calc(100vw - 16px)!important;
+        max-width:none!important;
+        max-height:calc(100vh - 16px)!important;
+        border-radius:13px!important;
+    }
+    #bxFullscreenAd .bx-fullscreen-media,
+    #bxFullscreenAd img,
+    #bxFullscreenAd video{
+        width:100%!important;
+        height:auto!important;
+        max-height:calc(100vh - 16px)!important;
+        object-fit:contain!important;
+    }
+}
+</style>
+
 </head>
 
 
@@ -5676,7 +5859,7 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
             <a href="privacy.html">Privacy</a>
             <a href="terms.html">Terms</a>
             <a href="disclaimer.html">Disclaimer</a>
-        <a href="/advertise.html">Advertise With Us</a>
+        <a href="/advertise.html" class="footer-advertise-link">Advertise With Us</a>
 </nav>
 
         <p class="footer-copy">
