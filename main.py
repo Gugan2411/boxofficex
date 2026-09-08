@@ -9337,6 +9337,7 @@ def admin_update_advertisement(
                 "billing_address",
                 "invoice_number",
                 "billing_notes",
+                "ad_slot",
             }
 
             allowed_fields = {
@@ -9365,6 +9366,7 @@ def admin_update_advertisement(
                 "invoice_date",
                 "payment_due_date",
                 "billing_notes",
+                "ad_slot",
             }
 
             if "placement" in update_data:
