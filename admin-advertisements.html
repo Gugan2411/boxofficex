@@ -1231,6 +1231,36 @@
                 <div class="helper">Each page uses only the slots it supports. All Available Slots fills Slot 1, Slot 2 and Slot 3 wherever those positions exist.</div>
             </div>
 
+            <div id="movieRankingIndustryGroup" class="form-group" style="display:none">
+                <label>Movie Ranking Industry</label>
+                <select id="movieRankingIndustry">
+                    <option value="*">All Movie Ranking Industries</option>
+                    <option value="Global">Global</option>
+                    <option value="Kollywood">Kollywood</option>
+                    <option value="Tollywood">Tollywood</option>
+                    <option value="Bollywood">Bollywood</option>
+                    <option value="Sandalwood">Sandalwood</option>
+                    <option value="Mollywood">Mollywood</option>
+                    <option value="Hollywood">Hollywood</option>
+                </select>
+                <div class="helper">Only used when Movie Rankings is selected.</div>
+            </div>
+
+            <div id="actorRankingIndustryGroup" class="form-group" style="display:none">
+                <label>Actor Ranking Industry / Language</label>
+                <select id="actorRankingIndustry">
+                    <option value="*">All Actor Ranking Industries</option>
+                    <option value="Global">Global</option>
+                    <option value="Tamil">Tamil</option>
+                    <option value="Telugu">Telugu</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Kannada">Kannada</option>
+                    <option value="Malayalam">Malayalam</option>
+                    <option value="English">English</option>
+                </select>
+                <div class="helper">Only used when Actor Rankings is selected.</div>
+            </div>
+
             <div id="durationGroup" class="form-group">
                 <label>Duration (seconds)</label>
                 <input id="durationSeconds" type="number" min="1" max="60" placeholder="5">
@@ -1387,7 +1417,6 @@
                     <option value="top_sticky">Top Sticky</option>
                     <option value="bottom_sticky">Bottom Sticky</option>
                     <option value="in_content_video">In-content Video</option>
-                    <option value="in_content">In-content Image / Video</option>
                     <option value="in_content">In-content Image / Video</option>
                 <option value="homepage">Homepage</option>
                 <option value="movie_page">Movie Page</option>
@@ -1616,6 +1645,22 @@
                     <option value="0">All Available Slots (1 + 2 + 3)</option>
                 </select>
                 <div class="helper">Only applies to the new In-content Image / Video format.</div>
+            </div>
+
+            <div id="editMovieRankingIndustryGroup" class="form-group" style="display:none">
+                <label>Movie Ranking Industry</label>
+                <select id="editMovieRankingIndustry">
+                    <option value="*">All Movie Ranking Industries</option>
+                    <option value="Global">Global</option><option value="Kollywood">Kollywood</option><option value="Tollywood">Tollywood</option><option value="Bollywood">Bollywood</option><option value="Sandalwood">Sandalwood</option><option value="Mollywood">Mollywood</option><option value="Hollywood">Hollywood</option>
+                </select>
+            </div>
+
+            <div id="editActorRankingIndustryGroup" class="form-group" style="display:none">
+                <label>Actor Ranking Industry / Language</label>
+                <select id="editActorRankingIndustry">
+                    <option value="*">All Actor Ranking Industries</option>
+                    <option value="Global">Global</option><option value="Tamil">Tamil</option><option value="Telugu">Telugu</option><option value="Hindi">Hindi</option><option value="Kannada">Kannada</option><option value="Malayalam">Malayalam</option><option value="English">English</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -1849,6 +1894,11 @@
     }
 
 
+    document.addEventListener("change", function(event) {
+        if (event.target && event.target.matches('[data-placement-group="create"]')) syncRankingIndustryControls("create");
+        if (event.target && event.target.matches('[data-placement-group="edit"]')) syncRankingIndustryControls("edit");
+    });
+
     function scrollToCreate() {
 
         document.getElementById("createCampaign")
@@ -1896,6 +1946,7 @@
         }
 
         syncDurationVisibility();
+        syncRankingIndustryControls("create");
     }
 
     function currentCreateAdType() {
@@ -1908,6 +1959,7 @@
         const type = document.getElementById("editAdType")?.value || "";
         const slotGroup = document.getElementById("editAdSlotGroup");
         if (slotGroup) slotGroup.style.display = type === "in_content" ? "block" : "none";
+        syncRankingIndustryControls("edit");
     }
 
 
@@ -1926,6 +1978,18 @@
 
     }
 
+
+    function syncRankingIndustryControls(scope = "create") {
+        const selected = getSelectedPlacements(scope).split(",").map(v => v.trim()).filter(Boolean);
+        const sitewide = selected.includes("sitewide");
+        const isInContent = scope === "edit"
+            ? (document.getElementById("editAdType")?.value === "in_content")
+            : (createAdMode === "in_content");
+        const movieGroup = document.getElementById(scope === "edit" ? "editMovieRankingIndustryGroup" : "movieRankingIndustryGroup");
+        const actorGroup = document.getElementById(scope === "edit" ? "editActorRankingIndustryGroup" : "actorRankingIndustryGroup");
+        if (movieGroup) movieGroup.style.display = isInContent && (sitewide || selected.includes("movie_rankings")) ? "block" : "none";
+        if (actorGroup) actorGroup.style.display = isInContent && (sitewide || selected.includes("actor_rankings")) ? "block" : "none";
+    }
 
     function getSelectedPlacements(scope) {
         const boxes = [...document.querySelectorAll(`input[data-placement-group="${scope}"]`)];
@@ -2343,6 +2407,8 @@
             ad_slot: createAdMode === "in_content"
                 ? Number(document.getElementById("adSlot").value || 1)
                 : null,
+            movie_ranking_industry: document.getElementById("movieRankingIndustry").value || "*",
+            actor_ranking_industry: document.getElementById("actorRankingIndustry").value || "*",
             duration_seconds: numberOrNull(document.getElementById("durationSeconds").value)
         };
     }
@@ -2505,15 +2571,11 @@
 
         if (ad.ad_type === "in_content" && Number(ad.ad_slot) === 0) {
             contentSlot.innerHTML = `
-                <div class="preview-in-content">
-                    <div class="preview-ad-label">Advertisement • Slot 1</div>
-                    <div class="preview-ad-card">${media}</div>
-                </div>
+                <div class="preview-in-content"><div class="preview-ad-label">Advertisement • Slot 1</div><div class="preview-ad-card">${media}</div></div>
                 <div class="preview-content-block" style="margin-top:14px"></div>
-                <div class="preview-in-content">
-                    <div class="preview-ad-label">Advertisement • Slot 2</div>
-                    <div class="preview-ad-card">${media}</div>
-                </div>`;
+                <div class="preview-in-content"><div class="preview-ad-label">Advertisement • Slot 2</div><div class="preview-ad-card">${media}</div></div>
+                <div class="preview-content-block" style="margin-top:14px"></div>
+                <div class="preview-in-content"><div class="preview-ad-label">Advertisement • Slot 3</div><div class="preview-ad-card">${media}</div></div>`;
             return;
         }
 
@@ -2930,6 +2992,8 @@
                             ${escapeHtml(formatType(ad.placement))}
                             • ${escapeHtml(formatType(ad.media_type))}
                         </div>
+                        ${ad.ad_type === "in_content" && (String(ad.placement || "").includes("movie_rankings") || String(ad.placement || "").includes("sitewide")) ? `<div class="muted">Movie Rankings: ${escapeHtml(ad.movie_ranking_industry || "All Industries")}</div>` : ""}
+                        ${ad.ad_type === "in_content" && (String(ad.placement || "").includes("actor_rankings") || String(ad.placement || "").includes("sitewide")) ? `<div class="muted">Actor Rankings: ${escapeHtml(ad.actor_ranking_industry || "All Industries")}</div>` : ""}
                     </td>
 
                     <td>
@@ -3033,6 +3097,9 @@
         syncPageTargetVisibility();
         document.getElementById("editPageTarget").value = ad.page_target || "";
         document.getElementById("editAdSlot").value = String(ad.ad_slot ?? 1);
+        document.getElementById("editMovieRankingIndustry").value = ad.movie_ranking_industry || "*";
+        document.getElementById("editActorRankingIndustry").value = ad.actor_ranking_industry || "*";
+        syncRankingIndustryControls("edit");
         document.getElementById("editDurationSeconds").value =
             ad.duration_seconds ?? "";
 
@@ -3114,6 +3181,8 @@
             ad_slot: document.getElementById("editAdType").value === "in_content"
                 ? Number(document.getElementById("editAdSlot").value || 1)
                 : null,
+            movie_ranking_industry: document.getElementById("editMovieRankingIndustry").value || "*",
+            actor_ranking_industry: document.getElementById("editActorRankingIndustry").value || "*",
 
             duration_seconds:
                 numberOrNull(
@@ -3201,8 +3270,11 @@
         try {
 
             await apiRequest(
-                `/admin/advertisements/${id}/toggle`,
-                {method: "PATCH"}
+                `/admin/advertisements/${id}/status`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({is_active: !Boolean(ad.is_active)})
+                }
             );
 
             await loadAdvertisements();

@@ -286,6 +286,8 @@ class AdvertisementCreateData(BaseModel):
 
     page_target: Optional[str] = None
     ad_slot: Optional[int] = None
+    movie_ranking_industry: Optional[str] = None
+    actor_ranking_industry: Optional[str] = None
     duration_seconds: Optional[int] = None
 
     frequency: Literal[
@@ -347,6 +349,8 @@ class AdvertisementUpdateData(BaseModel):
 
     page_target: Optional[str] = None
     ad_slot: Optional[int] = None
+    movie_ranking_industry: Optional[str] = None
+    actor_ranking_industry: Optional[str] = None
     duration_seconds: Optional[int] = None
 
     frequency: Optional[
@@ -371,6 +375,10 @@ class AdvertisementUpdateData(BaseModel):
     invoice_date: Optional[date] = None
     payment_due_date: Optional[date] = None
     billing_notes: Optional[str] = None
+
+
+class AdvertisementStatusData(BaseModel):
+    is_active: bool
 
 
 def current_admin(request: Request):
@@ -784,6 +792,8 @@ def initialize_advertisement_system():
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS payment_due_date DATE")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS billing_notes TEXT")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS ad_slot INTEGER")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS movie_ranking_industry VARCHAR(40)")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS actor_ranking_industry VARCHAR(40)")
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS advertisement_invoices (
@@ -2291,6 +2301,11 @@ def contact_page():
     )
 
 
+@app.get("/advertise.html")
+def advertise_page():
+    return FileResponse(
+        BASE_DIR / "advertise.html"
+    )
 
 
 # ============================================================
@@ -3652,74 +3667,52 @@ def search_actors(q: str):
 
 @app.get("/actors/popular")
 def popular_actors(limit: int = 10):
+    """Rank homepage actors by BoxOfficeX hype and fan interaction.
+
+    Views still contribute, but logarithmically, so historic traffic cannot
+    permanently dominate newer likes, hype, votes and comments.
+    """
+    import math
     limit = max(1, min(int(limit or 10), 30))
 
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT
-                    a.id,
-                    a.name,
-                    a.profession,
-                    a.photo,
-                    a.bio,
+                    a.id, a.name, a.profession, a.photo, a.bio,
                     (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id) AS view_count,
-                    (
-                        SELECT COUNT(*)
-                        FROM hero_comparison_likes h
-                        WHERE h.actor1_id=a.id OR h.actor2_id=a.id
-                    ) AS comparison_likes,
-                    (
-                        SELECT COUNT(*)
-                        FROM hero_comparison_hype h
-                        WHERE h.actor1_id=a.id OR h.actor2_id=a.id
-                    ) AS comparison_hype,
-                    (
-                        SELECT COUNT(*)
-                        FROM hero_comparison_votes h
-                        WHERE h.actor1_id=a.id OR h.actor2_id=a.id
-                    ) AS comparison_votes,
-                    (
-                        SELECT COUNT(*)
-                        FROM hero_comparison_comments h
-                        WHERE (h.actor1_id=a.id OR h.actor2_id=a.id)
-                          AND h.is_hidden=FALSE
-                          AND h.is_deleted=FALSE
-                    ) AS comparison_comments
+                    (SELECT COUNT(*) FROM hero_comparison_likes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id) AS comparison_likes,
+                    (SELECT COUNT(*) FROM hero_comparison_hype h WHERE h.actor1_id=a.id OR h.actor2_id=a.id) AS comparison_hype,
+                    (SELECT COUNT(*) FROM hero_comparison_votes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id) AS comparison_votes,
+                    (SELECT COUNT(*) FROM hero_comparison_comments h
+                     WHERE (h.actor1_id=a.id OR h.actor2_id=a.id)
+                       AND h.is_hidden=FALSE AND h.is_deleted=FALSE) AS comparison_comments
                 FROM actors a
-                ORDER BY
-                    (
-                        (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id)
-                        + 2 * (SELECT COUNT(*) FROM hero_comparison_likes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
-                        + 3 * (SELECT COUNT(*) FROM hero_comparison_hype h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
-                        + 2 * (SELECT COUNT(*) FROM hero_comparison_votes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
-                        + 3 * (SELECT COUNT(*) FROM hero_comparison_comments h WHERE (h.actor1_id=a.id OR h.actor2_id=a.id) AND h.is_hidden=FALSE AND h.is_deleted=FALSE)
-                    ) DESC,
-                    a.id ASC
+                ORDER BY (
+                    5 * LN(1 + (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id))
+                    + 8 * (SELECT COUNT(*) FROM hero_comparison_likes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                    + 14 * (SELECT COUNT(*) FROM hero_comparison_hype h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                    + 10 * (SELECT COUNT(*) FROM hero_comparison_votes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                    + 12 * (SELECT COUNT(*) FROM hero_comparison_comments h
+                            WHERE (h.actor1_id=a.id OR h.actor2_id=a.id)
+                              AND h.is_hidden=FALSE AND h.is_deleted=FALSE)
+                ) DESC, a.id ASC
                 LIMIT %s
             """, (limit,))
             rows = cur.fetchall()
 
     actors = []
     for rank, row in enumerate(rows, start=1):
-        score = int(row[5] or 0) + 2*int(row[6] or 0) + 3*int(row[7] or 0) + 2*int(row[8] or 0) + 3*int(row[9] or 0)
+        views, likes, hype, votes, comments = [int(v or 0) for v in row[5:10]]
+        score = round(5*math.log1p(views) + 8*likes + 14*hype + 10*votes + 12*comments, 2)
         actors.append({
-            "rank": rank,
-            "id": row[0],
-            "name": row[1],
-            "profession": row[2],
-            "photo": safe_actor_photo(row[3]),
-            "bio": row[4],
-            "view_count": int(row[5] or 0),
-            "comparison_likes": int(row[6] or 0),
-            "comparison_hype": int(row[7] or 0),
-            "comparison_votes": int(row[8] or 0),
-            "comparison_comments": int(row[9] or 0),
-            "popularity_score": score,
-            "url": f"/actor.html?id={row[0]}",
+            "rank": rank, "id": row[0], "name": row[1],
+            "profession": row[2], "photo": safe_actor_photo(row[3]), "bio": row[4],
+            "view_count": views, "comparison_likes": likes, "comparison_hype": hype,
+            "comparison_votes": votes, "comparison_comments": comments,
+            "popularity_score": score, "url": f"/actor.html?id={row[0]}",
         })
-
-    return {"actors": actors}
+    return {"actors": actors, "ranking_basis": "hype_and_interaction"}
 
 
 @app.get("/actors/{actor_id}")
@@ -8816,7 +8809,9 @@ ADVERTISEMENT_SELECT_COLUMNS = """
     invoice_date,
     payment_due_date,
     billing_notes,
-    ad_slot
+    ad_slot,
+    movie_ranking_industry,
+    actor_ranking_industry
 """
 
 
@@ -9034,6 +9029,8 @@ def advertisement_row_to_dict(row):
         "payment_due_date": row[31].isoformat() if row[31] else None,
         "billing_notes": row[32],
         "ad_slot": int(row[33]) if len(row) > 33 and row[33] is not None else None,
+        "movie_ranking_industry": row[34] if len(row) > 34 else None,
+        "actor_ranking_industry": row[35] if len(row) > 35 else None,
         "pending_amount": max(0.0, round(float(row[24] or 0) - float(row[16] or 0), 2)),
         "payment_status": _payment_status(row[24], row[16], row[31]),
         "status": advertisement_status(
@@ -9199,7 +9196,9 @@ def admin_create_advertisement(
                     invoice_date,
                     payment_due_date,
                     billing_notes,
-                    ad_slot
+                    ad_slot,
+                    movie_ranking_industry,
+                    actor_ranking_industry
                 )
                 VALUES (
                     %s, %s, %s,
@@ -9212,7 +9211,7 @@ def admin_create_advertisement(
                     %s, %s,
                     %s, %s, %s,
                     %s, %s, %s,
-                    %s, %s, %s, %s , %s
+                    %s, %s, %s, %s, %s, %s, %s
                 )
                 RETURNING id
             """, (
@@ -9242,7 +9241,9 @@ def admin_create_advertisement(
                 data.invoice_date,
                 data.payment_due_date,
                 _clean_optional_ad_text(data.billing_notes),
-                data.ad_slot
+                data.ad_slot,
+                _clean_optional_ad_text(data.movie_ranking_industry),
+                _clean_optional_ad_text(data.actor_ranking_industry)
             ))
 
             advertisement_id = cur.fetchone()[0]
@@ -9356,6 +9357,8 @@ def admin_update_advertisement(
                 "billing_address",
                 "invoice_number",
                 "billing_notes",
+                "movie_ranking_industry",
+                "actor_ranking_industry",
             }
 
             allowed_fields = {
@@ -9385,6 +9388,8 @@ def admin_update_advertisement(
                 "payment_due_date",
                 "billing_notes",
                 "ad_slot",
+                "movie_ranking_industry",
+                "actor_ranking_industry",
             }
 
             if "placement" in update_data:
@@ -9433,6 +9438,35 @@ def admin_update_advertisement(
     return {
         "success": True,
         "message": "Advertisement updated successfully"
+    }
+
+
+@app.patch(
+    "/admin/advertisements/{advertisement_id}/status",
+    dependencies=[Depends(require_owner)]
+)
+def admin_set_advertisement_status(
+    advertisement_id: int,
+    data: AdvertisementStatusData
+):
+    """Set exactly one campaign to the requested active state."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE advertisements
+                SET is_active = %s, updated_at = NOW()
+                WHERE id = %s
+                RETURNING id, is_active
+            """, (bool(data.is_active), advertisement_id))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Advertisement not found")
+        conn.commit()
+    return {
+        "success": True,
+        "advertisement_id": row[0],
+        "is_active": bool(row[1]),
+        "message": "Advertisement activated" if row[1] else "Advertisement paused"
     }
 
 
@@ -9675,14 +9709,17 @@ PUBLIC_AD_SELECT_COLUMNS = """
     end_date,
     is_active,
     traffic_weight,
-    ad_slot
+    ad_slot,
+    movie_ranking_industry,
+    actor_ranking_industry
 """
 
 
 @app.get("/ads/active")
 def get_active_public_advertisements(
     placement: Optional[str] = None,
-    page: Optional[str] = None
+    page: Optional[str] = None,
+    ranking_industry: Optional[str] = None
 ):
     today = date.today()
 
@@ -9711,7 +9748,8 @@ def get_active_public_advertisements(
                 "media_url", "mobile_media_url", "target_url",
                 "placement", "page_target", "duration_seconds",
                 "frequency", "start_date", "end_date", "is_active",
-                "traffic_weight", "ad_slot"
+                "traffic_weight", "ad_slot",
+                "movie_ranking_industry", "actor_ranking_industry"
             ],
             row
         ))
@@ -9732,6 +9770,18 @@ def get_active_public_advertisements(
                 or bool(placement_groups.intersection(compatible_placements))
             )
             if not allowed:
+                continue
+
+        # Optional industry/language targeting for ranking pages.
+        if placement in {"movie_rankings", "actor_rankings"} and ranking_industry:
+            requested = ranking_industry.strip().lower()
+            selected = (
+                ad.get("movie_ranking_industry")
+                if placement == "movie_rankings"
+                else ad.get("actor_ranking_industry")
+            )
+            selected = (selected or "*").strip().lower()
+            if selected not in {"*", "all", "all industries"} and selected != requested:
                 continue
 
         if "selected_pages" in placement_groups:

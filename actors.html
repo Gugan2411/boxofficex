@@ -1830,10 +1830,28 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 }
 </style>
 
+
+<style id="bx-unified-mobile-nav-style">
+.bx-master-mobile-header{display:none}
+@media(max-width:700px){
+  body>.bx-master-mobile-header{display:block!important;position:relative;z-index:10050;background:#0b1020;border-bottom:1px solid rgba(255,255,255,.08);font-family:Arial,sans-serif}
+  body>.bx-master-mobile-header + header{display:none!important}
+  .bx-master-mobile-bar{height:61px;padding:0 13px;display:grid;grid-template-columns:42px 1fr;align-items:center;gap:10px}
+  .bx-master-mobile-toggle{width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#101728;cursor:pointer}
+  .bx-master-mobile-toggle span{display:block;width:20px;height:2px;background:#fff;border-radius:999px;transition:transform .2s,opacity .2s}
+  .bx-master-mobile-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}.bx-master-mobile-toggle.open span:nth-child(2){opacity:0}.bx-master-mobile-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .bx-master-mobile-logo{color:#fff;text-decoration:none;font-size:18px;font-weight:900;letter-spacing:.3px}.bx-master-mobile-logo .x{color:#ffcf4a}.bx-master-mobile-logo .icon{margin-right:6px}
+  .bx-master-mobile-menu{display:none;position:absolute;top:62px;left:10px;right:10px;padding:10px;background:rgba(10,15,27,.99);border:1px solid rgba(255,255,255,.09);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.42);z-index:10060}
+  .bx-master-mobile-menu.open{display:flex;flex-direction:column;gap:5px}
+  .bx-master-mobile-menu a{display:flex;align-items:center;min-height:42px;padding:10px 12px;color:#dbe4f3;text-decoration:none;border-radius:9px;font-size:12px;font-weight:700}.bx-master-mobile-menu a.active,.bx-master-mobile-menu a:hover{background:#1b2842;color:#fff}.bx-master-new{margin-left:7px;padding:2px 5px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:900}
+  .bx-master-feature-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px 10px;background:#0b1020}.bx-master-feature-row a{min-height:42px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#101728;color:#fff;text-decoration:none;font-size:11px;font-weight:800}
+}
+</style>
 </head>
 
 
 <body>
+<div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html" class="active">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
 
 
 <header>
@@ -1977,7 +1995,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
             <a href="privacy.html">Privacy</a>
             <a href="terms.html">Terms</a>
             <a href="disclaimer.html">Disclaimer</a>
-        </nav>
+        <a href="/advertise.html">Advertise With Us</a>
+</nav>
 
         <p class="footer-copy">
             © 2026 BoxOfficeX. All rights reserved.
@@ -3096,9 +3115,7 @@ document.addEventListener("DOMContentLoaded",function(){
             if(!response.ok) return;
 
             const data = await response.json();
-            const ads = Array.isArray(data.advertisements)
-                ? data.advertisements
-                : [];
+            const ads = (Array.isArray(data.advertisements) ? data.advertisements : []).filter(ad => ad.is_active !== false);
 
             const fullscreen = pickOne(ads, "full_screen");
             const topBanner = pickOne(ads, "top_banner");
@@ -3214,7 +3231,7 @@ document.addEventListener("DOMContentLoaded",function(){
    }
    try{
       const r=await fetch(`/ads/active?placement=${encodeURIComponent(BX_PLACEMENT)}&page=${encodeURIComponent(location.pathname)}`,{cache:"no-store"});
-      if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
+      if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&a.is_active!==false&&freqOK(a));
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
         const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
@@ -3226,6 +3243,7 @@ document.addEventListener("DOMContentLoaded",function(){
 })();
 </script>
 
+<script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
 </body>
 
 </html>

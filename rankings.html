@@ -2220,9 +2220,27 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 }
 </style>
 
+
+<style id="bx-unified-mobile-nav-style">
+.bx-master-mobile-header{display:none}
+@media(max-width:700px){
+  body>.bx-master-mobile-header{display:block!important;position:relative;z-index:10050;background:#0b1020;border-bottom:1px solid rgba(255,255,255,.08);font-family:Arial,sans-serif}
+  body>.bx-master-mobile-header + header{display:none!important}
+  .bx-master-mobile-bar{height:61px;padding:0 13px;display:grid;grid-template-columns:42px 1fr;align-items:center;gap:10px}
+  .bx-master-mobile-toggle{width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#101728;cursor:pointer}
+  .bx-master-mobile-toggle span{display:block;width:20px;height:2px;background:#fff;border-radius:999px;transition:transform .2s,opacity .2s}
+  .bx-master-mobile-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}.bx-master-mobile-toggle.open span:nth-child(2){opacity:0}.bx-master-mobile-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .bx-master-mobile-logo{color:#fff;text-decoration:none;font-size:18px;font-weight:900;letter-spacing:.3px}.bx-master-mobile-logo .x{color:#ffcf4a}.bx-master-mobile-logo .icon{margin-right:6px}
+  .bx-master-mobile-menu{display:none;position:absolute;top:62px;left:10px;right:10px;padding:10px;background:rgba(10,15,27,.99);border:1px solid rgba(255,255,255,.09);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.42);z-index:10060}
+  .bx-master-mobile-menu.open{display:flex;flex-direction:column;gap:5px}
+  .bx-master-mobile-menu a{display:flex;align-items:center;min-height:42px;padding:10px 12px;color:#dbe4f3;text-decoration:none;border-radius:9px;font-size:12px;font-weight:700}.bx-master-mobile-menu a.active,.bx-master-mobile-menu a:hover{background:#1b2842;color:#fff}.bx-master-new{margin-left:7px;padding:2px 5px;border-radius:99px;background:#ef4444;color:#fff;font-size:8px;font-weight:900}
+  .bx-master-feature-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px 10px;background:#0b1020}.bx-master-feature-row a{min-height:42px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#101728;color:#fff;text-decoration:none;font-size:11px;font-weight:800}
+}
+</style>
 </head>
 
 <body>
+<div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html" class="active">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
 
 
 <!-- ==========================================
@@ -2380,7 +2398,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
             <a href="privacy.html">Privacy</a>
             <a href="terms.html">Terms</a>
             <a href="disclaimer.html">Disclaimer</a>
-        </nav>
+        <a href="/advertise.html">Advertise With Us</a>
+</nav>
 
         <p class="footer-copy">
             © 2026 BoxOfficeX. All rights reserved.
@@ -2461,6 +2480,8 @@ function boxOfficeXActorImageUrl(photo) {
 
 function loadRankings(language) {
 
+    window.__bxCurrentActorRankingIndustry = language === "All" ? "Global" : language;
+
     const container =
         document.getElementById("rankings");
 
@@ -2522,16 +2543,23 @@ function loadRankings(language) {
 
             container.appendChild(div);
 
-            // Ranking Slot 1: between complete entries on long lists.
-            if (actorIndex === 19 && data.rankings.length >= 30) {
-                const rankingAd = document.createElement("section");
-                rankingAd.id = "bxSmartAdSlot1";
-                rankingAd.className = "bx-smart-ad-slot";
-                rankingAd.setAttribute("aria-label", "Advertisement slot 1");
-                container.appendChild(rankingAd);
-            }
+            // Three ranking ads, always between complete actor rows.
+            const slotPoints = [14, 44, 74];
+            slotPoints.forEach((point, slotIndex) => {
+                if (actorIndex === point && data.rankings.length > point + 1) {
+                    const rankingAd = document.createElement("section");
+                    rankingAd.id = `bxSmartAdSlot${slotIndex + 1}`;
+                    rankingAd.className = "bx-smart-ad-slot";
+                    rankingAd.setAttribute("aria-label", `Advertisement slot ${slotIndex + 1}`);
+                    container.appendChild(rankingAd);
+                }
+            });
 
         });
+
+        if (window.BoxOfficeXLoadRankingInContentAds) {
+            window.BoxOfficeXLoadRankingInContentAds(window.__bxCurrentActorRankingIndustry);
+        }
 
         if (data.rankings.length === 0) {
 
@@ -3113,9 +3141,7 @@ updateSiteNewBadges();
             if(!response.ok) return;
 
             const data = await response.json();
-            const ads = Array.isArray(data.advertisements)
-                ? data.advertisements
-                : [];
+            const ads = (Array.isArray(data.advertisements) ? data.advertisements : []).filter(ad => ad.is_active !== false);
 
             const fullscreen = pickOne(ads, "full_screen");
             const topBanner = pickOne(ads, "top_banner");
@@ -3172,77 +3198,24 @@ updateSiteNewBadges();
 </style>
 
 <script>
-/* BoxOfficeX V2 page-aware in-content slots + page preview */
+/* BoxOfficeX ranking-aware three-slot in-content ads */
 (function(){
- const BX_PLACEMENT="actor_rankings", BX_MAX=1, BX_ANCHORS=["rankings"];
+ const BX_PLACEMENT="actor_rankings";
  function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
  function weight(a){const n=Number(a&&a.traffic_weight);return Number.isFinite(n)&&n>0?n:1}
  function pick(list){if(!list.length)return null;let total=list.reduce((s,a)=>s+weight(a),0),r=Math.random()*total;for(const a of list){r-=weight(a);if(r<=0)return a}return list[list.length-1]}
- function freqOK(a){
-   if(!a.frequency||a.frequency==="always")return true;
-   const k=`boxofficex_ad_${a.id}_${a.frequency}`;
-   if(a.frequency==="once_session")return !sessionStorage.getItem(k);
-   const raw=localStorage.getItem(k); if(!raw)return true;
-   const h=a.frequency==="once_12h"?12:24; return Date.now()-Number(raw)>=h*3600000;
- }
- function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const k=`boxofficex_ad_${a.id}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
- function post(a,e){if(a.id)fetch(`/ads/${a.id}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
+ function freqOK(a){if(a.is_active===false)return false;if(!a.frequency||a.frequency==="always")return true;const id=Math.abs(Number(a.id));const k=`boxofficex_ad_${id}_${a.frequency}`;if(a.frequency==="once_session")return !sessionStorage.getItem(k);const raw=localStorage.getItem(k);if(!raw)return true;const h=a.frequency==="once_12h"?12:24;return Date.now()-Number(raw)>=h*3600000}
+ function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const id=Math.abs(Number(a.id));const k=`boxofficex_ad_${id}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
+ function post(a,e){const id=Math.abs(Number(a.id));if(id)fetch(`/ads/${id}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
  function media(a){return matchMedia("(max-width:700px)").matches&&a.mobile_media_url?a.mobile_media_url:a.media_url}
- function makeSlot(n){
-   let el=document.getElementById(`bxSmartAdSlot${n}`); if(el)return el;
-   el=document.createElement("section");el.id=`bxSmartAdSlot${n}`;el.className="bx-smart-ad-slot";el.setAttribute("aria-label",`Advertisement slot ${n}`);
-   const anchor=document.getElementById(BX_ANCHORS[Math.min(n-1,BX_ANCHORS.length-1)]);
-   if(anchor){
-      if(BX_PLACEMENT==="article_detail" && n===2 && document.getElementById("bxRelatedSection")){
-         document.getElementById("bxRelatedSection").insertAdjacentElement("beforebegin",el);
-      } else if(anchor.id==="relatedContentSection" || anchor.id==="bxRelatedSection"){
-         anchor.insertAdjacentElement("beforebegin",el);
-      } else {
-         const section=anchor.closest("section")||anchor; section.insertAdjacentElement("afterend",el);
-      }
-   } else {
-      const main=document.querySelector("main")||document.body; main.appendChild(el);
-   }
-   return el;
- }
- function render(a,n,preview=false){
-   const root=makeSlot(n); if(!root||!a||!media(a))return;
-   const isVideo=a.media_type==="video";
-   root.innerHTML=`<div class="bx-smart-label">${preview?"PREVIEW • ":""}Advertisement</div>
-   <div class="bx-smart-ad-card">
-    <div class="bx-smart-ad-head"><span>Sponsored • ${esc(a.advertiser_name||"Advertisement")}</span><button class="bx-smart-ad-close" type="button" aria-label="Close advertisement">×</button></div>
-    <a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener">
-      ${isVideo?`<video src="${esc(media(a))}" controls playsinline preload="metadata"></video>`:`<img src="${esc(media(a))}" alt="Sponsored advertisement">`}
-    </a></div>`;
-   root.style.display="block";
-   const v=root.querySelector("video"), close=root.querySelector(".bx-smart-ad-close"), link=root.querySelector("a");
-   let completed=false;
-   if(!preview){
-      link.addEventListener("click",()=>post(a,"click"));
-      post(a,"impression"); mark(a);
-      if(v)v.addEventListener("ended",()=>{completed=true;post(a,"complete")},{once:true});
-   }
-   close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")});
- }
- async function run(){
-   const q=new URLSearchParams(location.search);
-   if(q.get("bx_ad_preview")==="1"){
-      try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Number(a.ad_slot||1),true);return}}catch(e){}
-   }
-   try{
-      const r=await fetch(`/ads/active?placement=${encodeURIComponent(BX_PLACEMENT)}&page=${encodeURIComponent(location.pathname)}`,{cache:"no-store"});
-      if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
-      const used=new Set();
-      for(let n=1;n<=BX_MAX;n++){
-        const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
-        const a=pick(candidates); if(a){used.add(`${Math.abs(Number(a.id))}:${n}`);render(a,n,false)}
-      }
-   }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
- }
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,700));else setTimeout(run,700);
+ function render(a,n,preview=false){const root=document.getElementById(`bxSmartAdSlot${n}`);if(!root||!a||!media(a))return;const isVideo=a.media_type==="video";root.innerHTML=`<div class="bx-smart-label">${preview?"PREVIEW • ":""}Advertisement</div><div class="bx-smart-ad-card"><div class="bx-smart-ad-head"><span>Sponsored • ${esc(a.advertiser_name||"Advertisement")}</span><button class="bx-smart-ad-close" type="button" aria-label="Close advertisement">×</button></div><a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener">${isVideo?`<video src="${esc(media(a))}" controls playsinline preload="metadata"></video>`:`<img src="${esc(media(a))}" alt="Sponsored advertisement">`}</a></div>`;root.style.display="block";const v=root.querySelector("video"),close=root.querySelector(".bx-smart-ad-close"),link=root.querySelector("a");let completed=false;if(!preview){link.addEventListener("click",()=>post(a,"click"));post(a,"impression");mark(a);if(v)v.addEventListener("ended",()=>{completed=true;post(a,"complete")},{once:true})}close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")})}
+ async function load(industry){document.querySelectorAll('[id^="bxSmartAdSlot"]').forEach(el=>{el.innerHTML="";el.style.display="none"});const q=new URLSearchParams(location.search);if(q.get("bx_ad_preview")==="1"){try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Math.max(1,Math.min(3,Number(a.ad_slot||1))),true);return}}catch(e){}}try{const r=await fetch(`/ads/active?placement=${BX_PLACEMENT}&page=${encodeURIComponent(location.pathname)}&ranking_industry=${encodeURIComponent(industry||"Global")}`,{cache:"no-store"});if(!r.ok)return;const d=await r.json();const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&a.is_active!==false&&freqOK(a));for(let n=1;n<=3;n++){const candidates=pool.filter(a=>Number(a.ad_slot||1)===n);const a=pick(candidates);if(a)render(a,n,false)}}catch(e){console.warn("Ranking in-content ads unavailable",e)}}
+ window.BoxOfficeXLoadRankingInContentAds=load;
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>load(window.__bxCurrentActorRankingIndustry || "Global"),900));else setTimeout(()=>load(window.__bxCurrentActorRankingIndustry || "Global"),900);
 })();
 </script>
 
+<script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
 </body>
 
 </html>
