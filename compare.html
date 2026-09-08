@@ -1454,7 +1454,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
         <nav aria-label="Main navigation">
 <a href="/index.html">Home</a>
 <a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
-<a href="/movie-rankings.html">Rankings</a>
+<a href="/movie-rankings.html">Movie Rankings</a>
+            <a href="/rankings.html">Actor Rankings</a>
 <a href="/actors.html">Actors</a>
 <a href="/articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
 <a href="/compare-select.html" class="nav-compare active">⚔️ Actor Comparison</a>
@@ -1503,8 +1504,6 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 
 <div id="heroShareTools"></div>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
-<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
-
 </main>
 
 
@@ -1513,6 +1512,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 <div id="bxBottomStickyAd" aria-label="Bottom sticky sponsored advertisement"></div>
 <div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
 <div id="bxFullscreenAd" aria-label="Full screen sponsored advertisement"></div>
+
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
 <footer class="site-footer">
 <div class="footer-inner">
@@ -2458,6 +2459,9 @@ async function loadComparison() {
 
             </div>
 
+
+            <!-- Premium Slot 2: after Highest-Grossing Movies, before Overall Winner -->
+            <section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>
 
             <!-- ==========================
                  WINNER
@@ -3592,8 +3596,8 @@ document.addEventListener("DOMContentLoaded",()=>{
       if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
-        const candidates=pool.filter(a=>!used.has(a.id)&&Number(a.ad_slot||1)===n);
-        const a=pick(candidates); if(a){used.add(a.id);render(a,n,false)}
+        const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
+        const a=pick(candidates); if(a){used.add(`${Math.abs(Number(a.id))}:${n}`);render(a,n,false)}
       }
    }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
  }

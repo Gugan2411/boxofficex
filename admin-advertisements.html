@@ -1225,9 +1225,10 @@
                 <select id="adSlot">
                     <option value="1">Slot 1</option>
                     <option value="2">Slot 2</option>
-                    <option value="0">Both Slot 1 + Slot 2</option>
+                    <option value="3">Slot 3</option>
+                    <option value="0">All Available Slots (1 + 2 + 3)</option>
                 </select>
-                <div class="helper">Pages with only one in-content position automatically use Slot 1 and ignore Slot 2.</div>
+                <div class="helper">Each page uses only the slots it supports. All Available Slots fills Slot 1, Slot 2 and Slot 3 wherever those positions exist.</div>
             </div>
 
             <div id="durationGroup" class="form-group">
@@ -1611,7 +1612,8 @@
                 <select id="editAdSlot">
                     <option value="1">Slot 1</option>
                     <option value="2">Slot 2</option>
-                    <option value="0">Both Slot 1 + Slot 2</option>
+                    <option value="3">Slot 3</option>
+                    <option value="0">All Available Slots (1 + 2 + 3)</option>
                 </select>
                 <div class="helper">Only applies to the new In-content Image / Video format.</div>
             </div>
@@ -2575,7 +2577,7 @@
         }
         if (ad.ad_slot === 0) {
             ad.ad_slot = 1;
-            alert("Both slots selected. This live-page preview opens Slot 1. The campaign will publish to both Slot 1 and Slot 2.");
+            alert("All Available Slots selected. This live-page preview opens Slot 1. The campaign will publish to every supported slot on the selected page(s).");
         }
         if(!ad.media_url){
             alert("Upload/select the advertisement media before page preview.");

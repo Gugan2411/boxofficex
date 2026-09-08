@@ -2371,7 +2371,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
         <nav aria-label="Main navigation">
         <a href="index.html">Home</a>
         <a href="new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
-        <a href="movie-rankings.html">Rankings</a>
+        <a href="movie-rankings.html">Movie Rankings</a>
+            <a href="rankings.html">Actor Rankings</a>
         <a href="actors.html" class="active">Actors</a>
         <a href="articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
         <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
@@ -2550,12 +2551,7 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
         </div>
 
     </section>
-
-
-    <section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
-
-
-    <!-- ==========================================
+<!-- ==========================================
          RELATED ARTICLES
     ========================================== -->
 
@@ -2573,6 +2569,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 <div id="bxBottomStickyAd" aria-label="Bottom sticky sponsored advertisement"></div>
 <div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
 <div id="bxFullscreenAd" aria-label="Full screen sponsored advertisement"></div>
+
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
 <footer>
     <div class="footer-inner">
@@ -3312,7 +3310,7 @@ else {
         }
 
 
-        movies.forEach(movie => {
+        movies.forEach((movie, movieIndex) => {
 
             const item =
                 document.createElement(
@@ -3373,6 +3371,15 @@ else {
             movieList.appendChild(
                 item
             );
+
+            // Slot 3: between complete movie cards on long filmographies.
+            if (movieIndex === 7 && movies.length >= 12) {
+                const slot3 = document.createElement("section");
+                slot3.id = "bxSmartAdSlot3";
+                slot3.className = "bx-smart-ad-slot";
+                slot3.setAttribute("aria-label", "Advertisement slot 3");
+                movieList.appendChild(slot3);
+            }
 
         });
 
@@ -4819,7 +4826,7 @@ document.addEventListener("DOMContentLoaded",function(){
 <script>
 /* BoxOfficeX V2 page-aware in-content slots + page preview */
 (function(){
- const BX_PLACEMENT="actor_detail", BX_MAX=2, BX_ANCHORS=["overviewGrid", "topMovies"];
+ const BX_PLACEMENT="actor_detail", BX_MAX=3, BX_ANCHORS=["overviewGrid", "topMovies", "movieList"];
  function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
  function weight(a){const n=Number(a&&a.traffic_weight);return Number.isFinite(n)&&n>0?n:1}
  function pick(list){if(!list.length)return null;let total=list.reduce((s,a)=>s+weight(a),0),r=Math.random()*total;for(const a of list){r-=weight(a);if(r<=0)return a}return list[list.length-1]}
@@ -4879,8 +4886,8 @@ document.addEventListener("DOMContentLoaded",function(){
       if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
-        const candidates=pool.filter(a=>!used.has(a.id)&&Number(a.ad_slot||1)===n);
-        const a=pick(candidates); if(a){used.add(a.id);render(a,n,false)}
+        const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
+        const a=pick(candidates); if(a){used.add(`${Math.abs(Number(a.id))}:${n}`);render(a,n,false)}
       }
    }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
  }

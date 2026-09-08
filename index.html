@@ -5208,7 +5208,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="movie-rankings.html">Rankings</a>
+            <a href="movie-rankings.html">Movie Rankings</a>
+            <a href="rankings.html">Actor Rankings</a>
 
             <a href="actors.html">Actors</a>
 
@@ -5641,15 +5642,12 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 <!-- ======================================================
      FOOTER
 ====================================================== -->
-
-
-
-<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
-
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
 
 <section id="bxHomepageAd" aria-label="Sponsored advertisement"></section>
 
+
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
 <footer>
 
@@ -8241,7 +8239,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <script>
 /* BoxOfficeX V2 page-aware in-content slots + page preview */
 (function(){
- const BX_PLACEMENT="homepage", BX_MAX=2, BX_ANCHORS=["upcoming-movies", "most-hyped"];
+ const BX_PLACEMENT="homepage", BX_MAX=3, BX_ANCHORS=["upcoming-movies", "most-hyped", "latest-updates"];
  function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
  function weight(a){const n=Number(a&&a.traffic_weight);return Number.isFinite(n)&&n>0?n:1}
  function pick(list){if(!list.length)return null;let total=list.reduce((s,a)=>s+weight(a),0),r=Math.random()*total;for(const a of list){r-=weight(a);if(r<=0)return a}return list[list.length-1]}
@@ -8301,8 +8299,8 @@ document.addEventListener("DOMContentLoaded",()=>{
       if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
-        const candidates=pool.filter(a=>!used.has(a.id)&&Number(a.ad_slot||1)===n);
-        const a=pick(candidates); if(a){used.add(a.id);render(a,n,false)}
+        const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
+        const a=pick(candidates); if(a){used.add(`${Math.abs(Number(a.id))}:${n}`);render(a,n,false)}
       }
    }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
  }

@@ -1185,7 +1185,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
                 New Movies
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
-            <a href="/movie-rankings.html">Rankings</a>
+            <a href="/movie-rankings.html">Movie Rankings</a>
+            <a href="/rankings.html">Actor Rankings</a>
             <a href="/actors.html" class="active">Actors</a>
             <a href="/articles.html" class="nav-item-with-badge">
                 Articles
@@ -1219,13 +1220,14 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
         <div class="loading">Loading movies...</div>
     </div>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
-<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 </main>
 
 <div id="bxTopStickyAd" aria-label="Top sticky sponsored advertisement"></div>
 <div id="bxBottomStickyAd" aria-label="Bottom sticky sponsored advertisement"></div>
 <div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
 <div id="bxFullscreenAd" aria-label="Full screen sponsored advertisement"></div>
+
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
 <footer>
     <div class="footer-inner">
@@ -2106,8 +2108,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
         if(n===2 && ((document.getElementById("movieGrid")?.children?.length||0) < 12)) continue;
-        const candidates=pool.filter(a=>!used.has(a.id)&&Number(a.ad_slot||1)===n);
-        const a=pick(candidates); if(a){used.add(a.id);render(a,n,false)}
+        const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
+        const a=pick(candidates); if(a){used.add(`${Math.abs(Number(a.id))}:${n}`);render(a,n,false)}
       }
    }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
  }

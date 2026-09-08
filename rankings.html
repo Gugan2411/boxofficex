@@ -2258,7 +2258,8 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="movie-rankings.html" class="active">Rankings</a>
+            <a href="movie-rankings.html">Movie Rankings</a>
+            <a href="rankings.html" class="active">Actor Rankings</a>
 
             <a href="actors.html">Actors</a>
 
@@ -2352,12 +2353,12 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 ========================================== -->
 
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
-<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
-
 <div id="bxTopStickyAd" aria-label="Top sticky sponsored advertisement"></div>
 <div id="bxBottomStickyAd" aria-label="Bottom sticky sponsored advertisement"></div>
 <div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
 <div id="bxFullscreenAd" aria-label="Full screen sponsored advertisement"></div>
+
+<section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
 <footer>
 
@@ -2476,7 +2477,7 @@ function loadRankings(language) {
 
         container.innerHTML = "";
 
-        data.rankings.forEach(actor => {
+        data.rankings.forEach((actor, actorIndex) => {
 
             const div =
                 document.createElement("div");
@@ -2520,6 +2521,15 @@ function loadRankings(language) {
             };
 
             container.appendChild(div);
+
+            // Ranking Slot 1: between complete entries on long lists.
+            if (actorIndex === 19 && data.rankings.length >= 30) {
+                const rankingAd = document.createElement("section");
+                rankingAd.id = "bxSmartAdSlot1";
+                rankingAd.className = "bx-smart-ad-slot";
+                rankingAd.setAttribute("aria-label", "Advertisement slot 1");
+                container.appendChild(rankingAd);
+            }
 
         });
 
@@ -3224,8 +3234,8 @@ updateSiteNewBadges();
       if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
-        const candidates=pool.filter(a=>!used.has(a.id)&&Number(a.ad_slot||1)===n);
-        const a=pick(candidates); if(a){used.add(a.id);render(a,n,false)}
+        const candidates=pool.filter(a=>Number(a.ad_slot||1)===n && !used.has(`${Math.abs(Number(a.id))}:${n}`));
+        const a=pick(candidates); if(a){used.add(`${Math.abs(Number(a.id))}:${n}`);render(a,n,false)}
       }
    }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
  }

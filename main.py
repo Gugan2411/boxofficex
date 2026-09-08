@@ -8891,12 +8891,12 @@ def _validate_ad_slot(ad_type: str, ad_slot: Optional[int]):
     if ad_slot is None:
         raise HTTPException(
             status_code=400,
-            detail="In-content advertisements require Slot 1, Slot 2 or Both"
+            detail="In-content advertisements require Slot 1, Slot 2, Slot 3 or All Available Slots"
         )
-    if int(ad_slot) not in {0, 1, 2}:
+    if int(ad_slot) not in {0, 1, 2, 3}:
         raise HTTPException(
             status_code=400,
-            detail="In-content advertisement slot must be 0 (Both), 1 or 2"
+            detail="In-content advertisement slot must be 0 (All Available), 1, 2 or 3"
         )
 
 
@@ -9755,15 +9755,16 @@ def get_active_public_advertisements(
         if ad.get("ad_type") == "in_content" and ad.get("ad_slot") == 0:
             slot_one = dict(ad)
             slot_two = dict(ad)
+            slot_three = dict(ad)
             slot_one["ad_slot"] = 1
             slot_two["ad_slot"] = 2
+            slot_three["ad_slot"] = 3
 
-            # Give Slot 2 a virtual negative ID so the public renderer does not
-            # de-duplicate it as the same campaign on the same page. Tracking
-            # endpoints normalize negative virtual IDs back to the real DB ID.
+            # Keep the existing virtual Slot 2 ID for backward compatibility.
+            # Slot-aware public rendering permits the same campaign in Slot 1/2/3.
             slot_two["id"] = -abs(int(ad["id"]))
 
-            ads.extend([slot_one, slot_two])
+            ads.extend([slot_one, slot_two, slot_three])
         else:
             ads.append(ad)
 
