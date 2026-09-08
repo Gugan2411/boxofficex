@@ -913,6 +913,47 @@
             }
         }
 
+        .ad-mode-grid {
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:12px;
+            margin-bottom:20px;
+        }
+        .ad-mode-card {
+            text-align:left;
+            padding:16px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:var(--panel-2);
+            color:white;
+            cursor:pointer;
+        }
+        .ad-mode-card strong { display:block; font-size:15px; margin-bottom:6px; }
+        .ad-mode-card span { display:block; color:var(--muted); font-size:11px; line-height:1.5; }
+        .ad-mode-card.active {
+            border-color:#526a9d;
+            background:#182540;
+            box-shadow:0 0 0 1px rgba(141,181,255,.18) inset;
+        }
+        .locked-format {
+            min-height:44px;
+            display:flex;
+            align-items:center;
+            padding:0 12px;
+            border:1px solid #526a9d;
+            border-radius:10px;
+            background:#182540;
+            color:#dbe8ff;
+            font-weight:900;
+        }
+        .slot-note {
+            margin-top:7px;
+            color:#9fb0ca;
+            font-size:10px;
+            line-height:1.5;
+        }
+        @media (max-width:650px){ .ad-mode-grid { grid-template-columns:1fr; } }
+
         .placement-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:6px; }
         .placement-option { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel-2); font-size:11px; font-weight:800; cursor:pointer; }
         .placement-option input { width:auto; }
@@ -1012,6 +1053,17 @@
         </div>
 
 
+        <div class="ad-mode-grid">
+            <button id="standardAdModeButton" type="button" class="ad-mode-card active" onclick="setCreateAdMode('standard')">
+                <strong>📢 Standard Ads</strong>
+                <span>Full Screen, Banner, Sticky, Floating Video, Sponsored Link and all existing/legacy ad formats.</span>
+            </button>
+            <button id="inContentAdModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('in_content')">
+                <strong>🧩 In-Content Ads</strong>
+                <span>Image or video placed only inside the predetermined Slot 1 / Slot 2 positions already built into BoxOfficeX pages.</span>
+            </button>
+        </div>
+
         <div class="form-grid">
 
             <div class="form-group">
@@ -1029,7 +1081,7 @@
                 <input id="campaignName" type="text" placeholder="Example: September Smartphone Launch">
             </div>
 
-            <div class="form-group">
+            <div id="standardAdTypeGroup" class="form-group">
                 <label>Advertisement Type *</label>
                 <select id="adType" onchange="syncDurationVisibility()">
                     <option value="full_screen">Full Screen</option>
@@ -1037,7 +1089,6 @@
                     <option value="top_sticky">Top Sticky</option>
                     <option value="bottom_sticky">Bottom Sticky</option>
                     <option value="in_content_video">In-content Video (Legacy)</option>
-                    <option value="in_content">In-content Image / Video Slot</option>
                     <option value="homepage">Homepage Ad</option>
                     <option value="movie_page">Movie Page Ad</option>
                     <option value="actor_page">Actor Page Ad</option>
@@ -1048,6 +1099,11 @@
                     <option value="sponsored_link">Sponsored Link</option>
                     <option value="search_result">Search Result Ad</option>
                 </select>
+            </div>
+
+            <div id="inContentTypeGroup" class="form-group" style="display:none">
+                <label>Advertisement Type *</label>
+                <div class="locked-format">🧩 In-content Image / Video</div>
             </div>
 
             <div class="form-group">
@@ -1169,8 +1225,9 @@
                 <select id="adSlot">
                     <option value="1">Slot 1</option>
                     <option value="2">Slot 2</option>
+                    <option value="0">Both Slot 1 + Slot 2</option>
                 </select>
-                <div class="helper">Used for In-content Image / Video. Long pages support Slot 1 + Slot 2; shorter pages use Slot 1.</div>
+                <div class="helper">Pages with only one in-content position automatically use Slot 1 and ignore Slot 2.</div>
             </div>
 
             <div id="durationGroup" class="form-group">
@@ -1274,6 +1331,10 @@
                 👁️ PREVIEW CAMPAIGN
             </button>
 
+            <button id="previewOnPageButton" type="button" class="secondary-btn" style="display:none" onclick="previewOnTargetPage()">
+                🌐 PREVIEW ON PAGE
+            </button>
+
             <button class="secondary-btn" onclick="resetCreateForm()">
                 Clear
             </button>
@@ -1325,6 +1386,8 @@
                     <option value="top_sticky">Top Sticky</option>
                     <option value="bottom_sticky">Bottom Sticky</option>
                     <option value="in_content_video">In-content Video</option>
+                    <option value="in_content">In-content Image / Video</option>
+                    <option value="in_content">In-content Image / Video</option>
                 <option value="homepage">Homepage</option>
                 <option value="movie_page">Movie Page</option>
                 <option value="actor_page">Actor Page</option>
@@ -1438,7 +1501,7 @@
 
             <div class="form-group">
                 <label>Advertisement Type *</label>
-                <select id="editAdType">
+                <select id="editAdType" onchange="syncEditAdControls()">
                     <option value="full_screen">Full Screen</option>
                     <option value="top_banner">Top Banner</option>
                     <option value="top_sticky">Top Sticky</option>
@@ -1542,13 +1605,14 @@
                 <input id="editPageTarget" type="text">
             </div>
 
-            <div class="form-group">
+            <div id="editAdSlotGroup" class="form-group">
                 <label>In-content Slot</label>
                 <select id="editAdSlot">
                     <option value="1">Slot 1</option>
                     <option value="2">Slot 2</option>
+                    <option value="0">Both Slot 1 + Slot 2</option>
                 </select>
-                <div class="helper">Used for In-content Image / Video campaigns.</div>
+                <div class="helper">Only applies to the new In-content Image / Video format.</div>
             </div>
 
             <div class="form-group">
@@ -1790,9 +1854,57 @@
     }
 
 
+    let createAdMode = "standard";
+
+    const LEGACY_PLACEMENT_TO_EXACT = {
+        movie_pages: ["movie_detail"],
+        actor_pages: ["actors_list", "actor_detail", "actor_movies"],
+        article_pages: ["articles_list", "article_detail"],
+        rankings: ["movie_rankings", "actor_rankings"],
+        actor_compare: ["actor_compare_select", "actor_compare_results"],
+        movie_compare: ["movie_compare_select", "movie_compare_results"],
+        discovery_pages: ["new_movies"]
+    };
+
+    function setCreateAdMode(mode) {
+        createAdMode = mode === "in_content" ? "in_content" : "standard";
+
+        const standardButton = document.getElementById("standardAdModeButton");
+        const inContentButton = document.getElementById("inContentAdModeButton");
+        const standardGroup = document.getElementById("standardAdTypeGroup");
+        const inContentGroup = document.getElementById("inContentTypeGroup");
+        const slotGroup = document.getElementById("adSlotGroup");
+        const pagePreview = document.getElementById("previewOnPageButton");
+        const createButton = document.getElementById("createButton");
+
+        if (standardButton) standardButton.classList.toggle("active", createAdMode === "standard");
+        if (inContentButton) inContentButton.classList.toggle("active", createAdMode === "in_content");
+        if (standardGroup) standardGroup.style.display = createAdMode === "standard" ? "block" : "none";
+        if (inContentGroup) inContentGroup.style.display = createAdMode === "in_content" ? "block" : "none";
+        if (slotGroup) slotGroup.style.display = createAdMode === "in_content" ? "block" : "none";
+        if (pagePreview) pagePreview.style.display = createAdMode === "in_content" ? "inline-flex" : "none";
+        if (createButton) createButton.textContent =
+            createAdMode === "in_content" ? "🚀 PUBLISH IN-CONTENT CAMPAIGN" : "💾 CREATE STANDARD CAMPAIGN";
+
+        syncDurationVisibility();
+    }
+
+    function currentCreateAdType() {
+        return createAdMode === "in_content"
+            ? "in_content"
+            : document.getElementById("adType").value;
+    }
+
+    function syncEditAdControls() {
+        const type = document.getElementById("editAdType")?.value || "";
+        const slotGroup = document.getElementById("editAdSlotGroup");
+        if (slotGroup) slotGroup.style.display = type === "in_content" ? "block" : "none";
+    }
+
+
     function syncDurationVisibility() {
 
-        const adType = document.getElementById("adType").value;
+        const adType = currentCreateAdType();
         const mediaType = document.getElementById("mediaType").value;
 
         const relevant =
@@ -1814,8 +1926,14 @@
     }
 
     function setSelectedPlacements(scope, value) {
-        const selected = new Set(String(value || "").split(",").map(v => v.trim()).filter(Boolean));
-        document.querySelectorAll(`input[data-placement-group="${scope}"]`).forEach(box => { box.checked = selected.has(box.value); });
+        const raw = String(value || "").split(",").map(v => v.trim()).filter(Boolean);
+        const selected = new Set(raw);
+        raw.forEach(item => {
+            (LEGACY_PLACEMENT_TO_EXACT[item] || []).forEach(exact => selected.add(exact));
+        });
+        document.querySelectorAll(`input[data-placement-group="${scope}"]`).forEach(box => {
+            box.checked = selected.has(box.value);
+        });
     }
 
     function wirePlacementGroups(scope) {
@@ -1870,6 +1988,8 @@
 
         document.getElementById("adType").value = "full_screen";
         document.getElementById("mediaType").value = "image";
+        document.getElementById("adSlot").value = "1";
+        setCreateAdMode("standard");
         setSelectedPlacements("create", "homepage");
         document.getElementById("frequency").value = "once_24h";
         document.getElementById("trafficWeight").value = "1";
@@ -2205,13 +2325,15 @@
             advertiser_name: document.getElementById("advertiserName").value.trim(),
             business_category: document.getElementById("businessCategory").value.trim(),
             campaign_name: document.getElementById("campaignName").value.trim(),
-            ad_type: document.getElementById("adType").value,
+            ad_type: currentCreateAdType(),
             media_type: document.getElementById("mediaType").value,
             media_url: document.getElementById("mediaUrl").value.trim(),
             mobile_media_url: document.getElementById("mobileMediaUrl").value.trim(),
             target_url: document.getElementById("targetUrl").value.trim(),
             placement: getSelectedPlacements("create"),
-            ad_slot: Number(document.getElementById("adSlot").value || 1),
+            ad_slot: createAdMode === "in_content"
+                ? Number(document.getElementById("adSlot").value || 1)
+                : null,
             duration_seconds: numberOrNull(document.getElementById("durationSeconds").value)
         };
     }
@@ -2252,7 +2374,20 @@
             regional_pages: "Regional / Industry",
             discovery_pages: "Movies / Discovery / Lists",
             sponsors_page: "Sponsors / Partners",
-            selected_pages: "Custom / Selected Pages"
+            selected_pages: "Custom / Selected Pages",
+            new_movies: "New Movies",
+            movie_detail: "Movie Detail",
+            actors_list: "Actors List",
+            actor_detail: "Actor Detail",
+            actor_movies: "Actor Movies",
+            articles_list: "Articles List",
+            article_detail: "Article Detail",
+            movie_rankings: "Movie Rankings",
+            actor_rankings: "Actor Rankings",
+            actor_compare_select: "Actor Compare Selection",
+            actor_compare_results: "Actor Compare Results",
+            movie_compare_select: "Movie Compare Selection",
+            movie_compare_results: "Movie Compare Results"
         };
         if (!value) return "No page selected";
         return String(value).split(",").map(v => labels[v] || v).join(", ");
@@ -2359,9 +2494,23 @@
             return;
         }
 
+        if (ad.ad_type === "in_content" && Number(ad.ad_slot) === 0) {
+            contentSlot.innerHTML = `
+                <div class="preview-in-content">
+                    <div class="preview-ad-label">Advertisement • Slot 1</div>
+                    <div class="preview-ad-card">${media}</div>
+                </div>
+                <div class="preview-content-block" style="margin-top:14px"></div>
+                <div class="preview-in-content">
+                    <div class="preview-ad-label">Advertisement • Slot 2</div>
+                    <div class="preview-ad-card">${media}</div>
+                </div>`;
+            return;
+        }
+
         contentSlot.innerHTML = `
             <div class="preview-in-content">
-                <div class="preview-ad-label">Advertisement • Sponsored</div>
+                <div class="preview-ad-label">Advertisement • ${ad.ad_type === "in_content" ? `Slot ${ad.ad_slot || 1}` : "Sponsored"}</div>
                 <div class="preview-ad-card">${media}</div>
             </div>`;
     }
@@ -2413,6 +2562,14 @@
     function previewOnTargetPage(){
         const ad = getCreatePreviewData();
         ad.ad_slot = Number(document.getElementById("adSlot").value || 1);
+        if (ad.ad_type !== "in_content") {
+            alert("Preview on Page is for the new In-content Image / Video format.");
+            return;
+        }
+        if (ad.ad_slot === 0) {
+            ad.ad_slot = 1;
+            alert("Both slots selected. This live-page preview opens Slot 1. The campaign will publish to both Slot 1 and Slot 2.");
+        }
         if(!ad.media_url){
             alert("Upload/select the advertisement media before page preview.");
             return;
@@ -2455,7 +2612,7 @@
                 document.getElementById("campaignName").value.trim(),
 
             ad_type:
-                document.getElementById("adType").value,
+                currentCreateAdType(),
 
             media_type:
                 document.getElementById("mediaType").value,
@@ -2475,7 +2632,9 @@
             page_target:
                 document.getElementById("pageTarget").value.trim() || null,
 
-            ad_slot: Number(document.getElementById("adSlot").value || 1),
+            ad_slot: createAdMode === "in_content"
+                ? Number(document.getElementById("adSlot").value || 1)
+                : null,
 
             duration_seconds:
                 numberOrNull(
@@ -2537,6 +2696,16 @@
 
         button.disabled = true;
         button.textContent = "Creating...";
+
+        if (!payload.placement) {
+            showMessage("createMessage", "Select at least one page before creating the campaign.", false);
+            return;
+        }
+
+        if (payload.ad_type === "in_content" && ![0, 1, 2].includes(Number(payload.ad_slot))) {
+            showMessage("createMessage", "Choose Slot 1, Slot 2 or Both.", false);
+            return;
+        }
 
         try {
 
@@ -2844,6 +3013,7 @@
         document.getElementById("editBusinessCategory").value = ad.business_category || "";
         document.getElementById("editCampaignName").value = ad.campaign_name || "";
         document.getElementById("editAdType").value = ad.ad_type;
+        syncEditAdControls();
         document.getElementById("editMediaType").value = ad.media_type;
         document.getElementById("editMediaUrl").value = ad.media_url || "";
         document.getElementById("editMobileMediaUrl").value = ad.mobile_media_url || "";
@@ -2851,7 +3021,7 @@
         setSelectedPlacements("edit", ad.placement);
         syncPageTargetVisibility();
         document.getElementById("editPageTarget").value = ad.page_target || "";
-        document.getElementById("editAdSlot").value = String(ad.ad_slot || 1);
+        document.getElementById("editAdSlot").value = String(ad.ad_slot ?? 1);
         document.getElementById("editDurationSeconds").value =
             ad.duration_seconds ?? "";
 
@@ -2930,7 +3100,9 @@
             page_target:
                 document.getElementById("editPageTarget").value.trim() || null,
 
-            ad_slot: Number(document.getElementById("editAdSlot").value || 1),
+            ad_slot: document.getElementById("editAdType").value === "in_content"
+                ? Number(document.getElementById("editAdSlot").value || 1)
+                : null,
 
             duration_seconds:
                 numberOrNull(
@@ -3123,7 +3295,8 @@
         syncDurationVisibility();
         syncPageTargetVisibility();
 
-        await loadAdvertisements();
+        await setCreateAdMode("standard");
+    loadAdvertisements();
 
     }
 

@@ -8885,6 +8885,21 @@ def _normalize_ad_placements(value: str) -> str:
 
 
 
+def _validate_ad_slot(ad_type: str, ad_slot: Optional[int]):
+    if ad_type != "in_content":
+        return
+    if ad_slot is None:
+        raise HTTPException(
+            status_code=400,
+            detail="In-content advertisements require Slot 1, Slot 2 or Both"
+        )
+    if int(ad_slot) not in {0, 1, 2}:
+        raise HTTPException(
+            status_code=400,
+            detail="In-content advertisement slot must be 0 (Both), 1 or 2"
+        )
+
+
 def _normalize_target_url(value: str) -> str:
     value = _clean_required_ad_text(value, "Target URL")
     if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", value):
@@ -9152,6 +9167,7 @@ def admin_create_advertisement(
         amount_paid=data.amount_paid,
         traffic_weight=data.traffic_weight
     )
+    _validate_ad_slot(data.ad_type, data.ad_slot)
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -9273,7 +9289,8 @@ def admin_update_advertisement(
                     duration_seconds,
                     amount_paid,
                     total_amount,
-                    traffic_weight
+                    traffic_weight,
+                    ad_slot
                 FROM advertisements
                 WHERE id = %s
             """, (advertisement_id,))
@@ -9309,6 +9326,7 @@ def admin_update_advertisement(
             prospective_amount = update_data.get("amount_paid", existing[9])
             prospective_total = update_data.get("total_amount", existing[10])
             prospective_weight = update_data.get("traffic_weight", existing[11])
+            prospective_ad_slot = update_data.get("ad_slot", existing[12])
 
             _validate_advertisement_values(
                 start_date_value=prospective_start_date,
@@ -9320,6 +9338,7 @@ def admin_update_advertisement(
                 amount_paid=float(prospective_amount) if prospective_amount is not None else None,
                 traffic_weight=float(prospective_weight) if prospective_weight is not None else None
             )
+            _validate_ad_slot(prospective_ad_type, prospective_ad_slot)
 
             required_text_fields = {
                 "advertiser_name": "Advertiser name",
@@ -9337,7 +9356,6 @@ def admin_update_advertisement(
                 "billing_address",
                 "invoice_number",
                 "billing_notes",
-                "ad_slot",
             }
 
             allowed_fields = {
@@ -9734,7 +9752,20 @@ def get_active_public_advertisements(
             if ad.get(key):
                 ad[key] = ad[key].isoformat()
 
-        ads.append(ad)
+        if ad.get("ad_type") == "in_content" and ad.get("ad_slot") == 0:
+            slot_one = dict(ad)
+            slot_two = dict(ad)
+            slot_one["ad_slot"] = 1
+            slot_two["ad_slot"] = 2
+
+            # Give Slot 2 a virtual negative ID so the public renderer does not
+            # de-duplicate it as the same campaign on the same page. Tracking
+            # endpoints normalize negative virtual IDs back to the real DB ID.
+            slot_two["id"] = -abs(int(ad["id"]))
+
+            ads.extend([slot_one, slot_two])
+        else:
+            ads.append(ad)
 
     return {
         "advertisements": ads
@@ -9743,6 +9774,7 @@ def get_active_public_advertisements(
 
 @app.post("/ads/{advertisement_id}/impression")
 def track_advertisement_impression(advertisement_id: int):
+    advertisement_id = abs(advertisement_id)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -9766,6 +9798,7 @@ def track_advertisement_impression(advertisement_id: int):
 
 @app.post("/ads/{advertisement_id}/click")
 def track_advertisement_click(advertisement_id: int):
+    advertisement_id = abs(advertisement_id)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -9789,6 +9822,7 @@ def track_advertisement_click(advertisement_id: int):
 
 @app.post("/ads/{advertisement_id}/complete")
 def track_advertisement_complete(advertisement_id: int):
+    advertisement_id = abs(advertisement_id)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -9812,6 +9846,7 @@ def track_advertisement_complete(advertisement_id: int):
 
 @app.post("/ads/{advertisement_id}/skip")
 def track_advertisement_skip(advertisement_id: int):
+    advertisement_id = abs(advertisement_id)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
