@@ -1506,7 +1506,8 @@
                     <option value="top_banner">Top Banner</option>
                     <option value="top_sticky">Top Sticky</option>
                     <option value="bottom_sticky">Bottom Sticky</option>
-                    <option value="in_content_video">In-content Video</option>
+                    <option value="in_content_video">In-content Video (Legacy)</option>
+                    <option value="in_content">In-content Image / Video</option>
                     <option value="homepage">Homepage Ad</option>
                     <option value="movie_page">Movie Page Ad</option>
                     <option value="actor_page">Actor Page Ad</option>
@@ -1885,6 +1886,12 @@
         if (pagePreview) pagePreview.style.display = createAdMode === "in_content" ? "inline-flex" : "none";
         if (createButton) createButton.textContent =
             createAdMode === "in_content" ? "🚀 PUBLISH IN-CONTENT CAMPAIGN" : "💾 CREATE STANDARD CAMPAIGN";
+
+        const activeToggle = document.getElementById("isActive");
+        if (activeToggle && activeToggle.closest(".form-group")) {
+            activeToggle.closest(".form-group").style.display =
+                createAdMode === "in_content" ? "none" : "block";
+        }
 
         syncDurationVisibility();
     }
@@ -2651,7 +2658,9 @@
                 document.getElementById("endDate").value,
 
             is_active:
-                document.getElementById("isActive").checked,
+                createAdMode === "in_content"
+                    ? true
+                    : document.getElementById("isActive").checked,
 
             amount_paid:
                 numberOrNull(document.getElementById("amountPaid").value),
