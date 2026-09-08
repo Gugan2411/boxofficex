@@ -264,6 +264,7 @@ class AdvertisementCreateData(BaseModel):
         "top_sticky",
         "bottom_sticky",
         "in_content_video",
+        "in_content",
         "homepage",
         "movie_page",
         "actor_page",
@@ -284,6 +285,7 @@ class AdvertisementCreateData(BaseModel):
     placement: str
 
     page_target: Optional[str] = None
+    ad_slot: Optional[int] = None
     duration_seconds: Optional[int] = None
 
     frequency: Literal[
@@ -322,6 +324,7 @@ class AdvertisementUpdateData(BaseModel):
             "top_sticky",
             "bottom_sticky",
             "in_content_video",
+            "in_content",
             "homepage",
             "movie_page",
             "actor_page",
@@ -343,6 +346,7 @@ class AdvertisementUpdateData(BaseModel):
     placement: Optional[str] = None
 
     page_target: Optional[str] = None
+    ad_slot: Optional[int] = None
     duration_seconds: Optional[int] = None
 
     frequency: Optional[
@@ -779,6 +783,7 @@ def initialize_advertisement_system():
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS invoice_date DATE")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS payment_due_date DATE")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS billing_notes TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS ad_slot INTEGER")
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS advertisement_invoices (
@@ -805,6 +810,11 @@ def initialize_advertisement_system():
                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
                 )
             """)
+
+            cur.execute("ALTER TABLE advertisement_invoices ADD COLUMN IF NOT EXISTS impressions BIGINT NOT NULL DEFAULT 0")
+            cur.execute("ALTER TABLE advertisement_invoices ADD COLUMN IF NOT EXISTS clicks BIGINT NOT NULL DEFAULT 0")
+            cur.execute("ALTER TABLE advertisement_invoices ADD COLUMN IF NOT EXISTS completed_views BIGINT NOT NULL DEFAULT 0")
+            cur.execute("ALTER TABLE advertisement_invoices ADD COLUMN IF NOT EXISTS skips BIGINT NOT NULL DEFAULT 0")
 
             cur.execute("""
                 CREATE INDEX IF NOT EXISTS idx_ad_invoices_advertisement
@@ -8805,7 +8815,8 @@ ADVERTISEMENT_SELECT_COLUMNS = """
     invoice_number,
     invoice_date,
     payment_due_date,
-    billing_notes
+    billing_notes,
+    ad_slot
 """
 
 
@@ -9007,6 +9018,7 @@ def advertisement_row_to_dict(row):
         "invoice_date": row[30].isoformat() if row[30] else None,
         "payment_due_date": row[31].isoformat() if row[31] else None,
         "billing_notes": row[32],
+        "ad_slot": int(row[33]) if len(row) > 33 and row[33] is not None else None,
         "pending_amount": max(0.0, round(float(row[24] or 0) - float(row[16] or 0), 2)),
         "payment_status": _payment_status(row[24], row[16], row[31]),
         "status": advertisement_status(
@@ -9170,7 +9182,8 @@ def admin_create_advertisement(
                     invoice_number,
                     invoice_date,
                     payment_due_date,
-                    billing_notes
+                    billing_notes,
+                    ad_slot
                 )
                 VALUES (
                     %s, %s, %s,
@@ -9183,7 +9196,7 @@ def admin_create_advertisement(
                     %s, %s,
                     %s, %s, %s,
                     %s, %s, %s,
-                    %s, %s, %s, %s
+                    %s, %s, %s, %s , %s
                 )
                 RETURNING id
             """, (
@@ -9212,7 +9225,8 @@ def admin_create_advertisement(
                 _clean_optional_ad_text(data.invoice_number),
                 data.invoice_date,
                 data.payment_due_date,
-                _clean_optional_ad_text(data.billing_notes)
+                _clean_optional_ad_text(data.billing_notes),
+                data.ad_slot
             ))
 
             advertisement_id = cur.fetchone()[0]
@@ -9495,6 +9509,13 @@ def _build_simple_invoice_pdf(invoice: dict) -> bytes:
         f"Campaign period: {invoice['start_date']} to {invoice['end_date']}",
         f"Traffic weight: {invoice['traffic_weight']}",
         "",
+        "CAMPAIGN PERFORMANCE SNAPSHOT",
+        f"Impressions: {int(invoice.get('impressions') or 0):,}",
+        f"Clicks: {int(invoice.get('clicks') or 0):,}",
+        f"CTR: {(int(invoice.get('clicks') or 0) / int(invoice.get('impressions') or 1) * 100) if int(invoice.get('impressions') or 0) > 0 else 0:.2f}%",
+        f"Completed video views: {int(invoice.get('completed_views') or 0):,}",
+        f"Skips: {int(invoice.get('skips') or 0):,}",
+        "",
         f"Total amount: INR {float(invoice['total_amount'] or 0):,.2f}",
         f"Amount paid: INR {float(invoice['amount_paid'] or 0):,.2f}",
         f"Pending balance: INR {float(invoice['pending_amount'] or 0):,.2f}",
@@ -9541,7 +9562,8 @@ def admin_generate_advertisement_invoice(advertisement_id: int):
                 SELECT advertiser_name, client_email, client_phone, billing_address,
                        campaign_name, ad_type, placement, start_date, end_date,
                        traffic_weight, total_amount, amount_paid, payment_due_date,
-                       billing_notes, invoice_number, invoice_date
+                       billing_notes, invoice_number, invoice_date,
+                       impressions, clicks, completed_views, skips
                 FROM advertisements WHERE id = %s
             """, (advertisement_id,))
             row=cur.fetchone()
@@ -9557,12 +9579,14 @@ def admin_generate_advertisement_invoice(advertisement_id: int):
                     advertisement_id, invoice_number, invoice_date, advertiser_name,
                     client_email, client_phone, billing_address, campaign_name, ad_type,
                     placement, start_date, end_date, traffic_weight, total_amount,
-                    amount_paid, pending_amount, payment_status, payment_due_date, billing_notes
-                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    amount_paid, pending_amount, payment_status, payment_due_date, billing_notes,
+                    impressions, clicks, completed_views, skips
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 RETURNING id
             """, (advertisement_id, invoice_number, inv_date, row[0], row[1], row[2], row[3],
                   row[4], row[5], row[6], row[7], row[8], row[9] or 1, total, paid, pending,
-                  status, row[12], row[13]))
+                  status, row[12], row[13], int(row[16] or 0), int(row[17] or 0),
+                  int(row[18] or 0), int(row[19] or 0)))
             invoice_id=cur.fetchone()[0]
         conn.commit()
     return {"success": True, "invoice_id": invoice_id, "invoice_number": invoice_number,
@@ -9594,14 +9618,15 @@ def admin_download_invoice_pdf(invoice_id: int):
                 SELECT invoice_number, invoice_date, advertiser_name, client_email, client_phone,
                        billing_address, campaign_name, ad_type, placement, start_date, end_date,
                        traffic_weight, total_amount, amount_paid, pending_amount, payment_status,
-                       payment_due_date, billing_notes
+                       payment_due_date, billing_notes, impressions, clicks, completed_views, skips
                 FROM advertisement_invoices WHERE id=%s
             """, (invoice_id,))
             row=cur.fetchone()
     if not row: raise HTTPException(status_code=404, detail="Invoice not found")
     keys=["invoice_number","invoice_date","advertiser_name","client_email","client_phone","billing_address",
           "campaign_name","ad_type","placement","start_date","end_date","traffic_weight","total_amount",
-          "amount_paid","pending_amount","payment_status","payment_due_date","billing_notes"]
+          "amount_paid","pending_amount","payment_status","payment_due_date","billing_notes",
+          "impressions","clicks","completed_views","skips"]
     invoice=dict(zip(keys,row))
     pdf=_build_simple_invoice_pdf(invoice)
     filename=re.sub(r"[^A-Za-z0-9._-]+","-",invoice["invoice_number"])+".pdf"
@@ -9629,7 +9654,8 @@ PUBLIC_AD_SELECT_COLUMNS = """
     start_date,
     end_date,
     is_active,
-    traffic_weight
+    traffic_weight,
+    ad_slot
 """
 
 
@@ -9665,7 +9691,7 @@ def get_active_public_advertisements(
                 "media_url", "mobile_media_url", "target_url",
                 "placement", "page_target", "duration_seconds",
                 "frequency", "start_date", "end_date", "is_active",
-                "traffic_weight"
+                "traffic_weight", "ad_slot"
             ],
             row
         ))

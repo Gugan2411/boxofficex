@@ -382,6 +382,7 @@ header nav.mobile-menu-open{display:flex!important}
 }
 
 .bx-sponsored-link-card{
+    align-items:center;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -1168,6 +1169,7 @@ document.addEventListener("DOMContentLoaded",function(){
                    rel="sponsored noopener"
                    data-ad-id="${Number(ad.id)}"
                    aria-label="Open sponsored link: ${escapeAd(title)}">
+                    ${mediaUrl(ad) ? `<img class="bx-sponsored-link-thumb" src="${escapeAd(mediaUrl(ad))}" alt="${escapeAd(title)}">` : ""}
                     <div class="bx-sponsored-link-copy">
                         <div class="bx-sponsored-link-label">Sponsored</div>
                         <h3 class="bx-sponsored-link-title">${escapeAd(title)}</h3>
@@ -1316,5 +1318,94 @@ document.addEventListener("DOMContentLoaded",function(){
 
 })();
 </script>
+
+<style id="bx-ad-slot-v2">
+.bx-smart-ad-slot{max-width:980px;margin:26px auto;padding:0 14px;display:none}
+.bx-smart-ad-slot .bx-smart-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;margin:0 0 8px;text-align:center}
+.bx-smart-ad-card{position:relative;max-width:820px;margin:auto;border:1px solid rgba(15,23,42,.10);border-radius:16px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+.bx-smart-ad-card a{display:block;text-decoration:none;color:inherit}
+.bx-smart-ad-card img,.bx-smart-ad-card video{display:block;width:100%;max-height:420px;object-fit:contain;background:#f8fafc}
+.bx-smart-ad-head{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;font-size:11px;color:#64748b}
+.bx-smart-ad-close{border:0;background:transparent;font-size:20px;cursor:pointer;color:#475569}
+.bx-sponsored-link-thumb{width:68px;height:68px;border-radius:12px;object-fit:cover;flex:0 0 68px;background:#f1f5f9}
+@media(max-width:700px){
+ .bx-smart-ad-slot{margin:18px auto;padding:0 10px}
+ .bx-smart-ad-card img,.bx-smart-ad-card video{max-height:280px}
+ .bx-sponsored-link-thumb{width:54px;height:54px;flex-basis:54px}
+}
+</style>
+
+<script>
+/* BoxOfficeX V2 page-aware in-content slots + page preview */
+(function(){
+ const BX_PLACEMENT="movie_compare_select", BX_MAX=1, BX_ANCHORS=["bxMovieCompareSelectAd"];
+ function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+ function weight(a){const n=Number(a&&a.traffic_weight);return Number.isFinite(n)&&n>0?n:1}
+ function pick(list){if(!list.length)return null;let total=list.reduce((s,a)=>s+weight(a),0),r=Math.random()*total;for(const a of list){r-=weight(a);if(r<=0)return a}return list[list.length-1]}
+ function freqOK(a){
+   if(!a.frequency||a.frequency==="always")return true;
+   const k=`boxofficex_ad_${a.id}_${a.frequency}`;
+   if(a.frequency==="once_session")return !sessionStorage.getItem(k);
+   const raw=localStorage.getItem(k); if(!raw)return true;
+   const h=a.frequency==="once_12h"?12:24; return Date.now()-Number(raw)>=h*3600000;
+ }
+ function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const k=`boxofficex_ad_${a.id}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
+ function post(a,e){if(a.id)fetch(`/ads/${a.id}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
+ function media(a){return matchMedia("(max-width:700px)").matches&&a.mobile_media_url?a.mobile_media_url:a.media_url}
+ function makeSlot(n){
+   let el=document.getElementById(`bxSmartAdSlot${n}`); if(el)return el;
+   el=document.createElement("section");el.id=`bxSmartAdSlot${n}`;el.className="bx-smart-ad-slot";el.setAttribute("aria-label",`Advertisement slot ${n}`);
+   const anchor=document.getElementById(BX_ANCHORS[Math.min(n-1,BX_ANCHORS.length-1)]);
+   if(anchor){
+      if(BX_PLACEMENT==="article_detail" && n===2 && document.getElementById("bxRelatedSection")){
+         document.getElementById("bxRelatedSection").insertAdjacentElement("beforebegin",el);
+      } else if(anchor.id==="relatedContentSection" || anchor.id==="bxRelatedSection"){
+         anchor.insertAdjacentElement("beforebegin",el);
+      } else {
+         const section=anchor.closest("section")||anchor; section.insertAdjacentElement("afterend",el);
+      }
+   } else {
+      const main=document.querySelector("main")||document.body; main.appendChild(el);
+   }
+   return el;
+ }
+ function render(a,n,preview=false){
+   const root=makeSlot(n); if(!root||!a||!media(a))return;
+   const isVideo=a.media_type==="video";
+   root.innerHTML=`<div class="bx-smart-label">${preview?"PREVIEW • ":""}Advertisement</div>
+   <div class="bx-smart-ad-card">
+    <div class="bx-smart-ad-head"><span>Sponsored • ${esc(a.advertiser_name||"Advertisement")}</span><button class="bx-smart-ad-close" type="button" aria-label="Close advertisement">×</button></div>
+    <a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener">
+      ${isVideo?`<video src="${esc(media(a))}" controls playsinline preload="metadata"></video>`:`<img src="${esc(media(a))}" alt="Sponsored advertisement">`}
+    </a></div>`;
+   root.style.display="block";
+   const v=root.querySelector("video"), close=root.querySelector(".bx-smart-ad-close"), link=root.querySelector("a");
+   let completed=false;
+   if(!preview){
+      link.addEventListener("click",()=>post(a,"click"));
+      post(a,"impression"); mark(a);
+      if(v)v.addEventListener("ended",()=>{completed=true;post(a,"complete")},{once:true});
+   }
+   close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")});
+ }
+ async function run(){
+   const q=new URLSearchParams(location.search);
+   if(q.get("bx_ad_preview")==="1"){
+      try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Number(a.ad_slot||1),true);return}}catch(e){}
+   }
+   try{
+      const r=await fetch(`/ads/active?placement=${encodeURIComponent(BX_PLACEMENT)}&page=${encodeURIComponent(location.pathname)}`,{cache:"no-store"});
+      if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&freqOK(a));
+      const used=new Set();
+      for(let n=1;n<=BX_MAX;n++){
+        const candidates=pool.filter(a=>!used.has(a.id)&&Number(a.ad_slot||1)===n);
+        const a=pick(candidates); if(a){used.add(a.id);render(a,n,false)}
+      }
+   }catch(e){console.warn("BoxOfficeX smart ad slots unavailable",e)}
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,700));else setTimeout(run,700);
+})();
+</script>
+
 </body>
 </html>

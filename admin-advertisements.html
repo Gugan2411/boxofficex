@@ -1036,7 +1036,8 @@
                     <option value="top_banner">Top Banner</option>
                     <option value="top_sticky">Top Sticky</option>
                     <option value="bottom_sticky">Bottom Sticky</option>
-                    <option value="in_content_video">In-content Video</option>
+                    <option value="in_content_video">In-content Video (Legacy)</option>
+                    <option value="in_content">In-content Image / Video Slot</option>
                     <option value="homepage">Homepage Ad</option>
                     <option value="movie_page">Movie Page Ad</option>
                     <option value="actor_page">Actor Page Ad</option>
@@ -1163,6 +1164,15 @@
                 <input id="pageTarget" type="text" placeholder="/movie.html?id=123 or comma-separated targets">
             </div>
 
+            <div id="adSlotGroup" class="form-group">
+                <label>In-content Slot</label>
+                <select id="adSlot">
+                    <option value="1">Slot 1</option>
+                    <option value="2">Slot 2</option>
+                </select>
+                <div class="helper">Used for In-content Image / Video. Long pages support Slot 1 + Slot 2; shorter pages use Slot 1.</div>
+            </div>
+
             <div id="durationGroup" class="form-group">
                 <label>Duration (seconds)</label>
                 <input id="durationSeconds" type="number" min="1" max="60" placeholder="5">
@@ -1246,7 +1256,7 @@
             <div class="form-group">
                 <label>Campaign Enabled</label>
                 <div class="switch-row">
-                    <input id="isActive" type="checkbox" checked>
+                    <input id="isActive" type="checkbox">
                     <span>Activate automatically during campaign dates</span>
                 </div>
             </div>
@@ -1854,7 +1864,7 @@
         setSelectedPlacements("create", "homepage");
         document.getElementById("frequency").value = "once_24h";
         document.getElementById("trafficWeight").value = "1";
-        document.getElementById("isActive").checked = true;
+        document.getElementById("isActive").checked = false;
 
         hideMessage("createMessage");
 
@@ -2192,6 +2202,7 @@
             mobile_media_url: document.getElementById("mobileMediaUrl").value.trim(),
             target_url: document.getElementById("targetUrl").value.trim(),
             placement: getSelectedPlacements("create"),
+            ad_slot: Number(document.getElementById("adSlot").value || 1),
             duration_seconds: numberOrNull(document.getElementById("durationSeconds").value)
         };
     }
@@ -2202,7 +2213,8 @@
             top_banner: "Top Banner",
             top_sticky: "Top Sticky",
             bottom_sticky: "Bottom Sticky",
-            in_content_video: "In-content Video",
+            in_content_video: "In-content Video (Legacy)",
+            in_content: "In-content Image / Video",
             homepage: "Homepage / In-content",
             movie_page: "Movie Page Ad",
             actor_page: "Actor Page Ad",
@@ -2388,6 +2400,35 @@
     }
 
 
+
+    function previewOnTargetPage(){
+        const ad = getCreatePreviewData();
+        ad.ad_slot = Number(document.getElementById("adSlot").value || 1);
+        if(!ad.media_url){
+            alert("Upload/select the advertisement media before page preview.");
+            return;
+        }
+        const selected = getSelectedPlacements("create").split(",").map(x=>x.trim()).filter(Boolean);
+        const pageMap = {
+            homepage:"/index.html", new_movies:"/new-movies.html", movie_detail:"/movie.html?id=1",
+            actors_list:"/actors.html", actor_detail:"/actor.html?id=1", actor_movies:"/actor-movies.html?id=1",
+            articles_list:"/articles.html", article_detail:"/article.html?id=1", movie_rankings:"/movie-rankings.html",
+            actor_rankings:"/rankings.html", actor_compare_select:"/compare-select.html",
+            actor_compare_results:"/compare.html", movie_compare_select:"/movie-compare-select.html",
+            movie_compare_results:"/movie-compare.html"
+        };
+        let target = document.getElementById("pageTarget").value.trim();
+        if(!target){
+            const first = selected.find(x => x !== "sitewide");
+            target = pageMap[first] || "/index.html";
+        } else {
+            target = target.split(",")[0].trim();
+        }
+        localStorage.setItem("boxofficex_ad_page_preview", JSON.stringify(ad));
+        const joiner = target.includes("?") ? "&" : "?";
+        window.open(`${target}${joiner}bx_ad_preview=1`, "_blank", "noopener");
+    }
+
     async function createAdvertisement() {
 
         hideMessage("createMessage");
@@ -2424,6 +2465,8 @@
 
             page_target:
                 document.getElementById("pageTarget").value.trim() || null,
+
+            ad_slot: Number(document.getElementById("adSlot").value || 1),
 
             duration_seconds:
                 numberOrNull(
@@ -2721,6 +2764,11 @@
                             • ${Number(ad.ctr_percent || 0).toFixed(2)}% CTR
                         </div>
                         <div class="muted">Weight ${Number(ad.traffic_weight || 1)} • ${escapeHtml((ad.payment_status || "unpaid").replaceAll("_", " "))}</div>
+                        <div class="muted">
+                            ${formatNumber(ad.completed_views || 0)} completed views
+                            • ${formatNumber(ad.skips || 0)} skips
+                            • ${Number(ad.impressions || 0) > 0 ? ((Number(ad.completed_views || 0) / Number(ad.impressions || 1)) * 100).toFixed(2) : "0.00"}% completion
+                        </div>
                         <div class="muted">₹${Number(ad.amount_paid || 0).toLocaleString("en-IN")} paid • ₹${Number(ad.pending_amount || 0).toLocaleString("en-IN")} pending</div>
                     </td>
 
@@ -2794,6 +2842,7 @@
         setSelectedPlacements("edit", ad.placement);
         syncPageTargetVisibility();
         document.getElementById("editPageTarget").value = ad.page_target || "";
+        document.getElementById("editAdSlot").value = String(ad.ad_slot || 1);
         document.getElementById("editDurationSeconds").value =
             ad.duration_seconds ?? "";
 
@@ -2871,6 +2920,8 @@
 
             page_target:
                 document.getElementById("editPageTarget").value.trim() || null,
+
+            ad_slot: Number(document.getElementById("editAdSlot").value || 1),
 
             duration_seconds:
                 numberOrNull(
