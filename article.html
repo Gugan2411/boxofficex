@@ -2660,6 +2660,30 @@ body.bx-bottom-ad-visible{
     }
 }
 
+
+/* BOXOFFICEX ARTICLE RICH TEXT + LISTS */
+.article-content .bx-article-list{
+margin:0 0 26px 24px;
+padding-left:16px;
+color:#d9e0ec;
+font-family:Georgia,"Times New Roman",serif;
+font-size:clamp(19px,2.2vw,22px);
+line-height:1.75;
+}
+.article-content .bx-article-list li{margin:0 0 10px;padding-left:4px}
+.article-content .bx-article-list li:last-child{margin-bottom:0}
+.article-content p strong,
+.article-content li strong,
+.article-content h2 strong,
+.article-content blockquote strong{color:#fff;font-weight:900}
+.article-content p em,
+.article-content li em,
+.article-content h2 em,
+.article-content blockquote em{font-style:italic}
+@media(max-width:700px){
+.article-content .bx-article-list{font-size:18px;line-height:1.7;margin-left:20px;padding-left:12px}
+}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -2880,25 +2904,6 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 </style>
 <title>Movie Article | BoxOfficeX</title>
 
-<style id="bx-advertise-footer-visibility-fix">
-footer a.footer-advertise-link{
-    display:inline-flex!important;
-    align-items:center!important;
-    visibility:visible!important;
-    opacity:1!important;
-    pointer-events:auto!important;
-    white-space:nowrap!important;
-}
-@media(max-width:700px){
-    footer a.footer-advertise-link{
-        display:inline-flex!important;
-        min-height:32px!important;
-        padding:6px 4px!important;
-    }
-}
-</style>
-
-
 <style id="bx-responsive-standard-ad-sizing">
 /* BoxOfficeX responsive Standard Ad sizing — desktop/tablet/mobile */
 #bxTopBannerAd,
@@ -3062,6 +3067,668 @@ footer a.footer-advertise-link{
 }
 </style>
 
+
+<style id="bx-mobile-nav-clean-fix">
+@media(max-width:700px){
+  .bx-master-mobile-header{
+    overflow:visible!important;
+  }
+  .bx-master-mobile-bar{
+    position:relative!important;
+    z-index:3!important;
+  }
+  .bx-master-feature-row{
+    position:relative!important;
+    z-index:2!important;
+  }
+  .bx-master-mobile-menu{
+    position:absolute!important;
+    top:113px!important;
+    left:8px!important;
+    right:8px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:7px!important;
+    overflow:visible!important;
+    border:1px solid #dce3ec!important;
+    border-radius:12px!important;
+    background:#fff!important;
+    box-shadow:0 12px 28px rgba(15,23,42,.14)!important;
+  }
+  .bx-master-mobile-menu.open{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+  .bx-master-mobile-menu a{
+    min-width:0!important;
+    min-height:38px!important;
+    height:38px!important;
+    padding:7px 8px!important;
+    border-radius:9px!important;
+    justify-content:center!important;
+    text-align:center!important;
+    font-size:10.5px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  .bx-master-mobile-menu .bx-master-badge{
+    position:static!important;
+    margin-left:5px!important;
+    padding:2px 4px!important;
+    font-size:6px!important;
+  }
+}
+@media(max-width:350px){
+  .bx-master-mobile-menu a{
+    font-size:10px!important;
+    padding-left:5px!important;
+    padding-right:5px!important;
+  }
+}
+</style>
+
+
+<style id="bx-standard-footer-style">
+.bx-standard-footer{
+  width:100%!important;
+  margin:48px 0 0!important;
+  padding:0!important;
+  border-top:1px solid #dce3eb!important;
+  background:#eef2f7!important;
+  color:#64748b!important;
+  text-align:center!important;
+}
+.bx-standard-footer .bx-footer-inner{
+  width:min(1180px,100%)!important;
+  margin:0 auto!important;
+  padding:28px 18px 30px!important;
+}
+.bx-standard-footer .bx-footer-brand{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  color:#111827!important;
+  font-size:16px!important;
+  font-weight:900!important;
+  letter-spacing:.2px!important;
+}
+.bx-standard-footer .bx-footer-brand span{color:#b77900!important}
+.bx-standard-footer .bx-footer-copy{
+  max-width:760px!important;
+  margin:8px auto 12px!important;
+  color:#64748b!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+.bx-standard-footer .bx-footer-links{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:4px 14px!important;
+}
+.bx-standard-footer .bx-footer-links a{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:32px!important;
+  margin:0!important;
+  padding:6px 2px!important;
+  color:#475569!important;
+  text-decoration:none!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+.bx-standard-footer .bx-footer-links a:hover{color:#2563eb!important}
+@media(max-width:700px){
+  .bx-standard-footer{margin-top:34px!important}
+  .bx-standard-footer .bx-footer-inner{padding:22px 12px 24px!important}
+  .bx-standard-footer .bx-footer-links{gap:2px 10px!important}
+  .bx-standard-footer .bx-footer-links a{
+    min-height:30px!important;
+    font-size:11px!important;
+  }
+  .bx-standard-footer .bx-footer-copy{
+    font-size:11px!important;
+    margin:7px auto 10px!important;
+  }
+}
+</style>
+
+
+<style id="bx-public-top-gap-normalization">
+/* Normalize public-page top spacing without changing page-specific content */
+html,body{scroll-padding-top:0!important}
+@media(min-width:701px){
+  body{padding-top:0!important}
+  body>main:first-of-type,
+  body>.main:first-of-type,
+  body>.container:first-of-type,
+  body>.page:first-of-type{
+    margin-top:0!important;
+  }
+}
+@media(max-width:700px){
+  body{padding-top:0!important}
+  body>.bx-master-mobile-header + header + main,
+  body>.bx-master-mobile-header + main,
+  body>header + main{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+  main{
+    margin-top:0!important;
+  }
+}
+</style>
+
+
+<style id="bx-mobile-header-social-alignment-fix">
+@media(max-width:700px){
+  /* Mobile header alignment */
+  .bx-master-mobile-bar{
+    grid-template-columns:44px minmax(0,1fr) 44px!important;
+    height:62px!important;
+    min-height:62px!important;
+    padding:0 10px!important;
+    gap:6px!important;
+  }
+  .bx-master-mobile-toggle{
+    width:44px!important;
+    height:44px!important;
+    justify-self:start!important;
+    align-self:center!important;
+    margin:0!important;
+    padding:0!important;
+    border-radius:11px!important;
+  }
+  .bx-master-mobile-toggle span{
+    width:22px!important;
+    height:2px!important;
+    margin:0!important;
+  }
+  .bx-master-mobile-logo{
+    justify-self:center!important;
+    align-self:center!important;
+    max-width:100%!important;
+    margin:0!important;
+    gap:7px!important;
+    font-size:17px!important;
+    line-height:1!important;
+    transform:none!important;
+  }
+  .bx-master-mobile-logo .icon{
+    width:31px!important;
+    height:31px!important;
+    flex:0 0 31px!important;
+  }
+  .bx-master-mobile-bar::after{
+    width:44px!important;
+    height:44px!important;
+  }
+
+  /* Keep comparison buttons perfectly aligned */
+  .bx-master-feature-row{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding:6px 8px 7px!important;
+  }
+  .bx-master-feature-row a{
+    min-width:0!important;
+    min-height:40px!important;
+    height:40px!important;
+    padding:7px 6px!important;
+    font-size:10.5px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  /* Standard share/social alignment across public pages */
+  .share-buttons,
+  .share-links,
+  .social-share,
+  .social-links,
+  .share-row,
+  .article-share,
+  .bx-share-links,
+  .bx-social-links{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:8px!important;
+    margin-left:0!important;
+    margin-right:0!important;
+  }
+  .share-buttons a,
+  .share-buttons button,
+  .share-links a,
+  .share-links button,
+  .social-share a,
+  .social-share button,
+  .social-links a,
+  .social-links button,
+  .share-row a,
+  .share-row button,
+  .article-share a,
+  .article-share button,
+  .bx-share-links a,
+  .bx-share-links button,
+  .bx-social-links a,
+  .bx-social-links button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    margin:0!important;
+    padding:9px 10px!important;
+    border-radius:10px!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Common loose inline share link fallback */
+  [class*="share"] > a,
+  [class*="social"] > a{
+    box-sizing:border-box!important;
+  }
+}
+
+@media(max-width:350px){
+  .bx-master-mobile-logo{
+    font-size:16px!important;
+    gap:6px!important;
+  }
+  .bx-master-feature-row a{
+    font-size:10px!important;
+    padding-left:4px!important;
+    padding-right:4px!important;
+  }
+}
+</style>
+
+
+<style id="bx-everypage-burgerbox-standard">
+@media(max-width:700px){
+  /* One exact burger box standard for every public page */
+  .bx-master-mobile-bar,
+  header .navbar,
+  header .nav-wrap,
+  header .header-inner{
+    box-sizing:border-box!important;
+  }
+
+  .bx-master-mobile-toggle,
+  .menu-toggle,
+  .hamburger,
+  .hamburger-btn,
+  .mobile-menu-toggle{
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    min-height:44px!important;
+    max-width:44px!important;
+    max-height:44px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    margin:0!important;
+    padding:0!important;
+    border:1px solid #dce3ec!important;
+    border-radius:11px!important;
+    background:#f4f7fb!important;
+    box-shadow:none!important;
+    color:#172033!important;
+    line-height:1!important;
+    cursor:pointer!important;
+    box-sizing:border-box!important;
+    flex:0 0 44px!important;
+  }
+
+  .bx-master-mobile-toggle span,
+  .menu-toggle span,
+  .hamburger span,
+  .hamburger-btn span,
+  .mobile-menu-toggle span{
+    display:block!important;
+    width:22px!important;
+    height:2px!important;
+    min-height:2px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:999px!important;
+    background:#172033!important;
+    box-shadow:none!important;
+    transform-origin:center!important;
+    transition:transform .2s ease,opacity .2s ease!important;
+  }
+
+  .bx-master-mobile-toggle.open span:nth-child(1),
+  .menu-toggle.open span:nth-child(1),
+  .hamburger.open span:nth-child(1),
+  .hamburger-btn.open span:nth-child(1),
+  .mobile-menu-toggle.open span:nth-child(1){
+    transform:translateY(7px) rotate(45deg)!important;
+  }
+  .bx-master-mobile-toggle.open span:nth-child(2),
+  .menu-toggle.open span:nth-child(2),
+  .hamburger.open span:nth-child(2),
+  .hamburger-btn.open span:nth-child(2),
+  .mobile-menu-toggle.open span:nth-child(2){
+    opacity:0!important;
+  }
+  .bx-master-mobile-toggle.open span:nth-child(3),
+  .menu-toggle.open span:nth-child(3),
+  .hamburger.open span:nth-child(3),
+  .hamburger-btn.open span:nth-child(3),
+  .mobile-menu-toggle.open span:nth-child(3){
+    transform:translateY(-7px) rotate(-45deg)!important;
+  }
+
+  .bx-master-mobile-bar{
+    height:62px!important;
+    min-height:62px!important;
+    grid-template-columns:44px minmax(0,1fr) 44px!important;
+    align-items:center!important;
+    padding:0 10px!important;
+    gap:6px!important;
+  }
+  .bx-master-mobile-toggle{
+    grid-column:1!important;
+    justify-self:start!important;
+    align-self:center!important;
+  }
+  .bx-master-mobile-logo{
+    grid-column:2!important;
+    justify-self:center!important;
+    align-self:center!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  .bx-master-mobile-bar::after{
+    grid-column:3!important;
+    width:44px!important;
+    height:44px!important;
+  }
+}
+
+@media(max-width:350px){
+  .bx-master-mobile-toggle,
+  .menu-toggle,
+  .hamburger,
+  .hamburger-btn,
+  .mobile-menu-toggle{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    min-height:42px!important;
+    max-width:42px!important;
+    max-height:42px!important;
+    flex-basis:42px!important;
+  }
+  .bx-master-mobile-bar{
+    grid-template-columns:42px minmax(0,1fr) 42px!important;
+    padding-left:8px!important;
+    padding-right:8px!important;
+  }
+  .bx-master-mobile-bar::after{
+    width:42px!important;
+    height:42px!important;
+  }
+}
+</style>
+
+
+<style id="bx-mobile-header-content-spacing-fix">
+@media(max-width:700px){
+  /* Keep all page content safely below the two-row mobile navigation */
+  .bx-master-mobile-header{
+    position:sticky!important;
+    top:0!important;
+    z-index:10050!important;
+  }
+
+  body>.bx-master-mobile-header + header + main,
+  body>.bx-master-mobile-header + main{
+    margin-top:0!important;
+    padding-top:18px!important;
+  }
+
+  /* Index uses its own original mobile header */
+  body>header + main,
+  body>.header + main,
+  body>.navbar + main{
+    margin-top:0!important;
+  }
+
+  /* Prevent page hero/title blocks from being pulled upward under the nav */
+  main > .hero:first-child,
+  main > .page-hero:first-child,
+  main > .hero-section:first-child,
+  main > .compare-hero:first-child,
+  main > .ranking-hero:first-child,
+  main > .article-hero:first-child,
+  main > section:first-child{
+    margin-top:0!important;
+  }
+
+  /* Compact but visible breathing room after comparison row */
+  .bx-master-feature-row{
+    margin-bottom:0!important;
+  }
+}
+</style>
+
+
+<style id="bx-open-menu-index-match-fix">
+@media(max-width:700px){
+  /* Open menu matches index.html: one clean vertical list below comparison row */
+  .bx-master-mobile-menu{
+    display:none!important;
+    position:absolute!important;
+    top:114px!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:calc(100vh - 126px)!important;
+    margin:0!important;
+    padding:10px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:5px!important;
+    background:#ffffff!important;
+    border:1px solid #dce3ec!important;
+    border-radius:14px!important;
+    box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    z-index:10060!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  .bx-master-mobile-menu.open{
+    display:flex!important;
+    grid-template-columns:none!important;
+  }
+  .bx-master-mobile-menu a{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    height:auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    color:#334155!important;
+    background:transparent!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    white-space:normal!important;
+    box-sizing:border-box!important;
+  }
+  .bx-master-mobile-menu a:hover,
+  .bx-master-mobile-menu a:focus,
+  .bx-master-mobile-menu a.active{
+    color:#2563eb!important;
+    background:#eef4ff!important;
+  }
+  .bx-master-mobile-menu .bx-master-badge{
+    margin-left:auto!important;
+    flex:0 0 auto!important;
+  }
+}
+</style>
+
+
+<style id="bx-allpages-single-vertical-menu">
+@media(max-width:700px){
+  /* One single vertical hamburger menu on every public page */
+  .bx-master-mobile-menu,
+  header nav:not(.mobile-primary-features){
+    display:none!important;
+    position:absolute!important;
+    top:114px!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:calc(100vh - 126px)!important;
+    margin:0!important;
+    padding:10px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:5px!important;
+    background:#ffffff!important;
+    border:1px solid #dce3ec!important;
+    border-radius:14px!important;
+    box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    z-index:10060!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+
+  .bx-master-mobile-menu.open,
+  header nav:not(.mobile-primary-features).open{
+    display:flex!important;
+    grid-template-columns:none!important;
+  }
+
+  .bx-master-mobile-menu a,
+  header nav:not(.mobile-primary-features) a{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    height:auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    color:#334155!important;
+    background:transparent!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    white-space:normal!important;
+    box-sizing:border-box!important;
+  }
+
+  .bx-master-mobile-menu a:hover,
+  .bx-master-mobile-menu a:focus,
+  .bx-master-mobile-menu a.active,
+  header nav:not(.mobile-primary-features) a:hover,
+  header nav:not(.mobile-primary-features) a:focus,
+  header nav:not(.mobile-primary-features) a.active{
+    color:#2563eb!important;
+    background:#eef4ff!important;
+  }
+
+  .bx-master-mobile-menu .bx-master-badge,
+  header nav:not(.mobile-primary-features) .nav-badge{
+    margin-left:auto!important;
+    flex:0 0 auto!important;
+  }
+
+  /* Comparison shortcuts stay outside the burger menu */
+  header nav:not(.mobile-primary-features) .nav-compare{
+    display:none!important;
+  }
+}
+</style>
+
+
+<style id="bx-article-internal-link-upgrade-style">
+/* BoxOfficeX article internal-link upgrade */
+.bx-related-actors-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.bx-related-actor-card{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #dfe5ee;border-radius:14px;background:#fff;color:#111827;text-decoration:none;transition:.2s}
+.bx-related-actor-card:hover{transform:translateY(-2px);border-color:#bfd2fb;background:#f8fbff}
+.bx-related-actor-card img{width:50px;height:62px;flex:0 0 50px;object-fit:cover;border-radius:9px;background:#eef2f7}
+.bx-related-actor-copy{min-width:0}
+.bx-related-actor-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:900}
+.bx-related-actor-meta{margin-top:4px;color:#667085;font-size:9px;font-weight:700}
+.bx-related-actor-open{margin-top:5px;color:#2563eb;font-size:9px;font-weight:900}
+.bx-related-compare-block{margin-top:14px;padding:14px;border:1px solid #dfe5ee;border-radius:14px;background:#f8fafc}
+.bx-related-compare-title{font-size:13px;font-weight:900;color:#111827}
+.bx-related-compare-sub{margin-top:4px;color:#667085;font-size:10px}
+.bx-related-compare-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bx-related-compare-btn{display:inline-flex;align-items:center;min-height:34px;padding:8px 11px;border-radius:9px;background:#eef4ff;color:#2563eb;font-size:9px;font-weight:900;text-decoration:none;border:1px solid #cfe0ff}
+@media(max-width:700px){
+ .bx-related-actors-grid{display:flex;overflow-x:auto;gap:10px;padding:2px 1px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+ .bx-related-actors-grid::-webkit-scrollbar{display:none}
+ .bx-related-actor-card{flex:0 0 78%;max-width:250px;scroll-snap-align:start}
+}
+</style>
+
+
+<style id="bx-article-formatting-color-fix">
+/* Keep rich article formatting readable in the current BoxOfficeX article theme */
+.article-content .bx-article-list,
+.article-content .bx-article-list li{
+    color:inherit !important;
+}
+.article-content p strong,
+.article-content li strong,
+.article-content h2 strong,
+.article-content blockquote strong{
+    color:inherit !important;
+    font-weight:900;
+}
+.article-content p em,
+.article-content li em,
+.article-content h2 em,
+.article-content blockquote em{
+    color:inherit !important;
+    font-style:italic;
+}
+</style>
+
 </head>
 
 <body>
@@ -3152,6 +3819,17 @@ footer a.footer-advertise-link{
             <div class="bx-related-empty">Loading related movies...</div>
         </div>
     </div>
+
+    <div class="bx-related-block" id="bxRelatedActorsBlock" style="display:none;">
+        <div class="bx-related-block-title">⭐ Related Actors</div>
+        <div class="bx-related-actors-grid" id="bxRelatedActorsGrid"></div>
+    </div>
+
+    <div class="bx-related-compare-block" id="bxRelatedCompareBlock" style="display:none;">
+        <div class="bx-related-compare-title">⚔️ Explore Comparisons</div>
+        <div class="bx-related-compare-sub">Continue from this article into BoxOfficeX comparisons.</div>
+        <div class="bx-related-compare-actions" id="bxRelatedCompareActions"></div>
+    </div>
 </section>
 
 <div id="bxTopStickyAd" aria-label="Top sticky sponsored advertisement"></div>
@@ -3161,22 +3839,19 @@ footer a.footer-advertise-link{
 
 <section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
-<footer>
-    <div class="footer-inner">
-        <a href="/index.html" class="footer-brand" aria-label="BoxOfficeX Home"><span class="footer-brand-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
-        <p class="footer-tagline">Movie box-office collections, latest releases, actors, verdicts, rankings and hero comparisons.</p>
-
-        <nav class="footer-links" aria-label="Footer navigation">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-            <a href="/privacy.html">Privacy</a>
-            <a href="/terms.html">Terms</a>
-            <a href="/disclaimer.html">Disclaimer</a>
-        <a href="/advertise.html" class="footer-advertise-link">Advertise With Us</a>
-</nav>
-
-        <p class="footer-copy">© 2026 BoxOfficeX. All rights reserved.</p>
-    </div>
+<footer class="bx-standard-footer">
+  <div class="bx-footer-inner">
+    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
+    <nav class="bx-footer-links" aria-label="Footer navigation">
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/advertise.html" class="footer-advertise-link">Advertise With Us</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </nav>
+  </div>
 </footer>
 
 <div class="mobile-bottom-nav" aria-label="Mobile navigation">
@@ -3392,16 +4067,88 @@ async function renderActorBlock(data) {
     }
 }
 
+
+function renderInlineArticleFormatting(value){
+let safe = esc(value || "");
+safe = safe.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
+safe = safe.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+return safe;
+}
+
+function renderArticleParagraphContent(value){
+const raw = String(value || "");
+const lines = raw.split(/\r?\n/);
+
+let html = [];
+let buffer = [];
+let listType = null;
+let listItems = [];
+
+function flushParagraph(){
+if(!buffer.length) return;
+const text = buffer.join("\n").trim();
+if(text){
+html.push(`<p>${renderInlineArticleFormatting(text).replace(/\n/g,"<br>")}</p>`);
+}
+buffer = [];
+}
+
+function flushList(){
+if(!listItems.length) return;
+const tag = listType === "ol" ? "ol" : "ul";
+html.push(
+`<${tag} class="bx-article-list">` +
+listItems.map(item=>`<li>${renderInlineArticleFormatting(item)}</li>`).join("") +
+`</${tag}>`
+);
+listItems = [];
+listType = null;
+}
+
+for(const line of lines){
+const numbered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+const bullet = line.match(/^\s*(?:•|-)\s+(.+)$/);
+
+if(numbered){
+flushParagraph();
+if(listType && listType!=="ol") flushList();
+listType="ol";
+listItems.push(numbered[1]);
+continue;
+}
+
+if(bullet){
+flushParagraph();
+if(listType && listType!=="ul") flushList();
+listType="ul";
+listItems.push(bullet[1]);
+continue;
+}
+
+if(listType) flushList();
+
+if(!line.trim()){
+flushParagraph();
+}else{
+buffer.push(line);
+}
+}
+
+flushList();
+flushParagraph();
+return html.join("");
+}
+
 async function renderBlock(block) {
     const type = block.block_type;
     const data = block.extra_data || {};
 
     if (type === "paragraph") {
-        return `<p>${esc(block.content || "")}</p>`;
+        return renderArticleParagraphContent(block.content || "");
     }
 
     if (type === "heading") {
-        return `<h2>${esc(block.content || "")}</h2>`;
+        return `<h2>${renderInlineArticleFormatting(block.content || "")}</h2>`;
     }
 
     if (type === "image") {
@@ -3424,7 +4171,7 @@ async function renderBlock(block) {
     }
 
     if (type === "quote") {
-        return `<blockquote>${esc(block.content || "")}</blockquote>`;
+        return `<blockquote>${renderInlineArticleFormatting(block.content || "").replace(/\n/g,"<br>")}</blockquote>`;
     }
 
     if (type === "boxoffice") {
@@ -3622,6 +4369,83 @@ function bxRelatedPoster(value){
     if(/^https?:\/\//i.test(poster) || poster.startsWith("/"))return poster;
     return "/posters/" + encodeURIComponent(poster);
 }
+
+function bxArticleActorPhoto(value){
+    if(!value)return "/actor-images/default.jpg";
+    const photo=String(value).trim();
+    if(!photo)return "/actor-images/default.jpg";
+    if(/^https?:\/\//i.test(photo) || photo.startsWith("/"))return photo;
+    return "/actor-images/" + encodeURIComponent(photo);
+}
+async function loadArticleRelatedActors(article){
+    const block=document.getElementById("bxRelatedActorsBlock");
+    const grid=document.getElementById("bxRelatedActorsGrid");
+    if(!block || !grid || !article)return [];
+
+    const ids=[...new Set((Array.isArray(article.blocks)?article.blocks:[])
+        .filter(b=>b && String(b.block_type||"").toLowerCase()==="actor")
+        .map(b=>b?.extra_data?.actor_id ?? b?.data?.actor_id ?? b?.actor_id)
+        .filter(Boolean)
+        .map(String))].slice(0,6);
+
+    if(!ids.length){block.style.display="none";return []}
+
+    const actors=(await Promise.all(ids.map(async id=>{
+        try{
+            const r=await fetch(`${API_BASE}/actors/${encodeURIComponent(id)}`,{cache:"no-store"});
+            const a=await r.json();
+            return r.ok && a && !a.error ? a : null;
+        }catch{return null}
+    }))).filter(Boolean);
+
+    if(!actors.length){block.style.display="none";return []}
+
+    grid.innerHTML="";
+    actors.forEach(actor=>{
+        const card=document.createElement("a");
+        card.className="bx-related-actor-card";
+        card.href=`/actor.html?id=${encodeURIComponent(actor.id)}`;
+        card.innerHTML=`
+            <img src="${bxArticleActorPhoto(actor.photo)}"
+                 alt="${bxRelatedEsc(actor.name || "Actor")} photo"
+                 loading="lazy" decoding="async"
+                 onerror="this.onerror=null;this.src='/actor-images/default.jpg';">
+            <div class="bx-related-actor-copy">
+                <div class="bx-related-actor-name">${bxRelatedEsc(actor.name || "Actor")}</div>
+                <div class="bx-related-actor-meta">${bxRelatedEsc(actor.profession || actor.language || "Actor")}</div>
+                <div class="bx-related-actor-open">View actor →</div>
+            </div>`;
+        grid.appendChild(card);
+    });
+    block.style.display="";
+    return actors;
+}
+function renderArticleRelatedComparisons(movies,actors){
+    const block=document.getElementById("bxRelatedCompareBlock");
+    const actions=document.getElementById("bxRelatedCompareActions");
+    if(!block || !actions)return;
+    actions.innerHTML="";
+
+    if(Array.isArray(movies) && movies.length>=2){
+        const a=movies[0],b=movies[1];
+        const link=document.createElement("a");
+        link.className="bx-related-compare-btn";
+        link.href=`/movie-compare.html?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`;
+        link.textContent=`🎬 ${a.title || "Movie"} vs ${b.title || "Movie"}`;
+        actions.appendChild(link);
+    }
+    if(Array.isArray(actors) && actors.length>=2){
+        const a=actors[0],b=actors[1];
+        const link=document.createElement("a");
+        link.className="bx-related-compare-btn";
+        link.href=`/compare.html?hero1=${encodeURIComponent(a.id)}&hero2=${encodeURIComponent(b.id)}`;
+        link.textContent=`⚔️ ${a.name || "Actor"} vs ${b.name || "Actor"}`;
+        actions.appendChild(link);
+    }
+    if(actions.children.length)block.style.display="";
+    else block.style.display="none";
+}
+
 async function loadArticleRelatedContent(id){
     if(!id)return;
 
@@ -3642,6 +4466,8 @@ async function loadArticleRelatedContent(id){
         const data=await response.json();
         const articles=Array.isArray(data.related_articles)?data.related_articles:[];
         const movies=Array.isArray(data.related_movies)?data.related_movies:[];
+        const actors=await loadArticleRelatedActors(window.currentBoxOfficeXArticle);
+        renderArticleRelatedComparisons(movies,actors);
 
         if(articles.length){
             articleGrid.innerHTML="";
@@ -3703,7 +4529,11 @@ async function loadArticleRelatedContent(id){
             movieBlock.style.display="none";
         }
 
-        if(!articles.length && !movies.length)section.style.display="none";
+        const actorBlock=document.getElementById("bxRelatedActorsBlock");
+        const compareBlock=document.getElementById("bxRelatedCompareBlock");
+        const hasActors=actorBlock && actorBlock.style.display!=="none";
+        const hasComparisons=compareBlock && compareBlock.style.display!=="none";
+        if(!articles.length && !movies.length && !hasActors && !hasComparisons)section.style.display="none";
     }catch(error){
         console.error("Article related content loading error:",error);
         section.style.display="none";

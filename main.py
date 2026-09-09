@@ -3749,6 +3749,47 @@ def get_actor(actor_id: int):
 
 
 # ============================================================
+# MOVIE CAST / LINKED ACTORS
+# Used by Movie Compare for lead-actor recent theatrical ROI.
+# actor_movies currently stores links without billing order, so the
+# first linked actor (lowest actor id) is treated as the comparison lead.
+# ============================================================
+
+@app.get("/movies/{movie_id}/actors")
+def get_movie_actors(movie_id: int):
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    a.id,
+                    a.name,
+                    a.profession,
+                    a.photo
+                FROM actor_movies am
+                JOIN actors a
+                    ON a.id = am.actor_id
+                WHERE am.movie_id = %s
+                ORDER BY a.id ASC;
+            """, (movie_id,))
+
+            rows = cur.fetchall()
+
+    return {
+        "movie_id": movie_id,
+        "actors": [
+            {
+                "id": row[0],
+                "name": row[1],
+                "profession": row[2],
+                "photo": safe_actor_photo(row[3])
+            }
+            for row in rows
+        ]
+    }
+
+
+# ============================================================
 # ACTOR MOVIES
 # ============================================================
 
@@ -3765,7 +3806,8 @@ def get_actor_movies(actor_id: int):
                     movies.poster,
                     movies.release_date,
                     movies.worldwide_collection_crore,
-                    movies.verdict
+                    movies.verdict,
+                    movies.budget_crore
                 FROM actor_movies
                 JOIN movies
                     ON actor_movies.movie_id = movies.id
@@ -3785,7 +3827,8 @@ def get_actor_movies(actor_id: int):
             "poster": safe_movie_poster(row[2]),
             "release_date": str(row[3]),
             "worldwide_collection_crore": float(row[4]) if row[4] is not None else None,
-            "verdict": row[5]
+            "verdict": row[5],
+            "budget_crore": float(row[6]) if row[6] is not None else None
         })
 
     return {

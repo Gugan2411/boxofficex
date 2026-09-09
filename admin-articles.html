@@ -376,6 +376,19 @@ textarea{min-height:92px;resize:vertical}
 .bo-days-table::-webkit-scrollbar-thumb{background:#5f7195;border:3px solid #0a101c;border-radius:10px}
 .bo-days-table::-webkit-scrollbar-thumb:hover{background:#8094bd}
 
+
+/* BOXOFFICEX ARTICLE SIMPLE FORMAT TOOLS */
+.article-format-tools{
+display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;padding:8px;
+border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#101725
+}
+.article-format-tools button{
+padding:7px 10px;border:1px solid rgba(255,255,255,.09);border-radius:8px;
+background:#151d31;color:#e8eef9;font-size:11px;font-weight:900;cursor:pointer
+}
+.article-format-tools button:hover{background:#202b44}
+.article-format-note{margin-top:6px;color:#72809a;font-size:10px;line-height:1.45}
+
 </style>
 </head>
 <body>
@@ -1097,6 +1110,80 @@ const finalSummary=card.querySelector("[data-bo-final-summary]");
 if(finalSummary)finalSummary.innerHTML=boFinalSummaryHTML(days);
 }
 
+
+function articleContentEsc(value){
+return String(value??"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;");
+}
+
+function articleFormatToolsHTML(index){
+return `
+<div class="article-format-tools">
+<button type="button" data-article-format="bold" data-format-index="${index}"><b>B</b> Bold</button>
+<button type="button" data-article-format="italic" data-format-index="${index}"><i>I</i> Italic</button>
+<button type="button" data-article-format="numbered" data-format-index="${index}">1. Numbered List</button>
+<button type="button" data-article-format="bullet" data-format-index="${index}">• Bullet List</button>
+</div>`;
+}
+
+function applyArticleFormat(index,format,textarea){
+if(!textarea || !blocks[index]) return;
+
+textarea.focus();
+
+const start = Number(textarea.selectionStart || 0);
+const end = Number(textarea.selectionEnd || 0);
+const value = textarea.value;
+const selected = value.slice(start,end);
+
+let replacement = selected;
+let selectionStart = start;
+let selectionEnd = end;
+
+if(format==="bold"){
+const content = selected || "important text";
+replacement = "**" + content + "**";
+selectionStart = start + 2;
+selectionEnd = selectionStart + content.length;
+}
+else if(format==="italic"){
+const content = selected || "important text";
+replacement = "*" + content + "*";
+selectionStart = start + 1;
+selectionEnd = selectionStart + content.length;
+}
+else if(format==="numbered"){
+const source = selected || "First item\nSecond item\nThird item";
+const rows = source.split(/\r?\n/);
+replacement = rows.map((line,n)=>{
+const clean = line.replace(/^\s*(?:\d+[.)]|[-•*])\s*/,"");
+return (n+1)+". "+clean;
+}).join("\n");
+selectionStart = start;
+selectionEnd = start + replacement.length;
+}
+else if(format==="bullet"){
+const source = selected || "First item\nSecond item\nThird item";
+const rows = source.split(/\r?\n/);
+replacement = rows.map(line=>{
+const clean = line.replace(/^\s*(?:\d+[.)]|[-•*])\s*/,"");
+return "• "+clean;
+}).join("\n");
+selectionStart = start;
+selectionEnd = start + replacement.length;
+}
+
+textarea.value = value.slice(0,start) + replacement + value.slice(end);
+blocks[index].content = textarea.value;
+
+textarea.focus();
+textarea.setSelectionRange(selectionStart,selectionEnd);
+textarea.dispatchEvent(new Event("input",{bubbles:true}));
+}
+
 function renderBlocks(){
 const box=$("blocks");box.innerHTML="";
 blocks.forEach((b,i)=>{
@@ -1109,7 +1196,10 @@ card.addEventListener("drop",e=>{e.preventDefault();const from=Number(e.dataTran
 
 let body="";
 if(["paragraph","heading","quote"].includes(b.block_type)){
-body=`<label>Content</label><textarea data-field="content">${b.content??""}</textarea>`;
+body=`<label>Content</label>
+${articleFormatToolsHTML(i)}
+<textarea data-field="content">${articleContentEsc(b.content??"")}</textarea>
+<div class="article-format-note">Tip: select words before Bold/Italic. For lists, select one item per line, then press Numbered List or Bullet List.</div>`;
 }
 if(b.block_type==="image"){
 body=`<div class="block-row"><div><label>Image filename</label><input data-field="image" value="${b.image??""}"></div><div><label>Upload</label><input type="file" data-upload accept="image/jpeg,image/png,image/webp"></div></div><div class="block-row" style="margin-top:9px"><div><label>Caption</label><input data-field="image_caption" value="${b.image_caption??""}"></div><div><label>Credit</label><input data-field="image_credit" value="${b.image_credit??""}"></div></div><div class="media-preview"><img src="${mediaUrl(b.image)}" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}'"></div>`;
@@ -1136,6 +1226,13 @@ card.querySelector("[data-up]").onclick=()=>moveBlock(i,-1);
 card.querySelector("[data-down]").onclick=()=>moveBlock(i,1);
 card.querySelector("[data-remove]").onclick=()=>removeBlock(i);
 card.querySelectorAll("[data-field]").forEach(el=>el.oninput=()=>updateBlock(i,el.dataset.field,el.value));
+card.querySelectorAll("[data-article-format]").forEach(btn=>{
+btn.onmousedown=e=>e.preventDefault();
+btn.onclick=()=>{
+const textarea=card.querySelector('textarea[data-field="content"]');
+applyArticleFormat(i,btn.dataset.articleFormat,textarea);
+};
+});
 card.querySelectorAll("[data-extra]").forEach(el=>el.oninput=()=>{
 let v=el.value;const k=el.dataset.extra;
 if(k==="images")v=v.split(",").map(x=>x.trim()).filter(Boolean);

@@ -1763,6 +1763,204 @@ tr:hover td {
 
 </style>
 
+
+<style id="bx-admin-portal-home-style">
+/* =====================================================
+   BOXOFFICEX ADMIN PORTAL HOME
+===================================================== */
+.admin-portal-home{
+    margin-bottom:30px;
+    padding:26px;
+    border:1px solid #29334d;
+    border-radius:20px;
+    background:
+        radial-gradient(circle at 100% 0%,rgba(77,141,255,.14),transparent 32%),
+        linear-gradient(180deg,#111827,#0d1422);
+}
+.admin-portal-kicker{
+    color:#8db5ff;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+.admin-portal-title{
+    margin-top:7px;
+    font-size:30px;
+    line-height:1.15;
+}
+.admin-portal-subtitle{
+    max-width:720px;
+    margin-top:9px;
+    color:#aeb8ce;
+    font-size:13px;
+    line-height:1.6;
+}
+.admin-feature-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+    margin-top:22px;
+}
+.admin-feature-card{
+    position:relative;
+    min-width:0;
+    min-height:132px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:16px;
+    border:1px solid #29334d;
+    border-radius:15px;
+    background:#151d31;
+    color:#fff;
+    text-decoration:none;
+    transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+.admin-feature-card:hover,
+.admin-feature-card:focus-visible{
+    transform:translateY(-3px);
+    border-color:#526a9d;
+    background:#19243a;
+    box-shadow:0 12px 26px rgba(0,0,0,.24);
+    outline:none;
+}
+.admin-feature-icon{
+    font-size:25px;
+    line-height:1;
+}
+.admin-feature-name{
+    margin-top:12px;
+    font-size:14px;
+    font-weight:900;
+}
+.admin-feature-desc{
+    margin-top:5px;
+    color:#9ca9bf;
+    font-size:10px;
+    line-height:1.45;
+}
+.admin-feature-open{
+    margin-top:12px;
+    color:#8db5ff;
+    font-size:10px;
+    font-weight:900;
+}
+.admin-feature-card.owner-only{
+    display:none;
+}
+body.admin-owner-ready .admin-feature-card.owner-only{
+    display:flex;
+}
+@media(max-width:1000px){
+    .admin-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:720px){
+    .admin-portal-home{padding:18px}
+    .admin-portal-title{font-size:24px}
+    .admin-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .admin-feature-card{min-height:120px;padding:13px}
+    .admin-feature-name{font-size:12px}
+    .admin-feature-desc{font-size:9px}
+}
+@media(max-width:380px){
+    .admin-feature-grid{grid-template-columns:1fr}
+}
+</style>
+
+
+<style id="bx-actor-movie-search-linking-style">
+.actor-movie-search-box{position:relative}
+.actor-movie-search-box input[type="search"]{
+    margin-bottom:8px;
+}
+.actor-movie-search-help{
+    margin-top:7px;
+    color:#8e99b3;
+    font-size:11px;
+    line-height:1.45;
+}
+.actor-movie-selection-note{
+    margin-top:14px;
+    padding:11px 13px;
+    border:1px solid #29334d;
+    border-radius:10px;
+    background:#101625;
+    color:#aeb8ce;
+    font-size:11px;
+    line-height:1.5;
+}
+.actor-movie-selection-note strong{color:#ffcc33}
+@media(max-width:700px){
+    .actor-movie-search-help,
+    .actor-movie-selection-note{font-size:10px}
+}
+</style>
+
+
+<style id="bx-admin-movie-filter-style">
+.movie-management-filter-grid{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(120px,1fr));gap:10px;align-items:end}
+.movie-management-filter-grid .form-group{margin:0}
+.movie-filter-clear{margin-top:10px;padding:9px 12px;border:1px solid #29334d;border-radius:8px;background:#151d31;color:#cfe0ff;cursor:pointer;font-size:11px;font-weight:900}
+.movie-filter-clear:hover{background:#202b44}
+@media(max-width:850px){.movie-management-filter-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.movie-management-filter-grid{grid-template-columns:1fr}}
+</style>
+
+
+<style id="bx-admin-actor-filter-style">
+.actor-management-filter-grid{
+    display:grid;
+    grid-template-columns:minmax(0,2fr) minmax(150px,1fr) minmax(150px,1fr);
+    gap:10px;
+    align-items:end
+}
+.actor-management-filter-grid .form-group{margin:0}
+.actor-filter-clear{
+    margin-top:10px;padding:9px 12px;border:1px solid #29334d;border-radius:8px;
+    background:#151d31;color:#cfe0ff;cursor:pointer;font-size:11px;font-weight:900
+}
+.actor-filter-clear:hover{background:#202b44}
+.actor-view-button{
+    border:none;border-radius:7px;padding:8px 10px;cursor:pointer;font-weight:bold;
+    background:#142c22;color:#7de2bb;text-decoration:none;display:inline-flex;align-items:center
+}
+.actor-view-button:hover{opacity:.8}
+@media(max-width:700px){.actor-management-filter-grid{grid-template-columns:1fr}}
+</style>
+
+
+<style id="bx-release-status-filter-style">
+.release-filter-grid{
+    display:grid;
+    grid-template-columns:minmax(0,2fr) minmax(150px,1fr) minmax(150px,1fr);
+    gap:10px;
+    margin-top:16px;
+}
+.release-filter-grid .form-group{margin:0}
+.release-filter-clear{
+    margin-top:10px;
+    padding:9px 12px;
+    border:1px solid #29334d;
+    border-radius:8px;
+    background:#151d31;
+    color:#cfe0ff;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:900;
+}
+.release-filter-clear:hover{background:#202b44}
+.release-result-count{
+    margin-top:10px;
+    color:#8f9bb4;
+    font-size:11px;
+    font-weight:800;
+}
+@media(max-width:720px){
+    .release-filter-grid{grid-template-columns:1fr}
+}
+</style>
+
 </head>
 
 
@@ -1815,6 +2013,148 @@ tr:hover td {
 
 
 <main class="container">
+
+
+    <!-- =====================================================
+         ADMIN PORTAL HOME
+    ===================================================== -->
+    <section id="admin-portal-home" class="admin-portal-home">
+        <div class="admin-portal-kicker">BOXOFFICEX CONTROL CENTER</div>
+        <h1 class="admin-portal-title">🛠️ Admin Portal</h1>
+        <p class="admin-portal-subtitle">
+            Every BoxOfficeX admin feature in one place. Select a tool below to jump
+            directly to that section or open its dedicated admin page.
+        </p>
+
+        <div class="admin-feature-grid">
+            <a class="admin-feature-card" href="#movies">
+                <div>
+                    <div class="admin-feature-icon">🎬</div>
+                    <div class="admin-feature-name">Movie Management</div>
+                    <div class="admin-feature-desc">Add, edit, search and manage movie details and posters.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="#actors">
+                <div>
+                    <div class="admin-feature-icon">👤</div>
+                    <div class="admin-feature-name">Actor Management</div>
+                    <div class="admin-feature-desc">Add, edit and manage actor profiles, images and details.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="#actor-links">
+                <div>
+                    <div class="admin-feature-icon">🔗</div>
+                    <div class="admin-feature-name">Actor ↔ Movie Links</div>
+                    <div class="admin-feature-desc">Connect actors to movies and manage existing movie links.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="/admin-new-movies.html">
+                <div>
+                    <div class="admin-feature-icon">🆕</div>
+                    <div class="admin-feature-name">New Movies</div>
+                    <div class="admin-feature-desc">Manage the dedicated new and upcoming movie system.</div>
+                </div>
+                <div class="admin-feature-open">OPEN PAGE →</div>
+            </a>
+
+            <a class="admin-feature-card" href="#releases">
+                <div>
+                    <div class="admin-feature-icon">🚦</div>
+                    <div class="admin-feature-name">Release Status</div>
+                    <div class="admin-feature-desc">Set movies as Upcoming, Running or Final.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="/admin-daily-boxoffice.html">
+                <div>
+                    <div class="admin-feature-icon">📅</div>
+                    <div class="admin-feature-name">Daily Box Office</div>
+                    <div class="admin-feature-desc">Enter and manage day-wise theatrical collection updates.</div>
+                </div>
+                <div class="admin-feature-open">OPEN PAGE →</div>
+            </a>
+
+            <a class="admin-feature-card" href="/admin-regional-boxoffice.html">
+                <div>
+                    <div class="admin-feature-icon">📍</div>
+                    <div class="admin-feature-name">Regional Box Office</div>
+                    <div class="admin-feature-desc">Manage state-wise and regional collection data.</div>
+                </div>
+                <div class="admin-feature-open">OPEN PAGE →</div>
+            </a>
+
+            <a class="admin-feature-card" href="#daily">
+                <div>
+                    <div class="admin-feature-icon">⚡</div>
+                    <div class="admin-feature-name">Bulk Daily Entry</div>
+                    <div class="admin-feature-desc">Save a full day of collection data from one form.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="#new-movies">
+                <div>
+                    <div class="admin-feature-icon">📈</div>
+                    <div class="admin-feature-name">Movie Collection Dashboard</div>
+                    <div class="admin-feature-desc">Review totals, day-wise India and state-wise records together.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="#collections">
+                <div>
+                    <div class="admin-feature-icon">📊</div>
+                    <div class="admin-feature-name">Collection Manager</div>
+                    <div class="admin-feature-desc">Add or update day-wise and state-wise box-office collections.</div>
+                </div>
+                <div class="admin-feature-open">OPEN →</div>
+            </a>
+
+            <a class="admin-feature-card" href="/admin-articles.html">
+                <div>
+                    <div class="admin-feature-icon">📰</div>
+                    <div class="admin-feature-name">Articles</div>
+                    <div class="admin-feature-desc">Create, edit and publish BoxOfficeX articles.</div>
+                </div>
+                <div class="admin-feature-open">OPEN PAGE →</div>
+            </a>
+
+            <a class="admin-feature-card owner-only" href="#comment-moderation">
+                <div>
+                    <div class="admin-feature-icon">💬</div>
+                    <div class="admin-feature-name">Comment Moderation</div>
+                    <div class="admin-feature-desc">Review reports, hide comments and remove abusive or spam content.</div>
+                </div>
+                <div class="admin-feature-open">OWNER TOOL →</div>
+            </a>
+
+            <a class="admin-feature-card owner-only" href="/admin-advertisements.html">
+                <div>
+                    <div class="admin-feature-icon">📢</div>
+                    <div class="admin-feature-name">Advertisements</div>
+                    <div class="admin-feature-desc">Create, schedule, target and manage direct advertising.</div>
+                </div>
+                <div class="admin-feature-open">OWNER PAGE →</div>
+            </a>
+
+            <a class="admin-feature-card owner-only" href="/admin-team.html">
+                <div>
+                    <div class="admin-feature-icon">👥</div>
+                    <div class="admin-feature-name">Admin Team</div>
+                    <div class="admin-feature-desc">Manage admin accounts, roles, sessions and activity.</div>
+                </div>
+                <div class="admin-feature-open">OWNER PAGE →</div>
+            </a>
+        </div>
+    </section>
+
 
     <!-- =====================================================
          OWNER ONLY: ADMIN TEAM SHORTCUT
@@ -2042,16 +2382,38 @@ tr:hover td {
 
 
             <div class="filter-box">
-                <label>🔎 Search Movie</label>
-                <input
-                    type="search"
-                    id="movieManagementSearch"
-                    placeholder="Type movie name..."
-                    autocomplete="off"
-                    oninput="renderMovieManagementSearch()"
-                >
+                <div class="movie-management-filter-grid">
+                    <div class="form-group">
+                        <label>🔎 Search Movie</label>
+                        <input type="search" id="movieManagementSearch" placeholder="Movie title..." autocomplete="off" oninput="renderMovieManagementSearch()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🗣️ Language</label>
+                        <select id="movieManagementLanguageFilter" onchange="renderMovieManagementSearch()">
+                            <option value="">All Languages</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📅 Year</label>
+                        <select id="movieManagementYearFilter" onchange="renderMovieManagementSearch()">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏆 Verdict</label>
+                        <select id="movieManagementVerdictFilter" onchange="renderMovieManagementSearch()">
+                            <option value="">All Verdicts</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="movie-filter-clear" onclick="clearMovieManagementFilters()">✖ Clear Filters</button>
+
                 <p style="margin-top:8px;color:#8e99b3;font-size:12px">
-                    Only matching movies will appear. The full movie list stays hidden.
+                    Search by title or use filters. The full movie list stays hidden until a search or filter is applied.
                 </p>
             </div>
 
@@ -2431,16 +2793,41 @@ tr:hover td {
 
 
             <div class="filter-box">
-                <label>🔎 Search Actor</label>
-                <input
-                    type="search"
-                    id="actorManagementSearch"
-                    placeholder="Type actor name..."
-                    autocomplete="off"
-                    oninput="renderActorManagementSearch()"
-                >
+                <div class="actor-management-filter-grid">
+                    <div class="form-group">
+                        <label>🔎 Search Actor</label>
+                        <input
+                            type="search"
+                            id="actorManagementSearch"
+                            placeholder="Type actor name..."
+                            autocomplete="off"
+                            oninput="renderActorManagementSearch()"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎭 Profession</label>
+                        <select id="actorManagementProfessionFilter" onchange="renderActorManagementSearch()">
+                            <option value="">All Professions</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🖼️ Photo</label>
+                        <select id="actorManagementPhotoFilter" onchange="renderActorManagementSearch()">
+                            <option value="">All Actors</option>
+                            <option value="with">With Photo</option>
+                            <option value="without">Missing Photo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="actor-filter-clear" onclick="clearActorManagementFilters()">
+                    ✖ Clear Filters
+                </button>
+
                 <p style="margin-top:8px;color:#8e99b3;font-size:12px">
-                    Only matching actors will appear. The full actor list stays hidden.
+                    Search by actor name or filter by profession/photo status. The full actor list stays hidden until a search or filter is applied.
                 </p>
             </div>
 
@@ -2635,29 +3022,55 @@ tr:hover td {
 
         <div class="actor-movie-link-grid">
 
-            <div class="form-group">
-                <label>👤 Select Actor</label>
+            <div class="form-group actor-movie-search-box">
+                <label>👤 Search & Select Actor</label>
+
+                <input
+                    type="search"
+                    id="linkActorSearch"
+                    placeholder="Type actor name..."
+                    autocomplete="off"
+                    oninput="filterActorLinkOptions()"
+                >
 
                 <select
                     id="linkActorSelect"
                     onchange="loadLinkedMovies()"
                 >
-                    <option value="">
-                        Loading actors...
-                    </option>
+                    <option value="">Search actor above...</option>
                 </select>
+
+                <div class="actor-movie-search-help">
+                    Type a name to show matching actors only.
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>🎬 Select Movie</label>
+            <div class="form-group actor-movie-search-box">
+                <label>🎬 Search & Select Movie</label>
+
+                <input
+                    type="search"
+                    id="linkMovieSearch"
+                    placeholder="Type movie title..."
+                    autocomplete="off"
+                    oninput="filterMovieLinkOptions()"
+                >
 
                 <select id="linkMovieSelect">
-                    <option value="">
-                        Loading movies...
-                    </option>
+                    <option value="">Search movie above...</option>
                 </select>
+
+                <div class="actor-movie-search-help">
+                    Type a title to show matching movies only.
+                </div>
             </div>
 
+        </div>
+
+        <div class="actor-movie-selection-note">
+            💡 <strong>Multiple actors for one movie:</strong>
+            select the movie once, link the first actor, then search and select the next actor.
+            The movie stays selected so you can keep adding cast members quickly.
         </div>
 
         <button
@@ -2935,12 +3348,41 @@ tr:hover td {
         </div>
 
         <div class="release-search-wrap">
-            <input
-                id="releaseMovieSearch"
-                type="text"
-                placeholder="Search movie..."
-                oninput="renderReleaseStatusManager()"
-            >
+            <div class="release-filter-grid">
+                <div class="form-group">
+                    <label>🔎 Search Movie</label>
+                    <input
+                        id="releaseMovieSearch"
+                        type="search"
+                        placeholder="Movie title..."
+                        autocomplete="off"
+                        oninput="renderReleaseStatusManager()"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>🚦 Status</label>
+                    <select id="releaseStatusFilter" onchange="renderReleaseStatusManager()">
+                        <option value="">All Statuses</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="running">Running</option>
+                        <option value="final">Final / Recent</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🗣️ Language</label>
+                    <select id="releaseLanguageFilter" onchange="renderReleaseStatusManager()">
+                        <option value="">All Languages</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" class="release-filter-clear" onclick="clearReleaseStatusFilters()">
+                ✖ Clear Filters
+            </button>
+
+            <div id="releaseResultCount" class="release-result-count"></div>
         </div>
 
         <div id="releaseStatusList" class="release-status-list">
@@ -3700,29 +4142,40 @@ async function uploadAdminImage(
         }
 
 
-        hiddenInput.value =
-            data.filename;
+        const permanentImageUrl =
+            String(data.url || data.filename || "").trim();
 
+        if (!permanentImageUrl) {
+            throw new Error("Upload completed but no image URL was returned");
+        }
+
+        // Persist the permanent Cloudinary URL. Render's local filesystem
+        // is temporary and must not be used for new admin uploads.
+        hiddenInput.value =
+            permanentImageUrl;
+
+        const previewUrl =
+            /^https?:\/\//i.test(permanentImageUrl)
+                ? permanentImageUrl
+                : API_BASE + permanentImageUrl;
 
         preview.src =
-            API_BASE +
-            data.url +
-            "?v=" +
+            previewUrl +
+            (previewUrl.includes("?") ? "&" : "?") +
+            "v=" +
             Date.now();
 
         preview.style.display =
             "block";
 
-
         status.textContent =
-            "✅ Uploaded: " +
-            data.filename;
+            "✅ Uploaded permanently to Cloudinary";
 
         status.className =
             "upload-status ok";
 
 
-        return data.filename;
+        return permanentImageUrl;
 
 
     } catch (error) {
@@ -4722,6 +5175,47 @@ function addMovie() {
 
     }
 
+
+    const languageInput =
+        String(document.getElementById("movieLanguageInput")?.value || "")
+            .trim()
+            .toLowerCase();
+
+    const duplicateCandidates = movieManagementMovies.filter(movie => {
+        const sameTitle = String(movie.title || "").trim().toLowerCase() === title.toLowerCase();
+        const sameLanguage =
+            !languageInput ||
+            String(movie.language || "").trim().toLowerCase() === languageInput;
+        const sameDate =
+            !releaseDate ||
+            !movie.release_date ||
+            String(movie.release_date).slice(0,10) === releaseDate;
+
+        return sameTitle && sameLanguage && sameDate;
+    });
+
+    if (duplicateCandidates.length) {
+        const duplicateText = duplicateCandidates
+            .slice(0,3)
+            .map(movie =>
+                "#" + movie.id + " " +
+                (movie.title || "Movie") +
+                (movie.release_date ? " (" + String(movie.release_date).slice(0,10) + ")" : "")
+            )
+            .join("\\n");
+
+        const continueAdd = confirm(
+            "⚠️ Possible duplicate movie found:\\n\\n" +
+            duplicateText +
+            "\\n\\nAdd this movie anyway?"
+        );
+
+        if (!continueAdd) {
+            showMovieMessage("Movie not added. Check the existing movie first.", "error");
+            return;
+        }
+    }
+
     const payload = {
 
         title: title,
@@ -5015,6 +5509,7 @@ function loadMovieManagementList() {
             search.value = "";
         }
 
+        populateMovieManagementFilters();
         renderMovieManagementSearch();
     })
     .catch(error => {
@@ -5031,101 +5526,88 @@ function loadMovieManagementList() {
 }
 
 
-function renderMovieManagementSearch() {
+function populateMovieManagementFilters() {
+    const languageSelect = document.getElementById("movieManagementLanguageFilter");
+    const yearSelect = document.getElementById("movieManagementYearFilter");
+    const verdictSelect = document.getElementById("movieManagementVerdictFilter");
+    if (!languageSelect || !yearSelect || !verdictSelect) return;
 
+    const languages = [...new Set(movieManagementMovies.map(m => String(m.language || "").trim()).filter(Boolean))]
+        .sort((a,b) => a.localeCompare(b));
+    const years = [...new Set(movieManagementMovies.map(m => String(m.release_date || "").slice(0,4)).filter(y => /^\d{4}$/.test(y)))]
+        .sort((a,b) => Number(b) - Number(a));
+    const verdicts = [...new Set(movieManagementMovies.map(m => String(m.verdict || "").trim()).filter(Boolean))]
+        .sort((a,b) => a.localeCompare(b));
+
+    languageSelect.innerHTML = '<option value="">All Languages</option>' +
+        languages.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+    yearSelect.innerHTML = '<option value="">All Years</option>' +
+        years.map(v => `<option value="${v}">${v}</option>`).join("");
+    verdictSelect.innerHTML = '<option value="">All Verdicts</option>' +
+        verdicts.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+}
+
+function clearMovieManagementFilters() {
+    ["movieManagementSearch","movieManagementLanguageFilter","movieManagementYearFilter","movieManagementVerdictFilter"]
+        .forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+    renderMovieManagementSearch();
+}
+
+function renderMovieManagementSearch() {
     const body = document.getElementById("movieManagementBody");
-    const search = document.getElementById("movieManagementSearch");
+    const query = String(document.getElementById("movieManagementSearch")?.value || "").trim().toLowerCase();
+    const language = String(document.getElementById("movieManagementLanguageFilter")?.value || "").trim().toLowerCase();
+    const year = String(document.getElementById("movieManagementYearFilter")?.value || "").trim();
+    const verdict = String(document.getElementById("movieManagementVerdictFilter")?.value || "").trim().toLowerCase();
 
     if (!body) return;
 
-    const query = String(search?.value || "")
-        .trim()
-        .toLowerCase();
-
-    if (!query) {
-        body.innerHTML = `
-            <tr>
-                <td colspan="7" class="table-loading">
-                    🔎 Search for a movie above.
-                </td>
-            </tr>
-        `;
+    if (!query && !language && !year && !verdict) {
+        body.innerHTML = `<tr><td colspan="7" class="table-loading">🔎 Search for a movie or choose a filter above.</td></tr>`;
         return;
     }
 
-    const movies = movieManagementMovies
-        .filter(movie =>
-            String(movie.title || "")
-                .toLowerCase()
-                .includes(query)
-        )
-        .slice(0, 20);
+    const movies = movieManagementMovies.filter(movie => {
+        const title = String(movie.title || "").toLowerCase();
+        const movieLanguage = String(movie.language || "").toLowerCase();
+        const movieYear = String(movie.release_date || "").slice(0,4);
+        const movieVerdict = String(movie.verdict || "").toLowerCase();
+
+        return (!query || title.includes(query)) &&
+               (!language || movieLanguage === language) &&
+               (!year || movieYear === year) &&
+               (!verdict || movieVerdict === verdict);
+    }).slice(0,50);
 
     if (!movies.length) {
-        body.innerHTML = `
-            <tr>
-                <td colspan="7" class="table-loading">
-                    No matching movies found.
-                </td>
-            </tr>
-        `;
+        body.innerHTML = `<tr><td colspan="7" class="table-loading">No matching movies found.</td></tr>`;
         return;
     }
 
     body.innerHTML = "";
 
     movies.forEach(movie => {
-
         const row = document.createElement("tr");
-
         row.innerHTML = `
-            <td>
-                <span class="movie-id-badge">#${movie.id}</span>
-            </td>
-
-            <td class="movie-title-cell">
-                ${escapeHtml(movie.title)}
-            </td>
-
+            <td><span class="movie-id-badge">#${movie.id}</span></td>
+            <td class="movie-title-cell">${escapeHtml(movie.title)}</td>
             <td>${movie.release_date || "—"}</td>
-
             <td>${escapeHtml(movie.language || "—")}</td>
-
-            <td class="collection-value">
-                ₹${Number(movie.worldwide_collection_crore || 0).toFixed(2)} Cr
-            </td>
-
-            <td>
-                <span class="movie-verdict-badge">
-                    ${escapeHtml(movie.verdict || "Not Rated")}
-                </span>
-            </td>
-
+            <td class="collection-value">₹${Number(movie.worldwide_collection_crore || 0).toFixed(2)} Cr</td>
+            <td><span class="movie-verdict-badge">${escapeHtml(movie.verdict || "Not Rated")}</span></td>
             <td>
                 <div class="action-buttons">
-                    <button
-                        type="button"
-                        class="edit-button"
-                        onclick="openMovieEditModal(${movie.id})"
-                    >
-                        ✏️
-                    </button>
-
-                    <button
-                        type="button"
-                        class="delete-button"
-                        onclick="deleteMovie(${Number(movie.id)})"
-                    >
-                        🗑️
-                    </button>
+                    <button type="button" class="edit-button" onclick="openMovieEditModal(${movie.id})">✏️</button>
+                    <button type="button" class="delete-button" onclick="deleteMovie(${Number(movie.id)})">🗑️</button>
                 </div>
             </td>
         `;
-
         body.appendChild(row);
     });
 }
-
 
 /* =====================================================
    OPEN MOVIE EDIT MODAL
@@ -5779,6 +6261,50 @@ function addActor() {
 
     }
 
+
+    const professionInput =
+        String(document.getElementById("actorProfessionInput")?.value || "")
+            .trim()
+            .toLowerCase();
+
+    const normalizedName = name.toLowerCase().replace(/\s+/g, " ").trim();
+
+    const duplicateActors = actorManagementActors.filter(actor => {
+        const existingName =
+            String(actor.name || "").toLowerCase().replace(/\s+/g, " ").trim();
+
+        const existingProfession =
+            String(actor.profession || "").trim().toLowerCase();
+
+        return existingName === normalizedName &&
+            (!professionInput || !existingProfession || existingProfession === professionInput);
+    });
+
+    if (duplicateActors.length) {
+        const duplicateText = duplicateActors
+            .slice(0,3)
+            .map(actor =>
+                "#" + actor.id + " " +
+                (actor.name || "Actor") +
+                (actor.profession ? " — " + actor.profession : "")
+            )
+            .join("\\n");
+
+        const continueAdd = confirm(
+            "⚠️ Possible duplicate actor found:\\n\\n" +
+            duplicateText +
+            "\\n\\nAdd this actor anyway?"
+        );
+
+        if (!continueAdd) {
+            showActorMessage(
+                "Actor not added. Check the existing actor first.",
+                "error"
+            );
+            return;
+        }
+    }
+
     const payload = {
 
         name: name,
@@ -5983,6 +6509,7 @@ function loadActorManagementList() {
             search.value = "";
         }
 
+        populateActorManagementFilters();
         renderActorManagementSearch();
     })
     .catch(error => {
@@ -6003,49 +6530,69 @@ function loadActorManagementList() {
 }
 
 
+function populateActorManagementFilters() {
+    const professionSelect = document.getElementById("actorManagementProfessionFilter");
+    if (!professionSelect) return;
+
+    const professions = [...new Set(
+        actorManagementActors
+            .map(actor => String(actor.profession || "").trim())
+            .filter(Boolean)
+    )].sort((a,b) => a.localeCompare(b));
+
+    professionSelect.innerHTML =
+        '<option value="">All Professions</option>' +
+        professions.map(value =>
+            `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`
+        ).join("");
+}
+
+function clearActorManagementFilters() {
+    ["actorManagementSearch","actorManagementProfessionFilter","actorManagementPhotoFilter"]
+        .forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = "";
+        });
+
+    renderActorManagementSearch();
+}
+
 function renderActorManagementSearch() {
-
-    const body =
-        document.getElementById(
-            "actorManagementBody"
-        );
-
-    const search =
-        document.getElementById(
-            "actorManagementSearch"
-        );
+    const body = document.getElementById("actorManagementBody");
+    const query = String(document.getElementById("actorManagementSearch")?.value || "")
+        .trim().toLowerCase();
+    const profession = String(document.getElementById("actorManagementProfessionFilter")?.value || "")
+        .trim().toLowerCase();
+    const photoFilter = String(document.getElementById("actorManagementPhotoFilter")?.value || "");
 
     if (!body) return;
 
-    const query =
-        String(search?.value || "")
-        .trim()
-        .toLowerCase();
-
-    if (!query) {
-
+    if (!query && !profession && !photoFilter) {
         body.innerHTML = `
             <tr>
                 <td colspan="5" class="table-loading">
-                    🔎 Search for an actor above.
+                    🔎 Search for an actor or choose a filter above.
                 </td>
             </tr>
         `;
-
         return;
     }
 
-    const actors =
-        actorManagementActors
-        .filter(actor =>
-            String(actor.name || "")
-            .toLowerCase()
-            .includes(query)
-        )
-        .slice(0, 20);
+    const actors = actorManagementActors
+        .filter(actor => {
+            const name = String(actor.name || "").toLowerCase();
+            const actorProfession = String(actor.profession || "").toLowerCase();
+            const hasPhoto = Boolean(String(actor.photo || "").trim());
+
+            return (
+                (!query || name.includes(query)) &&
+                (!profession || actorProfession === profession) &&
+                (!photoFilter || (photoFilter === "with" ? hasPhoto : !hasPhoto))
+            );
+        })
+        .slice(0, 50);
 
     if (!actors.length) {
-
         body.innerHTML = `
             <tr>
                 <td colspan="5" class="table-loading">
@@ -6053,37 +6600,24 @@ function renderActorManagementSearch() {
                 </td>
             </tr>
         `;
-
         return;
     }
 
     body.innerHTML = "";
 
     actors.forEach(actor => {
-
-        const row =
-            document.createElement("tr");
-
-        const photoSrc =
-            adminActorPhotoUrl(actor.photo);
+        const row = document.createElement("tr");
+        const photoSrc = adminActorPhotoUrl(actor.photo);
 
         row.innerHTML = `
             <td>
-                <span class="actor-id-badge">
-                    #${actor.id}
-                </span>
+                <span class="actor-id-badge">#${actor.id}</span>
             </td>
 
             <td>
                 ${
                     photoSrc
-                        ? `
-                            <img
-                                class="actor-photo-preview"
-                                src="${photoSrc}"
-                                alt="${escapeHtml(actor.name)}"
-                            >
-                        `
+                        ? `<img class="actor-photo-preview" src="${photoSrc}" alt="${escapeHtml(actor.name)}">`
                         : "—"
                 }
             </td>
@@ -6102,14 +6636,26 @@ function renderActorManagementSearch() {
                         type="button"
                         class="edit-button"
                         onclick="openActorEditModal(${actor.id})"
+                        title="Edit actor"
                     >
                         ✏️
                     </button>
+
+                    <a
+                        class="actor-view-button"
+                        href="/actor.html?id=${Number(actor.id)}"
+                        target="_blank"
+                        rel="noopener"
+                        title="Open public actor page"
+                    >
+                        👁️
+                    </a>
 
                     <button
                         type="button"
                         class="delete-button"
                         onclick="deleteActor(${actor.id})"
+                        title="Delete actor"
                     >
                         🗑️
                     </button>
@@ -6120,7 +6666,6 @@ function renderActorManagementSearch() {
         body.appendChild(row);
     });
 }
-
 
 /* =====================================================
    OPEN ACTOR EDIT MODAL
@@ -6649,13 +7194,110 @@ window.addEventListener(
    ACTOR ↔ MOVIE LINKING
 ===================================================== */
 
+let actorMovieLinkActors = [];
+let actorMovieLinkMovies = [];
+
+function populateActorLinkSelect(list, keepValue) {
+    const select = document.getElementById("linkActorSelect");
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Actor</option>';
+
+    list.slice(0, 25).forEach(actor => {
+        const option = document.createElement("option");
+        option.value = actor.id;
+        option.textContent = actor.name || ("Actor #" + actor.id);
+        select.appendChild(option);
+    });
+
+    if (keepValue && [...select.options].some(o => o.value === String(keepValue))) {
+        select.value = String(keepValue);
+    }
+}
+
+function populateMovieLinkSelect(list, keepValue) {
+    const select = document.getElementById("linkMovieSelect");
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Movie</option>';
+
+    list.slice(0, 25).forEach(movie => {
+        const option = document.createElement("option");
+        option.value = movie.id;
+        option.textContent =
+            (movie.title || ("Movie #" + movie.id)) +
+            (movie.release_date ? " (" + movie.release_date + ")" : "");
+        select.appendChild(option);
+    });
+
+    if (keepValue && [...select.options].some(o => o.value === String(keepValue))) {
+        select.value = String(keepValue);
+    }
+}
+
+function filterActorLinkOptions() {
+    const search = document.getElementById("linkActorSearch");
+    const select = document.getElementById("linkActorSelect");
+    if (!search || !select) return;
+
+    const current = select.value;
+    const query = search.value.trim().toLowerCase();
+
+    if (!query) {
+        select.innerHTML = '<option value="">Search actor above...</option>';
+        return;
+    }
+
+    const matches = actorMovieLinkActors.filter(actor =>
+        String(actor.name || "").toLowerCase().includes(query)
+    );
+
+    populateActorLinkSelect(matches, current);
+
+    if (!matches.length) {
+        select.innerHTML = '<option value="">No matching actors</option>';
+    }
+}
+
+function filterMovieLinkOptions() {
+    const search = document.getElementById("linkMovieSearch");
+    const select = document.getElementById("linkMovieSelect");
+    if (!search || !select) return;
+
+    const current = select.value;
+    const query = search.value.trim().toLowerCase();
+
+    if (!query) {
+        // Preserve selected movie while adding multiple actors.
+        if (current) {
+            const selectedMovie = actorMovieLinkMovies.find(m => String(m.id) === String(current));
+            if (selectedMovie) {
+                populateMovieLinkSelect([selectedMovie], current);
+                return;
+            }
+        }
+        select.innerHTML = '<option value="">Search movie above...</option>';
+        return;
+    }
+
+    const matches = actorMovieLinkMovies.filter(movie => {
+        const title = String(movie.title || "").toLowerCase();
+        const language = String(movie.language || "").toLowerCase();
+        const year = String(movie.release_date || "").slice(0,4);
+        return title.includes(query) || language.includes(query) || year.includes(query);
+    });
+
+    populateMovieLinkSelect(matches, current);
+
+    if (!matches.length) {
+        select.innerHTML = '<option value="">No matching movies</option>';
+    }
+}
+
 function loadActorMovieLinkSelectors() {
 
-    const actorSelect =
-        document.getElementById("linkActorSelect");
-
-    const movieSelect =
-        document.getElementById("linkMovieSelect");
+    const actorSelect = document.getElementById("linkActorSelect");
+    const movieSelect = document.getElementById("linkMovieSelect");
 
     Promise.all([
         fetch(API_BASE + "/admin/actors").then(response => {
@@ -6673,43 +7315,11 @@ function loadActorMovieLinkSelectors() {
     ])
     .then(([actorData, movieData]) => {
 
-        const currentActor = actorSelect.value;
-        const currentMovie = movieSelect.value;
+        actorMovieLinkActors = Array.isArray(actorData.actors) ? actorData.actors : [];
+        actorMovieLinkMovies = Array.isArray(movieData.movies) ? movieData.movies : [];
 
-        actorSelect.innerHTML =
-            '<option value="">Select Actor</option>';
-
-        (actorData.actors || []).forEach(actor => {
-            const option = document.createElement("option");
-            option.value = actor.id;
-            option.textContent = actor.name;
-            actorSelect.appendChild(option);
-        });
-
-        movieSelect.innerHTML =
-            '<option value="">Select Movie</option>';
-
-        (movieData.movies || []).forEach(movie => {
-            const option = document.createElement("option");
-            option.value = movie.id;
-            option.textContent =
-                movie.title +
-                (movie.release_date ? " (" + movie.release_date + ")" : "");
-            movieSelect.appendChild(option);
-        });
-
-        if ([...actorSelect.options].some(o => o.value === currentActor)) {
-            actorSelect.value = currentActor;
-        }
-
-        if ([...movieSelect.options].some(o => o.value === currentMovie)) {
-            movieSelect.value = currentMovie;
-        }
-
-        if (actorSelect.value) {
-            loadLinkedMovies();
-        }
-
+        actorSelect.innerHTML = '<option value="">Search actor above...</option>';
+        movieSelect.innerHTML = '<option value="">Search movie above...</option>';
     })
     .catch(error => {
 
@@ -6720,10 +7330,8 @@ function loadActorMovieLinkSelectors() {
 
         movieSelect.innerHTML =
             '<option value="">Unable to load movies</option>';
-
     });
 }
-
 
 function showActorMovieLinkMessage(text, type) {
 
@@ -6788,15 +7396,24 @@ function linkActorMovie() {
     .then(() => {
 
         showActorMovieLinkMessage(
-            "✅ Actor linked to movie successfully!",
+            "✅ Actor linked successfully. The movie is still selected — search another actor to add more cast members.",
             "success"
         );
 
-        document.getElementById(
-            "linkMovieSelect"
-        ).value = "";
+        const actorSearch = document.getElementById("linkActorSearch");
+        const actorSelect = document.getElementById("linkActorSelect");
 
-        loadLinkedMovies();
+        if (actorSearch) actorSearch.value = "";
+        if (actorSelect) {
+            actorSelect.innerHTML = '<option value="">Search actor above...</option>';
+            actorSelect.value = "";
+        }
+
+        const linkedMovies = document.getElementById("linkedMoviesList");
+        if (linkedMovies) {
+            linkedMovies.innerHTML =
+                '<div class="table-loading">Actor linked. Search another actor to add to the same selected movie.</div>';
+        }
     })
     .catch(error => {
 
@@ -8400,6 +9017,8 @@ async function loadReleaseStatusManager() {
             ...recent
         ];
 
+        populateReleaseStatusFilters();
+
         const runningCount =
             document.getElementById("releaseRunningCount");
 
@@ -8436,36 +9055,82 @@ async function loadReleaseStatusManager() {
 }
 
 
+function populateReleaseStatusFilters() {
+    const languageSelect = document.getElementById("releaseLanguageFilter");
+    if (!languageSelect) return;
+
+    const current = languageSelect.value;
+
+    const languages = [...new Set(
+        releaseStatusMovies
+            .map(movie => String(movie.language || "").trim())
+            .filter(Boolean)
+    )].sort((a,b) => a.localeCompare(b));
+
+    languageSelect.innerHTML =
+        '<option value="">All Languages</option>' +
+        languages.map(language =>
+            `<option value="${releaseEsc(language)}">${releaseEsc(language)}</option>`
+        ).join("");
+
+    if ([...languageSelect.options].some(option => option.value === current)) {
+        languageSelect.value = current;
+    }
+}
+
+function clearReleaseStatusFilters() {
+    const search = document.getElementById("releaseMovieSearch");
+    const status = document.getElementById("releaseStatusFilter");
+    const language = document.getElementById("releaseLanguageFilter");
+
+    if (search) search.value = "";
+    if (status) status.value = "";
+    if (language) language.value = "";
+
+    renderReleaseStatusManager();
+}
+
 function renderReleaseStatusManager() {
 
-    const list =
-        document.getElementById("releaseStatusList");
-
-    const search =
-        document.getElementById("releaseMovieSearch");
+    const list = document.getElementById("releaseStatusList");
+    const search = document.getElementById("releaseMovieSearch");
+    const statusFilter = document.getElementById("releaseStatusFilter");
+    const languageFilter = document.getElementById("releaseLanguageFilter");
+    const resultCount = document.getElementById("releaseResultCount");
 
     if (!list) return;
 
-    const query =
-        String(search?.value || "")
-        .trim()
-        .toLowerCase();
+    const query = String(search?.value || "").trim().toLowerCase();
+    const requestedStatus = String(statusFilter?.value || "").trim().toLowerCase();
+    const requestedLanguage = String(languageFilter?.value || "").trim().toLowerCase();
 
-    const movies =
-        releaseStatusMovies.filter(movie => {
+    const movies = releaseStatusMovies.filter(movie => {
 
-            if (!query) return true;
+        const status =
+            movie._group === "running"
+                ? "running"
+                : movie._group === "upcoming"
+                    ? "upcoming"
+                    : "final";
 
-            return String(movie.title || "")
-                .toLowerCase()
-                .includes(query);
-        });
+        const title = String(movie.title || "").toLowerCase();
+        const language = String(movie.language || "").toLowerCase();
+
+        return (
+            (!query || title.includes(query)) &&
+            (!requestedStatus || status === requestedStatus) &&
+            (!requestedLanguage || language === requestedLanguage)
+        );
+    });
+
+    if (resultCount) {
+        resultCount.textContent =
+            movies.length + " movie" + (movies.length === 1 ? "" : "s") + " shown";
+    }
 
     if (!movies.length) {
-
         list.innerHTML =
             '<div class="table-loading">No matching movies found.</div>';
-
         return;
     }
 
@@ -8542,7 +9207,6 @@ function renderReleaseStatusManager() {
         }).join("");
 }
 
-
 async function setMovieReleaseStatus(
     movieId,
     status
@@ -8554,6 +9218,17 @@ async function setMovieReleaseStatus(
     if (message) {
         message.className = "message";
         message.textContent = "";
+    }
+
+    const movie = releaseStatusMovies.find(item => Number(item.id) === Number(movieId));
+    const movieTitle = movie?.title || "this movie";
+
+    const confirmed = confirm(
+        "Change " + movieTitle + " status to " + String(status).toUpperCase() + "?"
+    );
+
+    if (!confirmed) {
+        return;
     }
 
     try {
@@ -9306,6 +9981,23 @@ document.addEventListener("DOMContentLoaded",()=>{
         if(window.BOXOFFICEX_CURRENT_ADMIN?.role === "owner") loadCommentModeration();
     },700);
 });
+</script>
+
+
+<script id="bx-admin-portal-owner-sync">
+(function(){
+    function syncAdminPortalOwnerCards(){
+        const probe = document.getElementById("advertisementNav") || document.getElementById("teamNavLink");
+        if(!probe) return;
+        const visible = window.getComputedStyle(probe).display !== "none";
+        document.body.classList.toggle("admin-owner-ready", visible);
+    }
+    document.addEventListener("DOMContentLoaded", function(){
+        syncAdminPortalOwnerCards();
+        setTimeout(syncAdminPortalOwnerCards, 300);
+        setTimeout(syncAdminPortalOwnerCards, 1000);
+    });
+})();
 </script>
 
 </body>

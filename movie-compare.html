@@ -830,25 +830,6 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 }
 </style>
 
-<style id="bx-advertise-footer-visibility-fix">
-footer a.footer-advertise-link{
-    display:inline-flex!important;
-    align-items:center!important;
-    visibility:visible!important;
-    opacity:1!important;
-    pointer-events:auto!important;
-    white-space:nowrap!important;
-}
-@media(max-width:700px){
-    footer a.footer-advertise-link{
-        display:inline-flex!important;
-        min-height:32px!important;
-        padding:6px 4px!important;
-    }
-}
-</style>
-
-
 <style id="bx-responsive-standard-ad-sizing">
 /* BoxOfficeX responsive Standard Ad sizing — desktop/tablet/mobile */
 #bxTopBannerAd,
@@ -1012,6 +993,1042 @@ footer a.footer-advertise-link{
 }
 </style>
 
+
+<style id="bx-mobile-nav-clean-fix">
+@media(max-width:700px){
+  .bx-master-mobile-header{
+    overflow:visible!important;
+  }
+  .bx-master-mobile-bar{
+    position:relative!important;
+    z-index:3!important;
+  }
+  .bx-master-feature-row{
+    position:relative!important;
+    z-index:2!important;
+  }
+  .bx-master-mobile-menu{
+    position:absolute!important;
+    top:113px!important;
+    left:8px!important;
+    right:8px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:7px!important;
+    overflow:visible!important;
+    border:1px solid #dce3ec!important;
+    border-radius:12px!important;
+    background:#fff!important;
+    box-shadow:0 12px 28px rgba(15,23,42,.14)!important;
+  }
+  .bx-master-mobile-menu.open{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+  .bx-master-mobile-menu a{
+    min-width:0!important;
+    min-height:38px!important;
+    height:38px!important;
+    padding:7px 8px!important;
+    border-radius:9px!important;
+    justify-content:center!important;
+    text-align:center!important;
+    font-size:10.5px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  .bx-master-mobile-menu .bx-master-badge{
+    position:static!important;
+    margin-left:5px!important;
+    padding:2px 4px!important;
+    font-size:6px!important;
+  }
+}
+@media(max-width:350px){
+  .bx-master-mobile-menu a{
+    font-size:10px!important;
+    padding-left:5px!important;
+    padding-right:5px!important;
+  }
+}
+</style>
+
+
+<style id="bx-standard-footer-style">
+.bx-standard-footer{
+  width:100%!important;
+  margin:48px 0 0!important;
+  padding:0!important;
+  border-top:1px solid #dce3eb!important;
+  background:#eef2f7!important;
+  color:#64748b!important;
+  text-align:center!important;
+}
+.bx-standard-footer .bx-footer-inner{
+  width:min(1180px,100%)!important;
+  margin:0 auto!important;
+  padding:28px 18px 30px!important;
+}
+.bx-standard-footer .bx-footer-brand{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  color:#111827!important;
+  font-size:16px!important;
+  font-weight:900!important;
+  letter-spacing:.2px!important;
+}
+.bx-standard-footer .bx-footer-brand span{color:#b77900!important}
+.bx-standard-footer .bx-footer-copy{
+  max-width:760px!important;
+  margin:8px auto 12px!important;
+  color:#64748b!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+.bx-standard-footer .bx-footer-links{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:4px 14px!important;
+}
+.bx-standard-footer .bx-footer-links a{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:32px!important;
+  margin:0!important;
+  padding:6px 2px!important;
+  color:#475569!important;
+  text-decoration:none!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+.bx-standard-footer .bx-footer-links a:hover{color:#2563eb!important}
+@media(max-width:700px){
+  .bx-standard-footer{margin-top:34px!important}
+  .bx-standard-footer .bx-footer-inner{padding:22px 12px 24px!important}
+  .bx-standard-footer .bx-footer-links{gap:2px 10px!important}
+  .bx-standard-footer .bx-footer-links a{
+    min-height:30px!important;
+    font-size:11px!important;
+  }
+  .bx-standard-footer .bx-footer-copy{
+    font-size:11px!important;
+    margin:7px auto 10px!important;
+  }
+}
+</style>
+
+
+<style id="bx-public-top-gap-normalization">
+/* Normalize public-page top spacing without changing page-specific content */
+html,body{scroll-padding-top:0!important}
+@media(min-width:701px){
+  body{padding-top:0!important}
+  body>main:first-of-type,
+  body>.main:first-of-type,
+  body>.container:first-of-type,
+  body>.page:first-of-type{
+    margin-top:0!important;
+  }
+}
+@media(max-width:700px){
+  body{padding-top:0!important}
+  body>.bx-master-mobile-header + header + main,
+  body>.bx-master-mobile-header + main,
+  body>header + main{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+  main{
+    margin-top:0!important;
+  }
+}
+</style>
+
+
+<style id="bx-mobile-header-social-alignment-fix">
+@media(max-width:700px){
+  /* Mobile header alignment */
+  .bx-master-mobile-bar{
+    grid-template-columns:44px minmax(0,1fr) 44px!important;
+    height:62px!important;
+    min-height:62px!important;
+    padding:0 10px!important;
+    gap:6px!important;
+  }
+  .bx-master-mobile-toggle{
+    width:44px!important;
+    height:44px!important;
+    justify-self:start!important;
+    align-self:center!important;
+    margin:0!important;
+    padding:0!important;
+    border-radius:11px!important;
+  }
+  .bx-master-mobile-toggle span{
+    width:22px!important;
+    height:2px!important;
+    margin:0!important;
+  }
+  .bx-master-mobile-logo{
+    justify-self:center!important;
+    align-self:center!important;
+    max-width:100%!important;
+    margin:0!important;
+    gap:7px!important;
+    font-size:17px!important;
+    line-height:1!important;
+    transform:none!important;
+  }
+  .bx-master-mobile-logo .icon{
+    width:31px!important;
+    height:31px!important;
+    flex:0 0 31px!important;
+  }
+  .bx-master-mobile-bar::after{
+    width:44px!important;
+    height:44px!important;
+  }
+
+  /* Keep comparison buttons perfectly aligned */
+  .bx-master-feature-row{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding:6px 8px 7px!important;
+  }
+  .bx-master-feature-row a{
+    min-width:0!important;
+    min-height:40px!important;
+    height:40px!important;
+    padding:7px 6px!important;
+    font-size:10.5px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  /* Standard share/social alignment across public pages */
+  .share-buttons,
+  .share-links,
+  .social-share,
+  .social-links,
+  .share-row,
+  .article-share,
+  .bx-share-links,
+  .bx-social-links{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:8px!important;
+    margin-left:0!important;
+    margin-right:0!important;
+  }
+  .share-buttons a,
+  .share-buttons button,
+  .share-links a,
+  .share-links button,
+  .social-share a,
+  .social-share button,
+  .social-links a,
+  .social-links button,
+  .share-row a,
+  .share-row button,
+  .article-share a,
+  .article-share button,
+  .bx-share-links a,
+  .bx-share-links button,
+  .bx-social-links a,
+  .bx-social-links button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    margin:0!important;
+    padding:9px 10px!important;
+    border-radius:10px!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Common loose inline share link fallback */
+  [class*="share"] > a,
+  [class*="social"] > a{
+    box-sizing:border-box!important;
+  }
+}
+
+@media(max-width:350px){
+  .bx-master-mobile-logo{
+    font-size:16px!important;
+    gap:6px!important;
+  }
+  .bx-master-feature-row a{
+    font-size:10px!important;
+    padding-left:4px!important;
+    padding-right:4px!important;
+  }
+}
+</style>
+
+
+<style id="bx-everypage-burgerbox-standard">
+@media(max-width:700px){
+  /* One exact burger box standard for every public page */
+  .bx-master-mobile-bar,
+  header .navbar,
+  header .nav-wrap,
+  header .header-inner{
+    box-sizing:border-box!important;
+  }
+
+  .bx-master-mobile-toggle,
+  .menu-toggle,
+  .hamburger,
+  .hamburger-btn,
+  .mobile-menu-toggle{
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    min-height:44px!important;
+    max-width:44px!important;
+    max-height:44px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    margin:0!important;
+    padding:0!important;
+    border:1px solid #dce3ec!important;
+    border-radius:11px!important;
+    background:#f4f7fb!important;
+    box-shadow:none!important;
+    color:#172033!important;
+    line-height:1!important;
+    cursor:pointer!important;
+    box-sizing:border-box!important;
+    flex:0 0 44px!important;
+  }
+
+  .bx-master-mobile-toggle span,
+  .menu-toggle span,
+  .hamburger span,
+  .hamburger-btn span,
+  .mobile-menu-toggle span{
+    display:block!important;
+    width:22px!important;
+    height:2px!important;
+    min-height:2px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:999px!important;
+    background:#172033!important;
+    box-shadow:none!important;
+    transform-origin:center!important;
+    transition:transform .2s ease,opacity .2s ease!important;
+  }
+
+  .bx-master-mobile-toggle.open span:nth-child(1),
+  .menu-toggle.open span:nth-child(1),
+  .hamburger.open span:nth-child(1),
+  .hamburger-btn.open span:nth-child(1),
+  .mobile-menu-toggle.open span:nth-child(1){
+    transform:translateY(7px) rotate(45deg)!important;
+  }
+  .bx-master-mobile-toggle.open span:nth-child(2),
+  .menu-toggle.open span:nth-child(2),
+  .hamburger.open span:nth-child(2),
+  .hamburger-btn.open span:nth-child(2),
+  .mobile-menu-toggle.open span:nth-child(2){
+    opacity:0!important;
+  }
+  .bx-master-mobile-toggle.open span:nth-child(3),
+  .menu-toggle.open span:nth-child(3),
+  .hamburger.open span:nth-child(3),
+  .hamburger-btn.open span:nth-child(3),
+  .mobile-menu-toggle.open span:nth-child(3){
+    transform:translateY(-7px) rotate(-45deg)!important;
+  }
+
+  .bx-master-mobile-bar{
+    height:62px!important;
+    min-height:62px!important;
+    grid-template-columns:44px minmax(0,1fr) 44px!important;
+    align-items:center!important;
+    padding:0 10px!important;
+    gap:6px!important;
+  }
+  .bx-master-mobile-toggle{
+    grid-column:1!important;
+    justify-self:start!important;
+    align-self:center!important;
+  }
+  .bx-master-mobile-logo{
+    grid-column:2!important;
+    justify-self:center!important;
+    align-self:center!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  .bx-master-mobile-bar::after{
+    grid-column:3!important;
+    width:44px!important;
+    height:44px!important;
+  }
+}
+
+@media(max-width:350px){
+  .bx-master-mobile-toggle,
+  .menu-toggle,
+  .hamburger,
+  .hamburger-btn,
+  .mobile-menu-toggle{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    min-height:42px!important;
+    max-width:42px!important;
+    max-height:42px!important;
+    flex-basis:42px!important;
+  }
+  .bx-master-mobile-bar{
+    grid-template-columns:42px minmax(0,1fr) 42px!important;
+    padding-left:8px!important;
+    padding-right:8px!important;
+  }
+  .bx-master-mobile-bar::after{
+    width:42px!important;
+    height:42px!important;
+  }
+}
+</style>
+
+
+<style id="bx-mobile-header-content-spacing-fix">
+@media(max-width:700px){
+  /* Keep all page content safely below the two-row mobile navigation */
+  .bx-master-mobile-header{
+    position:sticky!important;
+    top:0!important;
+    z-index:10050!important;
+  }
+
+  body>.bx-master-mobile-header + header + main,
+  body>.bx-master-mobile-header + main{
+    margin-top:0!important;
+    padding-top:18px!important;
+  }
+
+  /* Index uses its own original mobile header */
+  body>header + main,
+  body>.header + main,
+  body>.navbar + main{
+    margin-top:0!important;
+  }
+
+  /* Prevent page hero/title blocks from being pulled upward under the nav */
+  main > .hero:first-child,
+  main > .page-hero:first-child,
+  main > .hero-section:first-child,
+  main > .compare-hero:first-child,
+  main > .ranking-hero:first-child,
+  main > .article-hero:first-child,
+  main > section:first-child{
+    margin-top:0!important;
+  }
+
+  /* Compact but visible breathing room after comparison row */
+  .bx-master-feature-row{
+    margin-bottom:0!important;
+  }
+}
+</style>
+
+
+<style id="bx-open-menu-index-match-fix">
+@media(max-width:700px){
+  /* Open menu matches index.html: one clean vertical list below comparison row */
+  .bx-master-mobile-menu{
+    display:none!important;
+    position:absolute!important;
+    top:114px!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:calc(100vh - 126px)!important;
+    margin:0!important;
+    padding:10px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:5px!important;
+    background:#ffffff!important;
+    border:1px solid #dce3ec!important;
+    border-radius:14px!important;
+    box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    z-index:10060!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  .bx-master-mobile-menu.open{
+    display:flex!important;
+    grid-template-columns:none!important;
+  }
+  .bx-master-mobile-menu a{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    height:auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    color:#334155!important;
+    background:transparent!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    white-space:normal!important;
+    box-sizing:border-box!important;
+  }
+  .bx-master-mobile-menu a:hover,
+  .bx-master-mobile-menu a:focus,
+  .bx-master-mobile-menu a.active{
+    color:#2563eb!important;
+    background:#eef4ff!important;
+  }
+  .bx-master-mobile-menu .bx-master-badge{
+    margin-left:auto!important;
+    flex:0 0 auto!important;
+  }
+}
+</style>
+
+
+<style id="bx-allpages-single-vertical-menu">
+@media(max-width:700px){
+  /* One single vertical hamburger menu on every public page */
+  .bx-master-mobile-menu,
+  header nav:not(.mobile-primary-features){
+    display:none!important;
+    position:absolute!important;
+    top:114px!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:calc(100vh - 126px)!important;
+    margin:0!important;
+    padding:10px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:5px!important;
+    background:#ffffff!important;
+    border:1px solid #dce3ec!important;
+    border-radius:14px!important;
+    box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    z-index:10060!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+
+  .bx-master-mobile-menu.open,
+  header nav:not(.mobile-primary-features).open{
+    display:flex!important;
+    grid-template-columns:none!important;
+  }
+
+  .bx-master-mobile-menu a,
+  header nav:not(.mobile-primary-features) a{
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    height:auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    color:#334155!important;
+    background:transparent!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    white-space:normal!important;
+    box-sizing:border-box!important;
+  }
+
+  .bx-master-mobile-menu a:hover,
+  .bx-master-mobile-menu a:focus,
+  .bx-master-mobile-menu a.active,
+  header nav:not(.mobile-primary-features) a:hover,
+  header nav:not(.mobile-primary-features) a:focus,
+  header nav:not(.mobile-primary-features) a.active{
+    color:#2563eb!important;
+    background:#eef4ff!important;
+  }
+
+  .bx-master-mobile-menu .bx-master-badge,
+  header nav:not(.mobile-primary-features) .nav-badge{
+    margin-left:auto!important;
+    flex:0 0 auto!important;
+  }
+
+  /* Comparison shortcuts stay outside the burger menu */
+  header nav:not(.mobile-primary-features) .nav-compare{
+    display:none!important;
+  }
+}
+</style>
+
+
+<style id="bx-more-movie-comparisons-style">
+.more-movie-comparisons{margin-top:20px;padding:18px;border:1px solid #dfe5ee;border-radius:15px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+.more-movie-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px}
+.more-movie-title{margin:0;color:#111827;font-size:19px;font-weight:900}.more-movie-sub{margin:5px 0 0;color:#667085;font-size:11px;line-height:1.45}
+.more-movie-all{flex:0 0 auto;color:#2563eb;text-decoration:none;font-size:11px;font-weight:900}
+.more-movie-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.more-movie-card{min-width:0;display:block;overflow:hidden;border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc;color:#111827;text-decoration:none;transition:.18s}
+.more-movie-card:hover{transform:translateY(-2px);border-color:#bfdbfe;box-shadow:0 10px 22px rgba(15,23,42,.08)}
+.more-movie-pair{display:grid;grid-template-columns:minmax(0,1fr) 27px minmax(0,1fr);align-items:center;gap:5px;padding:10px 8px 8px}
+.more-movie-person{min-width:0;text-align:center}.more-movie-person img{width:55px;height:82px;display:block;margin:0 auto 6px;object-fit:cover;border:1px solid #e2e8f0;border-radius:8px;background:#eef1f5}
+.more-movie-name{display:block;overflow:hidden;color:#1e293b;font-size:9px;line-height:1.25;font-weight:900;white-space:nowrap;text-overflow:ellipsis}
+.more-movie-vs{width:27px;height:27px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#e43d4f,#c92f40);color:#fff;font-size:7px;font-weight:1000}
+.more-movie-action{min-height:34px;display:flex;align-items:center;justify-content:center;border-top:1px solid #e2e8f0;background:#fff;color:#2563eb;font-size:9px;font-weight:900}
+.more-movie-empty{grid-column:1/-1;padding:18px 12px;border:1px dashed #cbd5e1;border-radius:12px;color:#667085;text-align:center;font-size:11px}
+@media(max-width:700px){
+ .more-movie-comparisons{margin-top:18px;padding:13px 9px 14px;border-radius:13px}.more-movie-head{align-items:flex-start;margin-bottom:11px}
+ .more-movie-title{font-size:16px}.more-movie-sub{font-size:9px}.more-movie-all{font-size:9px;padding-top:3px}
+ .more-movie-grid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:1px 1px 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+ .more-movie-grid::-webkit-scrollbar{display:none}.more-movie-card{flex:0 0 78%;max-width:250px;scroll-snap-align:start}
+ .more-movie-person img{width:50px;height:75px}.more-movie-name{font-size:8.5px}
+}
+</style>
+
+
+<style id="bx-movie-fan-vote-bar-style">
+.bx-movie-vote-result{margin-top:12px}
+.bx-movie-vote-labels{
+display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+gap:8px;align-items:center;margin-bottom:7px;
+font-size:11px;font-weight:900;color:#334155
+}
+.bx-movie-vote-labels .left{text-align:left;color:#dc2626}
+.bx-movie-vote-labels .tie{text-align:center;color:#64748b}
+.bx-movie-vote-labels .right{text-align:right;color:#2563eb}
+.bx-movie-vote-bar{
+display:flex;width:100%;height:24px;overflow:hidden;border-radius:999px;
+background:#e5e7eb;border:1px solid #dbe3ef
+}
+.bx-movie-vote-segment{min-width:0;transition:width .35s ease}
+.bx-movie-vote-segment.left{background:#dc2626}
+.bx-movie-vote-segment.tie{background:#94a3b8}
+.bx-movie-vote-segment.right{background:#2563eb}
+.bx-movie-vote-total{margin-top:7px;text-align:center;color:#64748b;font-size:9px;font-weight:800}
+@media(max-width:500px){
+.bx-movie-vote-labels{font-size:9px;gap:5px}
+.bx-movie-vote-bar{height:22px}
+}
+</style>
+
+
+
+<style id="bx-overall-winner-premium-style">
+.overall-result.bx-overall-winner{
+position:relative;overflow:hidden;margin-top:24px;padding:18px;
+border:2px solid #f2c94c;border-radius:18px;
+background:
+radial-gradient(circle at 50% 0,rgba(242,201,76,.18),transparent 34%),
+linear-gradient(180deg,#fffef8,#f7f9fc);
+box-shadow:0 12px 30px rgba(15,23,42,.10);
+text-align:left;color:#111827
+}
+.bx-overall-winner:before{
+content:"";position:absolute;inset:0;pointer-events:none;
+background:linear-gradient(120deg,transparent 0,rgba(242,201,76,.07) 45%,transparent 67%)
+}
+.bx-winner-banner{
+position:relative;display:flex;align-items:center;justify-content:center;gap:10px;
+margin:-2px 0 14px;padding:11px 14px;border-radius:12px;
+background:linear-gradient(135deg,#15803d,#22a447);
+color:#fff;font-weight:1000;font-size:18px;letter-spacing:.3px;
+box-shadow:0 8px 20px rgba(21,128,61,.18)
+}
+.bx-winner-banner .cup{font-size:24px}
+.bx-winner-layout{
+position:relative;display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:14px;align-items:stretch
+}
+.bx-winner-intro{
+display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;
+background:#fff;border:1px solid #e5e7eb
+}
+.bx-winner-trophy{font-size:40px}
+.bx-winner-kicker{color:#b7791f;font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.6px}
+.bx-winner-basis{margin-top:6px;color:#667085;font-size:10px;line-height:1.45}
+.bx-winner-duel{display:grid;grid-template-columns:1fr 72px 1fr;gap:10px;align-items:center}
+.bx-winner-movie{
+display:grid;grid-template-columns:50px 1fr;gap:9px;align-items:center;padding:10px;
+border:1px solid #d9e0ea;border-radius:12px;background:#fff
+}
+.bx-winner-movie.champion{
+border:2px solid #22a447;
+background:linear-gradient(135deg,#ecfdf3,#ffffff);
+box-shadow:0 8px 20px rgba(34,164,71,.10)
+}
+.bx-winner-movie img{width:50px;height:68px;object-fit:cover;border-radius:7px;background:#eef2f7}
+.bx-winner-movie-name{font-size:14px;font-weight:1000;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx-winner-score{margin-top:4px;font-size:16px;font-weight:1000;color:#15803d}
+.bx-winner-movie:not(.champion) .bx-winner-score{color:#475467}
+.bx-winner-gross{margin-top:3px;color:#667085;font-size:9px}
+.bx-winner-crown{
+display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+color:#b7791f;font-size:26px;font-weight:1000
+}
+.bx-winner-crown span{margin-top:2px;font-size:9px;letter-spacing:.7px;text-transform:uppercase}
+.bx-winner-crown .winner-mid-name{
+margin-top:4px;padding:5px 7px;border-radius:8px;background:#15803d;color:#fff;
+font-size:10px;line-height:1.1
+}
+.bx-winner-facts{
+display:grid;gap:7px;padding:11px 12px;border:1px solid #dce3ec;
+border-radius:12px;background:#fff
+}
+.bx-winner-fact{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#667085;font-size:9px}
+.bx-winner-fact strong{color:#111827;font-size:12px;text-align:right}
+.bx-winner-fact:first-child strong{color:#15803d}
+.bx-winner-summary{
+position:relative;margin-top:11px;padding-top:10px;border-top:1px solid #eadb9f;
+color:#475467;font-size:10px;text-align:center;font-weight:800
+}
+.overall-result.bx-overall-tie{border-color:#cbd5e1;background:#f8fafc}
+.overall-result.bx-overall-tie .winner-name{color:#475467}
+@media(max-width:800px){
+.bx-winner-layout{grid-template-columns:1fr}
+.bx-winner-intro{justify-content:center;text-align:center}
+.bx-winner-duel{grid-template-columns:1fr 54px 1fr}
+.bx-winner-movie{grid-template-columns:40px 1fr;padding:8px}
+.bx-winner-movie img{width:40px;height:56px}
+.bx-winner-crown{font-size:21px}
+.bx-winner-banner{font-size:16px}
+}
+@media(max-width:480px){
+.overall-result.bx-overall-winner{padding:11px}
+.bx-winner-banner{font-size:14px;padding:9px 10px}
+.bx-winner-duel{grid-template-columns:1fr 40px 1fr;gap:5px}
+.bx-winner-movie{display:block;text-align:center}
+.bx-winner-movie img{width:46px;height:64px;margin:0 auto 5px}
+.bx-winner-movie-name{font-size:10px}
+.bx-winner-score{font-size:13px}
+.bx-winner-gross{font-size:8px}
+.bx-winner-kicker{font-size:10px}
+}
+</style>
+
+
+
+<style id="bx-commercial-performance-style">
+.bx-commercial-result{
+margin-top:16px;padding:18px;border:2px solid #22a447;border-radius:18px;
+background:linear-gradient(180deg,#f5fff8,#ffffff);
+box-shadow:0 12px 28px rgba(21,128,61,.10);color:#111827
+}
+.bx-commercial-banner{
+display:flex;align-items:center;justify-content:center;gap:9px;
+padding:11px 14px;border-radius:12px;background:linear-gradient(135deg,#166534,#22a447);
+color:#fff;font-size:17px;font-weight:1000;letter-spacing:.2px;text-align:center
+}
+.bx-commercial-sub{
+margin:8px auto 14px;max-width:720px;text-align:center;color:#667085;
+font-size:10px;line-height:1.5
+}
+.bx-commercial-duel{
+display:grid;grid-template-columns:1fr 72px 1fr;gap:10px;align-items:center
+}
+.bx-commercial-card{
+display:grid;grid-template-columns:50px 1fr;gap:10px;align-items:center;
+padding:11px;border:1px solid #dce3ec;border-radius:12px;background:#fff
+}
+.bx-commercial-card.winner{
+border:2px solid #22a447;background:linear-gradient(135deg,#ecfdf3,#fff);
+box-shadow:0 8px 20px rgba(34,164,71,.10)
+}
+.bx-commercial-card img{
+width:50px;height:68px;object-fit:cover;border-radius:7px;background:#eef2f7
+}
+.bx-commercial-name{font-size:14px;font-weight:1000;color:#111827}
+.bx-commercial-verdict{
+display:inline-flex;margin-top:4px;padding:4px 7px;border-radius:999px;
+background:#eef2f7;color:#475467;font-size:9px;font-weight:1000
+}
+.bx-commercial-card.winner .bx-commercial-verdict{
+background:#dcfce7;color:#166534
+}
+.bx-commercial-multiplier{margin-top:5px;color:#667085;font-size:9px}
+.bx-commercial-multiplier strong{color:#111827;font-size:12px}
+.bx-commercial-mid{
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+text-align:center;color:#15803d;font-size:25px;font-weight:1000
+}
+.bx-commercial-mid span{
+margin-top:3px;font-size:9px;text-transform:uppercase;letter-spacing:.7px
+}
+.bx-commercial-reason{
+margin-top:12px;padding-top:10px;border-top:1px solid #ccebd5;
+text-align:center;color:#475467;font-size:10px;font-weight:800;line-height:1.5
+}
+.bx-commercial-note{
+margin-top:6px;text-align:center;color:#7a8699;font-size:8px
+}
+.bx-commercial-tie{border-color:#cbd5e1;background:#f8fafc}
+.bx-commercial-tie .bx-commercial-banner{background:#64748b}
+@media(max-width:700px){
+.bx-commercial-duel{grid-template-columns:1fr 48px 1fr}
+.bx-commercial-card{display:block;text-align:center;padding:8px}
+.bx-commercial-card img{width:46px;height:64px;margin:0 auto 6px}
+.bx-commercial-name{font-size:11px}
+.bx-commercial-banner{font-size:14px}
+}
+</style>
+
+
+<style id="bx-dual-winner-final-color-grade">
+/* Shared premium result treatment */
+.overall-result.bx-overall-winner,
+.bx-commercial-result{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    border-radius:20px;
+}
+.overall-result.bx-overall-winner{
+    border:1px solid #e7b82f;
+    background:
+      radial-gradient(circle at 15% 0,rgba(255,214,82,.20),transparent 31%),
+      linear-gradient(145deg,#fffdf5 0%,#fff9e7 48%,#ffffff 100%);
+    box-shadow:0 14px 34px rgba(120,86,8,.12);
+}
+.bx-commercial-result{
+    border:1px solid #3bb273;
+    background:
+      radial-gradient(circle at 85% 0,rgba(52,211,153,.16),transparent 31%),
+      linear-gradient(145deg,#f4fff8 0%,#edfff5 48%,#ffffff 100%);
+    box-shadow:0 14px 34px rgba(22,101,52,.11);
+}
+
+/* Strong, instantly recognizable headers */
+.bx-winner-banner{
+    background:linear-gradient(135deg,#8a5a00 0%,#c58a08 48%,#e1ad28 100%);
+    border:1px solid rgba(255,255,255,.32);
+    box-shadow:0 8px 20px rgba(138,90,0,.18);
+    text-shadow:0 1px 1px rgba(0,0,0,.15);
+}
+.bx-commercial-banner{
+    background:linear-gradient(135deg,#0f5d35 0%,#16834b 50%,#27a864 100%);
+    border:1px solid rgba(255,255,255,.28);
+    box-shadow:0 8px 20px rgba(15,93,53,.18);
+    text-shadow:0 1px 1px rgba(0,0,0,.14);
+}
+
+/* Box-office winner card = gold; commercial winner card = green */
+.bx-winner-movie.champion{
+    border:2px solid #d8a515;
+    background:linear-gradient(145deg,#fff6cf,#fffdf5);
+    box-shadow:0 8px 22px rgba(197,138,8,.14);
+}
+.bx-winner-movie.champion .bx-winner-score{color:#9a6700}
+.bx-commercial-card.winner{
+    border:2px solid #1f9d5a;
+    background:linear-gradient(145deg,#dcfce7,#f7fff9);
+    box-shadow:0 8px 22px rgba(31,157,90,.13);
+}
+
+/* Losing cards are intentionally quiet */
+.bx-winner-movie:not(.champion),
+.bx-commercial-card:not(.winner){
+    border-color:#dfe5ec;
+    background:#f8fafc;
+    box-shadow:none;
+}
+.bx-winner-movie:not(.champion){opacity:.84}
+.bx-commercial-card:not(.winner){opacity:.84}
+
+/* Supporting panels */
+.bx-winner-intro,.bx-winner-facts{
+    border-color:#eadca8;
+    background:rgba(255,255,255,.88);
+}
+.bx-winner-kicker{color:#9a6700}
+.bx-winner-crown{color:#a86f00}
+.bx-winner-crown .winner-mid-name{
+    background:linear-gradient(135deg,#a86f00,#d39b13);
+}
+.bx-winner-fact:first-child strong{color:#9a6700}
+.bx-winner-summary{border-color:#ead58b;color:#5d6470}
+
+.bx-commercial-sub{color:#526071}
+.bx-commercial-mid{color:#167b49}
+.bx-commercial-reason{border-color:#bce5cb;color:#405247}
+.bx-commercial-card.winner .bx-commercial-verdict{
+    background:#c9f7d8;color:#11673c;
+}
+
+/* Section identity labels */
+.bx-winner-banner:before{
+    content:"BOX OFFICE";
+    display:inline-flex;
+    padding:3px 6px;
+    border-radius:999px;
+    background:rgba(255,255,255,.18);
+    font-size:8px;
+    letter-spacing:.8px;
+}
+.bx-commercial-banner:before{
+    content:"COMMERCIAL";
+    display:inline-flex;
+    padding:3px 6px;
+    border-radius:999px;
+    background:rgba(255,255,255,.16);
+    font-size:8px;
+    letter-spacing:.8px;
+}
+
+/* Mobile keeps the same visual hierarchy */
+@media(max-width:700px){
+    .overall-result.bx-overall-winner,.bx-commercial-result{
+        border-radius:16px;
+    }
+    .bx-winner-banner,.bx-commercial-banner{
+        line-height:1.25;
+        flex-wrap:wrap;
+    }
+}
+</style>
+
+
+<style id="bx-dual-winner-lite-grade">
+/* Final light color grade */
+.overall-result.bx-overall-winner{
+    border:1px solid #ead9a0 !important;
+    background:#fffdf8 !important;
+    box-shadow:0 8px 22px rgba(15,23,42,.06) !important;
+}
+.bx-commercial-result{
+    border:1px solid #bfe3cc !important;
+    background:#fafffb !important;
+    box-shadow:0 8px 22px rgba(15,23,42,.06) !important;
+}
+.bx-winner-banner{
+    background:#fff4cc !important;
+    border:1px solid #e8cf78 !important;
+    color:#755200 !important;
+    box-shadow:none !important;
+    text-shadow:none !important;
+}
+.bx-commercial-banner{
+    background:#e8f8ee !important;
+    border:1px solid #a9d8b9 !important;
+    color:#17643a !important;
+    box-shadow:none !important;
+    text-shadow:none !important;
+}
+.bx-winner-banner:before{
+    background:#f6e4a7 !important;
+    color:#755200 !important;
+}
+.bx-commercial-banner:before{
+    background:#cfeeda !important;
+    color:#17643a !important;
+}
+.bx-winner-movie.champion{
+    border:1.5px solid #dfc35d !important;
+    background:#fffaf0 !important;
+    box-shadow:none !important;
+}
+.bx-commercial-card.winner{
+    border:1.5px solid #83c79d !important;
+    background:#f1fbf5 !important;
+    box-shadow:none !important;
+}
+.bx-winner-movie:not(.champion),
+.bx-commercial-card:not(.winner){
+    opacity:1 !important;
+    background:#fff !important;
+    border-color:#e2e8f0 !important;
+}
+.bx-winner-intro,.bx-winner-facts{
+    background:#fff !important;
+    border-color:#eee5c8 !important;
+}
+.bx-winner-crown .winner-mid-name{
+    background:#f4e5ad !important;
+    color:#6f5100 !important;
+}
+.bx-commercial-card.winner .bx-commercial-verdict{
+    background:#dff5e7 !important;
+    color:#17643a !important;
+}
+</style>
+
+
+<style id="bx-theatrical-efficiency-style">
+.bx-efficiency-result{margin-top:16px;padding:18px;border:2px solid #8b5cf6;border-radius:18px;background:#faf8ff;color:#111827}
+.bx-efficiency-banner{padding:11px 14px;border-radius:12px;background:#ede9fe;color:#5b21b6;font-size:17px;font-weight:1000;text-align:center}
+.bx-efficiency-sub{margin:8px auto 14px;max-width:760px;text-align:center;color:#667085;font-size:10px;line-height:1.5}
+.bx-efficiency-duel{display:grid;grid-template-columns:1fr 72px 1fr;gap:10px;align-items:stretch}
+.bx-efficiency-card{padding:12px;border:1px solid #ddd6fe;border-radius:13px;background:#fff}
+.bx-efficiency-card.winner{border:2px solid #8b5cf6;background:#f5f3ff}
+.bx-efficiency-name{font-size:14px;font-weight:1000;margin-bottom:9px}
+.bx-efficiency-stat{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #f1f2f4;font-size:10px}
+.bx-efficiency-stat:last-child{border-bottom:0}
+.bx-efficiency-stat strong{font-size:11px;color:#111827;text-align:right}
+.bx-efficiency-roi{font-size:19px!important;color:#5b21b6!important}
+.bx-efficiency-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:1000;color:#7c3aed;font-size:22px;text-align:center}
+.bx-efficiency-mid span{font-size:8px;color:#667085;margin-top:3px}
+.bx-efficiency-bar{height:8px;background:#eceff3;border-radius:999px;overflow:hidden;margin:9px 0 4px}
+.bx-efficiency-fill{height:100%;background:#8b5cf6;border-radius:999px}
+.bx-efficiency-reason{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #e9e5ff;font-size:10px;line-height:1.55;color:#344054}
+.bx-efficiency-note{margin-top:8px;text-align:center;color:#667085;font-size:9px;line-height:1.45}
+@media(max-width:560px){
+ .bx-efficiency-result{padding:11px}
+ .bx-efficiency-banner{font-size:13px;padding:9px 8px}
+ .bx-efficiency-duel{grid-template-columns:1fr 38px 1fr;gap:5px}
+ .bx-efficiency-card{padding:8px}
+ .bx-efficiency-name{font-size:11px}
+ .bx-efficiency-stat{display:block;font-size:8px}
+ .bx-efficiency-stat strong{display:block;margin-top:2px;font-size:10px;text-align:left}
+ .bx-efficiency-roi{font-size:15px!important}
+ .bx-efficiency-mid{font-size:16px}
+}
+</style>
+
 </head>
 <body>
 <div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
@@ -1036,13 +2053,19 @@ footer a.footer-advertise-link{
 
 <section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
-<footer class="site-footer"><div class="footer-inner"><a href="/index.html" class="footer-brand">🎬 BOXOFFICE<span>X</span></a><p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p><div class="footer-links">
-<a href="/about.html">About</a>
-<a href="/contact.html">Contact</a>
-<a href="/privacy.html">Privacy</a>
-<a href="/terms.html">Terms</a>
-<a href="/disclaimer.html">Disclaimer</a>
-</div><p>© 2026 BoxOfficeX. All rights reserved.</p></div><p><a href="/advertise.html" class="footer-advertise-link">Advertise With Us</a></p>
+<footer class="bx-standard-footer">
+  <div class="bx-footer-inner">
+    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
+    <nav class="bx-footer-links" aria-label="Footer navigation">
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/advertise.html" class="footer-advertise-link">Advertise With Us</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </nav>
+  </div>
 </footer>
 
 <script>
@@ -1075,16 +2098,37 @@ return `<div class="row"><div class="cell label">${esc(label)}</div><div class="
 }
 
 function verdictRank(verdict){
-    const ranks = {
-        "blockbuster": 4,
-        "hit": 3,
-        "average": 2,
-        "flop": 1
-    };
-
     if(!verdict) return null;
 
-    return ranks[String(verdict).trim().toLowerCase()] ?? null;
+    const value = String(verdict).trim().toLowerCase();
+
+    const ranks = {
+        "all time blockbuster": 7,
+        "industry hit": 7,
+        "blockbuster": 6,
+        "super hit": 5,
+        "hit": 4,
+        "above average": 3,
+        "average": 2,
+        "below average": 1,
+        "flop": 0,
+        "disaster": -1
+    };
+
+    if(Object.prototype.hasOwnProperty.call(ranks,value)){
+        return ranks[value];
+    }
+
+    if(value.includes("blockbuster")) return 6;
+    if(value.includes("super hit")) return 5;
+    if(value === "hit" || value.includes(" hit")) return 4;
+    if(value.includes("above average")) return 3;
+    if(value.includes("average") && !value.includes("below")) return 2;
+    if(value.includes("below average")) return 1;
+    if(value.includes("flop")) return 0;
+    if(value.includes("disaster")) return -1;
+
+    return null;
 }
 
 function collectionScore(a,b){
@@ -1131,67 +2175,333 @@ function collectionScore(a,b){
 
 function overallWinnerHTML(a,b){
     const s=collectionScore(a,b);
+    const availableCategories=s.scoreA+s.scoreB;
 
     if(s.scoreA===0 && s.scoreB===0){
         return `
-            <section class="overall-result tie-result">
+            <section class="overall-result tie-result bx-overall-winner bx-overall-tie">
                 <div class="crown">⚖️</div>
                 <div class="label2">Overall Result</div>
                 <div class="winner-name">Not Enough Data</div>
-                <div class="score">India, overseas and worldwide collection data are unavailable for comparison.</div>
+                <div class="score">India, overseas, worldwide and verdict data are not sufficient to determine a winner.</div>
             </section>
         `;
     }
+
+    let winner=null;
+    let loser=null;
+    let tieBreaker=false;
 
     if(s.scoreA===s.scoreB){
         const aw=a.worldwide_collection_crore;
         const bw=b.worldwide_collection_crore;
 
         if(aw!==null && aw!==undefined && bw!==null && bw!==undefined && Number(aw)!==Number(bw)){
-            const winner=Number(aw)>Number(bw)?a:b;
-            const loser=winner.id===a.id?b:a;
-
+            winner=Number(aw)>Number(bw)?a:b;
+            loser=winner.id===a.id?b:a;
+            tieBreaker=true;
+        }else{
             return `
-                <section class="overall-result">
-                    <div class="crown">🏆</div>
-                    <div class="label2">Overall Box Office Winner</div>
-                    <div class="winner-name">${esc(winner.title)}</div>
-                    <div class="score">
-                        Overall score tied ${s.scoreA}-${s.scoreB}; worldwide gross used as the tie-breaker.
-                        ${esc(winner.title)}: ${money(winner.worldwide_collection_crore)}
-                        vs ${esc(loser.title)}: ${money(loser.worldwide_collection_crore)}
-                    </div>
+                <section class="overall-result tie-result bx-overall-winner bx-overall-tie">
+                    <div class="crown">🤝</div>
+                    <div class="label2">Overall Box Office Result</div>
+                    <div class="winner-name">Tie</div>
+                    <div class="score">Both movies win the same number of available comparison categories.</div>
                 </section>
             `;
         }
+    }else{
+        winner=s.scoreA>s.scoreB?a:b;
+        loser=winner.id===a.id?b:a;
+    }
 
+    const winnerIsA=Number(winner.id)===Number(a.id);
+    const winnerScore=winnerIsA?s.scoreA:s.scoreB;
+    const loserScore=winnerIsA?s.scoreB:s.scoreA;
+
+    const winnerWorldwide=
+        winner.worldwide_collection_crore!==null &&
+        winner.worldwide_collection_crore!==undefined
+            ? Number(winner.worldwide_collection_crore)
+            : null;
+
+    const loserWorldwide=
+        loser.worldwide_collection_crore!==null &&
+        loser.worldwide_collection_crore!==undefined
+            ? Number(loser.worldwide_collection_crore)
+            : null;
+
+    const margin=
+        winnerWorldwide!==null && loserWorldwide!==null
+            ? Math.abs(winnerWorldwide-loserWorldwide)
+            : null;
+
+    const verdictText=
+        winner.verdict && loser.verdict
+            ? `${esc(winner.verdict)} vs ${esc(loser.verdict)}`
+            : esc(winner.verdict || "Available data");
+
+    const winnerReason=tieBreaker
+        ? `Category score tied ${winnerScore}-${loserScore}; ${esc(winner.title)} leads on worldwide gross.`
+        : `${esc(winner.title)} wins ${winnerScore} of ${availableCategories} available box-office categories.`;
+
+    function winnerMovieCard(movie,score,isChampion){
         return `
-            <section class="overall-result tie-result">
-                <div class="crown">🤝</div>
-                <div class="label2">Overall Result</div>
-                <div class="winner-name">Tie</div>
-                <div class="score">Both movies win the same number of available comparison categories.</div>
+            <div class="bx-winner-movie ${isChampion?"champion":""}">
+                <img src="${poster(movie)}" alt="${esc(movie.title)} poster" onerror="this.src='${FALLBACK}'">
+                <div>
+                    <div class="bx-winner-movie-name">${esc(movie.title)}</div>
+                    <div class="bx-winner-score">🏆 ${score} / ${availableCategories}</div>
+                    <div class="bx-winner-gross">${money(movie.worldwide_collection_crore)} Worldwide</div>
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <section class="overall-result bx-overall-winner">
+            <div class="bx-winner-banner">
+                <span class="cup">🏆</span>
+                <span>WINNER: ${esc(winner.title)}</span>
+            </div>
+
+            <div class="bx-winner-layout">
+
+                <div class="bx-winner-intro">
+                    <div class="bx-winner-trophy">🏆</div>
+                    <div>
+                        <div class="bx-winner-kicker">Overall Box Office Winner</div>
+                        <div class="bx-winner-basis">
+                            Based on India Gross, Overseas Gross, Worldwide Gross and Verdict.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bx-winner-duel">
+                    ${winnerMovieCard(winner,winnerScore,true)}
+
+                    <div class="bx-winner-crown">
+                        👑
+                        <span>Winner</span>
+                        <div class="winner-mid-name">${esc(winner.title)}</div>
+                    </div>
+
+                    ${winnerMovieCard(loser,loserScore,false)}
+                </div>
+
+                <div class="bx-winner-facts">
+                    <div class="bx-winner-fact">
+                        <span>Winning Margin</span>
+                        <strong>${margin===null?"N/A":money(margin)}</strong>
+                    </div>
+                    <div class="bx-winner-fact">
+                        <span>Category Score</span>
+                        <strong>${winnerScore} - ${loserScore}</strong>
+                    </div>
+                    <div class="bx-winner-fact">
+                        <span>Verdict</span>
+                        <strong>${verdictText}</strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bx-winner-summary">${winnerReason}</div>
+        </section>
+    `;
+}
+
+
+function budgetMultiplier(movie){
+    const budget=Number(movie?.budget_crore);
+    const worldwide=Number(movie?.worldwide_collection_crore);
+
+    if(!Number.isFinite(budget) || budget<=0) return null;
+    if(!Number.isFinite(worldwide) || worldwide<0) return null;
+
+    return worldwide / budget;
+}
+
+
+function theatricalEfficiencyData(movie){
+    const budget=Number(movie?.budget_crore);
+    const worldwide=Number(movie?.worldwide_collection_crore);
+    if(!Number.isFinite(budget) || budget<=0 || !Number.isFinite(worldwide) || worldwide<0) return null;
+    const multiple=worldwide/budget;
+    const grossAboveBudget=worldwide-budget;
+    const roi=((worldwide-budget)/budget)*100;
+    return {budget,worldwide,multiple,grossAboveBudget,roi};
+}
+
+function theatricalEfficiencyWinnerHTML(a,b){
+    const ea=theatricalEfficiencyData(a);
+    const eb=theatricalEfficiencyData(b);
+    const moneyCr=v=>`₹${Number(v).toLocaleString(undefined,{maximumFractionDigits:2})} Cr`;
+    const roiText=v=>`${v>=0?"+":""}${v.toFixed(1)}%`;
+    const width=v=>Math.max(0,Math.min(100,(v+100)/3));
+
+    function card(movie,data,isWinner){
+        if(!data){
+            return `<div class="bx-efficiency-card">
+                <div class="bx-efficiency-name">${esc(movie.title)}</div>
+                <div class="bx-efficiency-stat"><span>Theatrical Efficiency</span><strong>Not enough data</strong></div>
+            </div>`;
+        }
+        return `<div class="bx-efficiency-card ${isWinner?"winner":""}">
+            <div class="bx-efficiency-name">${esc(movie.title)}${isWinner?" 🏆":""}</div>
+            <div class="bx-efficiency-stat"><span>Budget</span><strong>${moneyCr(data.budget)}</strong></div>
+            <div class="bx-efficiency-stat"><span>Worldwide Gross</span><strong>${moneyCr(data.worldwide)}</strong></div>
+            <div class="bx-efficiency-stat"><span>Gross Above Budget</span><strong>${data.grossAboveBudget>=0?"+":""}${moneyCr(data.grossAboveBudget)}</strong></div>
+            <div class="bx-efficiency-stat"><span>Gross / Budget</span><strong>${data.multiple.toFixed(2)}×</strong></div>
+            <div class="bx-efficiency-stat"><span>Theatrical ROI</span><strong class="bx-efficiency-roi">${roiText(data.roi)}</strong></div>
+            <div class="bx-efficiency-bar" aria-hidden="true"><div class="bx-efficiency-fill" style="width:${width(data.roi)}%"></div></div>
+        </div>`;
+    }
+
+    let winner=null, reason="";
+    if(ea && eb){
+        if(Math.abs(ea.roi-eb.roi)<=0.1){
+            reason=`Both movies generated almost the same worldwide gross relative to their reported budgets.`;
+        }else{
+            winner=ea.roi>eb.roi?a:b;
+            const wd=winner.id===a.id?ea:eb;
+            const ld=winner.id===a.id?eb:ea;
+            const loser=winner.id===a.id?b:a;
+            reason=`${esc(winner.title)} is more theatrically efficient: its worldwide gross is ${wd.multiple.toFixed(2)}× its reported budget (${roiText(wd.roi)}) versus ${ld.multiple.toFixed(2)}× (${roiText(ld.roi)}) for ${esc(loser.title)}.`;
+        }
+    }else{
+        reason=`Budget and worldwide gross are required for both movies to decide the Theatrical Efficiency Winner.`;
+    }
+
+    const state=!ea||!eb?"Not Enough Data":winner?`${esc(winner.title)}`:"Too Close";
+    return `<section class="bx-efficiency-result">
+        <div class="bx-efficiency-banner">📊 THEATRICAL EFFICIENCY WINNER: ${state}</div>
+        <div class="bx-efficiency-sub">Measures how strongly each movie's worldwide theatrical gross performed relative to its reported budget.</div>
+        <div class="bx-efficiency-duel">
+            ${card(a,ea,Boolean(winner&&winner.id===a.id))}
+            <div class="bx-efficiency-mid">⚡<span>ROI</span></div>
+            ${card(b,eb,Boolean(winner&&winner.id===b.id))}
+        </div>
+        <div class="bx-efficiency-reason"><strong>Why this result?</strong> ${reason}</div>
+        <div class="bx-efficiency-note">BoxOfficeX Theatrical ROI = (Worldwide Gross − Reported Budget) ÷ Reported Budget × 100. This is a gross-to-budget theatrical efficiency indicator, not producer profit or studio ROI.</div>
+    </section>`;
+}
+
+function commercialPerformanceWinnerHTML(a,b){
+    const verdictA=verdictRank(a.verdict);
+    const verdictB=verdictRank(b.verdict);
+    const multA=budgetMultiplier(a);
+    const multB=budgetMultiplier(b);
+
+    let winner=null;
+    let loser=null;
+    let reason="";
+    let basis="";
+
+    // Verdict is the PRIMARY factor.
+    if(verdictA!==null && verdictB!==null && verdictA!==verdictB){
+        winner=verdictA>verdictB?a:b;
+        loser=winner.id===a.id?b:a;
+        basis="Verdict";
+        reason=`${esc(winner.title)} wins commercially because its verdict (${esc(winner.verdict || "N/A")}) ranks above ${esc(loser.title)} (${esc(loser.verdict || "N/A")}).`;
+    }
+    // Same verdict: budget efficiency breaks the tie.
+    else if(
+        verdictA!==null && verdictB!==null &&
+        verdictA===verdictB &&
+        multA!==null && multB!==null &&
+        Math.abs(multA-multB)>0.01
+    ){
+        winner=multA>multB?a:b;
+        loser=winner.id===a.id?b:a;
+        basis="Same verdict • Budget multiplier tie-break";
+        const wm=winner.id===a.id?multA:multB;
+        const lm=winner.id===a.id?multB:multA;
+        reason=`Both movies have the same verdict, so budget efficiency decides it. ${esc(winner.title)} earned about ${wm.toFixed(2)}× its budget versus ${lm.toFixed(2)}× for ${esc(loser.title)}.`;
+    }
+    // If verdict data is incomplete, use the multiplier when both are available.
+    else if(
+        (verdictA===null || verdictB===null) &&
+        multA!==null && multB!==null &&
+        Math.abs(multA-multB)>0.01
+    ){
+        winner=multA>multB?a:b;
+        loser=winner.id===a.id?b:a;
+        basis="Budget multiplier • Verdict incomplete";
+        const wm=winner.id===a.id?multA:multB;
+        const lm=winner.id===a.id?multB:multA;
+        reason=`Verdict data is incomplete, so budget efficiency is used. ${esc(winner.title)} reached about ${wm.toFixed(2)}× its budget versus ${lm.toFixed(2)}× for ${esc(loser.title)}.`;
+    }
+
+    function card(movie,isWinner){
+        const multiplier=budgetMultiplier(movie);
+        return `
+            <div class="bx-commercial-card ${isWinner?"winner":""}">
+                <img src="${poster(movie)}" alt="${esc(movie.title)} poster" onerror="this.src='${FALLBACK}'">
+                <div>
+                    <div class="bx-commercial-name">${esc(movie.title)}</div>
+                    <div class="bx-commercial-verdict">${esc(movie.verdict || "Verdict N/A")}</div>
+                    <div class="bx-commercial-multiplier">
+                        Budget multiplier:
+                        <strong>${multiplier===null?"N/A":multiplier.toFixed(2)+"×"}</strong>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    if(!winner){
+        return `
+            <section class="bx-commercial-result bx-commercial-tie">
+                <div class="bx-commercial-banner">📈 Commercial Performance Result: Too Close / Not Enough Data</div>
+                <div class="bx-commercial-sub">
+                    Commercial performance prioritizes the movie verdict first, then uses worldwide-gross-to-budget multiplier as a tie-breaker.
+                </div>
+                <div class="bx-commercial-duel">
+                    ${card(a,false)}
+                    <div class="bx-commercial-mid">⚖️<span>Tie</span></div>
+                    ${card(b,false)}
+                </div>
+                <div class="bx-commercial-reason">
+                    The available verdict and budget-efficiency data do not produce a clear commercial winner.
+                </div>
+                <div class="bx-commercial-note">
+                    This is a BoxOfficeX comparison indicator, not a studio profit calculation.
+                </div>
             </section>
         `;
     }
 
-    const winner=s.scoreA>s.scoreB?a:b;
-    const winnerScore=Math.max(s.scoreA,s.scoreB);
-    const loserScore=Math.min(s.scoreA,s.scoreB);
-    const categories=s.scoreA>s.scoreB?s.wonA:s.wonB;
-
     return `
-        <section class="overall-result">
-            <div class="crown">🏆</div>
-            <div class="label2">Overall Box Office Winner</div>
-            <div class="winner-name">${esc(winner.title)}</div>
-            <div class="score">
-                Wins ${winnerScore}-${loserScore} across available India, Overseas, Worldwide and Verdict categories.
-                ${categories.length ? "Won: "+categories.map(esc).join(", ")+".":""}
+        <section class="bx-commercial-result">
+            <div class="bx-commercial-banner">
+                📈 COMMERCIAL PERFORMANCE WINNER: ${esc(winner.title)}
+            </div>
+
+            <div class="bx-commercial-sub">
+                Verdict is the primary factor. Budget multiplier (Worldwide Gross ÷ Budget) is used mainly when verdicts are equal or unavailable.
+            </div>
+
+            <div class="bx-commercial-duel">
+                ${card(winner,true)}
+
+                <div class="bx-commercial-mid">
+                    🏅
+                    <span>${esc(basis)}</span>
+                </div>
+
+                ${card(loser,false)}
+            </div>
+
+            <div class="bx-commercial-reason">${reason}</div>
+
+            <div class="bx-commercial-note">
+                Commercial performance is a BoxOfficeX comparison indicator and should not be read as exact producer/distributor profit.
             </div>
         </section>
     `;
 }
+
 
 function updateComparisonSEO(a,b){
     const title = `${a.title} vs ${b.title} Box Office Comparison | BoxOfficeX`;
@@ -1276,6 +2586,8 @@ ${row("Worldwide Gross",a,b,money,w.worldwide_collection,"worldwide_collection_c
 ${row("Verdict",a,b,text,null,"verdict")}
 </section>
 ${overallWinnerHTML(a,b)}
+${commercialPerformanceWinnerHTML(a,b)}
+${theatricalEfficiencyWinnerHTML(a,b)}
 <section class="fan-zone">
   <h2>🎟️ Fan Zone</h2>
   <div class="fan-actions">
@@ -1288,7 +2600,20 @@ ${overallWinnerHTML(a,b)}
     <button class="vote-btn" data-movie-vote="tie" type="button">Tie</button>
     <button class="vote-btn" data-movie-vote="movie2" type="button">${esc(b.title)}</button>
   </div>
-  <div class="vote-counts" id="comparisonVoteCounts">0 votes</div>
+
+  <div class="bx-movie-vote-result" aria-label="Fan vote percentages">
+    <div class="bx-movie-vote-labels">
+      <span class="left" id="movie1VoteLabel">${esc(a.title)} 0%</span>
+      <span class="tie" id="movieTieVoteLabel">Tie 0%</span>
+      <span class="right" id="movie2VoteLabel">${esc(b.title)} 0%</span>
+    </div>
+    <div class="bx-movie-vote-bar">
+      <div class="bx-movie-vote-segment left" id="movie1VoteBar" style="width:0%"></div>
+      <div class="bx-movie-vote-segment tie" id="movieTieVoteBar" style="width:0%"></div>
+      <div class="bx-movie-vote-segment right" id="movie2VoteBar" style="width:0%"></div>
+    </div>
+    <div class="bx-movie-vote-total" id="comparisonVoteCounts">0 total votes</div>
+  </div>
   <div class="fan-status" id="fanStatus"></div>
 </section>
 <section class="fan-comments">
@@ -1300,10 +2625,18 @@ ${overallWinnerHTML(a,b)}
     <button class="comment-submit" type="submit">Post Comment</button>
   </form>
   <div id="comparisonComments"></div>
+</section>
+<section class="more-movie-comparisons" id="moreMovieComparisons" aria-labelledby="moreMovieComparisonsTitle">
+  <div class="more-movie-head">
+    <div><h2 class="more-movie-title" id="moreMovieComparisonsTitle">🎬 More Movie Comparisons</h2><p class="more-movie-sub">Keep comparing ${esc(a.title)} and ${esc(b.title)} with related movies.</p></div>
+    <a class="more-movie-all" href="/movie-compare-select.html">Choose movies →</a>
+  </div>
+  <div class="more-movie-grid" id="moreMovieComparisonsGrid"><div class="more-movie-empty">Finding related movie comparisons...</div></div>
 </section>`;
 window.currentMovieComparison={a,b};
 loadMovieComparisonEngagement(a.id,b.id);
 loadMovieComparisonComments(a.id,b.id);
+loadMoreMovieComparisons(a,b);
 }catch(e){console.error(e);document.getElementById("app").innerHTML=`<div class="error">${esc(e.message)}<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`}
 }
 
@@ -1324,7 +2657,20 @@ function renderMovieComparisonEngagement(d,aId,bId){
  document.getElementById("comparisonLikeBtn").classList.toggle("active",!!d.liked);
  document.getElementById("comparisonHypeBtn").classList.toggle("active",!!d.hyped);
  const v=d.fan_vote||{},c=v.counts||{},p=v.percentages||{};
- document.getElementById("comparisonVoteCounts").textContent=`${v.total_votes||0} votes • ${p.movie1||0}% / ${p.tie||0}% / ${p.movie2||0}%`;
+ const p1=Number(p.movie1)||0;
+ const pt=Number(p.tie)||0;
+ const p2=Number(p.movie2)||0;
+ const pair=window.currentMovieComparison;
+
+ if(pair){
+  document.getElementById("movie1VoteLabel").textContent=`${pair.a.title} ${p1}%`;
+  document.getElementById("movie2VoteLabel").textContent=`${pair.b.title} ${p2}%`;
+ }
+ document.getElementById("movieTieVoteLabel").textContent=`Tie ${pt}%`;
+ document.getElementById("movie1VoteBar").style.width=p1+"%";
+ document.getElementById("movieTieVoteBar").style.width=pt+"%";
+ document.getElementById("movie2VoteBar").style.width=p2+"%";
+ document.getElementById("comparisonVoteCounts").textContent=`${v.total_votes||0} total votes`;
  document.querySelectorAll("[data-movie-vote]").forEach(x=>x.classList.toggle("active",x.dataset.movieVote===v.my_vote));
 }
 async function loadMovieComparisonEngagement(aId,bId){
@@ -2030,5 +3376,48 @@ document.addEventListener("DOMContentLoaded",()=>{
 </script>
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
+
+<script id="bx-more-movie-comparisons-script">
+async function loadMoreMovieComparisons(a,b){
+ const grid=document.getElementById("moreMovieComparisonsGrid");if(!grid)return;
+ try{
+   const r=await fetch("/movies");
+   const data=await r.json();
+   if(!r.ok)throw new Error("Could not load movies");
+   const movies=Array.isArray(data)?data:(Array.isArray(data.movies)?data.movies:[]);
+   renderMoreMovieComparisons(a,b,movies);
+ }catch(e){
+   console.error("Related movie comparisons:",e);
+   grid.innerHTML='<div class="more-movie-empty">More movie comparisons are temporarily unavailable.</div>';
+ }
+}
+function renderMoreMovieComparisons(a,b,movies){
+ const grid=document.getElementById("moreMovieComparisonsGrid");if(!grid)return;
+ const norm=v=>String(v??"").trim().toLowerCase();
+ const same=(x,y)=>x&&y&&((x.id!=null&&y.id!=null&&String(x.id)===String(y.id))||norm(x.title)===norm(y.title));
+ const year=m=>{const d=String(m?.release_date||"");return /^\d{4}/.test(d)?Number(d.slice(0,4)):0};
+ const candidates=(movies||[]).filter(m=>m&&m.title&&!same(m,a)&&!same(m,b)).map((m,i)=>{
+   let score=0;
+   const langs=[norm(a.language),norm(b.language)].filter(Boolean), inds=[norm(a.industry),norm(b.industry)].filter(Boolean);
+   const genres=[norm(a.genre),norm(b.genre)].filter(Boolean);
+   if(norm(m.language)&&langs.includes(norm(m.language)))score+=40;
+   if(norm(m.industry)&&inds.includes(norm(m.industry)))score+=32;
+   if(norm(m.genre)&&genres.some(g=>g&&norm(m.genre).includes(g)))score+=18;
+   const my=year(m),years=[year(a),year(b)].filter(Boolean);if(my&&years.length){const diff=Math.min(...years.map(y=>Math.abs(y-my)));score+=Math.max(0,10-Math.min(10,diff));}
+   const gross=Number(m.worldwide_collection_crore||m.worldwide_collection||0);if(gross>0)score+=Math.min(12,Math.log10(gross+1)*4);
+   if(m.poster)score+=3;
+   return {m,score,i};
+ }).sort((x,y)=>(y.score-x.score)||(x.i-y.i)).map(x=>x.m);
+ if(!candidates.length){grid.innerHTML='<div class="more-movie-empty">More movie comparisons will appear as more movies are added.</div>';return}
+ const pairs=[],used=new Set();
+ const add=(x,y)=>{if(!x||!y||same(x,y))return;const key=[String(x.id??norm(x.title)),String(y.id??norm(y.title))].sort().join("::");if(used.has(key))return;used.add(key);pairs.push([x,y])};
+ for(let i=0;i<candidates.length&&pairs.length<6;i++)add(i%2===0?a:b,candidates[i]);
+ for(const m of candidates){if(pairs.length>=6)break;add(a,m);if(pairs.length>=6)break;add(b,m)}
+ const safe=v=>{const d=document.createElement("div");d.textContent=String(v??"");return d.innerHTML};
+ const img=m=>(typeof poster==="function"?poster(m):(m.poster||"/posters/default.jpg"));
+ grid.innerHTML=pairs.slice(0,6).map(([x,y])=>`<a class="more-movie-card" href="/movie-compare.html?a=${encodeURIComponent(x.id)}&b=${encodeURIComponent(y.id)}" aria-label="Compare ${safe(x.title)} vs ${safe(y.title)}"><div class="more-movie-pair"><div class="more-movie-person"><img src="${safe(img(x))}" alt="${safe(x.title)}" loading="lazy" onerror="this.onerror=null;this.src='${typeof FALLBACK!=="undefined"?FALLBACK:"/posters/default.jpg"}'"><span class="more-movie-name">${safe(x.title)}</span></div><div class="more-movie-vs">VS</div><div class="more-movie-person"><img src="${safe(img(y))}" alt="${safe(y.title)}" loading="lazy" onerror="this.onerror=null;this.src='${typeof FALLBACK!=="undefined"?FALLBACK:"/posters/default.jpg"}'"><span class="more-movie-name">${safe(y.title)}</span></div></div><div class="more-movie-action">Compare now →</div></a>`).join("");
+}
+</script>
+
 </body>
 </html>
