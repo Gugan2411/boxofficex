@@ -5643,6 +5643,58 @@ document.addEventListener("DOMContentLoaded", function () {
  .bx-smart-ad-card img,.bx-smart-ad-card video{max-height:280px}
  .bx-sponsored-link-thumb{width:54px;height:54px;flex-basis:54px}
 }
+
+/* =========================================================
+   BOXOFFICEX MOBILE DAILY COLLECTION — DAY + DATE STACK
+   Mobile only. Desktop table remains unchanged.
+   ========================================================= */
+@media (max-width:700px){
+
+    /* Daily table: keep DAY visible, hide the separate DATE column. */
+    .bo-detail-table.bo-daily-mobile-stack th:nth-child(2),
+    .bo-detail-table.bo-daily-mobile-stack td:nth-child(2){
+        display:none !important;
+    }
+
+    .bo-detail-table.bo-daily-mobile-stack th:first-child,
+    .bo-detail-table.bo-daily-mobile-stack td:first-child{
+        min-width:118px !important;
+        width:118px !important;
+        max-width:118px !important;
+        white-space:normal !important;
+        vertical-align:middle !important;
+    }
+
+    .bo-mobile-day-label{
+        display:block;
+        color:#111827;
+        font-size:11px;
+        line-height:1.25;
+        font-weight:900;
+        white-space:normal;
+        overflow-wrap:normal;
+        word-break:normal;
+    }
+
+    .bo-mobile-day-label.bo-preview-label{
+        color:#795cff;
+    }
+
+    .bo-mobile-day-date{
+        display:none;
+    }
+
+    .bo-detail-table.bo-daily-mobile-stack .bo-mobile-day-date{
+        display:block;
+        margin-top:4px;
+        color:#667085;
+        font-size:9px;
+        line-height:1.25;
+        font-weight:700;
+        white-space:normal;
+    }
+}
+
 </style>
 
 <script>
@@ -5720,5 +5772,70 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
+
+<script>
+(function(){
+    function stackDailyCollectionDatesOnMobile(){
+        document.querySelectorAll(".bo-detail-table").forEach(function(table){
+            var headers = table.querySelectorAll("thead th");
+            if(headers.length < 2) return;
+
+            var h1 = (headers[0].textContent || "").trim().toUpperCase();
+            var h2 = (headers[1].textContent || "").trim().toUpperCase();
+
+            /* Only DAILY COLLECTIONS has DAY + DATE as its first columns.
+               Weekly totals starts with WEEK + DAYS, so it is untouched. */
+            if(h1 !== "DAY" || h2 !== "DATE") return;
+
+            table.classList.add("bo-daily-mobile-stack");
+
+            table.querySelectorAll("tbody tr").forEach(function(row){
+                var cells = row.children;
+                if(cells.length < 2) return;
+
+                var dayCell = cells[0];
+                var dateCell = cells[1];
+                var dateText = (dateCell.textContent || "").trim();
+                if(!dateText) return;
+
+                /* Avoid duplicate stacking if article content rerenders. */
+                var existing = dayCell.querySelector(".bo-mobile-day-date");
+                if(existing){
+                    existing.textContent = dateText;
+                    return;
+                }
+
+                var originalDay = (dayCell.textContent || "").trim();
+                var isPreview = /preview|premiere/i.test(originalDay);
+
+                dayCell.textContent = "";
+
+                var label = document.createElement("span");
+                label.className = "bo-mobile-day-label" +
+                    (isPreview ? " bo-preview-label" : "");
+                label.textContent = originalDay;
+
+                var date = document.createElement("span");
+                date.className = "bo-mobile-day-date";
+                date.textContent = dateText;
+
+                dayCell.appendChild(label);
+                dayCell.appendChild(date);
+            });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+        stackDailyCollectionDatesOnMobile();
+
+        /* Article blocks are loaded asynchronously. */
+        var observer = new MutationObserver(function(){
+            stackDailyCollectionDatesOnMobile();
+        });
+        observer.observe(document.body, {childList:true, subtree:true});
+    });
+})();
+</script>
+
 </body>
 </html>

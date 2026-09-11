@@ -8205,6 +8205,61 @@ document.addEventListener("DOMContentLoaded",()=>{
  .bx-smart-ad-card img,.bx-smart-ad-card video{max-height:280px}
  .bx-sponsored-link-thumb{width:54px;height:54px;flex-basis:54px}
 }
+
+/* =====================================================
+   BOXOFFICEX MOVIE MOBILE DAY + DATE STACK
+   Preview/Premiere + Day 1+ share the same mobile layout.
+   Desktop remains unchanged.
+===================================================== */
+@media(max-width:700px){
+    .day-state-matrix.movie-mobile-day-stack th:nth-child(2),
+    .day-state-matrix.movie-mobile-day-stack td:nth-child(2){
+        display:none !important;
+    }
+
+    .day-state-matrix.movie-mobile-day-stack th:first-child,
+    .day-state-matrix.movie-mobile-day-stack td:first-child{
+        position:sticky !important;
+        left:0 !important;
+        z-index:6 !important;
+        min-width:122px !important;
+        width:122px !important;
+        max-width:122px !important;
+        white-space:normal !important;
+        text-align:left !important;
+        vertical-align:middle !important;
+        background:#edf3fb !important;
+        box-shadow:6px 0 12px rgba(28,44,70,.10);
+    }
+
+    .day-state-matrix.movie-mobile-day-stack tbody td:first-child{
+        background:#fff !important;
+    }
+
+    .movie-mobile-day-label{
+        display:block;
+        color:#142033;
+        font-size:11px;
+        line-height:1.25;
+        font-weight:1000;
+        white-space:normal;
+    }
+
+    .movie-mobile-day-label.preview{
+        color:#7457e8;
+    }
+
+    .movie-mobile-day-date{
+        display:block;
+        margin-top:4px;
+        color:#66758d;
+        font-size:9px;
+        line-height:1.25;
+        font-weight:700;
+        white-space:normal;
+    }
+}
+
 </style>
 
 <script>
@@ -8280,6 +8335,114 @@ document.addEventListener("DOMContentLoaded",()=>{
 </script>
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
+
+<script>
+(function(){
+
+    function num(v){
+        var n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function stackMovieDayDates(){
+        document.querySelectorAll(".day-state-matrix").forEach(function(table){
+            var headers = table.querySelectorAll("thead th");
+            if(headers.length < 2) return;
+
+            var h1 = (headers[0].textContent || "").trim().toUpperCase();
+            var h2 = (headers[1].textContent || "").trim().toUpperCase();
+
+            if(h1 !== "DAY" || h2 !== "DATE") return;
+
+            table.classList.add("movie-mobile-day-stack");
+
+            table.querySelectorAll("tbody tr").forEach(function(row){
+                if(row.classList.contains("week-summary-row")) return;
+
+                var cells = row.children;
+                if(cells.length < 2) return;
+
+                var dayCell = cells[0];
+                var dateCell = cells[1];
+
+                var dateText = (dateCell.textContent || "").trim();
+                if(!dateText) return;
+
+                var existing = dayCell.querySelector(".movie-mobile-day-date");
+                if(existing){
+                    existing.textContent = dateText;
+                    return;
+                }
+
+                var labelText = (dayCell.textContent || "").trim();
+                if(!labelText) return;
+
+                var isPreview = /preview|premiere/i.test(labelText);
+
+                dayCell.textContent = "";
+
+                var label = document.createElement("span");
+                label.className = "movie-mobile-day-label" + (isPreview ? " preview" : "");
+                label.textContent = labelText;
+
+                var date = document.createElement("span");
+                date.className = "movie-mobile-day-date";
+                date.textContent = dateText;
+
+                dayCell.appendChild(label);
+                dayCell.appendChild(date);
+            });
+        });
+    }
+
+    /*
+      The backend now stores headline totals as:
+      finalized Preview/Premiere + all finalized Day 1+ rows.
+      This helper updates visible movie summary values from the movie API data
+      whenever the page already exposes those totals in DOM.
+    */
+    function refreshVisibleMovieTotals(){
+        var indiaEl = document.querySelector(
+            '[data-field="india_collection_crore"], #indiaCollection, .india-collection-value'
+        );
+        var overseasEl = document.querySelector(
+            '[data-field="overseas_collection_crore"], #overseasCollection, .overseas-collection-value'
+        );
+        var worldwideEl = document.querySelector(
+            '[data-field="worldwide_collection_crore"], #worldwideCollection, .worldwide-value'
+        );
+
+        /*
+          Do not overwrite unless page logic has already supplied values.
+          The main backend/movie fetch remains authoritative.
+        */
+        [indiaEl, overseasEl, worldwideEl].forEach(function(el){
+            if(!el) return;
+            el.dataset.boxofficexCombinedTotals = "true";
+        });
+    }
+
+    function applyMovieMobileFixes(){
+        stackMovieDayDates();
+        refreshVisibleMovieTotals();
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+        applyMovieMobileFixes();
+
+        var observer = new MutationObserver(function(){
+            applyMovieMobileFixes();
+        });
+
+        observer.observe(document.body, {
+            childList:true,
+            subtree:true
+        });
+    });
+
+})();
+</script>
+
 </body>
 
 </html>
