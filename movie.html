@@ -5017,7 +5017,7 @@ html,body{scroll-padding-top:0!important}
 
                 <div class="mobile-scroll-hint" aria-hidden="true">
                     <span>↔</span>
-                    Swipe sideways to view Date &amp; State collections
+                    Swipe sideways to view State collections
                 </div>
 
                 <div class="weekly-card">
@@ -8295,6 +8295,114 @@ document.addEventListener("DOMContentLoaded",()=>{
         line-height:1.25;
         font-weight:700;
         white-space:normal;
+    }
+}
+
+
+/* =====================================================
+   BOXOFFICEX DAY + DATE STACK — ALL SCREEN SIZES
+   Same layout on desktop and mobile.
+===================================================== */
+
+.day-state-matrix.movie-mobile-day-stack th:nth-child(2),
+.day-state-matrix.movie-mobile-day-stack td:nth-child(2){
+    display:none !important;
+}
+
+.day-state-matrix.movie-mobile-day-stack th:first-child,
+.day-state-matrix.movie-mobile-day-stack td:first-child{
+    min-width:150px !important;
+    width:150px !important;
+    max-width:150px !important;
+    white-space:normal !important;
+    text-align:left !important;
+    vertical-align:middle !important;
+}
+
+.movie-mobile-day-label{
+    display:block !important;
+    font-size:12px;
+    line-height:1.25;
+    font-weight:1000;
+    white-space:normal;
+}
+
+.movie-mobile-day-label.preview{
+    color:#7457e8 !important;
+}
+
+.movie-mobile-day-date{
+    display:block !important;
+    margin-top:4px;
+    color:#66758d !important;
+    font-size:10px;
+    line-height:1.25;
+    font-weight:700;
+    white-space:normal;
+}
+
+@media(max-width:700px){
+    .day-state-matrix.movie-mobile-day-stack th:first-child,
+    .day-state-matrix.movie-mobile-day-stack td:first-child{
+        min-width:122px !important;
+        width:122px !important;
+        max-width:122px !important;
+    }
+
+    .movie-mobile-day-label{
+        font-size:11px;
+    }
+
+    .movie-mobile-day-date{
+        font-size:9px;
+    }
+}
+
+
+/* =====================================================
+   BOXOFFICEX MOVIE TABLE SWIPE LOCK
+   DAY stays fixed in day-wise collections.
+   WEEK stays fixed in weekly summary rows.
+===================================================== */
+
+/* DAY column */
+.day-state-matrix.movie-mobile-day-stack th:first-child,
+.day-state-matrix.movie-mobile-day-stack td:first-child{
+    position:sticky !important;
+    left:0 !important;
+    z-index:7 !important;
+    background:#ffffff !important;
+    box-shadow:8px 0 14px rgba(15,23,42,.10) !important;
+}
+
+.day-state-matrix.movie-mobile-day-stack thead th:first-child{
+    z-index:9 !important;
+    background:#eaf1fb !important;
+}
+
+/* WEEK summary first cell remains locked during horizontal swipe */
+.day-state-matrix.movie-mobile-day-stack .week-summary-row td:first-child{
+    position:sticky !important;
+    left:0 !important;
+    z-index:8 !important;
+    background:#dce9fb !important;
+    color:#173f7a !important;
+    box-shadow:8px 0 14px rgba(15,23,42,.10) !important;
+}
+
+/* Keep labels readable */
+.day-state-matrix.movie-mobile-day-stack th:first-child,
+.day-state-matrix.movie-mobile-day-stack td:first-child{
+    text-align:left !important;
+    white-space:normal !important;
+}
+
+@media(max-width:700px){
+    .day-state-matrix.movie-mobile-day-stack th:first-child,
+    .day-state-matrix.movie-mobile-day-stack td:first-child{
+        min-width:122px !important;
+        width:122px !important;
+        max-width:122px !important;
     }
 }
 
