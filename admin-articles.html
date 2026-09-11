@@ -603,6 +603,60 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
     .draft-list-tools{grid-template-columns:1fr}
 }
 
+
+/* =====================================================
+   BOXOFFICEX DRAFT MANAGER
+===================================================== */
+.draft-manager-modal{display:none;position:fixed;inset:0;z-index:5400;padding:18px;background:rgba(0,0,0,.82);overflow:auto}
+.draft-manager-card{width:min(1180px,96vw);margin:3vh auto;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:#0d1422;box-shadow:0 28px 90px rgba(0,0,0,.48);overflow:hidden}
+.draft-manager-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.draft-manager-head h2{font-size:22px}.draft-manager-head p{margin-top:5px;color:#8e99b3;font-size:11px}
+.draft-manager-close{width:36px;height:36px;padding:0;border-radius:50%;background:#29334d;color:white;font-size:20px}
+.draft-manager-tools{display:grid;grid-template-columns:minmax(220px,1fr) 180px 150px auto;gap:9px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.07);background:#101725}
+.draft-manager-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px 20px}
+.dm-stat{padding:12px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:#101725}
+.dm-stat span{display:block;color:#8e99b3;font-size:9px;font-weight:900;text-transform:uppercase}.dm-stat strong{display:block;margin-top:5px;font-size:20px}
+.draft-manager-body{padding:0 20px 22px}
+.dm-group{margin-top:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;background:#0b111d}
+.dm-group-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:#111a2b;border-bottom:1px solid rgba(255,255,255,.07)}
+.dm-group-head strong{font-size:13px}.dm-group-head small{color:#8e99b3;font-size:9px}
+.dm-row{display:grid;grid-template-columns:minmax(260px,1fr) 120px 110px 135px 250px;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.055)}
+.dm-row:last-child{border-bottom:0}.dm-title strong{display:block;font-size:12px}.dm-title small{display:block;margin-top:4px;color:#7f8ba4;font-size:9px}
+.dm-day{color:#d8c3ff;font-size:10px;font-weight:900}.dm-status{font-size:9px;font-weight:900;text-transform:uppercase}
+.dm-status.draft{color:#ffcc33}.dm-status.published{color:#73e2aa}.dm-status.archived{color:#ff7a85}
+.dm-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}.dm-actions button{padding:7px 9px;font-size:9px}
+.dm-empty{padding:30px;text-align:center;color:#77839a;font-size:12px}
+@media(max-width:900px){
+ .draft-manager-tools{grid-template-columns:1fr 1fr}.draft-manager-summary{grid-template-columns:1fr 1fr}
+ .dm-row{grid-template-columns:1fr 90px}.dm-row>*:nth-child(3),.dm-row>*:nth-child(4){display:none}.dm-actions{grid-column:1/-1;justify-content:flex-start}
+}
+@media(max-width:600px){.draft-manager-tools,.draft-manager-summary{grid-template-columns:1fr}.draft-manager-card{width:98vw}.draft-manager-head,.draft-manager-tools,.draft-manager-summary,.draft-manager-body{padding-left:12px;padding-right:12px}}
+
+
+.sidebar-search-wrap{position:relative}
+.sidebar-search-wrap input{padding-right:34px}
+.sidebar-search-clear{
+    position:absolute;
+    right:5px;
+    top:50%;
+    transform:translateY(-50%);
+    width:26px;
+    height:26px;
+    padding:0!important;
+    border-radius:7px;
+    background:#151d31!important;
+    color:#9aa8bf!important;
+    border:1px solid rgba(255,255,255,.08)!important;
+    font-size:15px!important;
+    line-height:1;
+}
+.sidebar-search-clear:hover{color:#fff!important;background:#202b44!important}
+.sidebar-search-result-note{
+    margin:0 0 8px;
+    color:#7f8ba4;
+    font-size:9px;
+}
+
 </style>
 </head>
 <body>
@@ -635,6 +689,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <div><h1>Article Editor</h1><p>Create, arrange, preview and publish BoxOfficeX editorial stories.</p></div>
 <div class="actions">
 <button class="btn btn-dark" id="newBtn">＋ New</button>
+<button class="btn btn-dark" id="draftManagerBtn">📁 Draft Manager</button>
 <button class="btn btn-primary" id="saveBtn">💾 Save</button>
 <button class="btn btn-dark" id="previewBtn">👁 Preview</button>
 <button class="btn btn-dark" id="saveDraftBtn">📝 Save Draft</button>
@@ -653,7 +708,14 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <div class="panel-head"><h2>Articles</h2><span id="countLabel"></span></div>
 <div class="panel-body">
 <div class="draft-list-tools">
-  <input id="articleListSearch" placeholder="Search title / slug...">
+  <div class="sidebar-search-wrap">
+    <input
+      id="articleListSearch"
+      placeholder="Search title, slug, movie, day..."
+      autocomplete="off"
+    >
+    <button type="button" id="articleListSearchClear" class="sidebar-search-clear" title="Clear search">×</button>
+  </div>
   <select id="articleStatusFilter">
     <option value="all">All Articles</option>
     <option value="draft">Drafts</option>
@@ -774,6 +836,36 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 
 <div id="toast" class="toast"></div>
 
+
+
+<div id="draftManagerModal" class="draft-manager-modal">
+  <div class="draft-manager-card">
+    <div class="draft-manager-head">
+      <div>
+        <h2>📁 Draft Manager</h2>
+        <p>Manage normal drafts, generated future-day drafts and published articles from one place.</p>
+      </div>
+      <button type="button" class="draft-manager-close" id="draftManagerClose">×</button>
+    </div>
+    <div class="draft-manager-tools">
+      <input id="dmSearch" placeholder="Search article / slug / movie..." autocomplete="off">
+      <select id="dmType">
+        <option value="all">All Types</option>
+        <option value="normal">Normal Drafts</option>
+        <option value="future">Future Day Drafts</option>
+        <option value="published">Published</option>
+      </select>
+      <select id="dmSort">
+        <option value="day">Sort by Day</option>
+        <option value="newest">Newest First</option>
+        <option value="title">Title A–Z</option>
+      </select>
+      <button type="button" class="btn btn-dark" id="dmRefresh">↻ Refresh</button>
+    </div>
+    <div id="dmSummary" class="draft-manager-summary"></div>
+    <div id="dmBody" class="draft-manager-body"><div class="dm-empty">Loading drafts...</div></div>
+  </div>
+</div>
 
 <div id="reuseArticleModal" class="reuse-modal">
   <div class="reuse-modal-card">
@@ -952,6 +1044,7 @@ const md=await mr.json(),ad=await ar.json();
 articleMovieLookup=Array.isArray(md.movies)?md.movies:[];
 articleActorLookup=Array.isArray(ad.actors)?ad.actors:[];
 renderSelectedArticleLinks();
+if(typeof renderArticleList==="function")renderArticleList();
 }catch(e){console.error("Article link lookup error:",e)}
 }
 
@@ -1846,34 +1939,102 @@ $("countLabel").textContent=articles.length+" total";
 renderArticleList();
 }
 
+function articleIsFutureDraft(a){
+const status=String(a?.status||"draft").toLowerCase();
+
+return Boolean(a?.is_future_draft) || (
+    status==="draft" &&
+    Number.isInteger(Number(a?.tracking_day)) &&
+    Number(a?.tracking_day)>1
+);
+}
+
+function articleSidebarMovieText(a){
+const ids=Array.isArray(a?.movie_ids)
+    ? a.movie_ids
+    : [];
+
+const names=ids
+    .map(id=>movieNameById(id))
+    .filter(Boolean);
+
+return [
+    ...ids.map(String),
+    ...names
+].join(" ");
+}
+
 function renderArticleList(){
-const search=String($("articleListSearch")?.value||"").trim().toLowerCase();
-const filter=String($("articleStatusFilter")?.value||"all").toLowerCase();
+const search=String($("articleListSearch")?.value||"")
+    .trim()
+    .toLowerCase();
+
+const filter=String($("articleStatusFilter")?.value||"all")
+    .toLowerCase();
 
 const rows=(articles||[]).filter(a=>{
-    const text=`${a.title||""} ${a.slug||""} ${a.category||""}`.toLowerCase();
-    if(search && !text.includes(search))return false;
-
-    const status=String(a.status||"draft").toLowerCase();
-    const isFuture=Boolean(a.is_future_draft) || (
-        status==="draft" &&
-        Number.isInteger(Number(a.tracking_day)) &&
-        Number(a.tracking_day)>1
-    );
+    const status=String(a?.status||"draft").toLowerCase();
+    const isFuture=articleIsFutureDraft(a);
 
     if(filter==="draft" && status!=="draft")return false;
     if(filter==="future" && !(status==="draft" && isFuture))return false;
     if(filter==="published" && status!=="published")return false;
     if(filter==="archived" && status!=="archived")return false;
 
-    return true;
+    if(!search)return true;
+
+    const searchableText=[
+        a?.title||"",
+        a?.slug||"",
+        a?.category||"",
+        a?.author||"",
+        status,
+        a?.id ? `article ${a.id}` : "",
+        a?.tracking_day ? `day ${a.tracking_day}` : "",
+        a?.reused_from_article_id ? `reused ${a.reused_from_article_id}` : "",
+        articleSidebarMovieText(a)
+    ]
+    .join(" ")
+    .toLowerCase();
+
+    /*
+    Support multi-word searches:
+    "leo day 3" matches only when every word exists.
+    */
+    const terms=search.split(/\s+/).filter(Boolean);
+    return terms.every(term=>searchableText.includes(term));
 });
 
-$("articleList").innerHTML=rows.length?"":"No matching articles.";
+const list=$("articleList");
+if(!list)return;
+
+list.innerHTML="";
+
+if(search || filter!=="all"){
+    const note=document.createElement("div");
+    note.className="sidebar-search-result-note";
+    note.textContent=`${rows.length} matching article${rows.length===1?"":"s"}`;
+    list.appendChild(note);
+}
+
+if(!rows.length){
+    const empty=document.createElement("div");
+    empty.className="article-item";
+    empty.style.cursor="default";
+    empty.innerHTML="<small>No matching articles.</small>";
+    list.appendChild(empty);
+    return;
+}
 
 rows.forEach(a=>{
     const el=document.createElement("div");
-    el.className="article-item"+(a.id===currentArticleId?" active":"");
+    el.className="article-item"+(
+        Number(a.id)===Number(currentArticleId)
+            ?" active"
+            :""
+    );
+
+    const isFuture=articleIsFutureDraft(a);
 
     const futureTag=isFuture
         ? `<span class="future-draft-tag">FUTURE DAY ${a.tracking_day||""}</span>`
@@ -1881,12 +2042,16 @@ rows.forEach(a=>{
 
     el.innerHTML=`
         <strong>${lookupEsc(a.title||"Untitled")}</strong>
-        <small>${lookupEsc(a.status||"draft")} • ${lookupEsc(a.category||"News")}</small>
+        <small>
+            ${lookupEsc(a.status||"draft")}
+            • ${lookupEsc(a.category||"News")}
+            ${a.tracking_day?` • Day ${Number(a.tracking_day)}`:""}
+        </small>
         ${futureTag}
     `;
 
-    el.onclick=()=>loadArticle(a.id);
-    $("articleList").appendChild(el);
+    el.onclick=()=>loadArticle(Number(a.id));
+    list.appendChild(el);
 });
 }
 
@@ -2354,7 +2519,25 @@ async function createFutureArticleDrafts(){
     }
 }
 
-$("articleListSearch")?.addEventListener("input",renderArticleList);
+const articleListSearchInput=$("articleListSearch");
+
+articleListSearchInput?.addEventListener("input",renderArticleList);
+articleListSearchInput?.addEventListener("search",renderArticleList);
+articleListSearchInput?.addEventListener("keyup",e=>{
+    if(e.key==="Escape"){
+        articleListSearchInput.value="";
+        renderArticleList();
+        articleListSearchInput.blur();
+    }
+});
+
+$("articleListSearchClear")?.addEventListener("click",()=>{
+    if(!articleListSearchInput)return;
+    articleListSearchInput.value="";
+    renderArticleList();
+    articleListSearchInput.focus();
+});
+
 $("articleStatusFilter")?.addEventListener("change",renderArticleList);
 
 $("reuseArticleBtn")?.addEventListener("click",openReuseArticleModal);
@@ -2563,6 +2746,159 @@ function bindBoxOfficeMovieSearch(card,b){
         }
     });
 }
+
+
+/* =====================================================
+   BOXOFFICEX DRAFT MANAGER
+===================================================== */
+function dmIsFuture(a){
+    const status=String(a?.status||"draft").toLowerCase();
+    return Boolean(a?.is_future_draft) || (
+        status==="draft" &&
+        Number.isFinite(Number(a?.tracking_day)) &&
+        Number(a?.tracking_day)>1
+    );
+}
+
+function dmMovieLabel(a){
+    const ids=Array.isArray(a?.movie_ids)?a.movie_ids:[];
+    if(ids.length)return ids.map(movieNameById).join(", ");
+    return "No linked movie";
+}
+
+function openDraftManager(){
+    $("draftManagerModal").style.display="block";
+    renderDraftManager();
+}
+
+function closeDraftManager(){
+    $("draftManagerModal").style.display="none";
+}
+
+function renderDraftManager(){
+    const q=String($("dmSearch")?.value||"").trim().toLowerCase();
+    const type=String($("dmType")?.value||"all");
+    const sort=String($("dmSort")?.value||"day");
+
+    const all=Array.isArray(articles)?[...articles]:[];
+    const normalDrafts=all.filter(a=>String(a.status||"draft").toLowerCase()==="draft"&&!dmIsFuture(a));
+    const futureDrafts=all.filter(a=>String(a.status||"draft").toLowerCase()==="draft"&&dmIsFuture(a));
+    const published=all.filter(a=>String(a.status||"").toLowerCase()==="published");
+
+    $("dmSummary").innerHTML=`
+      <div class="dm-stat"><span>All Articles</span><strong>${all.length}</strong></div>
+      <div class="dm-stat"><span>Saved Drafts</span><strong>${normalDrafts.length}</strong></div>
+      <div class="dm-stat"><span>Future Drafts</span><strong>${futureDrafts.length}</strong></div>
+      <div class="dm-stat"><span>Published</span><strong>${published.length}</strong></div>
+    `;
+
+    let rows=all.filter(a=>{
+        const status=String(a.status||"draft").toLowerCase();
+        const future=dmIsFuture(a);
+        if(type==="normal" && !(status==="draft"&&!future))return false;
+        if(type==="future" && !(status==="draft"&&future))return false;
+        if(type==="published" && status!=="published")return false;
+
+        const hay=[
+            a.title||"",a.slug||"",a.category||"",a.author||"",
+            dmMovieLabel(a),
+            a.tracking_day?`day ${a.tracking_day}`:""
+        ].join(" ").toLowerCase();
+        return !q||hay.includes(q);
+    });
+
+    if(sort==="title"){
+        rows.sort((a,b)=>String(a.title||"").localeCompare(String(b.title||"")));
+    }else if(sort==="newest"){
+        rows.sort((a,b)=>Number(b.id||0)-Number(a.id||0));
+    }else{
+        rows.sort((a,b)=>{
+            const ma=dmMovieLabel(a),mb=dmMovieLabel(b);
+            const movieCmp=ma.localeCompare(mb);
+            if(movieCmp)return movieCmp;
+            return (Number(a.tracking_day)||0)-(Number(b.tracking_day)||0);
+        });
+    }
+
+    if(!rows.length){
+        $("dmBody").innerHTML=`<div class="dm-empty">No matching drafts or articles.</div>`;
+        return;
+    }
+
+    const groups=new Map();
+    rows.forEach(a=>{
+        const future=dmIsFuture(a);
+        const key=future ? `🎬 ${dmMovieLabel(a)}` :
+            (String(a.status||"").toLowerCase()==="published" ? "🌐 Published Articles" : "📝 Saved Drafts");
+        if(!groups.has(key))groups.set(key,[]);
+        groups.get(key).push(a);
+    });
+
+    $("dmBody").innerHTML=[...groups.entries()].map(([name,list])=>`
+      <section class="dm-group">
+        <div class="dm-group-head"><strong>${lookupEsc(name)}</strong><small>${list.length} article${list.length===1?"":"s"}</small></div>
+        ${list.map(a=>{
+            const status=String(a.status||"draft").toLowerCase();
+            const future=dmIsFuture(a);
+            const day=future?`Day ${Number(a.tracking_day)||"?"}`:"—";
+            return `<div class="dm-row">
+              <div class="dm-title">
+                <strong>${lookupEsc(a.title||"Untitled")}</strong>
+                <small>${lookupEsc(a.slug||"")} ${a.reused_from_article_id?`• Reused from #${Number(a.reused_from_article_id)}`:""}</small>
+              </div>
+              <div class="dm-day">${day}</div>
+              <div class="dm-status ${status}">${lookupEsc(status)}</div>
+              <div>${lookupEsc(a.category||"News")}</div>
+              <div class="dm-actions">
+                <button type="button" class="btn btn-dark" onclick="dmOpenArticle(${Number(a.id)})">Open</button>
+                ${status==="draft"?`<button type="button" class="btn btn-green" onclick="dmPublishArticle(${Number(a.id)})">Publish</button>`:""}
+                <button type="button" class="btn btn-red" onclick="dmDeleteArticle(${Number(a.id)})">Delete</button>
+              </div>
+            </div>`;
+        }).join("")}
+      </section>
+    `).join("");
+}
+
+async function dmOpenArticle(id){
+    closeDraftManager();
+    await loadArticle(id);
+}
+
+async function dmPublishArticle(id){
+    try{
+        const r=await fetch(`/admin/articles/${id}/publish`,{method:"POST",credentials:"include"});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.detail||"Publish failed");
+        toast("Article published");
+        await loadArticles();
+        renderDraftManager();
+        if(Number(currentArticleId)===Number(id))await loadArticle(id);
+    }catch(e){toast(e.message)}
+}
+
+async function dmDeleteArticle(id){
+    const a=(articles||[]).find(x=>Number(x.id)===Number(id));
+    if(!confirm(`Delete "${a?.title||"this article"}"?`))return;
+    try{
+        const r=await fetch(`/admin/articles/${id}`,{method:"DELETE",credentials:"include"});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.detail||"Delete failed");
+        if(Number(currentArticleId)===Number(id))resetEditor();
+        toast("Article deleted");
+        await loadArticles();
+        renderDraftManager();
+    }catch(e){toast(e.message)}
+}
+
+$("draftManagerBtn")?.addEventListener("click",openDraftManager);
+$("draftManagerClose")?.addEventListener("click",closeDraftManager);
+$("dmSearch")?.addEventListener("input",renderDraftManager);
+$("dmType")?.addEventListener("change",renderDraftManager);
+$("dmSort")?.addEventListener("change",renderDraftManager);
+$("dmRefresh")?.addEventListener("click",async()=>{await loadArticles();renderDraftManager();});
+$("draftManagerModal")?.addEventListener("click",e=>{if(e.target===$("draftManagerModal"))closeDraftManager();});
+
 
 </script>
 

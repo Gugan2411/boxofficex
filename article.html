@@ -3859,6 +3859,33 @@ html,body{scroll-padding-top:0!important}
   .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
 }
 </style>
+
+<style id="boxofficex-boxoffice-contrast-fix">
+/* BoxOfficeX Box Office Collection Report — stronger public status/number hierarchy */
+.bo-status-live{color:#15803d!important;background:#f0fdf4!important;border-color:#86efac!important}
+.bo-status-live::before{background:#16a34a!important;animation:boLivePulseGreen 1.35s ease-in-out infinite!important}
+.bo-status-estimated-final{color:#a16207!important;background:#fffbeb!important;border-color:#fcd34d!important}
+.bo-status-final-review{color:#1d4ed8!important;background:#eff6ff!important;border-color:#93c5fd!important}
+.bo-status-final{color:#b91c1c!important;background:#fff1f2!important;border-color:#fda4af!important}
+.bo-status-final::before{background:#dc2626!important}
+@keyframes boLivePulseGreen{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(22,163,74,.22)}50%{opacity:.5;box-shadow:0 0 0 4px rgba(22,163,74,0)}}
+
+/* Make collection figures easy to scan on the light article theme. */
+.bo-detail-table td{color:#172033!important;font-weight:700!important}
+.bo-detail-table td:nth-child(n+4){color:#111827!important;font-weight:800!important}
+.bo-detail-table .bo-auto-total{color:#066a4b!important;font-weight:1000!important}
+.bo-weekly-table td{font-weight:800!important}
+.bo-weekly-table td:nth-child(n+3){color:#111827!important}
+.bo-weekly-table .bo-auto-total{color:#065f46!important;font-weight:1000!important}
+.bo-final-grid{gap:10px!important}
+.bo-final-item{background:#f4f7fb!important;border-color:#cfd8e6!important;box-shadow:0 3px 10px rgba(15,23,42,.04)!important}
+.bo-final-item span{color:#475467!important;font-weight:900!important;letter-spacing:.25px!important}
+.bo-final-item strong{color:#101828!important;font-size:15px!important;font-weight:1000!important}
+.bo-final-item.total{background:#eefbf5!important;border-color:#a7e3c9!important}
+.bo-final-item.total strong{color:#05603f!important;font-size:16px!important}
+.bo-subtitle{font-weight:1000!important;letter-spacing:.25px!important}
+@media(max-width:700px){.bo-detail-table td{font-size:10.5px!important}.bo-final-item strong{font-size:14px!important}.bo-final-item.total strong{font-size:15px!important}}
+</style>
 </head>
 
 <body>
@@ -4270,7 +4297,7 @@ return `<div class="boxoffice-block">
 <div class="bo-subtitle">Daily Collections</div>
 <div class="bo-swipe-hint">↔ Swipe to view status and area-wise collections</div>
 <div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Status</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${rows}</tbody></table></div>
-${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
+${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table bo-weekly-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">Final Overall Gross — Automatic</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
 }
 
