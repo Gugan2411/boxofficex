@@ -3394,6 +3394,28 @@ body.bx-bottom-ad-visible{
     }
 }
 
+
+/* =====================================================
+   MOVIE PREVIEW / PREMIERE ROW
+===================================================== */
+.day-state-matrix .preview-collection-row{
+    background:rgba(121,92,255,.08);
+}
+.day-state-matrix .preview-collection-row td{
+    border-bottom-color:rgba(121,92,255,.20);
+}
+.day-state-matrix .preview-label{
+    color:#7457e8;
+    font-weight:1000;
+}
+.day-state-matrix .preview-label small{
+    display:block;
+    margin-top:3px;
+    color:#8b80b8;
+    font-size:9px;
+    font-weight:700;
+}
+
 </style>
 
 
@@ -4573,6 +4595,44 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+<style id="boxofficex-unified-brand-footer">
+/* Unified BoxOfficeX branding and footer — visual styles only */
+.logo,.bx-master-mobile-logo{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.logo .logo-icon,.bx-master-mobile-logo .icon,.bx-unified-brand-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:35px!important;height:35px!important;flex:0 0 35px!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+  box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
+}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.bx-standard-footer{
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
+  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+}
+.bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
+.bx-unified-brand{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+@media(max-width:700px){
+  .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
+  .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
+  .bx-footer-inner{padding:27px 15px calc(84px + env(safe-area-inset-bottom))!important}
+  .bx-unified-brand{font-size:17px!important}.bx-unified-brand-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+  .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
+}
+</style>
 </head>
 
 
@@ -4721,7 +4781,7 @@ html,body{scroll-padding-top:0!important}
 
                     <img
                         id="moviePoster"
-                        src="posters/coming-soon.png"
+                        src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1' y2='1'%3E%3Cstop stop-color='%230f172a'/%3E%3Cstop offset='1' stop-color='%234f46e5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='900' rx='28' fill='url(%23g)'/%3E%3Crect x='50' y='170' width='500' height='450' rx='46' fill='%23ffffff' fill-opacity='.12' stroke='%23ffffff' stroke-opacity='.35'/%3E%3Ctext x='300' y='405' text-anchor='middle' fill='white' font-family='Arial' font-size='76' font-weight='900'%3EMOVIE%3C/text%3E%3Ctext x='300' y='790' text-anchor='middle' font-family='Arial' font-size='32' font-weight='900' fill='white'%3EBOXOFFICE%3Ctspan fill='%23f4b400'%3E X%3C/tspan%3E%3C/text%3E%3C/svg%3E"
                         alt="Movie poster"
                         class="movie-poster"
                     >
@@ -5102,7 +5162,10 @@ html,body{scroll-padding-top:0!important}
 
 <footer class="bx-standard-footer">
   <div class="bx-footer-inner">
-    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <a href="/index.html" class="bx-unified-brand bx-footer-brand" aria-label="BoxOfficeX Home">
+      <span class="bx-unified-brand-icon" aria-hidden="true">🎬</span>
+      <strong>BOXOFFICE<span class="bx-unified-x">X</span></strong>
+    </a>
     <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
     <nav class="bx-footer-links" aria-label="Footer navigation">
       <a href="/about.html">About</a>
@@ -5156,12 +5219,59 @@ html,body{scroll-padding-top:0!important}
 
 <script>
 
-function boxOfficeXMoviePosterUrl(value, absolute = false) {
-    const poster = value == null ? "" : String(value).trim();
+function boxOfficeXPlaceholderHash(value){let result=2166136261;for(const character of String(value||"BOXOFFICEX").toLowerCase()){result^=character.charCodeAt(0);result=Math.imul(result,16777619)}return result>>>0}
+function boxOfficeXPlaceholderXml(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;")}
+function boxOfficeXPlaceholderColors(title){const h=boxOfficeXPlaceholderHash(title),a=h%360,b=(a+38+((h>>>8)%83))%360,c=(b+42+((h>>>20)%67))%360,d=(a+145+((h>>>17)%71))%360;return [`hsl(${a} ${55+((h>>>4)%26)}% 13%)`,`hsl(${b} ${58+((h>>>12)%24)}% 34%)`,`hsl(${c} 66% 20%)`,`hsl(${d} 88% 68%)`]}
+function boxOfficeXMovieLines(title){const value=String(title||"MOVIE").trim().toUpperCase(),parts=[];value.split(/\s+/).filter(Boolean).forEach(word=>{if(word.length<=16)parts.push(word);else for(let i=0;i<word.length;i+=16)parts.push(word.slice(i,i+16))});const lines=[];let current="";parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>16&&current){lines.push(current);current=part}else current=next});if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");if(lines.length>4){const result=lines.slice(0,4);result[3]=result[3].slice(0,14)+"…";return result}return lines}
+function boxOfficeXMoviePlaceholder(movie){
+    const item=typeof movie==="object"&&movie?movie:{title:movie};
+    const title=String(item.title||"Movie").trim()||"Movie";
+    const source=title.toUpperCase();
+    const parts=[];
+    source.split(/\s+/).filter(Boolean).forEach(word=>{
+        if(word.length<=14)parts.push(word);
+        else for(let i=0;i<word.length;i+=14)parts.push(word.slice(i,i+14));
+    });
+    const lines=[];let current="";
+    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>15&&current){lines.push(current);current=part}else current=next});
+    if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,12)+"…"}
+    const longest=Math.max(...lines.map(line=>line.length));
+    const preferred=lines.length===1?(longest<=5?140:longest<=8?112:longest<=11?88:72):lines.length===2?(longest<=10?82:68):lines.length===3?58:46;
+    const size=Math.max(34,Math.min(preferred,Math.floor(450/Math.max(1,longest*.66))));
+    const gap=size+10,start=390-((lines.length-1)*gap/2);
+    const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${boxOfficeXPlaceholderXml(line)}</text>`).join("");
+    const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
+    const language=String(item.language||"").trim().toUpperCase();
+    const meta=[year,language].filter(Boolean).join("  •  ");
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="${boxOfficeXPlaceholderXml(title)} movie placeholder">
+      <defs>
+        <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset=".52" stop-color="#f4f2ed"/><stop offset="1" stop-color="#ebe9e4"/></linearGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .055"/></feComponentTransfer></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9b9b9b" stop-opacity=".25"/><stop offset="1" stop-color="#c8c8c8" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="600" height="900" fill="url(#paper)"/>
+      <rect width="600" height="900" filter="url(#grain)" opacity=".72"/>
+      <g opacity=".22" transform="rotate(24 45 230)"><rect x="-48" y="-55" width="90" height="520" rx="8" fill="url(#fade)"/><path d="M-32-35v480M26-35v480" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <g opacity=".18" transform="rotate(-18 570 720)"><rect x="550" y="505" width="92" height="470" rx="8" fill="url(#fade)"/><path d="M566 520v430M624 520v430" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <circle cx="64" cy="790" r="120" fill="none" stroke="#a8a8a8" stroke-width="24" opacity=".08"/>
+      ${titleSvg}
+      <line x1="115" y1="525" x2="485" y2="525" stroke="#ad1726" stroke-width="5"/>
+      ${meta?`<text x="300" y="575" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="500" letter-spacing="7">${boxOfficeXPlaceholderXml(meta)}</text>`:""}
+      <text x="300" y="846" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">BOXOFFICEX MOVIE PLACEHOLDER</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)
+}
+const BOXOFFICEX_USE_MOVIE_PLACEHOLDERS=true;
+
+function boxOfficeXMoviePosterUrl(movie, absolute = false) {
+    const item=typeof movie==="object"&&movie?movie:{poster:movie,title:"Movie"};
+    const poster = item.poster == null ? "" : String(item.poster).trim();
     let url;
 
-    if (!poster) {
-        url = "/posters/coming-soon.png";
+    if(BOXOFFICEX_USE_MOVIE_PLACEHOLDERS)return absolute?window.location.origin+"/images/boxofficex-share.jpg":boxOfficeXMoviePlaceholder(item);
+    if (!poster || /(?:coming[-_]?soon|default[-_]?movie|default)\.(?:png|jpe?g|webp|avif)(?:[?#].*)?$/i.test(poster)) {
+        return absolute?window.location.origin+"/images/boxofficex-share.jpg":boxOfficeXMoviePlaceholder(item);
     } else if (/^https?:\/\//i.test(poster)) {
         url = poster;
     } else if (poster.startsWith("/")) {
@@ -5611,19 +5721,8 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
             "error",
             function () {
 
-                const defaultPoster =
-                    "posters/coming-soon.png";
-
-                if (
-                    !poster.src.endsWith(
-                        defaultPoster
-                    )
-                ) {
-
-                    poster.src =
-                        defaultPoster;
-
-                }
+                poster.onerror=null;
+                poster.src=boxOfficeXMoviePlaceholder({title:(poster.alt||"Movie").replace(/\s+poster$/i,"")});
 
             }
         );
@@ -6020,30 +6119,72 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
 
     function fetchCollectionBreakdown() {
 
-        return fetch(
-            API_BASE +
-            "/movies/" +
-            encodeURIComponent(movieId) +
-            "/collection-breakdown"
-        )
+        const regularRequest =
+            fetch(
+                API_BASE +
+                "/movies/" +
+                encodeURIComponent(movieId) +
+                "/collection-breakdown"
+            )
+            .then(response => {
 
-        .then(response => {
+                if (!response.ok) {
+                    throw new Error(
+                        "Collection breakdown API returned HTTP " +
+                        response.status
+                    );
+                }
 
-            if (!response.ok) {
+                return response.json();
+            });
 
-                throw new Error(
-                    "Collection breakdown API returned HTTP " +
-                    response.status
+
+        const previewRequest =
+            fetch(
+                API_BASE +
+                "/movies/" +
+                encodeURIComponent(movieId) +
+                "/preview-collections"
+            )
+            .then(response => {
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Preview collection API returned HTTP " +
+                        response.status
+                    );
+                }
+
+                return response.json();
+            })
+            .catch(error => {
+
+                /*
+                 * Preview is optional.
+                 * If no preview endpoint/data is available,
+                 * normal Day 1+ rendering still works.
+                 */
+                console.warn(
+                    "Preview collection unavailable:",
+                    error
                 );
-            }
 
-            return response.json();
-        })
+                return {
+                    previews: []
+                };
+            });
 
-        .then(data => {
+
+        return Promise.all([
+            regularRequest,
+            previewRequest
+        ])
+
+        .then(([regularData, previewData]) => {
 
             renderDayStateBreakdown(
-                data.records || []
+                regularData.records || [],
+                previewData.previews || []
             );
         })
 
@@ -6054,26 +6195,12 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
                 error
             );
 
-            document.getElementById(
-                "dayStateBreakdown"
-            ).innerHTML = `
-                <div class="no-data">
-                    Unable to load day-wise state collections.
-                </div>
-            `;
-
-            document.getElementById(
-                "week1StateTotalsBody"
-            ).innerHTML = `
-                <tr>
-                    <td colspan="2" class="no-data">
-                        Unable to load Week 1 totals.
-                    </td>
-                </tr>
-            `;
+            renderDayStateBreakdown(
+                [],
+                []
+            );
         });
     }
-
 
     function calculateActualDayNumber(collectionDate) {
 
@@ -6115,7 +6242,7 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
     }
 
 
-    function renderDayStateBreakdown(records) {
+    function renderDayStateBreakdown(records, previews = []) {
 
         const body =
             document.getElementById(
@@ -6139,6 +6266,89 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
 
             return;
         }
+
+
+
+        /*
+         * Preview / Premiere is optional and always appears
+         * above Day 1. It never changes regular day numbering.
+         */
+        (previews || []).forEach(preview => {
+
+            const row =
+                document.createElement("tr");
+
+            row.className =
+                "preview-collection-row";
+
+            row.innerHTML = `
+
+                <td class="preview-label">
+                    ${escapeHtmlText(
+                        preview.label ||
+                        "Preview / Premiere"
+                    )}
+                    <small>Before Day 1</small>
+                </td>
+
+                <td>
+                    ${escapeHtmlText(
+                        preview.date || "—"
+                    )}
+                </td>
+
+                <td class="day-value">
+                    ${formatCrore(
+                        Number(preview.tamil_nadu || 0)
+                    )}
+                </td>
+
+                <td class="day-value">
+                    ${formatCrore(
+                        Number(preview.kerala || 0)
+                    )}
+                </td>
+
+                <td class="day-value">
+                    ${formatCrore(
+                        Number(preview.karnataka || 0)
+                    )}
+                </td>
+
+                <td class="day-value">
+                    ${formatCrore(
+                        Number(preview.telugu_states || 0)
+                    )}
+                </td>
+
+                <td class="day-value">
+                    ${formatCrore(
+                        Number(preview.rest_of_india || 0)
+                    )}
+                </td>
+
+                <td class="overall-value">
+                    ${formatCrore(
+                        Number(preview.india || 0)
+                    )}
+                </td>
+
+                <td class="day-value">
+                    ${formatCrore(
+                        Number(preview.overseas || 0)
+                    )}
+                </td>
+
+                <td class="overall-value">
+                    ${formatCrore(
+                        Number(preview.worldwide || 0)
+                    )}
+                </td>
+
+            `;
+
+            body.appendChild(row);
+        });
 
 
         const groupedByDate = {};
@@ -6710,7 +6920,7 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
             "https://boxoffice-x.com/movie.html?id=" +
             encodeURIComponent(movieId);
 
-        const posterUrl = boxOfficeXMoviePosterUrl(movie.poster, true);
+        const posterUrl = boxOfficeXMoviePosterUrl(movie, true);
 
         document.title = title;
 
@@ -6813,13 +7023,8 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
         return div.innerHTML;
     }
 
-    function relatedMoviePoster(value){
-        if(!value)return "/posters/default.jpg";
-        const poster=String(value).trim();
-        if(!poster)return "/posters/default.jpg";
-        if(/^https?:\/\//i.test(poster) || poster.startsWith("/"))return poster;
-        if(poster.startsWith("posters/"))return "/" + poster;
-        return "/posters/" + encodeURIComponent(poster);
+    function relatedMoviePoster(movie){
+        return boxOfficeXMoviePosterUrl(movie);
     }
 
 
@@ -6848,10 +7053,10 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
             link.href=`/movie-compare.html?a=${encodeURIComponent(movieId)}&b=${encodeURIComponent(movie.id)}`;
             link.setAttribute("aria-label",`Compare ${currentTitle} with ${movie.title || "movie"}`);
             link.innerHTML=`
-                <img src="${relatedMoviePoster(movie.poster)}"
-                     alt="${escapeRelatedHTML(movie.title || "Movie")} poster"
+                <img src="${relatedMoviePoster(movie)}"
+                     alt="${escapeRelatedHTML(movie.title || "Movie")}"
                      loading="lazy" decoding="async"
-                     onerror="this.src='/posters/default.jpg';this.onerror=null">
+                     onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})">
                 <div class="bx-movie-compare-copy">
                     <div class="bx-movie-compare-vs">${escapeRelatedHTML(currentTitle)} vs</div>
                     <div class="bx-movie-compare-name">${escapeRelatedHTML(movie.title || "Movie")}</div>
@@ -6899,11 +7104,11 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
                     card.innerHTML=`
                         <img
                             class="related-movie-poster"
-                            src="${relatedMoviePoster(movie.poster)}"
-                            alt="${escapeRelatedHTML(movie.title || "Movie")} poster"
+                            src="${relatedMoviePoster(movie)}"
+                            alt="${escapeRelatedHTML(movie.title || "Movie")}"
                             loading="lazy"
                             decoding="async"
-                            onerror="this.src='/posters/default.jpg';this.onerror=null"
+                            onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"
                         >
                         <div class="related-copy">
                             <div class="related-type">${escapeRelatedHTML(movie.language || movie.genre || "Movie")}</div>
@@ -7171,12 +7376,9 @@ function boxOfficeXMoviePosterUrl(value, absolute = false) {
                    POSTER
                 ===================================== */
 
-                if (
-                    poster &&
-                    movie.poster
-                ) {
+                if (poster) {
 
-                    poster.src = boxOfficeXMoviePosterUrl(movie.poster);
+                    poster.src = boxOfficeXMoviePosterUrl(movie);
 
                     poster.alt =
                         movie.title +

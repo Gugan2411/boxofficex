@@ -322,9 +322,9 @@ textarea{min-height:92px;resize:vertical}
     min-width:1180px;
     display:grid;
     grid-template-columns:
-        92px 150px
+        92px 150px 150px
         repeat(5,120px)
-        125px 120px 135px 84px;
+        125px 120px 135px 150px;
     gap:8px;
     align-items:end;
     padding:10px;
@@ -389,6 +389,220 @@ background:#151d31;color:#e8eef9;font-size:11px;font-weight:900;cursor:pointer
 .article-format-tools button:hover{background:#202b44}
 .article-format-note{margin-top:6px;color:#72809a;font-size:10px;line-height:1.45}
 
+
+/* =====================================================
+   PHASE 2 — ARTICLE REUSE + FUTURE DRAFTS
+===================================================== */
+.reuse-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-reuse{background:#17243a;color:#9fc0ff;border:1px solid rgba(77,141,255,.28)}
+.btn-future{background:#2a2140;color:#d8c3ff;border:1px solid rgba(121,92,255,.32)}
+.reuse-modal{display:none;position:fixed;inset:0;z-index:5200;padding:20px;background:rgba(0,0,0,.78);overflow:auto}
+.reuse-modal-card{max-width:520px;margin:9vh auto;padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#101725;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.reuse-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.reuse-modal-head h2{font-size:20px}.reuse-modal-head p{margin-top:5px;color:#8e99b3;font-size:11px}
+.reuse-close{width:34px;height:34px;padding:0;border-radius:50%;background:#29334d;color:#fff;font-size:19px}
+.reuse-current{padding:11px 12px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:#0a101c;color:#cfe0ff;font-size:11px;line-height:1.5}
+.reuse-grid{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:end;margin-top:14px}
+.reuse-grid button{min-height:39px}
+.reuse-note{margin-top:12px;color:#78859e;font-size:10px;line-height:1.55}
+@media(max-width:650px){.reuse-actions{width:100%}.reuse-actions button{flex:1}.reuse-grid{grid-template-columns:1fr}}
+
+
+/* =====================================================
+   PHASE 3 — DRAFT STATUS + LIVE TRACKING CONTROL
+===================================================== */
+.live-track-panel{margin-top:18px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0c1220}
+.live-track-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.live-track-head h3{font-size:15px}.live-track-head small{color:#8e99b3}
+.live-track-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.live-track-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.live-status{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:900}
+.live-status.live{background:rgba(255,70,85,.12);color:#ff7a85}
+.live-status.estimated_final{background:rgba(255,204,51,.12);color:#ffcc33}
+.live-status.final_review{background:rgba(77,141,255,.12);color:#9fc0ff}
+.live-status.final{background:rgba(58,196,125,.12);color:#73e2aa}
+@media(max-width:900px){.live-track-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.live-track-grid{grid-template-columns:1fr}.live-track-actions button{flex:1}}
+
+
+.bo-movie-search-wrap{position:relative}
+.bo-movie-search-results{
+display:none;position:absolute;left:0;right:0;top:100%;z-index:1800;
+max-height:260px;overflow:auto;margin-top:5px;border:1px solid rgba(255,255,255,.1);
+border-radius:11px;background:#0a101c;box-shadow:0 18px 45px rgba(0,0,0,.4)
+}
+.bo-movie-search-option{
+display:flex;justify-content:space-between;gap:10px;padding:10px 11px;
+border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer
+}
+.bo-movie-search-option:last-child{border-bottom:0}
+.bo-movie-search-option:hover{background:rgba(77,141,255,.09)}
+.bo-movie-search-option strong{font-size:11px;color:#dce8ff}
+.bo-movie-search-option small{display:block;margin-top:3px;color:#7e8aa3;font-size:9px}
+
+
+/* =====================================================
+   BOX OFFICE DAY STATUS — INTEGRATED
+===================================================== */
+.bo-day-status select{background:#111a2b;font-weight:900}
+.bo-day-status-live select{color:#ff7a85}
+.bo-day-status-estimated select{color:#ffcc33}
+.bo-day-status-review select{color:#9fc0ff}
+.bo-day-status-final select{color:#73e2aa}
+.bo-finalize-day{
+height:36px;padding:0 9px!important;background:#143322!important;
+color:#7de2bb!important;border:1px solid #2e6b4f!important
+}
+.bo-finalize-day[disabled]{opacity:.45;cursor:not-allowed}
+.bo-day-tracking-note{margin-top:4px;color:#77839a;font-size:8px;line-height:1.35}
+
+
+/* PHASE 6 — DAILY COLLECTIONS AS DAY COLUMNS */
+.bo-days-table{display:flex!important;gap:12px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:4px 2px 12px!important;border:0!important;background:transparent!important;scroll-snap-type:x proximity}
+.bo-day-row{min-width:255px!important;width:255px!important;display:flex!important;flex-direction:column!important;gap:9px!important;align-items:stretch!important;padding:13px!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:14px!important;background:#0f1625!important;scroll-snap-align:start}
+.bo-day-row:last-child{border-bottom:1px solid rgba(255,255,255,.08)!important}
+.bo-day-name{padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.07)}
+.bo-day-name strong{font-size:15px!important;color:#ffcc33!important}
+.bo-day-name small{font-size:10px!important;margin-top:4px!important}
+.bo-day-row label{font-size:9px!important}
+.bo-day-row input,.bo-day-row select{width:100%!important;min-width:0!important}
+.bo-day-auto input{background:#131d30!important;color:#7de2bb!important;font-weight:900!important}
+.bo-finalize-day{width:100%!important;height:auto!important;min-height:38px!important;margin-top:2px;padding:9px 10px!important}
+.bo-final-sync-hint{margin-top:6px;padding:8px 9px;border:1px dashed rgba(58,196,125,.28);border-radius:9px;background:rgba(58,196,125,.05);color:#8acfae;font-size:9px;line-height:1.45;text-align:center}
+.bo-day-actions{display:grid;gap:7px}
+.bo-day-remove{width:100%;height:34px!important}
+.bo-day-tracking-note{margin-top:4px;color:#77839a;font-size:8px;line-height:1.35}
+@media(max-width:650px){.bo-day-row{min-width:82vw!important;width:82vw!important}}
+
+
+/* =====================================================
+   PHASE 8 — ROW-WISE DAILY COLLECTION TABLE
+===================================================== */
+.bo-days-table{
+    display:block!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border:1px solid rgba(255,255,255,.08)!important;
+    border-radius:12px!important;
+    background:#0f1625!important;
+    padding:0!important;
+}
+.bo-day-row{
+    min-width:1320px!important;
+    width:auto!important;
+    display:grid!important;
+    grid-template-columns:
+        130px
+        150px
+        150px
+        repeat(5,115px)
+        120px
+        115px
+        125px
+        165px!important;
+    gap:8px!important;
+    align-items:end!important;
+    padding:10px!important;
+    border:0!important;
+    border-bottom:1px solid rgba(255,255,255,.06)!important;
+    border-radius:0!important;
+    background:transparent!important;
+}
+.bo-day-row:last-child{
+    border-bottom:0!important;
+}
+.bo-day-name{
+    align-self:center;
+    padding:0!important;
+    border:0!important;
+}
+.bo-day-name strong{
+    display:block;
+    font-size:12px!important;
+    color:#ffcc33!important;
+}
+.bo-day-name small{
+    display:block;
+    margin-top:3px!important;
+    font-size:9px!important;
+    color:#8e99b3!important;
+}
+.bo-day-tracking-note{
+    margin-top:3px!important;
+    font-size:8px!important;
+    line-height:1.25!important;
+}
+.bo-day-row label{
+    font-size:8px!important;
+    white-space:nowrap;
+}
+.bo-day-row input,
+.bo-day-row select{
+    width:100%!important;
+    min-width:0!important;
+}
+.bo-day-actions{
+    display:flex!important;
+    gap:6px!important;
+    align-items:flex-end!important;
+}
+.bo-finalize-day{
+    width:auto!important;
+    min-height:36px!important;
+    height:36px!important;
+    padding:0 9px!important;
+    white-space:nowrap;
+}
+.bo-day-remove{
+    width:auto!important;
+    height:36px!important;
+    padding:0 8px!important;
+}
+.bo-final-sync-hint{
+    display:none!important;
+}
+.bo-preview-row{
+    background:rgba(121,92,255,.055)!important;
+}
+.bo-preview-row .bo-day-name strong{
+    color:#d8c3ff!important;
+}
+.bo-days-table::-webkit-scrollbar{height:13px}
+.bo-days-table::-webkit-scrollbar-track{background:#0a101c;border-radius:10px}
+.bo-days-table::-webkit-scrollbar-thumb{background:#5f7195;border:3px solid #0a101c;border-radius:10px}
+@media(max-width:650px){
+    .bo-days-table{
+        margin-left:-2px!important;
+        margin-right:-2px!important;
+    }
+}
+
+
+/* COMPLETE TEST — ARTICLE LIST SEARCH + DRAFT FILTERS */
+.draft-list-tools{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 130px;
+    gap:8px;
+    margin-bottom:11px;
+}
+.draft-list-tools input,.draft-list-tools select{
+    padding:9px 10px;
+    font-size:10px;
+}
+.article-item .future-draft-tag{
+    display:inline-block;
+    margin-top:5px;
+    padding:3px 6px;
+    border-radius:999px;
+    background:rgba(121,92,255,.13);
+    color:#d8c3ff;
+    font-size:8px;
+    font-weight:900;
+}
+@media(max-width:650px){
+    .draft-list-tools{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -423,15 +637,33 @@ background:#151d31;color:#e8eef9;font-size:11px;font-weight:900;cursor:pointer
 <button class="btn btn-dark" id="newBtn">＋ New</button>
 <button class="btn btn-primary" id="saveBtn">💾 Save</button>
 <button class="btn btn-dark" id="previewBtn">👁 Preview</button>
+<button class="btn btn-dark" id="saveDraftBtn">📝 Save Draft</button>
 <button class="btn btn-green" id="publishBtn">Publish</button>
+<button class="btn btn-dark" id="moveToDraftBtn">↩ Move to Draft</button>
 <button class="btn btn-red" id="deleteBtn">Delete</button>
+<div class="reuse-actions">
+<button type="button" class="btn btn-reuse" id="reuseArticleBtn">♻ Reuse</button>
+<button type="button" class="btn btn-future" id="futureDraftsBtn">🗓 Future Drafts</button>
+</div>
 </div>
 </div>
 
 <div class="layout">
 <section class="panel">
 <div class="panel-head"><h2>Articles</h2><span id="countLabel"></span></div>
-<div class="panel-body"><div id="articleList" class="article-list">Loading...</div></div>
+<div class="panel-body">
+<div class="draft-list-tools">
+  <input id="articleListSearch" placeholder="Search title / slug...">
+  <select id="articleStatusFilter">
+    <option value="all">All Articles</option>
+    <option value="draft">Drafts</option>
+    <option value="future">Future Drafts</option>
+    <option value="published">Published</option>
+    <option value="archived">Archived</option>
+  </select>
+</div>
+<div id="articleList" class="article-list">Loading...</div>
+</div>
 </section>
 
 <section class="panel">
@@ -517,6 +749,7 @@ background:#151d31;color:#e8eef9;font-size:11px;font-weight:900;cursor:pointer
 </div>
 </div>
 
+
 <div class="blocks-head">
 <h2>Content Blocks</h2>
 <div class="block-add">
@@ -540,6 +773,49 @@ background:#151d31;color:#e8eef9;font-size:11px;font-weight:900;cursor:pointer
 </main>
 
 <div id="toast" class="toast"></div>
+
+
+<div id="reuseArticleModal" class="reuse-modal">
+  <div class="reuse-modal-card">
+    <div class="reuse-modal-head">
+      <div>
+        <h2>Reuse Article</h2>
+        <p>Create a new independent draft from the selected article.</p>
+      </div>
+      <button type="button" class="reuse-close" id="reuseModalClose">×</button>
+    </div>
+    <div id="reuseCurrentArticle" class="reuse-current">Select an article first.</div>
+    <div class="reuse-grid">
+      <div>
+        <label>Target Day</label>
+        <input id="reuseTargetDay" type="number" min="1" step="1" value="2">
+      </div>
+      <button type="button" class="btn btn-primary" id="reuseCreateBtn">Create Draft</button>
+    </div>
+    <div class="reuse-note">The backend copies the article structure and links, creates a separate Draft, and does not rewrite collection amounts inside copied content.</div>
+  </div>
+</div>
+
+<div id="futureDraftModal" class="reuse-modal">
+  <div class="reuse-modal-card">
+    <div class="reuse-modal-head">
+      <div>
+        <h2>Create Future Drafts</h2>
+        <p>Generate Day 2, Day 3, Day 4… up to any day you choose.</p>
+      </div>
+      <button type="button" class="reuse-close" id="futureModalClose">×</button>
+    </div>
+    <div id="futureCurrentArticle" class="reuse-current">Select an article first.</div>
+    <div class="reuse-grid">
+      <div>
+        <label>Create drafts through Day</label>
+        <input id="futureThroughDay" type="number" min="2" step="1" value="7">
+      </div>
+      <button type="button" class="btn btn-primary" id="futureCreateBtn">Generate Drafts</button>
+    </div>
+    <div class="reuse-note">There is no fixed seven-day limit. Enter 5, 10, 20 or any later day required for that movie.</div>
+  </div>
+</div>
 
 <script>
 let currentArticleId=null;
@@ -842,7 +1118,26 @@ function updateExtra(i,key,val){blocks[i].extra_data=blocks[i].extra_data||{};bl
 function makeBoxOfficeDay(number){
 return {
 number:number,
+type:"REGULAR",
+label:"",
 date:"",
+status:"LIVE",
+tamil_nadu:null,
+kerala:null,
+karnataka:null,
+telugu_states:null,
+rest_of_india:null,
+overseas:null
+};
+}
+
+function makePreviewCollection(){
+return {
+number:null,
+type:"PREVIEW",
+label:"Preview / Premiere",
+date:"",
+status:"LIVE",
 tamil_nadu:null,
 kerala:null,
 karnataka:null,
@@ -863,6 +1158,83 @@ return boNum(p?.tamil_nadu)+boNum(p?.kerala)+boNum(p?.karnataka)+boNum(p?.telugu
 
 function boWorldwide(p){
 return boIndia(p)+boNum(p?.overseas);
+}
+
+
+function addDaysISO(dateValue,daysToAdd){
+if(!dateValue)return "";
+const d=new Date(dateValue+"T00:00:00");
+if(Number.isNaN(d.getTime()))return "";
+d.setDate(d.getDate()+Number(daysToAdd||0));
+const y=d.getFullYear();
+const m=String(d.getMonth()+1).padStart(2,"0");
+const day=String(d.getDate()).padStart(2,"0");
+return `${y}-${m}-${day}`;
+}
+
+function expectedBoxOfficeDayDate(movieId,dayNumber){
+const releaseDate=movieReleaseDateById(movieId);
+if(!releaseDate)return "";
+return addDaysISO(releaseDate,Number(dayNumber||1)-1);
+}
+
+function renumberRegularDays(days){
+let regularNumber=1;
+(days||[]).forEach(day=>{
+if(String(day.type||"REGULAR").toUpperCase()==="REGULAR"){
+day.number=regularNumber++;
+}else{
+day.number=null;
+}
+});
+}
+
+function applyAutomaticBoxOfficeDates(extra){
+extra=extra||{};
+const movieId=Number(extra.movie_id);
+if(!Number.isInteger(movieId)||movieId<1)return extra;
+const releaseDate=movieReleaseDateById(movieId);
+if(!releaseDate)return extra;
+let regularOffset=0;
+(extra.days||[]).forEach(day=>{
+if(String(day.type||"REGULAR").toUpperCase()==="PREVIEW"){
+return;
+}
+if(!day.date)day.date=addDaysISO(releaseDate,regularOffset);
+regularOffset+=1;
+});
+return extra;
+}
+
+
+function boxOfficeStatusByISTDate(dateValue,currentStatus){
+const status=String(currentStatus||"LIVE").toUpperCase();
+if(status!=="LIVE" || !dateValue)return status;
+
+/*
+06:00 IST = 00:30 UTC.
+Build the next-day rollover moment explicitly so browser timezone
+does not change BoxOfficeX tracking behavior.
+*/
+const parts=String(dateValue).split("-").map(Number);
+if(parts.length!==3 || parts.some(x=>!Number.isFinite(x)))return status;
+
+const [y,m,d]=parts;
+const rolloverUTC=Date.UTC(y,m-1,d+1,0,30,0,0);
+
+return Date.now()>=rolloverUTC
+    ?"ESTIMATED_FINAL"
+    :"LIVE";
+}
+
+function applyAutomaticTrackingStatuses(extra){
+(extra?.days||[]).forEach(day=>{
+    day.status=boxOfficeStatusByISTDate(
+        day.date,
+        day.status
+    );
+});
+return extra;
 }
 
 function boDateLabel(dateValue){
@@ -888,19 +1260,29 @@ if(e.india!=null)first.rest_of_india=Number(e.india)||null;
 if(e.overseas!=null)first.overseas=Number(e.overseas)||null;
 e.days=[first];
 }
-e.days.forEach((d,i)=>{d.number=i+1});
+e.days.forEach(d=>{
+if(!d.type)d.type="REGULAR";
+if(!d.status)d.status="LIVE";
+if(d.label===undefined)d.label="";
+});
+renumberRegularDays(e.days);
 if(e.budget===undefined)e.budget=null;
 if(e.verdict===undefined)e.verdict="";
 if((e.movie_id===undefined || e.movie_id===null || e.movie_id==="") && selectedMovieLinkIds.length===1){
 e.movie_id=Number(selectedMovieLinkIds[0]);
 }
+applyAutomaticBoxOfficeDates(e);
+applyAutomaticTrackingStatuses(e);
 return e;
 }
 
 function weeklyTotalsFromDays(days){
 const weeks=[];
-for(let start=0;start<days.length;start+=7){
-const slice=days.slice(start,start+7);
+const regularDays=(days||[]).filter(
+d=>String(d.type||"REGULAR").toUpperCase()==="REGULAR"
+);
+for(let start=0;start<regularDays.length;start+=7){
+const slice=regularDays.slice(start,start+7);
 const total={
 week:Math.floor(start/7)+1,
 from_day:start+1,
@@ -930,42 +1312,95 @@ return weeks;
 function boDayHTML(p,index){
 const india=boIndia(p);
 const worldwide=boWorldwide(p);
+const status=String(p.status||"LIVE").toUpperCase();
+const type=String(p.type||"REGULAR").toUpperCase();
+const isPreview=type==="PREVIEW";
+const title=isPreview
+    ? (p.label||"Preview / Premiere")
+    : `Day ${Number(p.number||1)}`;
+
+const statusClass=
+status==="FINAL"?"bo-day-status-final":
+status==="ESTIMATED_FINAL"?"bo-day-status-estimated":
+status==="FINAL_REVIEW"?"bo-day-status-review":
+"bo-day-status-live";
+
 return `
-<div class="bo-day-row">
-<div class="bo-day-name">
-<strong>Day ${index+1}</strong>
-<small data-bo-date-label="${index}">${lookupEsc(boDateLabel(p.date))}</small>
-</div>
+<div class="bo-day-row ${isPreview?"bo-preview-row":""}">
+    <div class="bo-day-name">
+        <strong>${lookupEsc(title)}</strong>
+        <small data-bo-date-label="${index}">
+            ${lookupEsc(boDateLabel(p.date))}
+        </small>
+        <div class="bo-day-tracking-note">
+            ${isPreview
+                ?"Preview does not affect Day 1 numbering"
+                :"6 AM → next day 6 AM IST"}
+        </div>
+    </div>
 
-<div>
-<label>Date</label>
-<input type="date" data-bo-index="${index}" data-bo-field="date" value="${p.date||""}">
-</div>
+    <div>
+        <label>${isPreview?"Preview Date":"Date"}</label>
+        <input
+            type="date"
+            data-bo-index="${index}"
+            data-bo-field="date"
+            value="${p.date||""}"
+        >
+    </div>
 
-<div><label>Tamil Nadu</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="tamil_nadu" value="${p.tamil_nadu??""}"></div>
-<div><label>Kerala</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="kerala" value="${p.kerala??""}"></div>
-<div><label>Karnataka</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="karnataka" value="${p.karnataka??""}"></div>
-<div><label>Telugu States</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="telugu_states" value="${p.telugu_states??""}"></div>
-<div><label>Rest of India</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="rest_of_india" value="${p.rest_of_india??""}"></div>
+    <div class="bo-day-status ${statusClass}">
+        <label>Status</label>
+        <select data-bo-index="${index}" data-bo-field="status">
+            <option value="LIVE" ${status==="LIVE"?"selected":""}>LIVE</option>
+            <option value="ESTIMATED_FINAL" ${status==="ESTIMATED_FINAL"?"selected":""}>ESTIMATED FINAL</option>
+            <option value="FINAL_REVIEW" ${status==="FINAL_REVIEW"?"selected":""}>FINAL REVIEW</option>
+            <option value="FINAL" ${status==="FINAL"?"selected":""}>FINAL</option>
+        </select>
+    </div>
 
-<div class="bo-day-auto">
-<label>India Gross</label>
-<input data-bo-india="${index}" readonly value="${india.toFixed(2)}">
-</div>
+    <div><label>Tamil Nadu</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="tamil_nadu" value="${p.tamil_nadu??""}"></div>
+    <div><label>Kerala</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="kerala" value="${p.kerala??""}"></div>
+    <div><label>Karnataka</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="karnataka" value="${p.karnataka??""}"></div>
+    <div><label>Telugu States</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="telugu_states" value="${p.telugu_states??""}"></div>
+    <div><label>Rest of India</label><input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="rest_of_india" value="${p.rest_of_india??""}"></div>
 
-<div>
-<label>Overseas</label>
-<input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="overseas" value="${p.overseas??""}">
-</div>
+    <div class="bo-day-auto">
+        <label>India</label>
+        <input data-bo-india="${index}" readonly value="${india.toFixed(2)}">
+    </div>
 
-<div class="bo-day-auto">
-<label>Worldwide</label>
-<input data-bo-worldwide="${index}" readonly value="${worldwide.toFixed(2)}">
-</div>
+    <div>
+        <label>Overseas</label>
+        <input type="number" step="0.01" min="0" data-bo-index="${index}" data-bo-field="overseas" value="${p.overseas??""}">
+    </div>
 
-<div>
-${index>0?`<button type="button" class="bo-small-btn bo-remove bo-day-remove" data-bo-remove-day="${index}">✕</button>`:""}
-</div>
+    <div class="bo-day-auto">
+        <label>Worldwide</label>
+        <input data-bo-worldwide="${index}" readonly value="${worldwide.toFixed(2)}">
+    </div>
+
+    <div class="bo-day-actions">
+        <button
+            type="button"
+            class="bo-small-btn bo-finalize-day"
+            data-bo-finalize-day="${index}"
+            ${status==="FINAL"?"":"disabled"}
+            title="${isPreview
+                ?"Sync Preview/Premiere above Day 1 on movie.html"
+                :`Sync Day ${p.number||1} to movie.html`}"
+        >
+            ${isPreview
+                ?"✓ Sync Preview"
+                :`✓ Sync Day ${p.number||1}`}
+        </button>
+
+        <button
+            type="button"
+            class="bo-small-btn bo-remove bo-day-remove"
+            data-bo-remove-day="${index}"
+        >✕</button>
+    </div>
 </div>`;
 }
 
@@ -1053,11 +1488,18 @@ return `
 <div class="bo-tracker">
 <div class="bo-top">
 <div>
-<label>Linked Movie — Sync Target</label>
-<select data-bo-root="movie_id">
-<option value="">Select linked movie</option>
-${selectedMovieLinkIds.map(id=>`<option value="${id}" ${Number(e.movie_id)===Number(id)?"selected":""}>${lookupEsc(movieNameById(id))} • ID ${id}</option>`).join("")}
-</select>
+<label>Linked Movie — Final Sync Target</label>
+<div class="bo-movie-search-wrap">
+<input
+  type="text"
+  data-bo-movie-search
+  autocomplete="off"
+  placeholder="Search 3500+ movies..."
+  value="${e.movie_id ? lookupEsc(movieNameById(e.movie_id)) : ""}"
+>
+<input type="hidden" data-bo-root="movie_id" value="${e.movie_id??""}">
+<div class="bo-movie-search-results" data-bo-movie-results></div>
+</div>
 <div class="bo-movie-release" data-bo-release-info>
 <strong>Release Date:</strong>
 ${e.movie_id ? lookupEsc(movieReleaseLabelById(e.movie_id)) : "Select a linked movie"}
@@ -1074,6 +1516,7 @@ ${e.movie_id && movieReleaseDateById(e.movie_id) ? `<button type="button" class=
 ${e.days.map((p,j)=>boDayHTML(p,j)).join("")}
 </div>
 <div class="bo-actions">
+<button type="button" class="bo-small-btn" data-bo-add-preview>＋ Add Preview / Premiere</button>
 <button type="button" class="bo-small-btn" data-bo-add-day>＋ Add Next Day</button>
 </div>
 </div>
@@ -1089,7 +1532,7 @@ ${boWeeklySummaryHTML(e.days)}
 ${boFinalSummaryHTML(e.days)}
 </div>
 
-<div class="note">Week 1 = Day 1–7, Week 2 = Day 8–14, Week 3 = Day 15–21, and so on. Final overall state totals, India Gross, Overseas Gross and Worldwide Gross are all calculated automatically from the daily entries.</div>
+<div class="note">Preview/Premiere is optional and always stays above Day 1. It never changes normal numbering. Day 1 = official release date, Day 2 = next date, Day 3 = following date. LIVE and Estimated numbers remain inside the article. Only FINAL rows can be synced to movie.html.</div>
 </div>`;
 }
 
@@ -1241,24 +1684,16 @@ updateExtra(i,k,v);
 });
 
 if(b.block_type==="boxoffice"){
+bindBoxOfficeMovieSearch(card,b);
 card.querySelectorAll("[data-bo-root]").forEach(el=>{
-el.oninput=()=>{
 const k=el.dataset.boRoot;
-if(k==="budget" || k==="movie_id"){
+
+/* movie_id is controlled by the searchable picker */
+if(k==="movie_id")return;
+
+el.oninput=()=>{
+if(k==="budget"){
 b.extra_data[k]=el.value===""?null:Number(el.value);
-if(k==="movie_id"){
-const releaseDate=movieReleaseDateById(b.extra_data.movie_id);
-if(releaseDate){
-if(!b.extra_data.days.length){
-b.extra_data.days.push(makeBoxOfficeDay(1));
-}
-if(!b.extra_data.days[0].date){
-b.extra_data.days[0].date=releaseDate;
-}
-}
-renderBlocks();
-return;
-}
 }else{
 b.extra_data[k]=el.value;
 }
@@ -1266,17 +1701,52 @@ b.extra_data[k]=el.value;
 });
 
 card.querySelectorAll("[data-bo-field]").forEach(el=>{
-el.oninput=()=>{
+const handler=()=>{
 const idx=Number(el.dataset.boIndex);
 const field=el.dataset.boField;
 if(!b.extra_data.days[idx])return;
+
 let value=el.value;
 if(["tamil_nadu","kerala","karnataka","telugu_states","rest_of_india","overseas"].includes(field)){
 value=value===""?null:Number(value);
 }
+
 b.extra_data.days[idx][field]=value;
+
+if(field==="type"){
+if(value==="PREVIEW"){
+b.extra_data.days[idx].number=null;
+if(!b.extra_data.days[idx].label){
+b.extra_data.days[idx].label="Preview / Premiere";
+}
+
+/* Keep preview above all regular days. */
+const previewItem=b.extra_data.days[idx];
+const regularItems=b.extra_data.days.filter((_,n)=>n!==idx);
+b.extra_data.days=[
+    previewItem,
+    ...regularItems
+];
+}else{
+b.extra_data.days[idx].label="";
+}
+
+renumberRegularDays(b.extra_data.days);
+applyAutomaticBoxOfficeDates(b.extra_data);
+renderBlocks();
+return;
+}
+
+if(field==="status"){
+renderBlocks();
+return;
+}
+
 refreshBoxOfficeDerived(card,b);
 };
+
+el.oninput=handler;
+el.onchange=handler;
 });
 
 const useRelease=card.querySelector("[data-bo-use-release]");
@@ -1290,12 +1760,45 @@ if(!b.extra_data.days.length){
 b.extra_data.days.push(makeBoxOfficeDay(1));
 }
 b.extra_data.days[0].date=releaseDate;
+applyAutomaticBoxOfficeDates(b.extra_data);
+renderBlocks();
+};
+
+const addPreview=card.querySelector("[data-bo-add-preview]");
+if(addPreview)addPreview.onclick=()=>{
+const alreadyExists=(b.extra_data.days||[]).some(
+d=>String(d.type||"REGULAR").toUpperCase()==="PREVIEW"
+);
+if(alreadyExists){
+toast("Preview / Premiere already exists in this Box Office block");
+return;
+}
+const preview=makePreviewCollection();
+
+/* Preview is always placed before regular Day 1. */
+b.extra_data.days=[
+    preview,
+    ...b.extra_data.days.filter(
+        d=>String(d.type||"REGULAR").toUpperCase()!=="PREVIEW"
+    )
+];
+
+renumberRegularDays(b.extra_data.days);
+applyAutomaticBoxOfficeDates(b.extra_data);
 renderBlocks();
 };
 
 const addDay=card.querySelector("[data-bo-add-day]");
 if(addDay)addDay.onclick=()=>{
-b.extra_data.days.push(makeBoxOfficeDay(b.extra_data.days.length+1));
+const regularDays=(b.extra_data.days||[]).filter(
+d=>String(d.type||"REGULAR").toUpperCase()==="REGULAR"
+);
+const nextNumber=regularDays.length+1;
+const nextDay=makeBoxOfficeDay(nextNumber);
+const autoDate=expectedBoxOfficeDayDate(b.extra_data.movie_id,nextNumber);
+if(autoDate)nextDay.date=autoDate;
+b.extra_data.days.push(nextDay);
+renumberRegularDays(b.extra_data.days);
 renderBlocks();
 };
 
@@ -1303,8 +1806,16 @@ card.querySelectorAll("[data-bo-remove-day]").forEach(btn=>{
 btn.onclick=()=>{
 const idx=Number(btn.dataset.boRemoveDay);
 b.extra_data.days.splice(idx,1);
-b.extra_data.days.forEach((p,n)=>p.number=n+1);
+renumberRegularDays(b.extra_data.days);
+applyAutomaticBoxOfficeDates(b.extra_data);
 renderBlocks();
+};
+});
+
+card.querySelectorAll("[data-bo-finalize-day]").forEach(btn=>{
+btn.onclick=()=>{
+const idx=Number(btn.dataset.boFinalizeDay);
+finalizeBoxOfficeDayFromBlock(b,idx);
 };
 });
 }
@@ -1327,16 +1838,67 @@ const d=await r.json();if(!r.ok){toast(d.detail||"Upload failed");return null}
 toast("Image uploaded");return d.filename;
 }
 async function loadArticles(){
-const r=await fetch("/admin/articles");if(r.status===401){location.href="/admin-login.html";return}
-const d=await r.json();articles=d.articles||[];$("countLabel").textContent=articles.length+" total";
-$("articleList").innerHTML=articles.length?"":"No articles yet.";
-articles.forEach(a=>{
-const el=document.createElement("div");el.className="article-item"+(a.id===currentArticleId?" active":"");
-el.innerHTML=`<strong>${a.title}</strong><small>${a.status} • ${a.category||"News"}</small>`;
-el.onclick=()=>loadArticle(a.id);$("articleList").appendChild(el);
+const r=await fetch("/admin/articles");
+if(r.status===401){location.href="/admin-login.html";return}
+const d=await r.json();
+articles=d.articles||[];
+$("countLabel").textContent=articles.length+" total";
+renderArticleList();
+}
+
+function renderArticleList(){
+const search=String($("articleListSearch")?.value||"").trim().toLowerCase();
+const filter=String($("articleStatusFilter")?.value||"all").toLowerCase();
+
+const rows=(articles||[]).filter(a=>{
+    const text=`${a.title||""} ${a.slug||""} ${a.category||""}`.toLowerCase();
+    if(search && !text.includes(search))return false;
+
+    const status=String(a.status||"draft").toLowerCase();
+    const isFuture=Boolean(a.is_future_draft) || (
+        status==="draft" &&
+        Number.isInteger(Number(a.tracking_day)) &&
+        Number(a.tracking_day)>1
+    );
+
+    if(filter==="draft" && status!=="draft")return false;
+    if(filter==="future" && !(status==="draft" && isFuture))return false;
+    if(filter==="published" && status!=="published")return false;
+    if(filter==="archived" && status!=="archived")return false;
+
+    return true;
+});
+
+$("articleList").innerHTML=rows.length?"":"No matching articles.";
+
+rows.forEach(a=>{
+    const el=document.createElement("div");
+    el.className="article-item"+(a.id===currentArticleId?" active":"");
+
+    const futureTag=isFuture
+        ? `<span class="future-draft-tag">FUTURE DAY ${a.tracking_day||""}</span>`
+        : "";
+
+    el.innerHTML=`
+        <strong>${lookupEsc(a.title||"Untitled")}</strong>
+        <small>${lookupEsc(a.status||"draft")} • ${lookupEsc(a.category||"News")}</small>
+        ${futureTag}
+    `;
+
+    el.onclick=()=>loadArticle(a.id);
+    $("articleList").appendChild(el);
 });
 }
+
 async function loadArticle(id){
+try{
+    await fetch(`/admin/articles/${id}/refresh-boxoffice-statuses`,{
+        method:"POST",
+        credentials:"include"
+    });
+}catch(e){
+    console.warn("Automatic box office status refresh failed:",e);
+}
 const r=await fetch("/admin/articles/"+id);const d=await r.json();if(!r.ok){toast(d.detail||"Unable to load");return}
 const a=d.article;currentArticleId=a.id;currentStatus=a.status;blocks=a.blocks||[];
 $("editorTitle").textContent="Edit Article #"+a.id;
@@ -1349,40 +1911,6 @@ return {title:$("title").value.trim(),slug:slugify($("slug").value||$("title").v
 CURRENT_ARTICLE_ADMIN?.display_name||
 CURRENT_ARTICLE_ADMIN?.email||
 "BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null};
-}
-
-async function syncArticleBoxOfficeToMovies(){
-const boxOfficeBlocks=(blocks||[]).filter(b=>b.block_type==="boxoffice");
-if(!boxOfficeBlocks.length)return;
-
-for(const b of boxOfficeBlocks){
-const e=normalizeBoxOfficeExtra(b.extra_data||{});
-const movieId=Number(e.movie_id);
-if(!Number.isInteger(movieId)||movieId<=0){
-throw new Error("Choose a Linked Movie inside every Box Office block.");
-}
-
-const days=(e.days||[]).filter(d=>d.date).map(d=>({
-date:d.date,
-tamil_nadu:boNum(d.tamil_nadu),
-kerala:boNum(d.kerala),
-karnataka:boNum(d.karnataka),
-telugu_states:boNum(d.telugu_states),
-rest_of_india:boNum(d.rest_of_india),
-overseas:boNum(d.overseas)
-}));
-
-if(!days.length)throw new Error("Enter at least one Day date before movie sync.");
-
-const r=await fetch("/admin/movie-collections/bulk-sync",{
-method:"POST",
-credentials:"include",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({movie_id:movieId,days})
-});
-let d={};try{d=await r.json()}catch(err){}
-if(!r.ok)throw new Error(d.detail||("Bulk movie sync failed ("+r.status+")"));
-}
 }
 
 async function saveArticle(){
@@ -1433,16 +1961,15 @@ toast("Article saved, but content blocks failed: "+e.message);
 return;
 }
 
-/* Article is fully saved at this point. Movie sync is a separate final step. */
-try{
-await syncArticleBoxOfficeToMovies();
-toast("Article saved + movie box office synced");
-}catch(e){
-console.error("Movie box-office sync error:",e);
-toast("Article saved. Movie sync failed: "+(e.message||"unknown error"));
-}
+/*
+IMPORTANT:
+Saving an article never updates movie.html.
+Live/estimated numbers remain inside the Article Box Office block.
+Only "Mark Final" publishes that specific day to movie_daily_collections.
+*/
+toast(currentStatus==="draft" ? "Article saved as draft" : "Article saved");
 
-/* Always reload the saved article even when movie sync fails. */
+/* Reload the saved article. */
 await loadArticles();
 await loadArticle(currentArticleId);
 }
@@ -1689,6 +2216,354 @@ async function logoutCurrentAdmin(){
 }
 
 document.addEventListener("DOMContentLoaded",loadAdminAccountChip);
+
+
+/* =====================================================
+   PHASE 2 — ARTICLE REUSE + FUTURE DRAFTS
+===================================================== */
+function selectedArticleLabel(){
+    const title=String($("title")?.value||"").trim()||("Article #"+currentArticleId);
+    return `<strong>${lookupEsc(title)}</strong><br>Article ID: ${currentArticleId}`;
+}
+
+function detectEditorArticleDay(){
+    const values=[
+        String($("title")?.value||""),
+        String($("slug")?.value||"")
+    ];
+    for(const value of values){
+        const m=value.match(/\bday[\s_-]*(\d+)\b/i);
+        if(m)return Number(m[1]);
+    }
+    return 1;
+}
+
+function requireSavedArticle(){
+    if(!currentArticleId){
+        toast("Save or select an article first");
+        return false;
+    }
+    return true;
+}
+
+function openReuseArticleModal(){
+    if(!requireSavedArticle())return;
+    $("reuseCurrentArticle").innerHTML=selectedArticleLabel();
+    $("reuseTargetDay").value=detectEditorArticleDay()+1;
+    $("reuseArticleModal").style.display="block";
+}
+
+function openFutureDraftModal(){
+    if(!requireSavedArticle())return;
+    const day=detectEditorArticleDay();
+    $("futureCurrentArticle").innerHTML=selectedArticleLabel();
+    $("futureThroughDay").value=Math.max(day+1,7);
+    $("futureDraftModal").style.display="block";
+}
+
+function closeReuseArticleModal(){
+    $("reuseArticleModal").style.display="none";
+}
+
+function closeFutureDraftModal(){
+    $("futureDraftModal").style.display="none";
+}
+
+async function createReusedArticleDraft(){
+    if(!requireSavedArticle())return;
+
+    const targetDay=Number($("reuseTargetDay").value);
+    if(!Number.isInteger(targetDay)||targetDay<1){
+        toast("Enter a valid target day");
+        return;
+    }
+
+    const btn=$("reuseCreateBtn");
+    const old=btn.textContent;
+    btn.disabled=true;
+    btn.textContent="Creating...";
+
+    try{
+        const r=await fetch(`/admin/articles/${currentArticleId}/reuse`,{
+            method:"POST",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({target_day:targetDay})
+        });
+        const d=await r.json();
+        if(!r.ok)throw new Error(d.detail||"Unable to reuse article");
+
+        closeReuseArticleModal();
+        toast(`Day ${targetDay} draft created`);
+
+        if(typeof loadArticles==="function")await loadArticles();
+
+        const newId=Number(d?.article?.article_id);
+        if(newId && typeof loadArticle==="function"){
+            await loadArticle(newId);
+        }
+    }catch(e){
+        console.error(e);
+        toast(e.message||"Reuse failed");
+    }finally{
+        btn.disabled=false;
+        btn.textContent=old;
+    }
+}
+
+async function createFutureArticleDrafts(){
+    if(!requireSavedArticle())return;
+
+    const throughDay=Number($("futureThroughDay").value);
+    if(!Number.isInteger(throughDay)||throughDay<2){
+        toast("Enter a valid ending day");
+        return;
+    }
+
+    const btn=$("futureCreateBtn");
+    const old=btn.textContent;
+    btn.disabled=true;
+    btn.textContent="Generating...";
+
+    try{
+        const r=await fetch(`/admin/articles/${currentArticleId}/future-drafts`,{
+            method:"POST",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({through_day:throughDay})
+        });
+        const d=await r.json();
+        if(!r.ok)throw new Error(d.detail||"Unable to create future drafts");
+
+        closeFutureDraftModal();
+        toast(`${d.drafts_created||0} future drafts created`);
+
+        if(typeof loadArticles==="function")await loadArticles();
+
+        const created=Array.isArray(d.drafts)?d.drafts:[];
+        const last=created[created.length-1];
+        if(last?.article_id && typeof loadArticle==="function"){
+            await loadArticle(Number(last.article_id));
+        }
+    }catch(e){
+        console.error(e);
+        toast(e.message||"Future draft generation failed");
+    }finally{
+        btn.disabled=false;
+        btn.textContent=old;
+    }
+}
+
+$("articleListSearch")?.addEventListener("input",renderArticleList);
+$("articleStatusFilter")?.addEventListener("change",renderArticleList);
+
+$("reuseArticleBtn")?.addEventListener("click",openReuseArticleModal);
+$("futureDraftsBtn")?.addEventListener("click",openFutureDraftModal);
+$("reuseModalClose")?.addEventListener("click",closeReuseArticleModal);
+$("futureModalClose")?.addEventListener("click",closeFutureDraftModal);
+$("reuseCreateBtn")?.addEventListener("click",createReusedArticleDraft);
+$("futureCreateBtn")?.addEventListener("click",createFutureArticleDrafts);
+
+$("reuseArticleModal")?.addEventListener("click",e=>{
+    if(e.target===$("reuseArticleModal"))closeReuseArticleModal();
+});
+$("futureDraftModal")?.addEventListener("click",e=>{
+    if(e.target===$("futureDraftModal"))closeFutureDraftModal();
+});
+
+
+
+/* =====================================================
+   PHASE 3 — DRAFT STATUS
+===================================================== */
+async function setArticleStatus(status){
+    if(!currentArticleId){
+        toast("Save the article first");
+        return;
+    }
+
+    try{
+        const r=await fetch(`/admin/articles/${currentArticleId}/status`,{
+            method:"PATCH",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({status})
+        });
+
+        const d=await r.json();
+        if(!r.ok)throw new Error(d.detail||"Unable to update article status");
+
+        currentStatus=status;
+        updateBadge();
+        toast(status==="draft" ? "Article saved as draft" : "Article published");
+
+        if(typeof loadArticles==="function")await loadArticles();
+
+    }catch(e){
+        console.error(e);
+        toast(e.message||"Status update failed");
+    }
+}
+
+$("saveDraftBtn")?.addEventListener("click",()=>setArticleStatus("draft"));
+$("moveToDraftBtn")?.addEventListener("click",()=>setArticleStatus("draft"));
+
+
+/* =====================================================
+   BOX OFFICE DAY FINALIZATION — INTEGRATED
+===================================================== */
+async function finalizeBoxOfficeDayFromBlock(block,index){
+if(!currentArticleId){
+toast("Save the article before finalizing");
+return;
+}
+
+const movieId=Number(block?.extra_data?.movie_id);
+const item=block?.extra_data?.days?.[index];
+
+if(!Number.isInteger(movieId)||movieId<1){
+toast("Select the Box Office movie first");
+return;
+}
+if(!item){
+toast("Collection data not found");
+return;
+}
+if(String(item.status||"").toUpperCase()!=="FINAL"){
+toast("Set this collection status to FINAL first");
+return;
+}
+if(!item.date){
+toast("Set the collection date first");
+return;
+}
+
+await saveArticle();
+
+const isPreview=String(item.type||"REGULAR").toUpperCase()==="PREVIEW";
+const payload=isPreview
+?{
+movie_id:movieId,
+collection_type:"PREVIEW",
+collection_label:item.label||"Preview / Premiere",
+collection_date:item.date
+}
+:{
+movie_id:movieId,
+collection_type:"REGULAR",
+day_number:Number(item.number||1)
+};
+
+const url=isPreview
+?`/admin/articles/${currentArticleId}/finalize-boxoffice-preview`
+:`/admin/articles/${currentArticleId}/finalize-boxoffice-day`;
+
+try{
+const r=await fetch(url,{
+method:"POST",
+credentials:"include",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+const d=await r.json();
+if(!r.ok)throw new Error(d.detail||"Unable to finalize collection");
+
+toast(
+isPreview
+?`${item.label||"Preview / Premiere"} FINAL synced`
+:`Day ${item.number} FINAL synced — ₹${Number(d?.day_totals?.worldwide||0).toFixed(2)} Cr`
+);
+}catch(e){
+console.error(e);
+toast(e.message||"Final sync failed");
+}
+}
+
+/* =====================================================
+   BOX OFFICE BLOCK — SEARCHABLE MOVIE PICKER
+===================================================== */
+function bindBoxOfficeMovieSearch(card,b){
+    const input=card.querySelector("[data-bo-movie-search]");
+    const results=card.querySelector("[data-bo-movie-results]");
+    const hidden=card.querySelector('[data-bo-root="movie_id"]');
+
+    if(!input||!results||!hidden)return;
+
+    input.addEventListener("input",()=>{
+        const q=input.value.trim().toLowerCase();
+
+        if(!q){
+            results.style.display="none";
+            results.innerHTML="";
+            return;
+        }
+
+        const matches=(articleMovieLookup||[])
+            .filter(m=>{
+                const title=String(m.title||"").toLowerCase();
+                const language=String(m.language||"").toLowerCase();
+                const year=String(m.release_date||"").slice(0,4);
+                return (
+                    title.includes(q) ||
+                    language.includes(q) ||
+                    year.includes(q) ||
+                    String(m.id)===q
+                );
+            })
+            .slice(0,10);
+
+        results.innerHTML=matches.length
+            ? matches.map(m=>`
+                <div class="bo-movie-search-option" data-bo-movie-option="${m.id}">
+                  <div>
+                    <strong>${lookupEsc(m.title||("Movie #"+m.id))}</strong>
+                    <small>${lookupEsc(m.language||"")} ${m.release_date?"• "+lookupEsc(m.release_date):""}</small>
+                  </div>
+                  <span class="link-id">ID ${m.id}</span>
+                </div>
+              `).join("")
+            : `<div class="bo-movie-search-option"><small>No movie found</small></div>`;
+
+        results.style.display="block";
+
+        results.querySelectorAll("[data-bo-movie-option]").forEach(row=>{
+            row.addEventListener("click",()=>{
+                const id=Number(row.dataset.boMovieOption);
+                b.extra_data.movie_id=id;
+                hidden.value=String(id);
+                input.value=movieNameById(id);
+
+                if(!selectedMovieLinkIds.includes(id)){
+                    selectedMovieLinkIds.push(id);
+                    renderSelectedArticleLinks();
+                }
+
+                const releaseDate=movieReleaseDateById(id);
+                if(!b.extra_data.days.length){
+                    b.extra_data.days.push(makeBoxOfficeDay(1));
+                }
+                if(releaseDate){
+                    applyAutomaticBoxOfficeDates(b.extra_data);
+                }
+                results.style.display="none";
+                renderBlocks();
+            });
+        });
+    });
+
+    input.addEventListener("focus",()=>{
+        if(input.value.trim()){
+            input.dispatchEvent(new Event("input"));
+        }
+    });
+
+    document.addEventListener("click",e=>{
+        if(!card.contains(e.target)){
+            results.style.display="none";
+        }
+    });
+}
+
 </script>
 
 </body>

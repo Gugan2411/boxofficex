@@ -2684,6 +2684,98 @@ line-height:1.75;
 .article-content .bx-article-list{font-size:18px;line-height:1.7;margin-left:20px;padding-left:12px}
 }
 
+
+/* =========================================================
+   BOXOFFICEX PUBLIC BOX OFFICE TRACKING STATUS UI
+========================================================= */
+.bo-tracking-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+}
+.bo-tracking-note{
+    color:#667085;
+    font-size:10px;
+    font-weight:700;
+}
+.bo-status{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    min-height:22px;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:8px;
+    line-height:1;
+    font-weight:1000;
+    letter-spacing:.45px;
+    white-space:nowrap;
+    border:1px solid transparent;
+}
+.bo-status::before{
+    content:"";
+    width:6px;
+    height:6px;
+    flex:0 0 6px;
+    border-radius:50%;
+    background:currentColor;
+}
+.bo-status-live{
+    color:#dc2626;
+    background:#fff1f2;
+    border-color:#fecdd3;
+}
+.bo-status-live::before{
+    animation:boLivePulse 1.35s ease-in-out infinite;
+}
+.bo-status-estimated-final{
+    color:#b77900;
+    background:#fffbeb;
+    border-color:#fde68a;
+}
+.bo-status-final-review{
+    color:#2563eb;
+    background:#eff6ff;
+    border-color:#bfdbfe;
+}
+.bo-status-final{
+    color:#15803d;
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+}
+.bo-status-unknown{
+    color:#667085;
+    background:#f8fafc;
+    border-color:#e2e8f0;
+}
+.bo-status-help{
+    display:block;
+    margin-top:3px;
+    color:#667085;
+    font-size:8px;
+    font-weight:700;
+    line-height:1.25;
+    white-space:normal;
+}
+.bo-day-label{
+    font-weight:900;
+}
+.bo-preview-label{
+    color:#795cff;
+}
+@keyframes boLivePulse{
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.20)}
+    50%{opacity:.45;box-shadow:0 0 0 4px rgba(220,38,38,0)}
+}
+@media(max-width:700px){
+    .bo-tracking-head{align-items:flex-start}
+    .bo-tracking-note{font-size:9px}
+    .bo-status{font-size:7px;padding:4px 7px}
+}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -3729,6 +3821,44 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+<style id="boxofficex-unified-brand-footer">
+/* Unified BoxOfficeX branding and footer — visual styles only */
+.logo,.bx-master-mobile-logo{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.logo .logo-icon,.bx-master-mobile-logo .icon,.bx-unified-brand-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:35px!important;height:35px!important;flex:0 0 35px!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+  box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
+}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.bx-standard-footer{
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
+  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+}
+.bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
+.bx-unified-brand{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+@media(max-width:700px){
+  .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
+  .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
+  .bx-footer-inner{padding:27px 15px calc(84px + env(safe-area-inset-bottom))!important}
+  .bx-unified-brand{font-size:17px!important}.bx-unified-brand-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+  .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
+}
+</style>
 </head>
 
 <body>
@@ -3841,7 +3971,10 @@ html,body{scroll-padding-top:0!important}
 
 <footer class="bx-standard-footer">
   <div class="bx-footer-inner">
-    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <a href="/index.html" class="bx-unified-brand bx-footer-brand" aria-label="BoxOfficeX Home">
+      <span class="bx-unified-brand-icon" aria-hidden="true">🎬</span>
+      <strong>BOXOFFICE<span class="bx-unified-x">X</span></strong>
+    </a>
     <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
     <nav class="bx-footer-links" aria-label="Footer navigation">
       <a href="/about.html">About</a>
@@ -3864,8 +3997,55 @@ html,body{scroll-padding-top:0!important}
 
 <script>
 const API_BASE = "";
-const ARTICLE_FALLBACK_IMAGE = "/posters/coming-soon.png";
-const ACTOR_FALLBACK_IMAGE = "/actor-images/default-actor.png";
+function boxOfficeXPlaceholderHash(value){let result=2166136261;for(const character of String(value||"BOXOFFICEX").toLowerCase()){result^=character.charCodeAt(0);result=Math.imul(result,16777619)}return result>>>0}
+function boxOfficeXPlaceholderXml(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;")}
+function boxOfficeXPlaceholderColors(value){const h=boxOfficeXPlaceholderHash(value),a=h%360,b=(a+38+((h>>>8)%83))%360,c=(b+42+((h>>>20)%67))%360,d=(a+145+((h>>>17)%71))%360;return [`hsl(${a} 70% 14%)`,`hsl(${b} 68% 35%)`,`hsl(${c} 70% 19%)`,`hsl(${d} 88% 68%)`]}
+function boxOfficeXWrapLines(value,max=16,limit=4){const parts=[];String(value||"UNTITLED").trim().toUpperCase().split(/\s+/).filter(Boolean).forEach(word=>{if(word.length<=max)parts.push(word);else for(let i=0;i<word.length;i+=max)parts.push(word.slice(i,i+max))});const lines=[];let current="";parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>max&&current){lines.push(current);current=part}else current=next});if(current)lines.push(current);if(lines.length>limit){const result=lines.slice(0,limit);result[limit-1]=result[limit-1].slice(0,max-2)+"…";return result}return lines.length?lines:["UNTITLED"]}
+function boxOfficeXMoviePlaceholder(movie){
+    const item=typeof movie==="object"&&movie?movie:{title:movie};
+    const title=String(item.title||"Movie").trim()||"Movie";
+    const source=title.toUpperCase();
+    const parts=[];
+    source.split(/\s+/).filter(Boolean).forEach(word=>{
+        if(word.length<=14)parts.push(word);
+        else for(let i=0;i<word.length;i+=14)parts.push(word.slice(i,i+14));
+    });
+    const lines=[];let current="";
+    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>15&&current){lines.push(current);current=part}else current=next});
+    if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,12)+"…"}
+    const longest=Math.max(...lines.map(line=>line.length));
+    const preferred=lines.length===1?(longest<=5?140:longest<=8?112:longest<=11?88:72):lines.length===2?(longest<=10?82:68):lines.length===3?58:46;
+    const size=Math.max(34,Math.min(preferred,Math.floor(450/Math.max(1,longest*.66))));
+    const gap=size+10,start=390-((lines.length-1)*gap/2);
+    const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${boxOfficeXPlaceholderXml(line)}</text>`).join("");
+    const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
+    const language=String(item.language||"").trim().toUpperCase();
+    const meta=[year,language].filter(Boolean).join("  •  ");
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="${boxOfficeXPlaceholderXml(title)} movie placeholder">
+      <defs>
+        <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset=".52" stop-color="#f4f2ed"/><stop offset="1" stop-color="#ebe9e4"/></linearGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .055"/></feComponentTransfer></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9b9b9b" stop-opacity=".25"/><stop offset="1" stop-color="#c8c8c8" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="600" height="900" fill="url(#paper)"/>
+      <rect width="600" height="900" filter="url(#grain)" opacity=".72"/>
+      <g opacity=".22" transform="rotate(24 45 230)"><rect x="-48" y="-55" width="90" height="520" rx="8" fill="url(#fade)"/><path d="M-32-35v480M26-35v480" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <g opacity=".18" transform="rotate(-18 570 720)"><rect x="550" y="505" width="92" height="470" rx="8" fill="url(#fade)"/><path d="M566 520v430M624 520v430" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <circle cx="64" cy="790" r="120" fill="none" stroke="#a8a8a8" stroke-width="24" opacity=".08"/>
+      ${titleSvg}
+      <line x1="115" y1="525" x2="485" y2="525" stroke="#ad1726" stroke-width="5"/>
+      ${meta?`<text x="300" y="575" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="500" letter-spacing="7">${boxOfficeXPlaceholderXml(meta)}</text>`:""}
+      <text x="300" y="846" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">BOXOFFICEX MOVIE PLACEHOLDER</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)
+}
+function boxOfficeXActorInitials(name){const words=String(name||"Actor").trim().split(/\s+/).filter(Boolean);return(words.length===1?words[0].slice(0,2):words.slice(0,3).map(x=>x[0]).join("")).toUpperCase()||"BX"}
+function boxOfficeXActorPlaceholder(name){const actorName=String(name||"Actor"),colors=boxOfficeXPlaceholderColors(actorName),initials=boxOfficeXActorInitials(actorName),size=actorName.length<=11?50:actorName.length<=17?42:34;const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="${colors[0]}"/><stop offset=".56" stop-color="${colors[1]}"/><stop offset="1" stop-color="${colors[2]}"/></linearGradient><linearGradient id="v"><stop stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity=".03"/></linearGradient></defs><rect width="600" height="760" rx="28" fill="url(#g)"/><circle cx="500" cy="90" r="150" fill="${colors[3]}" fill-opacity=".15"/><rect x="92" y="104" width="416" height="414" rx="78" fill="url(#v)" stroke="#fff" stroke-opacity=".38" stroke-width="4"/><circle cx="300" cy="300" r="164" fill="#fff" fill-opacity=".09"/><text x="300" y="342" text-anchor="middle" fill="#fff" font-family="Arial" font-size="118" font-weight="800">${boxOfficeXPlaceholderXml(initials)}</text><line x1="155" y1="544" x2="445" y2="544" stroke="${colors[3]}" stroke-width="11" stroke-linecap="round"/><text x="300" y="608" text-anchor="middle" fill="#fff" font-family="Arial" font-size="${size}" font-weight="800">${boxOfficeXPlaceholderXml(actorName)}</text><rect x="142" y="646" width="316" height="82" rx="24" fill="#fff" fill-opacity=".9"/><text x="300" y="692" text-anchor="middle" font-family="Arial" font-size="24" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400">X</tspan></text><text x="300" y="717" text-anchor="middle" fill="#344054" font-family="Arial" font-size="12" font-weight="700">ACTOR PROFILE</text></svg>`;return"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)}
+function boxOfficeXArticlePlaceholder(item){const article=typeof item==="object"&&item?item:{title:item},title=String(article.title||"Cinema Article"),category=String(article.category||"BOX OFFICE NEWS").toUpperCase(),colors=boxOfficeXPlaceholderColors(title),lines=boxOfficeXWrapLines(title,24,3),size=lines.length===3?42:Math.max(...lines.map(x=>x.length))<=14?60:49,gap=size+14,start=292-((lines.length-1)*gap/2),words=lines.map((line,i)=>`<text x="600" y="${start+i*gap}" text-anchor="middle" fill="#fff" font-family="Arial" font-size="${size}" font-weight="900">${boxOfficeXPlaceholderXml(line)}</text>`).join("");const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="${colors[0]}"/><stop offset=".55" stop-color="${colors[1]}"/><stop offset="1" stop-color="${colors[2]}"/></linearGradient><linearGradient id="v"><stop stop-color="#fff" stop-opacity=".23"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient></defs><rect width="1200" height="750" fill="url(#g)"/><circle cx="1080" cy="95" r="250" fill="${colors[3]}" fill-opacity=".16"/><rect x="70" y="62" width="1060" height="520" rx="54" fill="url(#v)" stroke="#fff" stroke-opacity=".35" stroke-width="4"/><rect x="108" y="100" width="330" height="55" rx="27" fill="#fff" fill-opacity=".17"/><text x="273" y="136" text-anchor="middle" fill="#fff" font-family="Arial" font-size="20" font-weight="800">${boxOfficeXPlaceholderXml(category.slice(0,25))}</text>${words}<line x1="300" y1="468" x2="900" y2="468" stroke="${colors[3]}" stroke-width="10" stroke-linecap="round"/><rect x="412" y="620" width="376" height="86" rx="27" fill="#fff" fill-opacity=".94"/><text x="600" y="674" text-anchor="middle" font-family="Arial" font-size="29" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400"> X</tspan></text><text x="600" y="697" text-anchor="middle" fill="#475467" font-family="Arial" font-size="11" font-weight="800">CINEMA ARTICLE</text></svg>`;return"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)}
+const BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS=true;
+const BOXOFFICEX_USE_MOVIE_PLACEHOLDERS=true;
+const BOXOFFICEX_USE_ACTOR_PLACEHOLDERS=true;
 
 function esc(value) {
     const div = document.createElement("div");
@@ -3898,12 +4078,15 @@ function getSlug() {
     return "";
 }
 
-function imageUrl(filename, absolute = false) {
+function imageUrl(source, absolute = false) {
+    const item=typeof source==="object"&&source?source:{image:source,title:"Cinema Article"};
+    const filename=item.image??item.hero_image;
     const value = filename == null ? "" : String(filename).trim();
     let url;
 
+    if(BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS)return absolute?window.location.origin+"/images/boxofficex-share.jpg":boxOfficeXArticlePlaceholder(item);
     if (!value) {
-        url = ARTICLE_FALLBACK_IMAGE;
+        return absolute?window.location.origin+"/images/boxofficex-share.jpg":boxOfficeXArticlePlaceholder(item);
     } else if (/^https?:\/\//i.test(value)) {
         url = value;
     } else if (value.startsWith("/")) {
@@ -3921,18 +4104,22 @@ function imageUrl(filename, absolute = false) {
     return url;
 }
 
-function moviePosterUrl(poster) {
-    const value = poster == null ? "" : String(poster).trim();
-    if (!value) return ARTICLE_FALLBACK_IMAGE;
+function moviePosterUrl(movie) {
+    const item=typeof movie==="object"&&movie?movie:{poster:movie,title:"Movie"};
+    const value = item.poster == null ? "" : String(item.poster).trim();
+    if(BOXOFFICEX_USE_MOVIE_PLACEHOLDERS)return boxOfficeXMoviePlaceholder(item);
+    if (!value) return boxOfficeXMoviePlaceholder(item);
     if (/^https?:\/\//i.test(value)) return value;
     if (value.startsWith("/")) return value;
     if (value.startsWith("posters/")) return "/" + value;
     return "/posters/" + encodeURIComponent(value);
 }
 
-function actorPhotoUrl(photo) {
-    const value = photo == null ? "" : String(photo).trim();
-    if (!value) return ACTOR_FALLBACK_IMAGE;
+function actorPhotoUrl(actor) {
+    const item=typeof actor==="object"&&actor?actor:{photo:actor,name:"Actor"};
+    const value = item.photo == null ? "" : String(item.photo).trim();
+    if(BOXOFFICEX_USE_ACTOR_PLACEHOLDERS)return boxOfficeXActorPlaceholder(item.name);
+    if (!value) return boxOfficeXActorPlaceholder(item.name);
     if (/^https?:\/\//i.test(value)) return value;
     if (value.startsWith("/")) return value;
     if (value.startsWith("actor-images/")) return "/" + value;
@@ -3964,7 +4151,7 @@ function setSEO(article) {
     document.getElementById("ogDescription")?.setAttribute("content", description);
     document.getElementById("ogUrl")?.setAttribute("content", publicCanonical);
 
-    const hero = imageUrl(article.hero_image, true);
+    const hero = imageUrl(article, true);
 
     document.getElementById("ogImage")?.setAttribute("content", hero);
     document.getElementById("twitterTitle")?.setAttribute("content", title);
@@ -4009,18 +4196,81 @@ function setSEO(article) {
 function renderBoxOffice(data) {
 const money=v=>{const n=Number(v);return Number.isFinite(n)?`₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`:"N/A"};
 const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
-const days=Array.isArray(data?.days)?data.days:[];
-if(!days.length)return `<div class="boxoffice-block"><div class="boxoffice-title">Box Office Snapshot</div><div class="boxoffice-grid"><div class="bo-card"><div class="bo-label">India</div><div class="bo-value">${money(data?.india)}</div></div><div class="bo-card"><div class="bo-label">Overseas</div><div class="bo-value">${money(data?.overseas)}</div></div><div class="bo-card"><div class="bo-label">Worldwide</div><div class="bo-value">${money(data?.worldwide)}</div></div><div class="bo-card"><div class="bo-label">Verdict</div><div class="bo-value">${esc(data?.verdict||"N/A")}</div></div></div></div>`;
+const rawDays=Array.isArray(data?.days)?data.days:[];
+if(!rawDays.length)return `<div class="boxoffice-block"><div class="boxoffice-title">Box Office Snapshot</div><div class="boxoffice-grid"><div class="bo-card"><div class="bo-label">India</div><div class="bo-value">${money(data?.india)}</div></div><div class="bo-card"><div class="bo-label">Overseas</div><div class="bo-value">${money(data?.overseas)}</div></div><div class="bo-card"><div class="bo-label">Worldwide</div><div class="bo-value">${money(data?.worldwide)}</div></div><div class="bo-card"><div class="bo-label">Verdict</div><div class="bo-value">${esc(data?.verdict||"N/A")}</div></div></div></div>`;
+
 const india=d=>num(d.tamil_nadu)+num(d.kerala)+num(d.karnataka)+num(d.telugu_states)+num(d.rest_of_india);
 const world=d=>india(d)+num(d.overseas);
 const fmt=v=>{if(!v)return"N/A";const d=new Date(v+"T00:00:00");return Number.isNaN(d.getTime())?v:d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"})};
+
+const statusInfo=status=>{
+    const s=String(status||"LIVE").toUpperCase();
+    if(s==="LIVE")return{label:"LIVE",cls:"bo-status-live",help:"Collections are currently being tracked"};
+    if(s==="ESTIMATED_FINAL")return{label:"ESTIMATED FINAL",cls:"bo-status-estimated-final",help:"Tracking ended; final figure is awaiting confirmation"};
+    if(s==="FINAL_REVIEW")return{label:"FINAL REVIEW",cls:"bo-status-final-review",help:"Collection is being reviewed before confirmation"};
+    if(s==="FINAL")return{label:"FINAL",cls:"bo-status-final",help:"Confirmed collection"};
+    return{label:s.replaceAll("_"," ")||"STATUS",cls:"bo-status-unknown",help:"Collection status"};
+};
+
+const regularDays=rawDays
+    .filter(d=>String(d?.type||"REGULAR").toUpperCase()!=="PREVIEW")
+    .sort((a,b)=>(Number(a?.number)||9999)-(Number(b?.number)||9999));
+
+const previews=rawDays
+    .filter(d=>String(d?.type||"REGULAR").toUpperCase()==="PREVIEW");
+
+const displayDays=[...previews,...regularDays];
+
 const total={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};
-days.forEach(d=>Object.keys(total).forEach(k=>total[k]+=num(d[k])));
-total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;total.worldwide=total.india+total.overseas;
-const weeks=[];for(let x=0;x<days.length;x+=7){const w={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};days.slice(x,x+7).forEach(d=>Object.keys(w).forEach(k=>w[k]+=num(d[k])));w.india=w.tamil_nadu+w.kerala+w.karnataka+w.telugu_states+w.rest_of_india;w.worldwide=w.india+w.overseas;w.week=Math.floor(x/7)+1;w.from=x+1;w.to=Math.min(x+7,days.length);weeks.push(w)}
-return `<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>
-<div class="bo-subtitle">Daily Collections</div><div class="bo-swipe-hint">↔ Swipe to view area-wise collections</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${days.map((d,i)=>`<tr><td>Day ${i+1}</td><td>${esc(fmt(d.date))}</td><td>${money(d.tamil_nadu)}</td><td>${money(d.kerala)}</td><td>${money(d.karnataka)}</td><td>${money(d.telugu_states)}</td><td>${money(d.rest_of_india)}</td><td class="bo-auto-total">${money(india(d))}</td><td>${money(d.overseas)}</td><td class="bo-auto-total">${money(world(d))}</td></tr>`).join("")}</tbody></table></div>
-<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>
+/* Preview is intentionally excluded from Day 1+ weekly/final running totals. */
+regularDays.forEach(d=>Object.keys(total).forEach(k=>total[k]+=num(d[k])));
+total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;
+total.worldwide=total.india+total.overseas;
+
+const weeks=[];
+for(let x=0;x<regularDays.length;x+=7){
+    const slice=regularDays.slice(x,x+7);
+    const w={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};
+    slice.forEach(d=>Object.keys(w).forEach(k=>w[k]+=num(d[k])));
+    w.india=w.tamil_nadu+w.kerala+w.karnataka+w.telugu_states+w.rest_of_india;
+    w.worldwide=w.india+w.overseas;
+    w.week=Math.floor(x/7)+1;
+    w.from=Number(slice[0]?.number)||x+1;
+    w.to=Number(slice[slice.length-1]?.number)||Math.min(x+7,regularDays.length);
+    weeks.push(w);
+}
+
+const rows=displayDays.map((d,i)=>{
+    const isPreview=String(d?.type||"REGULAR").toUpperCase()==="PREVIEW";
+    const dayNumber=Number(d?.number);
+    const dayLabel=isPreview
+        ? esc(d?.label||"Preview / Premiere")
+        : `Day ${Number.isFinite(dayNumber)&&dayNumber>0?dayNumber:(regularDays.indexOf(d)+1)}`;
+    const s=statusInfo(d?.status);
+    return `<tr>
+        <td><span class="bo-day-label ${isPreview?"bo-preview-label":""}">${dayLabel}</span></td>
+        <td>${esc(fmt(d.date))}</td>
+        <td><span class="bo-status ${s.cls}">${esc(s.label)}</span><span class="bo-status-help">${esc(s.help)}</span></td>
+        <td>${money(d.tamil_nadu)}</td>
+        <td>${money(d.kerala)}</td>
+        <td>${money(d.karnataka)}</td>
+        <td>${money(d.telugu_states)}</td>
+        <td>${money(d.rest_of_india)}</td>
+        <td class="bo-auto-total">${money(india(d))}</td>
+        <td>${money(d.overseas)}</td>
+        <td class="bo-auto-total">${money(world(d))}</td>
+    </tr>`;
+}).join("");
+
+return `<div class="boxoffice-block">
+<div class="bo-tracking-head">
+    <div class="boxoffice-title">Box Office Collection Report</div>
+    <div class="bo-tracking-note">Tracking status is shown separately for every day.</div>
+</div>
+<div class="bo-subtitle">Daily Collections</div>
+<div class="bo-swipe-hint">↔ Swipe to view status and area-wise collections</div>
+<div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Status</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${rows}</tbody></table></div>
+${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">Final Overall Gross — Automatic</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
 }
 
@@ -4029,11 +4279,11 @@ if(!data||!data.movie_id)return"";
 try{
 const [mr,cr]=await Promise.all([fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}`,{cache:"no-store"}),fetch(`${API_BASE}/movies/${encodeURIComponent(data.movie_id)}/collection-breakdown`,{cache:"no-store"})]);
 const movie=await mr.json();if(!mr.ok||movie.error)return"";
-const photo=moviePosterUrl(movie.poster);
+const photo=moviePosterUrl(movie);
 let collectionHTML="";
 if(cr.ok){const cd=await cr.json();const records=Array.isArray(cd.records)?cd.records:[];const grouped={};records.forEach(r=>{const date=r.date||r.collection_date;if(!date)return;if(!grouped[date])grouped[date]={date,tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};const st=(r.state||"").trim(),a=Number(r.collection_crore||0);if(st==="Tamil Nadu")grouped[date].tamil_nadu+=a;else if(st==="Kerala")grouped[date].kerala+=a;else if(st==="Karnataka")grouped[date].karnataka+=a;else if(["Telugu States","Andhra Pradesh","Telangana"].includes(st))grouped[date].telugu_states+=a;else if(st==="Rest of India")grouped[date].rest_of_india+=a;else if(st==="Overseas")grouped[date].overseas+=a});const days=Object.values(grouped).sort((a,b)=>String(a.date).localeCompare(String(b.date)));if(days.length)collectionHTML=renderBoxOffice({budget:movie.budget_crore,verdict:movie.verdict,days})}
 const release=movie.release_date?new Date(movie.release_date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"}):"N/A";
-return `<div class="related-card" onclick="window.location.href='/movie.html?id=${movie.id}'"><img src="${photo}" alt="${esc(movie.title)}" loading="lazy" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"><div><strong>${esc(movie.title)}</strong><small>Movie • ${esc(movie.language||"")}${movie.verdict?` • ${esc(movie.verdict)}`:""}</small><div class="movie-release-note">Release: ${esc(release)}</div></div></div>${collectionHTML}`;
+return `<div class="related-card" onclick="window.location.href='/movie.html?id=${movie.id}'"><img src="${photo}" alt="${esc(movie.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div><strong>${esc(movie.title)}</strong><small>Movie • ${esc(movie.language||"")}${movie.verdict?` • ${esc(movie.verdict)}`:""}</small><div class="movie-release-note">Release: ${esc(release)}</div></div></div>${collectionHTML}`;
 }catch(error){console.error("Movie article block error:",error);return""}
 }
 
@@ -4046,7 +4296,7 @@ async function renderActorBlock(data) {
 
         if (!response.ok || actor.error) return "";
 
-        const photo = actorPhotoUrl(actor.photo);
+        const photo = actorPhotoUrl(actor);
 
         return `
             <div class="related-card" onclick="window.location.href='/actor.html?id=${actor.id}'">
@@ -4054,7 +4304,7 @@ async function renderActorBlock(data) {
                     src="${photo}"
                     alt="${esc(actor.name)}"
                     loading="lazy"
-                    onerror="this.onerror=null;this.src='${ACTOR_FALLBACK_IMAGE}'"
+                    onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)"
                 >
                 <div>
                     <strong>${esc(actor.name)}</strong>
@@ -4155,10 +4405,10 @@ async function renderBlock(block) {
         return `
             <figure class="article-image">
                 <img
-                    src="${imageUrl(block.image)}"
+                    src="${imageUrl({image:block.image,title:block.image_caption||block.content||"Article image",category:"ARTICLE IMAGE"})}"
                     alt="${esc(block.image_caption || "Article image")}"
                     loading="lazy"
-                    onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                    onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({title:this.alt,category:'ARTICLE IMAGE'})"
                 >
                 ${(block.image_caption || block.image_credit) ? `
                     <figcaption class="media-caption">
@@ -4186,10 +4436,10 @@ async function renderBlock(block) {
             <div class="gallery-block">
                 ${images.map(name => `
                     <img
-                        src="${imageUrl(name)}"
+                        src="${imageUrl({image:name,title:"Article gallery",category:"GALLERY"})}"
                         alt="Article gallery image"
                         loading="lazy"
-                        onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                        onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({title:this.alt,category:'GALLERY'})"
                     >
                 `).join("")}
             </div>
@@ -4264,10 +4514,10 @@ async function renderArticle(article) {
 
                 <figure class="hero-wrap">
                     <img
-                        src="${imageUrl(article.hero_image)}"
+                        src="${imageUrl(article)}"
                         alt="${esc(article.hero_caption || article.title || "Article image")}"
                         loading="lazy"
-                        onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK_IMAGE}'"
+                        onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({title:this.alt,category:'ARTICLE'})"
                     >
                     ${(article.hero_caption || article.hero_credit) ? `
                         <figcaption class="media-caption">
@@ -4362,20 +4612,12 @@ function bxRelatedEsc(value){
     div.textContent=value ?? "";
     return div.innerHTML;
 }
-function bxRelatedPoster(value){
-    if(!value)return "/posters/default.jpg";
-    const poster=String(value).trim();
-    if(!poster)return "/posters/default.jpg";
-    if(/^https?:\/\//i.test(poster) || poster.startsWith("/"))return poster;
-    return "/posters/" + encodeURIComponent(poster);
+function bxRelatedPoster(movie){
+    return moviePosterUrl(movie);
 }
 
-function bxArticleActorPhoto(value){
-    if(!value)return "/actor-images/default.jpg";
-    const photo=String(value).trim();
-    if(!photo)return "/actor-images/default.jpg";
-    if(/^https?:\/\//i.test(photo) || photo.startsWith("/"))return photo;
-    return "/actor-images/" + encodeURIComponent(photo);
+function bxArticleActorPhoto(actor){
+    return actorPhotoUrl(actor);
 }
 async function loadArticleRelatedActors(article){
     const block=document.getElementById("bxRelatedActorsBlock");
@@ -4406,10 +4648,10 @@ async function loadArticleRelatedActors(article){
         card.className="bx-related-actor-card";
         card.href=`/actor.html?id=${encodeURIComponent(actor.id)}`;
         card.innerHTML=`
-            <img src="${bxArticleActorPhoto(actor.photo)}"
-                 alt="${bxRelatedEsc(actor.name || "Actor")} photo"
+            <img src="${bxArticleActorPhoto(actor)}"
+                 alt="${bxRelatedEsc(actor.name || "Actor")}"
                  loading="lazy" decoding="async"
-                 onerror="this.onerror=null;this.src='/actor-images/default.jpg';">
+                 onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt);">
             <div class="bx-related-actor-copy">
                 <div class="bx-related-actor-name">${bxRelatedEsc(actor.name || "Actor")}</div>
                 <div class="bx-related-actor-meta">${bxRelatedEsc(actor.profession || actor.language || "Actor")}</div>
@@ -4504,11 +4746,11 @@ async function loadArticleRelatedContent(id){
                 const collection=Number(movie.worldwide_collection_crore || 0);
                 card.innerHTML=`
                     <img class="bx-related-poster"
-                         src="${bxRelatedPoster(movie.poster)}"
-                         alt="${bxRelatedEsc(movie.title || "Movie")} poster"
+                         src="${bxRelatedPoster(movie)}"
+                         alt="${bxRelatedEsc(movie.title || "Movie")}"
                          loading="lazy"
                          decoding="async"
-                         onerror="this.src='/posters/default.jpg';this.onerror=null">
+                         onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})">
                     <div class="bx-related-copy">
                         <div class="bx-related-type">${bxRelatedEsc(movie.language || movie.genre || "Movie")}</div>
                         <div class="bx-related-name">${bxRelatedEsc(movie.title || "Untitled Movie")}</div>

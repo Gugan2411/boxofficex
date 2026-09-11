@@ -2823,6 +2823,44 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+<style id="boxofficex-unified-brand-footer">
+/* Unified BoxOfficeX branding and footer — visual styles only */
+.logo,.bx-master-mobile-logo{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.logo .logo-icon,.bx-master-mobile-logo .icon,.bx-unified-brand-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:35px!important;height:35px!important;flex:0 0 35px!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+  box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
+}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.bx-standard-footer{
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
+  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+}
+.bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
+.bx-unified-brand{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+@media(max-width:700px){
+  .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
+  .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
+  .bx-footer-inner{padding:27px 15px calc(84px + env(safe-area-inset-bottom))!important}
+  .bx-unified-brand{font-size:17px!important}.bx-unified-brand-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+  .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
+}
+</style>
 </head>
 <body>
 <div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html" class="active">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
@@ -2908,7 +2946,10 @@ html,body{scroll-padding-top:0!important}
 
 <footer class="bx-standard-footer">
   <div class="bx-footer-inner">
-    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <a href="/index.html" class="bx-unified-brand bx-footer-brand" aria-label="BoxOfficeX Home">
+      <span class="bx-unified-brand-icon" aria-hidden="true">🎬</span>
+      <strong>BOXOFFICE<span class="bx-unified-x">X</span></strong>
+    </a>
     <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
     <nav class="bx-footer-links" aria-label="Footer navigation">
       <a href="/about.html">About</a>
@@ -2931,21 +2972,26 @@ html,body{scroll-padding-top:0!important}
 </div>
 
 <script>
-const FALLBACK="/posters/coming-soon.png";
+function boxOfficeXArticleHash(value){let result=2166136261;for(const character of String(value||"BOXOFFICEX").toLowerCase()){result^=character.charCodeAt(0);result=Math.imul(result,16777619)}return result>>>0}
+function boxOfficeXArticleXml(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;")}
+function boxOfficeXArticleLines(title){const words=String(title||"Latest Cinema Story").trim().toUpperCase().split(/\s+/).filter(Boolean),lines=[];let current="";words.forEach(word=>{const pieces=[];if(word.length>23){for(let i=0;i<word.length;i+=23)pieces.push(word.slice(i,i+23))}else pieces.push(word);pieces.forEach(piece=>{const next=current?current+" "+piece:piece;if(next.length>24&&current){lines.push(current);current=piece}else current=next})});if(current)lines.push(current);if(lines.length>3){const result=lines.slice(0,3);result[2]=result[2].slice(0,21)+"…";return result}return lines.length?lines:["LATEST CINEMA STORY"]}
+function boxOfficeXArticlePlaceholder(article){const item=article||{},title=String(item.title||"Latest Cinema Story"),category=String(item.category||"BOX OFFICE NEWS").toUpperCase(),h=boxOfficeXArticleHash(title),a=h%360,b=(a+55+((h>>>8)%75))%360,c=(a+155+((h>>>18)%70))%360,lines=boxOfficeXArticleLines(title),longest=Math.max(...lines.map(line=>line.length)),size=lines.length===3?42:longest<=14?60:49,gap=size+14,start=292-((lines.length-1)*gap/2),titleSvg=lines.map((line,index)=>`<text x="600" y="${start+index*gap}" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="${size}" font-weight="900">${boxOfficeXArticleXml(line)}</text>`).join("");const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${a} 70% 14%)"/><stop offset=".55" stop-color="hsl(${b} 66% 35%)"/><stop offset="1" stop-color="hsl(${c} 72% 18%)"/></linearGradient><radialGradient id="r" cx="85%" cy="5%" r="80%"><stop stop-color="hsl(${c} 90% 68%)" stop-opacity=".35"/><stop offset="1" stop-opacity="0"/></radialGradient><linearGradient id="glass"><stop stop-color="#fff" stop-opacity=".23"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient></defs><rect width="1200" height="750" fill="url(#g)"/><rect width="1200" height="750" fill="url(#r)"/><circle cx="1080" cy="95" r="250" fill="#fff" fill-opacity=".06"/><circle cx="85" cy="680" r="210" fill="#fff" fill-opacity=".05"/><rect x="70" y="62" width="1060" height="520" rx="54" fill="url(#glass)" stroke="#fff" stroke-opacity=".35" stroke-width="4"/><rect x="108" y="100" width="330" height="55" rx="27" fill="#fff" fill-opacity=".17"/><text x="273" y="136" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="20" font-weight="800" letter-spacing="2">${boxOfficeXArticleXml(category.slice(0,25))}</text>${titleSvg}<line x1="300" y1="468" x2="900" y2="468" stroke="hsl(${b} 90% 70%)" stroke-width="10" stroke-linecap="round"/><rect x="412" y="620" width="376" height="86" rx="27" fill="#fff" fill-opacity=".94"/><text x="600" y="673" text-anchor="middle" font-family="Arial,sans-serif" font-size="29" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400"> X</tspan></text><text x="600" y="696" text-anchor="middle" fill="#475467" font-family="Arial,sans-serif" font-size="11" font-weight="800" letter-spacing="2">CINEMA ARTICLE</text></svg>`;return"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)}
+const BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS=true;
 let allArticles=[];
 
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 function date(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"" : d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
 function img(a){
     const value = a && a.hero_image != null ? String(a.hero_image).trim() : "";
-    if(!value) return FALLBACK;
+    if(BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS)return boxOfficeXArticlePlaceholder(a);
+    if(!value)return boxOfficeXArticlePlaceholder(a);
     if(/^https?:\/\//i.test(value)) return value;
     if(value.startsWith("/")) return value;
     if(value.startsWith("article-images/")) return "/" + value;
     return "/article-images/" + encodeURIComponent(value);
 }
 function openArticle(a){window.location.href="/article/"+encodeURIComponent(a.slug)}
-function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'">`}
+function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({title:this.alt})">`}
 function meta(a){return `${esc(a.author||"BoxOfficeX")}${a.published_at?" • "+date(a.published_at):""}`}
 
 function heroMarkup(a){

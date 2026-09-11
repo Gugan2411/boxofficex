@@ -1600,10 +1600,232 @@ font-size:9px;font-weight:800
     .bx-last5-roi-method{font-size:7px}
 }
 </style>
+
+<style id="bx-related-actor-comparisons-style">
+.bx-related-comparisons{
+    position:relative;overflow:hidden;margin:18px 0;padding:18px;
+    border:1px solid #dbe3ef;border-radius:18px;background:#fff;
+    box-shadow:0 10px 28px rgba(15,23,42,.06);color:#111827
+}
+.bx-related-comparisons::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:4px;
+    background:linear-gradient(90deg,#4d8dff,#795cff,#ffcc33)
+}
+.bx-related-comparisons-head{text-align:center;margin-bottom:14px}
+.bx-related-comparisons-head h2{margin:0;font-size:19px;font-weight:1000;color:#111827}
+.bx-related-comparisons-head p{margin:6px auto 0;max-width:650px;color:#64748b;font-size:10px;line-height:1.5}
+.bx-related-comparisons-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bx-related-comparison-link{
+    display:grid;grid-template-columns:1fr 34px 1fr;align-items:center;gap:7px;
+    min-width:0;padding:11px;border:1px solid #e2e8f0;border-radius:14px;
+    background:linear-gradient(145deg,#fff,#f8fafc);color:#1e293b;text-decoration:none;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease
+}
+.bx-related-comparison-link:hover{
+    transform:translateY(-2px);border-color:#bfdbfe;box-shadow:0 9px 22px rgba(37,99,235,.10)
+}
+.bx-related-person{min-width:0;text-align:center}
+.bx-related-person img{
+    display:block;width:64px;height:78px;margin:0 auto 7px;object-fit:cover;
+    border:1px solid #dbe3ef;border-radius:10px;background:#eef2f7
+}
+.bx-related-person strong{
+    display:block;overflow:hidden;color:#1e293b;font-size:10px;font-weight:1000;
+    line-height:1.25;text-overflow:ellipsis;white-space:nowrap
+}
+.bx-related-vs-badge{
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;background:linear-gradient(135deg,#e43d4f,#c92f40);
+    color:#fff;font-size:8px;font-weight:1000;box-shadow:0 6px 15px rgba(228,61,79,.18)
+}
+.bx-related-open{
+    grid-column:1/-1;margin-top:1px;padding-top:8px;border-top:1px solid #edf1f6;
+    color:#2563eb;font-size:8px;font-weight:900;text-align:center
+}
+@media(max-width:700px){
+    .bx-related-comparisons{margin:14px 0;padding:13px 9px;border-radius:14px}
+    .bx-related-comparisons-head h2{font-size:15px}
+    .bx-related-comparisons-head p{font-size:8px}
+    .bx-related-comparisons-grid{
+        display:flex;overflow-x:auto;gap:8px;padding:1px 1px 5px;
+        scroll-snap-type:x proximity;scrollbar-width:none
+    }
+    .bx-related-comparisons-grid::-webkit-scrollbar{display:none}
+    .bx-related-comparison-link{flex:0 0 220px;scroll-snap-align:start;padding:9px}
+    .bx-related-person img{width:58px;height:72px}
+    .bx-related-person strong{font-size:9px}
+}
+</style>
+
+<style id="bx-unified-mobile-nav-style">
+.bx-master-mobile-header{display:none}
+@media(max-width:700px){
+ body{padding-top:111px!important}
+ body>.bx-master-mobile-header{position:fixed;inset:0 0 auto 0;z-index:200000;display:block!important;background:#fff;border-bottom:1px solid #dce3eb;box-shadow:0 7px 22px rgba(15,23,42,.10)}
+ body>.bx-master-mobile-header+header{display:none!important}
+ .bx-master-mobile-bar{height:61px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:0 12px;position:relative;background:#fff}
+ .bx-master-mobile-bar:after{content:"";width:44px;height:1px;grid-column:3}
+ .bx-master-mobile-toggle{grid-column:1;width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;border:1px solid #dbe3ef;border-radius:11px;background:#f8fafc;cursor:pointer}
+ .bx-master-mobile-toggle span{width:20px;height:2px;display:block;border-radius:999px;background:#111827;transition:.2s}
+ .bx-master-mobile-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+ .bx-master-mobile-toggle.open span:nth-child(2){opacity:0}
+ .bx-master-mobile-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+ .bx-master-mobile-logo{grid-column:2;justify-self:center;display:flex;align-items:center;gap:6px;color:#111827!important;font-size:17px;font-weight:1000;letter-spacing:.4px;text-decoration:none!important}
+ .bx-master-mobile-logo .icon{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,#4d8dff,#795cff);font-size:17px;box-shadow:0 7px 18px rgba(77,141,255,.22)}
+ .bx-master-mobile-logo .x{color:#b77900!important}
+ .bx-master-mobile-menu{position:absolute;top:61px;left:9px;right:9px;z-index:200002;display:none!important;grid-template-columns:1fr 1fr;gap:6px;padding:9px;border:1px solid #dce3eb;border-radius:14px;background:#fff;box-shadow:0 18px 42px rgba(15,23,42,.16)}
+ .bx-master-mobile-menu.open{display:grid!important}
+ .bx-master-mobile-menu a{min-height:41px;display:flex;align-items:center;padding:9px 11px;border-radius:9px;color:#334155!important;background:#f8fafc;font-size:11px;font-weight:800;text-decoration:none!important}
+ .bx-master-mobile-menu a:hover,.bx-master-mobile-menu a:focus-visible,.bx-master-mobile-menu a.active{background:#eff6ff;color:#2563eb!important}
+ .bx-master-new{margin-left:auto;padding:2px 5px;border-radius:999px;background:#e43d4f;color:#fff;font-size:6px;font-weight:1000}
+ .bx-master-feature-row{height:50px;display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:5px 9px 7px;background:#fff;border-top:1px solid #edf1f5}
+ .bx-master-feature-row a{min-height:38px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:10px;background:#fff1f3;color:#c92f40!important;border:1px solid #fecdd3;font-size:10px;font-weight:900;text-decoration:none!important}
+ .bx-master-feature-row a.active{background:linear-gradient(135deg,#e43d4f,#c92f40);border-color:transparent;color:#fff!important;box-shadow:0 7px 17px rgba(228,61,79,.20)}
+ .mobile-bottom-nav{display:none!important}
+}
+</style>
+<style id="bx-compare-index-mobile-match">
+@media(max-width:700px){
+  /* Match index.html: one clean vertical list below both mobile header rows. */
+  .bx-master-mobile-menu{
+    display:none!important;
+    position:absolute!important;
+    top:111px!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    height:auto!important;
+    max-height:calc(100vh - 123px)!important;
+    padding:10px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:5px!important;
+    background:#fff!important;
+    border:1px solid #dce3ec!important;
+    border-radius:14px!important;
+    box-shadow:0 18px 40px rgba(15,23,42,.14)!important;
+    z-index:200010!important;
+  }
+  .bx-master-mobile-menu.open{display:flex!important;grid-template-columns:none!important}
+  .bx-master-mobile-menu a{
+    width:100%!important;
+    min-height:42px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    color:#334155!important;
+    background:transparent!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    text-align:left!important;
+  }
+  .bx-master-mobile-menu a:hover,
+  .bx-master-mobile-menu a:focus-visible,
+  .bx-master-mobile-menu a.active{color:#2563eb!important;background:#eef4ff!important}
+
+  /* Match index.html comparison-row colors exactly. */
+  .bx-master-feature-row{
+    height:50px!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding:6px 10px 7px!important;
+    background:linear-gradient(90deg,#eef5ff 0%,#fff7ed 50%,#f4f0ff 100%)!important;
+    border-top:1px solid #e3e8f0!important;
+  }
+  .bx-master-feature-row a{
+    min-width:0!important;
+    min-height:38px!important;
+    height:38px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    padding:7px 8px!important;
+    border-radius:11px!important;
+    font-size:11px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    box-shadow:0 4px 12px rgba(15,23,42,.05)!important;
+  }
+  .bx-master-feature-row a:first-child,
+  .bx-master-feature-row a:first-child.active{
+    color:#1d4ed8!important;
+    background:linear-gradient(135deg,#e8f1ff,#f8fbff)!important;
+    border:1px solid #c9dcff!important;
+  }
+  .bx-master-feature-row a:last-child,
+  .bx-master-feature-row a:last-child.active{
+    color:#9a6700!important;
+    background:linear-gradient(135deg,#fff3d6,#fffaf0)!important;
+    border:1px solid #f0d694!important;
+  }
+  .bx-master-feature-row a:active{transform:scale(.98);filter:brightness(.97)}
+}
+</style>
+<style id="boxofficex-unified-brand-footer">
+/* Unified BoxOfficeX branding and footer — visual styles only */
+.logo,.bx-master-mobile-logo{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.logo .logo-icon,.bx-master-mobile-logo .icon,.bx-unified-brand-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:35px!important;height:35px!important;flex:0 0 35px!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+  box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
+}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.bx-standard-footer{
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
+  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+}
+.bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
+.bx-unified-brand{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+@media(max-width:700px){
+  .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
+  .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
+  .bx-footer-inner{padding:27px 15px calc(84px + env(safe-area-inset-bottom))!important}
+  .bx-unified-brand{font-size:17px!important}.bx-unified-brand-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+  .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
+}
+</style>
 </head>
 
 
 <body>
+<div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation">
+  <div class="bx-master-mobile-bar">
+    <button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a>
+  </div>
+  <nav class="bx-master-mobile-menu" aria-label="Mobile main navigation">
+    <a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a>
+    <a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a>
+    <a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a>
+  </nav>
+  <nav class="bx-master-feature-row" aria-label="Primary mobile features">
+    <a href="/compare-select.html" class="active"><span>⚔️</span>Actor Comparison</a>
+    <a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a>
+  </nav>
+</div>
 
 
 <header>
@@ -1684,32 +1906,87 @@ font-size:9px;font-weight:800
 <div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
 <div id="bxFullscreenAd" aria-label="Full screen sponsored advertisement"></div>
 
-<footer class="site-footer">
-<div class="footer-inner">
-<a href="/index.html" class="footer-brand"><span class="footer-logo-icon">🎬</span><strong>BOXOFFICE<span>X</span></strong></a>
-<p>Movie box-office collections, latest releases, actors, articles, rankings and actor/movie comparisons.</p>
-<div class="footer-links">
-<a href="/about.html">About</a>
-<a href="/contact.html">Contact</a>
-<a href="/privacy.html">Privacy</a>
-<a href="/terms.html">Terms</a>
-<a href="/disclaimer.html">Disclaimer</a>
-</div>
-<p>© 2026 BoxOfficeX. All rights reserved.</p>
-</div>
+<footer class="bx-standard-footer">
+  <div class="bx-footer-inner">
+    <a href="/index.html" class="bx-unified-brand bx-footer-brand" aria-label="BoxOfficeX Home">
+      <span class="bx-unified-brand-icon" aria-hidden="true">🎬</span>
+      <strong>BOXOFFICE<span class="bx-unified-x">X</span></strong>
+    </a>
+    <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
+    <nav class="bx-footer-links" aria-label="Footer navigation">
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/advertise.html" class="footer-advertise-link">Advertise With Us</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </nav>
+  </div>
 </footer>
 
 
 
 <script>
 
+function boxOfficeXPlaceholderHash(value){let result=2166136261;const text=String(value||"BOXOFFICEX").toLowerCase();for(let i=0;i<text.length;i+=1){result^=text.charCodeAt(i);result=Math.imul(result,16777619)}return result>>>0}
+function boxOfficeXPlaceholderXml(value){return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
+function boxOfficeXPlaceholderColors(name){const h=boxOfficeXPlaceholderHash(name),a=h%360,b=(a+38+((h>>>8)%83))%360,c=(b+42+((h>>>20)%67))%360,d=(a+145+((h>>>17)%71))%360;return [`hsl(${a} ${55+((h>>>4)%26)}% 13%)`,`hsl(${b} ${58+((h>>>12)%24)}% 34%)`,`hsl(${c} 66% 20%)`,`hsl(${d} 88% 68%)`]}
+function boxOfficeXActorInitials(name){const words=String(name||"Actor").trim().split(/\s+/).filter(Boolean);if(!words.length)return "BX";if(words.length===1)return words[0].slice(0,2).toUpperCase();return words.slice(0,3).map(w=>w.charAt(0)).join("").toUpperCase()}
+function boxOfficeXActorPlaceholder(name){
+    const actorName=String(name||"Actor").trim()||"Actor",p=boxOfficeXPlaceholderColors(actorName),safe=boxOfficeXPlaceholderXml(actorName),initials=boxOfficeXPlaceholderXml(boxOfficeXActorInitials(actorName)),nameSize=actorName.length<=11?50:actorName.length<=17?42:34;
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${p[0]}"/><stop offset=".56" stop-color="${p[1]}"/><stop offset="1" stop-color="${p[2]}"/></linearGradient><radialGradient id="r" cx="78%" cy="12%" r="74%"><stop offset="0" stop-color="${p[3]}" stop-opacity=".28"/><stop offset="1" stop-color="${p[3]}" stop-opacity="0"/></radialGradient><linearGradient id="glass"><stop stop-color="#fff" stop-opacity=".30"/><stop offset="1" stop-color="#fff" stop-opacity=".03"/></linearGradient><filter id="s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".28"/></filter></defs><rect width="600" height="760" rx="28" fill="url(#g)"/><rect width="600" height="760" rx="28" fill="url(#r)"/><circle cx="500" cy="90" r="150" fill="${p[3]}" fill-opacity=".13"/><rect x="92" y="104" width="416" height="414" rx="78" fill="url(#glass)" stroke="#fff" stroke-opacity=".38" stroke-width="4" filter="url(#s)"/><circle cx="300" cy="300" r="164" fill="#fff" fill-opacity=".09" stroke="#fff" stroke-opacity=".24" stroke-width="3"/><text x="300" y="342" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="118" font-weight="800">${initials}</text><line x1="155" y1="544" x2="445" y2="544" stroke="${p[3]}" stroke-width="11" stroke-linecap="round"/><text x="300" y="608" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="${nameSize}" font-weight="800">${safe}</text><rect x="142" y="646" width="316" height="82" rx="24" fill="#fff" fill-opacity=".9"/><text x="300" y="691" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400">X</tspan></text><text x="300" y="716" text-anchor="middle" fill="#344054" font-family="Arial,sans-serif" font-size="12" font-weight="700">ACTOR PROFILE</text></svg>`;return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)
+}
+function boxOfficeXMovieLines(title){const value=String(title||"MOVIE").trim().toUpperCase();if(value.length<=14)return[value];const lines=[];let current="";value.split(/\s+/).forEach(word=>{const next=current?current+" "+word:word;if(next.length>15&&current){lines.push(current);current=word}else current=next});if(current)lines.push(current);if(lines.length>3){const r=lines.slice(0,3);r[2]=r[2].slice(0,13)+"…";return r}return lines}
+function boxOfficeXMoviePlaceholder(movie){
+    const item=typeof movie==="object"&&movie?movie:{title:movie};
+    const title=String(item.title||"Movie").trim()||"Movie";
+    const source=title.toUpperCase();
+    const parts=[];
+    source.split(/\s+/).filter(Boolean).forEach(word=>{
+        if(word.length<=14)parts.push(word);
+        else for(let i=0;i<word.length;i+=14)parts.push(word.slice(i,i+14));
+    });
+    const lines=[];let current="";
+    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>15&&current){lines.push(current);current=part}else current=next});
+    if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,12)+"…"}
+    const longest=Math.max(...lines.map(line=>line.length));
+    const preferred=lines.length===1?(longest<=5?140:longest<=8?112:longest<=11?88:72):lines.length===2?(longest<=10?82:68):lines.length===3?58:46;
+    const size=Math.max(34,Math.min(preferred,Math.floor(450/Math.max(1,longest*.66))));
+    const gap=size+10,start=390-((lines.length-1)*gap/2);
+    const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${boxOfficeXPlaceholderXml(line)}</text>`).join("");
+    const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
+    const language=String(item.language||"").trim().toUpperCase();
+    const meta=[year,language].filter(Boolean).join("  •  ");
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="${boxOfficeXPlaceholderXml(title)} movie placeholder">
+      <defs>
+        <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset=".52" stop-color="#f4f2ed"/><stop offset="1" stop-color="#ebe9e4"/></linearGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .055"/></feComponentTransfer></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9b9b9b" stop-opacity=".25"/><stop offset="1" stop-color="#c8c8c8" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="600" height="900" fill="url(#paper)"/>
+      <rect width="600" height="900" filter="url(#grain)" opacity=".72"/>
+      <g opacity=".22" transform="rotate(24 45 230)"><rect x="-48" y="-55" width="90" height="520" rx="8" fill="url(#fade)"/><path d="M-32-35v480M26-35v480" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <g opacity=".18" transform="rotate(-18 570 720)"><rect x="550" y="505" width="92" height="470" rx="8" fill="url(#fade)"/><path d="M566 520v430M624 520v430" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <circle cx="64" cy="790" r="120" fill="none" stroke="#a8a8a8" stroke-width="24" opacity=".08"/>
+      ${titleSvg}
+      <line x1="115" y1="525" x2="485" y2="525" stroke="#ad1726" stroke-width="5"/>
+      ${meta?`<text x="300" y="575" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="500" letter-spacing="7">${boxOfficeXPlaceholderXml(meta)}</text>`:""}
+      <text x="300" y="846" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">BOXOFFICEX MOVIE PLACEHOLDER</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)
+}
+const BOXOFFICEX_USE_ACTOR_PLACEHOLDERS=true;
+const BOXOFFICEX_USE_MOVIE_PLACEHOLDERS=true;
+
 // Cloudinary-safe image URLs. Legacy local filenames continue to work.
-function boxOfficeXActorImageUrl(photo, absolute = false) {
+function boxOfficeXActorImageUrl(photo, absolute = false, actorName = "Actor") {
     const value = photo == null ? "" : String(photo).trim();
     let url;
 
-    if (!value) {
-        url = "/actor-images/default-actor.png";
+    if(BOXOFFICEX_USE_ACTOR_PLACEHOLDERS&&!absolute)return boxOfficeXActorPlaceholder(actorName);
+    if (!value || /(?:coming[-_]?soon|default[-_]?actor|default)\.(?:png|jpe?g|webp|avif)(?:[?#].*)?$/i.test(value)) {
+        return absolute?window.location.origin+"/images/boxofficex-share.jpg":boxOfficeXActorPlaceholder(actorName);
     } else if (/^https?:\/\//i.test(value)) {
         url = value;
     } else if (value.startsWith("/")) {
@@ -1726,9 +2003,11 @@ function boxOfficeXActorImageUrl(photo, absolute = false) {
     return url;
 }
 
-function boxOfficeXMoviePosterUrl(poster) {
-    const value = poster == null ? "" : String(poster).trim();
-    if (!value) return "/posters/coming-soon.png";
+function boxOfficeXMoviePosterUrl(movie) {
+    const item=typeof movie==="object"&&movie?movie:{poster:movie,title:"Movie"};
+    const value = item.poster == null ? "" : String(item.poster).trim();
+    if(BOXOFFICEX_USE_MOVIE_PLACEHOLDERS)return boxOfficeXMoviePlaceholder(item);
+    if (!value || /(?:coming[-_]?soon|default[-_]?movie|default)\.(?:png|jpe?g|webp|avif)(?:[?#].*)?$/i.test(value)) return boxOfficeXMoviePlaceholder(item);
     if (/^https?:\/\//i.test(value)) return value;
     if (value.startsWith("/")) return value;
     if (value.startsWith("posters/")) return "/" + value;
@@ -1782,7 +2061,7 @@ function updateComparisonSEO(actor1, actor2) {
 
     const canonical = canonicalUrl.href;
 
-    const image = actor1.photo ? boxOfficeXActorImageUrl(actor1.photo, true) : "";
+    const image = window.location.origin + "/images/boxofficex-share.jpg";
 
     document.title = title;
 
@@ -1844,6 +2123,86 @@ function updateComparisonSEO(actor1, actor2) {
     }
 }
 
+
+
+function bxRelatedComparisonEscape(value){
+    const div=document.createElement("div");
+    div.textContent=String(value??"");
+    return div.innerHTML;
+}
+
+function bxRelatedActorPhoto(actor){
+    if(BOXOFFICEX_USE_ACTOR_PLACEHOLDERS)return boxOfficeXActorPlaceholder(actor?.name||"Actor");
+    const raw=String(
+        actor?.photo_url || actor?.image_url || actor?.image ||
+        actor?.photo || actor?.profile_image || ""
+    ).trim();
+    if(!raw) return "/actor-images/default.jpg";
+    if(/^https?:\/\//i.test(raw) || raw.startsWith("/")) return raw;
+    return `/actor-images/${raw}`;
+}
+
+function bxRelatedActorComparisonsHTML(actor1,actor2,actors){
+    const currentIds=new Set([String(actor1?.id??""),String(actor2?.id??"")]);
+    const currentNames=new Set([
+        String(actor1?.name??"").trim().toLowerCase(),
+        String(actor2?.name??"").trim().toLowerCase()
+    ]);
+
+    const candidates=(Array.isArray(actors)?actors:[]).filter(actor=>{
+        const id=String(actor?.id??"");
+        const name=String(actor?.name??"").trim();
+        return name && !currentIds.has(id) && !currentNames.has(name.toLowerCase());
+    });
+
+    const languages=new Set(
+        [actor1?.language,actor2?.language]
+            .map(v=>String(v??"").trim().toLowerCase())
+            .filter(Boolean)
+    );
+
+    const ranked=candidates.map((actor,index)=>({
+        actor,index,
+        sameLanguage:languages.size && languages.has(String(actor?.language??"").trim().toLowerCase()) ? 1 : 0
+    })).sort((a,b)=>b.sameLanguage-a.sameLanguage || a.index-b.index).map(x=>x.actor);
+
+    // 6 visual related comparisons gives stronger discovery without crowding the page.
+    const picked=ranked.slice(0,6);
+    const pairs=picked.map((other,index)=>index%2===0 ? [actor1,other] : [actor2,other]);
+    if(!pairs.length) return "";
+
+    const links=pairs.map(([left,right])=>{
+        const leftName=String(left?.name??"").trim();
+        const rightName=String(right?.name??"").trim();
+        const href=`/compare.html?hero1=${encodeURIComponent(leftName)}&hero2=${encodeURIComponent(rightName)}`;
+        const leftPhoto=bxRelatedComparisonEscape(bxRelatedActorPhoto(left));
+        const rightPhoto=bxRelatedComparisonEscape(bxRelatedActorPhoto(right));
+        return `
+            <a class="bx-related-comparison-link" href="${href}" aria-label="${bxRelatedComparisonEscape(leftName)} vs ${bxRelatedComparisonEscape(rightName)} actor comparison">
+                <span class="bx-related-person">
+                    <img src="${leftPhoto}" alt="${bxRelatedComparisonEscape(leftName)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)">
+                    <strong>${bxRelatedComparisonEscape(leftName)}</strong>
+                </span>
+                <span class="bx-related-vs-badge">VS</span>
+                <span class="bx-related-person">
+                    <img src="${rightPhoto}" alt="${bxRelatedComparisonEscape(rightName)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)">
+                    <strong>${bxRelatedComparisonEscape(rightName)}</strong>
+                </span>
+                <span class="bx-related-open">View Comparison →</span>
+            </a>
+        `;
+    }).join("");
+
+    return `
+        <section class="bx-related-comparisons" aria-labelledby="bxRelatedComparisonsTitle">
+            <div class="bx-related-comparisons-head">
+                <h2 id="bxRelatedComparisonsTitle">🔥 More Related Actor Comparisons</h2>
+                <p>Keep exploring ${bxRelatedComparisonEscape(actor1.name)} and ${bxRelatedComparisonEscape(actor2.name)} against other actors.</p>
+            </div>
+            <div class="bx-related-comparisons-grid">${links}</div>
+        </section>
+    `;
+}
 
 // ==========================================
 // CHECK URL
@@ -2608,7 +2967,7 @@ async function loadComparison() {
         function bxActorScoreCard(actor,score,isWinner){
             return `
                 <div class="bx-actor-score-card ${isWinner?"winner":""}">
-                    <img src="${boxOfficeXActorImageUrl(actor.photo)}" alt="${actor.name}" loading="lazy">
+                    <img src="${boxOfficeXActorImageUrl(actor.photo,false,actor.name)}" alt="${actor.name}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)">
                     <div>
                         <div class="bx-actor-score-name">${actor.name}</div>
                         <div class="bx-actor-score-value">${score===null?"N/A":score.toFixed(1)+"/100"}</div>
@@ -2774,10 +3133,11 @@ async function loadComparison() {
                 <div class="hero-card">
 
                     <img
-                        src="${boxOfficeXActorImageUrl(actor1.photo)}"
+                        src="${boxOfficeXActorImageUrl(actor1.photo,false,actor1.name)}"
                         alt="${actor1.name}"
                         class="comparison-photo"
                         loading="lazy"
+                        onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)"
                     >
 
                     <h2>
@@ -2799,10 +3159,11 @@ async function loadComparison() {
                 <div class="hero-card">
 
                     <img
-                        src="${boxOfficeXActorImageUrl(actor2.photo)}"
+                        src="${boxOfficeXActorImageUrl(actor2.photo,false,actor2.name)}"
                         alt="${actor2.name}"
                         class="comparison-photo"
                         loading="lazy"
+                        onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)"
                     >
 
                     <h2>
@@ -2969,6 +3330,8 @@ async function loadComparison() {
             ${winnerHTML}
 
             ${bxLastFiveTheatricalRoiHTML()}
+
+            ${bxRelatedActorComparisonsHTML(actor1, actor2, actors)}
 
             <section class="compare-engagement" id="heroComparisonEngagement">
                 <h2>🎉 Fan Zone</h2>
@@ -3289,9 +3652,10 @@ function createHighestGrossingCard(
 
 
             <img
-                src="${boxOfficeXMoviePosterUrl(movie.poster)}"
+                src="${boxOfficeXMoviePosterUrl(movie)}"
                 alt="${movie.title}"
                 loading="lazy"
+                onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"
             >
 
 
@@ -3980,6 +4344,17 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
 
 })();
+</script>
+<script id="bx-unified-mobile-nav-script">
+document.addEventListener("DOMContentLoaded",function(){
+ const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");
+ if(!btn||!menu)return;
+ function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}
+ btn.addEventListener("click",function(event){event.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});
+ menu.addEventListener("click",event=>{if(event.target.closest("a"))close()});
+ document.addEventListener("click",event=>{if(!root.contains(event.target))close()});
+ window.addEventListener("resize",()=>{if(innerWidth>700)close()});
+});
 </script>
 </body>
 

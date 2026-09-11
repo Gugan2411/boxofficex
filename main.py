@@ -4,8 +4,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pathlib import Path
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import os
+import json
 import cloudinary
 import cloudinary.uploader
 from urllib.parse import urlparse
@@ -298,7 +299,9 @@ class AdvertisementCreateData(BaseModel):
     ] = "once_24h"
 
     start_date: date
+    start_time: Optional[time] = None
     end_date: date
+    end_time: Optional[time] = None
     is_active: bool = True
 
     # Private billing / traffic controls.
@@ -313,6 +316,19 @@ class AdvertisementCreateData(BaseModel):
     payment_due_date: Optional[date] = None
     billing_notes: Optional[str] = None
 
+    # V2 precise campaign targeting.
+    # Empty lists mean "all" within the selected placement/page type.
+    target_actor_ids: Optional[list[int]] = None
+    target_movie_ids: Optional[list[int]] = None
+    target_actor_movies: bool = False
+    is_draft: bool = False
+
+
+    ad_package: Optional[str] = 'standard'
+    sponsored_package: Optional[str] = 'rotation'
+    exclusive_inventory: bool = False
+    suggested_rate: Optional[float] = 0
+    final_rate: Optional[float] = 0
 
 class AdvertisementUpdateData(BaseModel):
     advertiser_name: Optional[str] = None
@@ -363,7 +379,9 @@ class AdvertisementUpdateData(BaseModel):
     ] = None
 
     start_date: Optional[date] = None
+    start_time: Optional[time] = None
     end_date: Optional[date] = None
+    end_time: Optional[time] = None
     is_active: Optional[bool] = None
     total_amount: Optional[float] = None
     amount_paid: Optional[float] = None
@@ -375,7 +393,17 @@ class AdvertisementUpdateData(BaseModel):
     invoice_date: Optional[date] = None
     payment_due_date: Optional[date] = None
     billing_notes: Optional[str] = None
+    target_actor_ids: Optional[list[int]] = None
+    target_movie_ids: Optional[list[int]] = None
+    target_actor_movies: Optional[bool] = None
+    is_draft: Optional[bool] = None
 
+
+    ad_package: Optional[str] = None
+    sponsored_package: Optional[str] = None
+    exclusive_inventory: Optional[bool] = None
+    suggested_rate: Optional[float] = None
+    final_rate: Optional[float] = None
 
 class AdvertisementStatusData(BaseModel):
     is_active: bool
@@ -794,6 +822,13 @@ def initialize_advertisement_system():
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS ad_slot INTEGER")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS movie_ranking_industry VARCHAR(40)")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS actor_ranking_industry VARCHAR(40)")
+            # V2 precise actor/movie targeting + draft workflow.
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS target_actor_ids TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS target_movie_ids TEXT")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS target_actor_movies BOOLEAN NOT NULL DEFAULT FALSE")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS is_draft BOOLEAN NOT NULL DEFAULT FALSE")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS start_time TIME")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS end_time TIME")
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS advertisement_invoices (
@@ -2190,6 +2225,13 @@ def robots_txt():
 def index_page():
     return FileResponse(BASE_DIR / "index.html")
 
+@app.get("/boxofficex-placeholders.js", include_in_schema=False)
+def boxofficex_placeholders_script():
+    return FileResponse(
+        BASE_DIR / "boxofficex-placeholders.js",
+        media_type="application/javascript",
+    )
+
 
 @app.get("/movie.html")
 def movie_page():
@@ -3320,6 +3362,61 @@ def get_state_collections(movie_id: int):
     
 
 
+
+
+
+# ============================================================
+# PUBLIC MOVIE PREVIEW / PREMIERE COLLECTIONS
+# Kept separate so Day 1 always remains the official release date.
+# ============================================================
+
+@app.get("/movies/{movie_id}/preview-collections")
+def get_movie_preview_collections(movie_id: int):
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+
+            cur.execute("""
+                SELECT
+                    id,
+                    collection_label,
+                    collection_date,
+                    tamil_nadu_collection,
+                    kerala_collection,
+                    karnataka_collection,
+                    telugu_states_collection,
+                    rest_of_india_collection,
+                    india_collection,
+                    overseas_collection,
+                    worldwide_collection
+                FROM movie_preview_collections
+                WHERE movie_id = %s
+                ORDER BY collection_date ASC, id ASC
+            """, (movie_id,))
+
+            rows = cur.fetchall()
+
+    previews = []
+
+    for row in rows:
+        previews.append({
+            "id": row[0],
+            "label": row[1],
+            "date": str(row[2]) if row[2] else None,
+            "tamil_nadu": float(row[3] or 0),
+            "kerala": float(row[4] or 0),
+            "karnataka": float(row[5] or 0),
+            "telugu_states": float(row[6] or 0),
+            "rest_of_india": float(row[7] or 0),
+            "india": float(row[8] or 0),
+            "overseas": float(row[9] or 0),
+            "worldwide": float(row[10] or 0),
+        })
+
+    return {
+        "movie_id": movie_id,
+        "previews": previews,
+    }
 
 
 # ============================================================
@@ -5718,6 +5815,42 @@ def get_actor_articles(actor_id: int):
     ]}
 
 
+
+def _public_article_boxoffice_extra(extra):
+    """
+    Return Box Office extra_data with time-derived LIVE -> ESTIMATED_FINAL
+    applied in memory. Does not publish FINAL and does not sync movie.html.
+    """
+    if not isinstance(extra, dict):
+        return extra or {}
+
+    result = dict(extra)
+    result_days = []
+
+    for raw_day in (extra.get("days") or []):
+        if not isinstance(raw_day, dict):
+            result_days.append(raw_day)
+            continue
+
+        day = dict(raw_day)
+        raw_date = day.get("date")
+
+        if raw_date:
+            try:
+                day_date = date.fromisoformat(str(raw_date))
+                day["status"] = _boxoffice_tracking_status_for_day(
+                    day_date,
+                    str(day.get("status") or "LIVE"),
+                )
+            except ValueError:
+                pass
+
+        result_days.append(day)
+
+    result["days"] = result_days
+    return result
+
+
 @app.get("/articles/{slug}/blocks")
 def get_article_blocks(slug: str):
     with get_connection() as conn:
@@ -5733,7 +5866,8 @@ def get_article_blocks(slug: str):
             rows=cur.fetchall()
     return {"blocks":[
         {"id":r[0],"block_order":r[1],"block_type":r[2],"content":r[3],
-         "image":r[4],"image_caption":r[5],"image_credit":r[6],"extra_data":r[7] or {}}
+         "image":r[4],"image_caption":r[5],"image_credit":r[6],
+         "extra_data":_public_article_boxoffice_extra(r[7] or {}) if r[2]=="boxoffice" else (r[7] or {})}
         for r in rows
     ]}
 
@@ -5779,7 +5913,8 @@ def get_article(slug: str):
         "movie_ids":movie_ids,"actor_ids":actor_ids,
         "blocks":[
             {"id":r[0],"block_order":r[1],"block_type":r[2],"content":r[3],
-             "image":r[4],"image_caption":r[5],"image_credit":r[6],"extra_data":r[7] or {}}
+             "image":r[4],"image_caption":r[5],"image_credit":r[6],
+             "extra_data":_public_article_boxoffice_extra(r[7] or {}) if r[2]=="boxoffice" else (r[7] or {})}
             for r in blocks
         ]
     }}
@@ -5861,6 +5996,7 @@ def admin_list_articles():
                     id, title, slug, subtitle, category, author,
                     hero_image, status, views,
                     published_at, created_at, updated_at
+                , is_future_draft, tracking_day, reused_from_article_id, scheduled_publish_at
                 FROM articles
                 ORDER BY created_at DESC, id DESC
             """)
@@ -5881,6 +6017,10 @@ def admin_list_articles():
                 "published_at": r[9],
                 "created_at": r[10],
                 "updated_at": r[11],
+                "is_future_draft": bool(r[12]),
+                "tracking_day": r[13],
+                "reused_from_article_id": r[14],
+                "scheduled_publish_at": r[15],
             }
             for r in rows
         ]
@@ -6342,6 +6482,1742 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
         "slug": slug,
         "article_url": f"/article/{slug}",
     }
+
+
+
+
+class AdminArticleStatusData(BaseModel):
+    status: Literal["draft", "published", "archived"]
+
+
+class AdminTrackingKeyData(BaseModel):
+    movie_id: int
+    day_number: int
+
+
+class AdminTrackingUpdateData(BaseModel):
+    movie_id: int
+    day_number: int
+    status: Literal["LIVE", "ESTIMATED_FINAL", "FINAL_REVIEW", "FINAL"]
+    india_collection: Optional[float] = None
+    overseas_collection: Optional[float] = None
+    worldwide_collection: Optional[float] = None
+    tamil_nadu_collection: Optional[float] = None
+    kerala_collection: Optional[float] = None
+    karnataka_collection: Optional[float] = None
+    telugu_states_collection: Optional[float] = None
+    rest_of_india_collection: Optional[float] = None
+    final_locked: bool = False
+
+
+
+
+def _boxoffice_tracking_status_for_day(
+    collection_date: date,
+    current_status: str,
+) -> str:
+    """
+    Automatic status rule:
+      LIVE -> ESTIMATED_FINAL at 06:00 IST on the calendar day
+      after that collection date.
+
+    FINAL_REVIEW and FINAL are never changed automatically.
+    """
+    status = str(current_status or "LIVE").upper()
+
+    if status != "LIVE":
+        return status
+
+    ist = ZoneInfo("Asia/Kolkata")
+    now_ist = datetime.now(ist)
+
+    rollover_at = datetime.combine(
+        collection_date + timedelta(days=1),
+        time(hour=6, minute=0),
+        tzinfo=ist,
+    )
+
+    if now_ist >= rollover_at:
+        return "ESTIMATED_FINAL"
+
+    return "LIVE"
+
+
+def refresh_article_boxoffice_tracking_statuses(article_id: Optional[int] = None):
+    """
+    Persist automatic LIVE -> ESTIMATED_FINAL rollovers inside article
+    Box Office blocks and the central movie_boxoffice_tracking table.
+
+    This intentionally never finalizes or syncs a movie collection.
+    FINAL remains an explicit editor action.
+    """
+    changed_blocks = 0
+    changed_days = 0
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            params = []
+            where = "WHERE block_type = 'boxoffice'"
+
+            if article_id is not None:
+                where += " AND article_id = %s"
+                params.append(article_id)
+
+            cur.execute(f"""
+                SELECT id, article_id, extra_data
+                FROM article_blocks
+                {where}
+                ORDER BY article_id, block_order, id
+            """, tuple(params))
+
+            rows = cur.fetchall()
+
+            for block_id, block_article_id, raw_extra in rows:
+                extra = raw_extra or {}
+
+                if isinstance(extra, str):
+                    try:
+                        extra = json.loads(extra)
+                    except Exception:
+                        continue
+
+                days = extra.get("days")
+                if not isinstance(days, list):
+                    continue
+
+                block_changed = False
+
+                try:
+                    movie_id = int(extra.get("movie_id"))
+                except (TypeError, ValueError):
+                    movie_id = None
+
+                for item in days:
+                    if not isinstance(item, dict):
+                        continue
+
+                    # Preview/Premiere uses its own optional date, but follows
+                    # the same LIVE -> ESTIMATED_FINAL rollover rule.
+                    raw_date = item.get("date")
+                    if not raw_date:
+                        continue
+
+                    try:
+                        item_date = date.fromisoformat(str(raw_date))
+                    except ValueError:
+                        continue
+
+                    old_status = str(item.get("status") or "LIVE").upper()
+                    new_status = _boxoffice_tracking_status_for_day(
+                        item_date,
+                        old_status,
+                    )
+
+                    if new_status != old_status:
+                        item["status"] = new_status
+                        block_changed = True
+                        changed_days += 1
+
+                    # Central tracking is only for regular numbered days.
+                    if (
+                        movie_id
+                        and str(item.get("type") or "REGULAR").upper() == "REGULAR"
+                    ):
+                        try:
+                            day_number = int(item.get("number"))
+                        except (TypeError, ValueError):
+                            day_number = None
+
+                        if day_number and day_number >= 1:
+                            cur.execute("""
+                                UPDATE movie_boxoffice_tracking
+                                SET status = 'ESTIMATED_FINAL'
+                                WHERE movie_id = %s
+                                  AND day_number = %s
+                                  AND status = 'LIVE'
+                                  AND final_locked = FALSE
+                                  AND tracking_end IS NOT NULL
+                                  AND tracking_end <= CURRENT_TIMESTAMP
+                            """, (movie_id, day_number))
+
+                if block_changed:
+                    cur.execute("""
+                        UPDATE article_blocks
+                        SET extra_data = %s::jsonb
+                        WHERE id = %s
+                    """, (
+                        json.dumps(extra),
+                        block_id,
+                    ))
+                    changed_blocks += 1
+
+        conn.commit()
+
+    return {
+        "changed_blocks": changed_blocks,
+        "changed_days": changed_days,
+    }
+
+
+@app.post(
+    "/admin/articles/{article_id}/refresh-boxoffice-statuses",
+    dependencies=[Depends(require_admin)]
+)
+def admin_refresh_article_boxoffice_statuses(article_id: int):
+    result = refresh_article_boxoffice_tracking_statuses(article_id)
+    return {
+        "success": True,
+        **result,
+    }
+
+
+class AdminTrackingStatusData(BaseModel):
+    status: Literal["LIVE", "ESTIMATED_FINAL", "FINAL_REVIEW"]
+
+
+class AdminFinalizeArticleDayData(BaseModel):
+    movie_id: int
+    day_number: int
+
+
+class AdminFinalizePreviewData(BaseModel):
+    movie_id: int
+    collection_type: Literal["PREVIEW"]
+    collection_label: str = "Preview / Premiere"
+    collection_date: date
+
+
+# ============================================================
+# BOXOFFICEX ARTICLE STATUS + PREVIEW-SAFE ROW TRACKING
+# Phase 3
+# ============================================================
+
+@app.patch(
+    "/admin/articles/{article_id}/status",
+    dependencies=[Depends(require_admin)]
+)
+def admin_set_article_status(
+    article_id: int,
+    data: AdminArticleStatusData,
+):
+    """
+    Change only article publication state without requiring the full
+    article editor payload.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            if data.status == "published":
+                cur.execute("""
+                    UPDATE articles
+                    SET
+                        status = 'published',
+                        published_at = COALESCE(published_at, CURRENT_TIMESTAMP),
+                        is_future_draft = FALSE,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    RETURNING id, status, published_at
+                """, (article_id,))
+            else:
+                cur.execute("""
+                    UPDATE articles
+                    SET
+                        status = %s,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    RETURNING id, status, published_at
+                """, (data.status, article_id))
+
+            row = cur.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Article not found",
+                )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "article": {
+            "id": row[0],
+            "status": row[1],
+            "published_at": row[2].isoformat() if row[2] else None,
+        },
+    }
+
+
+@app.post(
+    "/admin/boxoffice-tracking/get-or-create",
+    dependencies=[Depends(require_admin)]
+)
+def admin_get_or_create_boxoffice_tracking(
+    data: AdminTrackingKeyData,
+):
+    if data.movie_id < 1 or data.day_number < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="movie_id and day_number must be positive",
+        )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT release_date
+                FROM movies
+                WHERE id = %s
+            """, (data.movie_id,))
+            movie_row = cur.fetchone()
+
+            if not movie_row:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Movie not found",
+                )
+
+            ist = ZoneInfo("Asia/Kolkata")
+            release_date = movie_row[0]
+
+            if release_date:
+                tracking_local_date = (
+                    release_date
+                    + timedelta(days=data.day_number - 1)
+                )
+            else:
+                tracking_local_date = datetime.now(ist).date()
+
+            tracking_start = datetime.combine(
+                tracking_local_date,
+                time(hour=6, minute=0),
+                tzinfo=ist,
+            )
+            tracking_end = tracking_start + timedelta(days=1)
+
+            cur.execute("""
+                INSERT INTO movie_boxoffice_tracking (
+                    movie_id,
+                    day_number,
+                    status,
+                    tracking_start,
+                    tracking_end,
+                    final_locked
+                )
+                VALUES (%s, %s, 'LIVE', %s, %s, FALSE)
+                ON CONFLICT (movie_id, day_number)
+                DO UPDATE SET
+                    tracking_start = COALESCE(
+                        movie_boxoffice_tracking.tracking_start,
+                        EXCLUDED.tracking_start
+                    ),
+                    tracking_end = COALESCE(
+                        movie_boxoffice_tracking.tracking_end,
+                        EXCLUDED.tracking_end
+                    )
+                RETURNING
+                    id,
+                    movie_id,
+                    day_number,
+                    status,
+                    india_collection,
+                    overseas_collection,
+                    worldwide_collection,
+                    tamil_nadu_collection,
+                    kerala_collection,
+                    karnataka_collection,
+                    telugu_states_collection,
+                    rest_of_india_collection,
+                    tracking_start,
+                    tracking_end,
+                    final_locked,
+                    updated_at
+            """, (
+                data.movie_id,
+                data.day_number,
+                tracking_start,
+                tracking_end,
+            ))
+            row = cur.fetchone()
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "tracking": {
+            "id": row[0],
+            "movie_id": row[1],
+            "day_number": row[2],
+            "status": row[3],
+            "india_collection": row[4],
+            "overseas_collection": row[5],
+            "worldwide_collection": row[6],
+            "tamil_nadu_collection": row[7],
+            "kerala_collection": row[8],
+            "karnataka_collection": row[9],
+            "telugu_states_collection": row[10],
+            "rest_of_india_collection": row[11],
+            "tracking_start": row[12].isoformat() if row[12] else None,
+            "tracking_end": row[13].isoformat() if row[13] else None,
+            "final_locked": row[14],
+            "updated_at": row[15].isoformat() if row[15] else None,
+        },
+    }
+
+
+@app.put(
+    "/admin/boxoffice-tracking/{tracking_id}",
+    dependencies=[Depends(require_admin)]
+)
+def admin_update_boxoffice_tracking(
+    tracking_id: int,
+    data: AdminTrackingUpdateData,
+):
+    """
+    Update one central movie/day tracking record.
+
+    FINAL + final_locked=TRUE freezes the record through the DB trigger.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT movie_id, day_number, final_locked
+                FROM movie_boxoffice_tracking
+                WHERE id = %s
+            """, (tracking_id,))
+            existing = cur.fetchone()
+
+            if not existing:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Tracking record not found",
+                )
+
+            if existing[2]:
+                raise HTTPException(
+                    status_code=409,
+                    detail="This Final tracking record is locked",
+                )
+
+            if existing[0] != data.movie_id or existing[1] != data.day_number:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Movie/day cannot be changed for an existing tracking record",
+                )
+
+            cur.execute("""
+                UPDATE movie_boxoffice_tracking
+                SET
+                    status = %s,
+                    india_collection = %s,
+                    overseas_collection = %s,
+                    worldwide_collection = %s,
+                    tamil_nadu_collection = %s,
+                    kerala_collection = %s,
+                    karnataka_collection = %s,
+                    telugu_states_collection = %s,
+                    rest_of_india_collection = %s,
+                    final_locked = %s
+                WHERE id = %s
+                RETURNING
+                    id,
+                    movie_id,
+                    day_number,
+                    status,
+                    india_collection,
+                    overseas_collection,
+                    worldwide_collection,
+                    tamil_nadu_collection,
+                    kerala_collection,
+                    karnataka_collection,
+                    telugu_states_collection,
+                    rest_of_india_collection,
+                    tracking_start,
+                    tracking_end,
+                    final_locked,
+                    updated_at
+            """, (
+                data.status,
+                data.india_collection,
+                data.overseas_collection,
+                data.worldwide_collection,
+                data.tamil_nadu_collection,
+                data.kerala_collection,
+                data.karnataka_collection,
+                data.telugu_states_collection,
+                data.rest_of_india_collection,
+                data.final_locked,
+                tracking_id,
+            ))
+
+            row = cur.fetchone()
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "tracking": {
+            "id": row[0],
+            "movie_id": row[1],
+            "day_number": row[2],
+            "status": row[3],
+            "india_collection": row[4],
+            "overseas_collection": row[5],
+            "worldwide_collection": row[6],
+            "tamil_nadu_collection": row[7],
+            "kerala_collection": row[8],
+            "karnataka_collection": row[9],
+            "telugu_states_collection": row[10],
+            "rest_of_india_collection": row[11],
+            "tracking_start": row[12].isoformat() if row[12] else None,
+            "tracking_end": row[13].isoformat() if row[13] else None,
+            "final_locked": row[14],
+            "updated_at": row[15].isoformat() if row[15] else None,
+        },
+    }
+
+
+
+
+@app.on_event("startup")
+def initialize_movie_preview_collections():
+    """
+    Optional preview/premiere collections.
+    Kept separate from movie_daily_collections so Day 1 always remains
+    the official release date and existing movie.html day numbering stays intact.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS movie_preview_collections (
+                    id BIGSERIAL PRIMARY KEY,
+                    movie_id INTEGER NOT NULL
+                        REFERENCES movies(id)
+                        ON DELETE CASCADE,
+                    collection_label TEXT NOT NULL DEFAULT 'Preview / Premiere',
+                    collection_date DATE NOT NULL,
+                    tamil_nadu_collection NUMERIC(12,2),
+                    kerala_collection NUMERIC(12,2),
+                    karnataka_collection NUMERIC(12,2),
+                    telugu_states_collection NUMERIC(12,2),
+                    rest_of_india_collection NUMERIC(12,2),
+                    overseas_collection NUMERIC(12,2),
+                    india_collection NUMERIC(12,2),
+                    worldwide_collection NUMERIC(12,2),
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (movie_id, collection_date, collection_label)
+                )
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_movie_preview_collections_movie
+                ON movie_preview_collections(movie_id, collection_date)
+            """)
+        conn.commit()
+
+
+# ============================================================
+# BOXOFFICEX FINAL-ONLY MOVIE SYNC
+# Phase 4
+#
+# IMPORTANT RULE:
+# Article Box Office block stores working/live/estimated numbers.
+# movie_daily_collections (used by movie.html) is updated ONLY
+# when the editor explicitly marks a specific day FINAL.
+# ============================================================
+
+@app.patch(
+    "/admin/boxoffice-tracking/{tracking_id}/status",
+    dependencies=[Depends(require_admin)]
+)
+def admin_update_tracking_status(
+    tracking_id: int,
+    data: AdminTrackingStatusData,
+):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT final_locked
+                FROM movie_boxoffice_tracking
+                WHERE id = %s
+            """, (tracking_id,))
+            row = cur.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Tracking record not found",
+                )
+
+            if row[0]:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Final tracking record is locked",
+                )
+
+            cur.execute("""
+                UPDATE movie_boxoffice_tracking
+                SET status = %s
+                WHERE id = %s
+                RETURNING
+                    id,
+                    movie_id,
+                    day_number,
+                    status,
+                    tracking_start,
+                    tracking_end,
+                    final_locked,
+                    updated_at
+            """, (
+                data.status,
+                tracking_id,
+            ))
+            updated = cur.fetchone()
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "tracking": {
+            "id": updated[0],
+            "movie_id": updated[1],
+            "day_number": updated[2],
+            "status": updated[3],
+            "tracking_start": updated[4].isoformat() if updated[4] else None,
+            "tracking_end": updated[5].isoformat() if updated[5] else None,
+            "final_locked": updated[6],
+            "updated_at": updated[7].isoformat() if updated[7] else None,
+        },
+    }
+
+
+
+@app.post(
+    "/admin/articles/{article_id}/finalize-boxoffice-preview",
+    dependencies=[Depends(require_admin)]
+)
+def admin_finalize_article_boxoffice_preview(
+    article_id: int,
+    data: AdminFinalizePreviewData,
+):
+    """
+    Finalize a Preview/Premiere collection separately from Day 1.
+    This never changes regular Day 1 numbering.
+    """
+    territory_fields = {
+        "tamil_nadu": "tamil_nadu_collection",
+        "kerala": "kerala_collection",
+        "karnataka": "karnataka_collection",
+        "telugu_states": "telugu_states_collection",
+        "rest_of_india": "rest_of_india_collection",
+        "overseas": "overseas_collection",
+    }
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id
+                FROM articles
+                WHERE id = %s
+            """, (article_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Article not found")
+
+            cur.execute("""
+                SELECT extra_data
+                FROM article_blocks
+                WHERE article_id = %s
+                  AND block_type = 'boxoffice'
+                ORDER BY block_order, id
+            """, (article_id,))
+            rows = cur.fetchall()
+
+            preview = None
+
+            for (extra_data,) in rows:
+                extra = extra_data or {}
+
+                if isinstance(extra, str):
+                    try:
+                        extra = json.loads(extra)
+                    except Exception:
+                        extra = {}
+
+                try:
+                    block_movie_id = int(extra.get("movie_id"))
+                except (TypeError, ValueError):
+                    continue
+
+                if block_movie_id != data.movie_id:
+                    continue
+
+                for item in (extra.get("days") or []):
+                    if str(item.get("type") or "REGULAR").upper() != "PREVIEW":
+                        continue
+
+                    item_date = item.get("date")
+                    if not item_date:
+                        continue
+
+                    try:
+                        item_date = date.fromisoformat(str(item_date))
+                    except ValueError:
+                        continue
+
+                    if item_date == data.collection_date:
+                        preview = item
+                        break
+
+                if preview is not None:
+                    break
+
+            if preview is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Matching Preview / Premiere collection not found in article",
+                )
+
+            if str(preview.get("status") or "").upper() != "FINAL":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Preview / Premiere must be FINAL before syncing",
+                )
+
+            values = {}
+            for source_field, db_field in territory_fields.items():
+                try:
+                    values[db_field] = float(preview.get(source_field) or 0)
+                except (TypeError, ValueError):
+                    values[db_field] = 0.0
+
+            india = (
+                values["tamil_nadu_collection"]
+                + values["kerala_collection"]
+                + values["karnataka_collection"]
+                + values["telugu_states_collection"]
+                + values["rest_of_india_collection"]
+            )
+            overseas = values["overseas_collection"]
+            worldwide = india + overseas
+
+            cur.execute("""
+                INSERT INTO movie_preview_collections (
+                    movie_id,
+                    collection_label,
+                    collection_date,
+                    tamil_nadu_collection,
+                    kerala_collection,
+                    karnataka_collection,
+                    telugu_states_collection,
+                    rest_of_india_collection,
+                    overseas_collection,
+                    india_collection,
+                    worldwide_collection,
+                    updated_at
+                )
+                VALUES (
+                    %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s,
+                    CURRENT_TIMESTAMP
+                )
+                ON CONFLICT (movie_id, collection_date, collection_label)
+                DO UPDATE SET
+                    tamil_nadu_collection = EXCLUDED.tamil_nadu_collection,
+                    kerala_collection = EXCLUDED.kerala_collection,
+                    karnataka_collection = EXCLUDED.karnataka_collection,
+                    telugu_states_collection = EXCLUDED.telugu_states_collection,
+                    rest_of_india_collection = EXCLUDED.rest_of_india_collection,
+                    overseas_collection = EXCLUDED.overseas_collection,
+                    india_collection = EXCLUDED.india_collection,
+                    worldwide_collection = EXCLUDED.worldwide_collection,
+                    updated_at = CURRENT_TIMESTAMP
+                RETURNING id
+            """, (
+                data.movie_id,
+                data.collection_label.strip() or "Preview / Premiere",
+                data.collection_date,
+                values["tamil_nadu_collection"],
+                values["kerala_collection"],
+                values["karnataka_collection"],
+                values["telugu_states_collection"],
+                values["rest_of_india_collection"],
+                overseas,
+                india,
+                worldwide,
+            ))
+
+            preview_id = cur.fetchone()[0]
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "preview_id": preview_id,
+        "movie_id": data.movie_id,
+        "collection_label": data.collection_label,
+        "collection_date": data.collection_date.isoformat(),
+        "totals": {
+            "india": round(india, 2),
+            "overseas": round(overseas, 2),
+            "worldwide": round(worldwide, 2),
+        },
+    }
+
+
+@app.post(
+    "/admin/articles/{article_id}/finalize-boxoffice-day",
+    dependencies=[Depends(require_admin)]
+)
+def admin_finalize_article_boxoffice_day(
+    article_id: int,
+    data: AdminFinalizeArticleDayData,
+):
+    """
+    Publish ONE finalized day from an Article Box Office block into
+    movie_daily_collections. Previous finalized days are preserved.
+
+    This is the only Phase-4 path that writes an article's current
+    day numbers into the movie.html day-wise database.
+    """
+    if data.movie_id < 1 or data.day_number < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="movie_id and day_number must be positive",
+        )
+
+    territory_map = (
+        ("Tamil Nadu", "tamil_nadu"),
+        ("Kerala", "kerala"),
+        ("Karnataka", "karnataka"),
+        ("Telugu States", "telugu_states"),
+        ("Rest of India", "rest_of_india"),
+        ("Overseas", "overseas"),
+    )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id
+                FROM articles
+                WHERE id = %s
+            """, (article_id,))
+            if not cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Article not found",
+                )
+
+            cur.execute("""
+                SELECT id, extra_data
+                FROM article_blocks
+                WHERE article_id = %s
+                  AND block_type = 'boxoffice'
+                ORDER BY block_order, id
+            """, (article_id,))
+            blocks = cur.fetchall()
+
+            selected_day = None
+
+            for block_id, extra_data in blocks:
+                extra = extra_data or {}
+
+                if isinstance(extra, str):
+                    try:
+                        extra = json.loads(extra)
+                    except Exception:
+                        extra = {}
+
+                block_movie_id = extra.get("movie_id")
+                try:
+                    block_movie_id = int(block_movie_id)
+                except (TypeError, ValueError):
+                    continue
+
+                if block_movie_id != data.movie_id:
+                    continue
+
+                days = extra.get("days") or []
+
+                for candidate in days:
+                    if not isinstance(candidate, dict):
+                        continue
+
+                    if str(candidate.get("type") or "REGULAR").upper() != "REGULAR":
+                        continue
+
+                    try:
+                        candidate_day = int(candidate.get("number"))
+                    except (TypeError, ValueError):
+                        continue
+
+                    if candidate_day == data.day_number:
+                        selected_day = candidate
+                        break
+
+                if selected_day is not None:
+                    break
+
+            if selected_day is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"No Box Office block for movie {data.movie_id} "
+                        f"contains Day {data.day_number}"
+                    ),
+                )
+
+            if str(selected_day.get("status") or "").upper() != "FINAL":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Day {data.day_number} must be FINAL before syncing"
+                )
+
+            collection_date = selected_day.get("date")
+            if not collection_date:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Day {data.day_number} needs a date before it can be Final"
+                    ),
+                )
+
+            try:
+                final_date = date.fromisoformat(str(collection_date))
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid collection date in Box Office block",
+                )
+
+            # Verify movie exists.
+            cur.execute("""
+                SELECT id
+                FROM movies
+                WHERE id = %s
+            """, (data.movie_id,))
+            if not cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Movie not found",
+                )
+
+            # Write ONLY this final day. Never delete previous days.
+            day_india = 0.0
+            day_overseas = 0.0
+
+            for territory, field_name in territory_map:
+                raw_amount = selected_day.get(field_name)
+
+                try:
+                    amount = float(raw_amount or 0)
+                except (TypeError, ValueError):
+                    amount = 0.0
+
+                cur.execute("""
+                    INSERT INTO movie_daily_collections (
+                        movie_id,
+                        collection_date,
+                        state,
+                        collection_crore
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (
+                        movie_id,
+                        collection_date,
+                        state
+                    )
+                    DO UPDATE SET
+                        collection_crore = EXCLUDED.collection_crore
+                """, (
+                    data.movie_id,
+                    final_date,
+                    territory,
+                    amount,
+                ))
+
+                if territory == "Overseas":
+                    day_overseas += amount
+                else:
+                    day_india += amount
+
+            day_worldwide = day_india + day_overseas
+
+            # Recalculate movie headline totals from all finalized days.
+            cur.execute("""
+                SELECT
+                    COALESCE(
+                        SUM(collection_crore)
+                        FILTER (
+                            WHERE state = ANY(%s)
+                        ),
+                        0
+                    ),
+                    COALESCE(
+                        SUM(collection_crore)
+                        FILTER (
+                            WHERE state = 'Overseas'
+                        ),
+                        0
+                    )
+                FROM movie_daily_collections
+                WHERE movie_id = %s
+            """, (
+                list(LIVE_INDIA_REGIONS),
+                data.movie_id,
+            ))
+            totals = cur.fetchone()
+
+            movie_india = float(totals[0] or 0)
+            movie_overseas = float(totals[1] or 0)
+            movie_worldwide = movie_india + movie_overseas
+
+            cur.execute("""
+                UPDATE movies
+                SET
+                    india_collection_crore = %s,
+                    overseas_collection_crore = %s,
+                    worldwide_collection_crore = %s
+                WHERE id = %s
+            """, (
+                movie_india,
+                movie_overseas,
+                movie_worldwide,
+                data.movie_id,
+            ))
+
+            # Mark/create the matching tracking row as FINAL + locked.
+            cur.execute("""
+                INSERT INTO movie_boxoffice_tracking (
+                    movie_id,
+                    day_number,
+                    status,
+                    final_locked
+                )
+                VALUES (%s, %s, 'FINAL', TRUE)
+                ON CONFLICT (movie_id, day_number)
+                DO UPDATE SET
+                    status = 'FINAL',
+                    final_locked = TRUE
+                RETURNING id
+            """, (
+                data.movie_id,
+                data.day_number,
+            ))
+            tracking_id = cur.fetchone()[0]
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "message": f"Day {data.day_number} finalized and synced to movie.html",
+        "tracking_id": tracking_id,
+        "movie_id": data.movie_id,
+        "day_number": data.day_number,
+        "collection_date": final_date.isoformat(),
+        "day_totals": {
+            "india": round(day_india, 2),
+            "overseas": round(day_overseas, 2),
+            "worldwide": round(day_worldwide, 2),
+        },
+        "movie_totals": {
+            "india": round(movie_india, 2),
+            "overseas": round(movie_overseas, 2),
+            "worldwide": round(movie_worldwide, 2),
+        },
+    }
+
+
+# ============================================================
+# BOXOFFICEX ARTICLE REUSE + FUTURE DRAFT GENERATOR
+# Phase 2
+# ============================================================
+
+class AdminArticleReuseData(BaseModel):
+    target_day: int
+
+
+class AdminFutureDraftData(BaseModel):
+    through_day: int
+
+
+def _replace_article_day_text(value: Optional[str], source_day: int, target_day: int):
+    """
+    Replace only explicit article day labels such as:
+      Day 1 -> Day 2
+      day-1 -> day-2
+      day_1 -> day_2
+
+    Box-office amounts and unrelated numbers are never changed.
+    """
+    if value is None:
+        return None
+
+    result = str(value)
+
+    result = re.sub(
+        rf"(?i)\bday\s+{source_day}\b",
+        lambda m: ("Day" if m.group(0)[0].isupper() else "day") + f" {target_day}",
+        result,
+    )
+
+    result = re.sub(
+        rf"(?i)\bday-{source_day}\b",
+        f"day-{target_day}",
+        result,
+    )
+
+    result = re.sub(
+        rf"(?i)\bday_{source_day}\b",
+        f"day_{target_day}",
+        result,
+    )
+
+    return result
+
+
+def _detect_article_day(title: str, slug: str, stored_day: Optional[int]):
+    if stored_day and int(stored_day) >= 1:
+        return int(stored_day)
+
+    for value in (title or "", slug or ""):
+        match = re.search(r"(?i)\bday[\s_-]*(\d+)\b", value)
+        if match:
+            return int(match.group(1))
+
+    return 1
+
+
+def _unique_reused_slug(cur, desired_slug: str):
+    """
+    Normally Day 1 -> Day 2 already produces a unique slug.
+    This fallback prevents a failed draft operation if that slug exists.
+    """
+    base = normalize_article_slug(desired_slug)
+
+    if not base:
+        base = "article-draft"
+
+    candidate = base
+    suffix = 2
+
+    while True:
+        cur.execute(
+            "SELECT 1 FROM articles WHERE slug = %s LIMIT 1",
+            (candidate,),
+        )
+        if not cur.fetchone():
+            return candidate
+
+        candidate = f"{base}-{suffix}"
+        suffix += 1
+
+
+def _get_or_create_tracking_record(cur, movie_id: int, day_number: int):
+    """
+    One movie + one day = one central tracking record.
+    Draft generation reuses the same record if it already exists.
+    """
+    cur.execute("""
+        SELECT id
+        FROM movie_boxoffice_tracking
+        WHERE movie_id = %s
+          AND day_number = %s
+    """, (movie_id, day_number))
+
+    row = cur.fetchone()
+
+    if row:
+        return row[0]
+
+    cur.execute("""
+        INSERT INTO movie_boxoffice_tracking (
+            movie_id,
+            day_number,
+            status,
+            final_locked
+        )
+        VALUES (%s, %s, 'LIVE', FALSE)
+        ON CONFLICT (movie_id, day_number)
+        DO UPDATE SET movie_id = EXCLUDED.movie_id
+        RETURNING id
+    """, (movie_id, day_number))
+
+    return cur.fetchone()[0]
+
+
+def _attach_tracking_to_reused_article(
+    cur,
+    article_id: int,
+    movie_ids: list[int],
+    target_day: int,
+):
+    """
+    Current day is writable/current.
+    Earlier available days are historical/read-only links.
+
+    Tracking is attached automatically only when the article is linked
+    to exactly one movie. Multi-movie articles remain normal articles.
+    """
+    if len(movie_ids) != 1:
+        return None
+
+    movie_id = movie_ids[0]
+
+    # Attach any existing earlier tracking days as historical.
+    cur.execute("""
+        SELECT id, day_number
+        FROM movie_boxoffice_tracking
+        WHERE movie_id = %s
+          AND day_number < %s
+        ORDER BY day_number
+    """, (movie_id, target_day))
+
+    for tracking_id, day_number in cur.fetchall():
+        cur.execute("""
+            INSERT INTO article_boxoffice_tracking (
+                article_id,
+                tracking_id,
+                link_type,
+                display_order
+            )
+            VALUES (%s, %s, 'HISTORICAL', %s)
+            ON CONFLICT (article_id, tracking_id) DO NOTHING
+        """, (
+            article_id,
+            tracking_id,
+            day_number,
+        ))
+
+    current_tracking_id = _get_or_create_tracking_record(
+        cur,
+        movie_id,
+        target_day,
+    )
+
+    cur.execute("""
+        INSERT INTO article_boxoffice_tracking (
+            article_id,
+            tracking_id,
+            link_type,
+            display_order
+        )
+        VALUES (%s, %s, 'CURRENT', %s)
+        ON CONFLICT (article_id, tracking_id)
+        DO UPDATE SET
+            link_type = 'CURRENT',
+            display_order = EXCLUDED.display_order
+    """, (
+        article_id,
+        current_tracking_id,
+        target_day,
+    ))
+
+    return current_tracking_id
+
+
+def _reuse_article_in_transaction(
+    cur,
+    source_article_id: int,
+    target_day: int,
+):
+    if target_day < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Target day must be 1 or greater",
+        )
+
+    cur.execute("""
+        SELECT
+            id,
+            title,
+            slug,
+            subtitle,
+            category,
+            author,
+            hero_image,
+            hero_caption,
+            hero_credit,
+            meta_title,
+            meta_description,
+            tracking_day
+        FROM articles
+        WHERE id = %s
+    """, (source_article_id,))
+
+    source = cur.fetchone()
+
+    if not source:
+        raise HTTPException(
+            status_code=404,
+            detail="Source article not found",
+        )
+
+    source_day = _detect_article_day(
+        source[1],
+        source[2],
+        source[11],
+    )
+
+    if target_day == source_day:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Target day is already Day {source_day}",
+        )
+
+    new_title = _replace_article_day_text(
+        source[1], source_day, target_day
+    )
+    desired_slug = _replace_article_day_text(
+        source[2], source_day, target_day
+    )
+    new_slug = _unique_reused_slug(cur, desired_slug)
+
+    new_subtitle = _replace_article_day_text(
+        source[3], source_day, target_day
+    )
+    new_meta_title = _replace_article_day_text(
+        source[9], source_day, target_day
+    )
+    new_meta_description = _replace_article_day_text(
+        source[10], source_day, target_day
+    )
+
+    cur.execute("""
+        INSERT INTO articles (
+            title,
+            slug,
+            subtitle,
+            category,
+            author,
+            hero_image,
+            hero_caption,
+            hero_credit,
+            status,
+            meta_title,
+            meta_description,
+            published_at,
+            reused_from_article_id,
+            tracking_day,
+            is_future_draft,
+            scheduled_publish_at,
+            updated_at
+        )
+        VALUES (
+            %s, %s, %s, %s, %s,
+            %s, %s, %s,
+            'draft', %s, %s,
+            NULL,
+            %s,
+            %s,
+            TRUE,
+            NULL,
+            CURRENT_TIMESTAMP
+        )
+        RETURNING id
+    """, (
+        new_title,
+        new_slug,
+        new_subtitle,
+        source[4],
+        source[5],
+        source[6],
+        source[7],
+        source[8],
+        new_meta_title,
+        new_meta_description,
+        source_article_id,
+        target_day,
+    ))
+
+    new_article_id = cur.fetchone()[0]
+
+    # Copy all article blocks.
+    # Content is copied exactly; collection amounts are never modified.
+    cur.execute("""
+        INSERT INTO article_blocks (
+            article_id,
+            block_order,
+            block_type,
+            content,
+            image,
+            image_caption,
+            image_credit,
+            extra_data
+        )
+        SELECT
+            %s,
+            block_order,
+            block_type,
+            content,
+            image,
+            image_caption,
+            image_credit,
+            extra_data
+        FROM article_blocks
+        WHERE article_id = %s
+        ORDER BY block_order
+    """, (
+        new_article_id,
+        source_article_id,
+    ))
+
+    # Prepare copied Box Office blocks for the target article day.
+    # Preview/Premiere stays separate. Historical regular days are preserved.
+    # Missing future regular days are appended blank through target_day.
+    cur.execute("""
+        SELECT id, extra_data
+        FROM article_blocks
+        WHERE article_id = %s
+          AND block_type = 'boxoffice'
+        ORDER BY block_order, id
+    """, (new_article_id,))
+
+    copied_boxoffice_blocks = cur.fetchall()
+
+    for copied_block_id, raw_extra in copied_boxoffice_blocks:
+        extra = raw_extra or {}
+
+        if isinstance(extra, str):
+            try:
+                extra = json.loads(extra)
+            except Exception:
+                extra = {}
+
+        try:
+            block_movie_id = int(extra.get("movie_id"))
+        except (TypeError, ValueError):
+            block_movie_id = None
+
+        release_date = None
+        if block_movie_id:
+            cur.execute("""
+                SELECT release_date
+                FROM movies
+                WHERE id = %s
+            """, (block_movie_id,))
+            release_row = cur.fetchone()
+            release_date = release_row[0] if release_row else None
+
+        source_days = extra.get("days") or []
+        previews = []
+        regular_by_number = {}
+
+        for item in source_days:
+            if not isinstance(item, dict):
+                continue
+
+            item_type = str(item.get("type") or "REGULAR").upper()
+
+            if item_type == "PREVIEW":
+                preview_copy = dict(item)
+                preview_copy["type"] = "PREVIEW"
+                preview_copy["number"] = None
+                previews.append(preview_copy)
+                continue
+
+            try:
+                day_no = int(item.get("number"))
+            except (TypeError, ValueError):
+                continue
+
+            if day_no < 1 or day_no > target_day:
+                continue
+
+            regular_copy = dict(item)
+            regular_copy["type"] = "REGULAR"
+            regular_copy["number"] = day_no
+            regular_by_number[day_no] = regular_copy
+
+        for day_no in range(1, target_day + 1):
+            if day_no in regular_by_number:
+                continue
+
+            auto_date = None
+            if release_date:
+                auto_date = release_date + timedelta(days=day_no - 1)
+
+            regular_by_number[day_no] = {
+                "number": day_no,
+                "type": "REGULAR",
+                "label": "",
+                "date": auto_date.isoformat() if auto_date else "",
+                "status": "LIVE",
+                "tamil_nadu": None,
+                "kerala": None,
+                "karnataka": None,
+                "telugu_states": None,
+                "rest_of_india": None,
+                "overseas": None,
+            }
+
+        # The target day must never inherit a previous article's live/final amounts
+        # unless that exact target day already existed historically in the source.
+        target_item = regular_by_number.get(target_day)
+        if target_item and target_day > source_day:
+            target_item.update({
+                "status": "LIVE",
+                "tamil_nadu": None,
+                "kerala": None,
+                "karnataka": None,
+                "telugu_states": None,
+                "rest_of_india": None,
+                "overseas": None,
+            })
+
+        extra["days"] = (
+            previews
+            + [regular_by_number[n] for n in sorted(regular_by_number)]
+        )
+
+        cur.execute("""
+            UPDATE article_blocks
+            SET extra_data = %s::jsonb
+            WHERE id = %s
+        """, (
+            json.dumps(extra),
+            copied_block_id,
+        ))
+
+    # Copy movie links.
+    cur.execute("""
+        INSERT INTO article_movies (article_id, movie_id)
+        SELECT %s, movie_id
+        FROM article_movies
+        WHERE article_id = %s
+        ON CONFLICT DO NOTHING
+    """, (
+        new_article_id,
+        source_article_id,
+    ))
+
+    # Copy actor links.
+    cur.execute("""
+        INSERT INTO article_actors (article_id, actor_id)
+        SELECT %s, actor_id
+        FROM article_actors
+        WHERE article_id = %s
+        ON CONFLICT DO NOTHING
+    """, (
+        new_article_id,
+        source_article_id,
+    ))
+
+    cur.execute("""
+        SELECT movie_id
+        FROM article_movies
+        WHERE article_id = %s
+        ORDER BY movie_id
+    """, (new_article_id,))
+
+    movie_ids = [row[0] for row in cur.fetchall()]
+
+    current_tracking_id = _attach_tracking_to_reused_article(
+        cur,
+        new_article_id,
+        movie_ids,
+        target_day,
+    )
+
+    return {
+        "article_id": new_article_id,
+        "title": new_title,
+        "slug": new_slug,
+        "tracking_day": target_day,
+        "reused_from_article_id": source_article_id,
+        "movie_ids": movie_ids,
+        "current_tracking_id": current_tracking_id,
+    }
+
+
+@app.post(
+    "/admin/articles/{article_id}/reuse",
+    dependencies=[Depends(require_admin)]
+)
+def admin_reuse_article(
+    article_id: int,
+    data: AdminArticleReuseData,
+):
+    """
+    Create one independent Draft from an existing article.
+
+    Example:
+      Day 1 -> Reuse -> Day 2 Draft
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            result = _reuse_article_in_transaction(
+                cur,
+                article_id,
+                data.target_day,
+            )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "message": f"Day {data.target_day} draft created",
+        "article": result,
+    }
+
+
+@app.post(
+    "/admin/articles/{article_id}/future-drafts",
+    dependencies=[Depends(require_admin)]
+)
+def admin_create_future_article_drafts(
+    article_id: int,
+    data: AdminFutureDraftData,
+):
+    """
+    Generate as many future day drafts as the editor chooses.
+
+    Example:
+      Source = Day 1
+      through_day = 5
+      -> creates Day 2, 3, 4 and 5 drafts.
+
+    There is intentionally no fixed 7-day rule.
+    """
+    if data.through_day < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="through_day must be Day 2 or greater",
+        )
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT title, slug, tracking_day
+                FROM articles
+                WHERE id = %s
+            """, (article_id,))
+
+            source = cur.fetchone()
+
+            if not source:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Source article not found",
+                )
+
+            source_day = _detect_article_day(
+                source[0],
+                source[1],
+                source[2],
+            )
+
+            if data.through_day <= source_day:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Source is Day {source_day}. "
+                        "Choose a later ending day."
+                    ),
+                )
+
+            created = []
+
+            for target_day in range(
+                source_day + 1,
+                data.through_day + 1,
+            ):
+                result = _reuse_article_in_transaction(
+                    cur,
+                    article_id,
+                    target_day,
+                )
+                created.append(result)
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "source_article_id": article_id,
+        "from_day": source_day,
+        "through_day": data.through_day,
+        "drafts_created": len(created),
+        "drafts": created,
+    }
+
+
+@app.get(
+    "/admin/articles/drafts/list",
+    dependencies=[Depends(require_admin)]
+)
+def admin_list_article_drafts(
+    q: Optional[str] = None,
+    movie_id: Optional[int] = None,
+):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    a.id,
+                    a.title,
+                    a.slug,
+                    a.category,
+                    a.hero_image,
+                    a.tracking_day,
+                    a.is_future_draft,
+                    a.reused_from_article_id,
+                    a.scheduled_publish_at,
+                    a.created_at,
+                    a.updated_at,
+                    ARRAY_REMOVE(
+                        ARRAY_AGG(DISTINCT am.movie_id),
+                        NULL
+                    ) AS movie_ids
+                FROM articles a
+                LEFT JOIN article_movies am
+                    ON am.article_id = a.id
+                WHERE a.status = 'draft'
+                  AND (
+                        %s IS NULL
+                        OR a.title ILIKE '%%' || %s || '%%'
+                        OR a.slug ILIKE '%%' || %s || '%%'
+                  )
+                  AND (
+                        %s IS NULL
+                        OR EXISTS (
+                            SELECT 1
+                            FROM article_movies am_filter
+                            WHERE am_filter.article_id = a.id
+                              AND am_filter.movie_id = %s
+                        )
+                  )
+                GROUP BY a.id
+                ORDER BY
+                    a.tracking_day NULLS LAST,
+                    a.created_at DESC,
+                    a.id DESC
+            """, (
+                q.strip() if q and q.strip() else None,
+                q.strip() if q and q.strip() else None,
+                q.strip() if q and q.strip() else None,
+                movie_id,
+                movie_id,
+            ))
+            rows = cur.fetchall()
+
+    return {
+        "drafts": [
+            {
+                "id": row[0],
+                "title": row[1],
+                "slug": row[2],
+                "category": row[3],
+                "hero_image": row[4],
+                "tracking_day": row[5],
+                "is_future_draft": row[6],
+                "reused_from_article_id": row[7],
+                "scheduled_publish_at": row[8],
+                "created_at": row[9],
+                "updated_at": row[10],
+                "movie_ids": row[11] or [],
+            }
+            for row in rows
+        ]
+    }
+
 
 
 @app.delete("/admin/articles/{article_id}", dependencies=[Depends(require_admin)])
@@ -8854,7 +10730,13 @@ ADVERTISEMENT_SELECT_COLUMNS = """
     billing_notes,
     ad_slot,
     movie_ranking_industry,
-    actor_ranking_industry
+    actor_ranking_industry,
+    target_actor_ids,
+    target_movie_ids,
+    target_actor_movies,
+    is_draft,
+    start_time,
+    end_time
 """
 
 
@@ -8876,6 +10758,31 @@ def _clean_optional_ad_text(value: Optional[str]):
 
     value = value.strip()
     return value or None
+
+
+def _normalize_id_list(values):
+    """Store integer ID lists compactly while accepting None/list/string safely."""
+    if values is None:
+        return None
+    if isinstance(values, str):
+        raw = [v.strip() for v in values.split(",") if v.strip()]
+    else:
+        raw = values
+    ids = []
+    for value in raw:
+        try:
+            number = int(value)
+        except (TypeError, ValueError):
+            continue
+        if number > 0 and number not in ids:
+            ids.append(number)
+    return ",".join(str(v) for v in ids) or None
+
+
+def _parse_id_list(value):
+    if not value:
+        return []
+    return [int(v) for v in str(value).split(",") if v.strip().isdigit() and int(v) > 0]
 
 
 AD_PLACEMENT_GROUPS = {
@@ -8929,12 +10836,12 @@ def _validate_ad_slot(ad_type: str, ad_slot: Optional[int]):
     if ad_slot is None:
         raise HTTPException(
             status_code=400,
-            detail="In-content advertisements require Slot 1, Slot 2, Slot 3 or All Available Slots"
+            detail="In-content advertisements require Slot 1-6 or All Available Slots"
         )
-    if int(ad_slot) not in {0, 1, 2, 3}:
+    if int(ad_slot) not in {0, 1, 2, 3, 4, 5, 6}:
         raise HTTPException(
             status_code=400,
-            detail="In-content advertisement slot must be 0 (All Available), 1, 2 or 3"
+            detail="In-content advertisement slot must be 0 (All Available) or 1-6"
         )
 
 
@@ -8963,6 +10870,8 @@ def _validate_advertisement_values(
     *,
     start_date_value: date,
     end_date_value: date,
+    start_time_value: Optional[time] = None,
+    end_time_value: Optional[time] = None,
     ad_type: str,
     media_type: str,
     duration_seconds: Optional[int],
@@ -8974,6 +10883,12 @@ def _validate_advertisement_values(
         raise HTTPException(
             status_code=400,
             detail="End date cannot be before start date"
+        )
+
+    if end_date_value == start_date_value and start_time_value and end_time_value and end_time_value < start_time_value:
+        raise HTTPException(
+            status_code=400,
+            detail="End time cannot be before start time on the same date"
         )
 
     if duration_seconds is not None:
@@ -9006,19 +10921,21 @@ def _validate_advertisement_values(
 def advertisement_status(
     is_active: bool,
     start_date_value: date,
-    end_date_value: date
+    end_date_value: date,
+    start_time_value: Optional[time] = None,
+    end_time_value: Optional[time] = None
 ):
-    today = date.today()
-
     if not is_active:
         return "paused"
 
-    if today < start_date_value:
+    now_ist = datetime.now(ZoneInfo("Asia/Kolkata")).replace(tzinfo=None)
+    starts_at = datetime.combine(start_date_value, start_time_value or time(0, 0, 0))
+    ends_at = datetime.combine(end_date_value, end_time_value or time(23, 59, 59, 999999))
+
+    if now_ist < starts_at:
         return "scheduled"
-
-    if today > end_date_value:
+    if now_ist > ends_at:
         return "expired"
-
     return "active"
 
 
@@ -9074,12 +10991,18 @@ def advertisement_row_to_dict(row):
         "ad_slot": int(row[33]) if len(row) > 33 and row[33] is not None else None,
         "movie_ranking_industry": row[34] if len(row) > 34 else None,
         "actor_ranking_industry": row[35] if len(row) > 35 else None,
+        "target_actor_ids": _parse_id_list(row[36]) if len(row) > 36 else [],
+        "target_movie_ids": _parse_id_list(row[37]) if len(row) > 37 else [],
+        "target_actor_movies": bool(row[38]) if len(row) > 38 else False,
+        "is_draft": bool(row[39]) if len(row) > 39 else False,
+        "start_time": row[40].isoformat(timespec="minutes") if len(row) > 40 and row[40] else None,
+        "end_time": row[41].isoformat(timespec="minutes") if len(row) > 41 and row[41] else None,
         "pending_amount": max(0.0, round(float(row[24] or 0) - float(row[16] or 0), 2)),
         "payment_status": _payment_status(row[24], row[16], row[31]),
-        "status": advertisement_status(
-            row[15],
-            row[13],
-            row[14]
+        "status": (
+            "draft"
+            if (len(row) > 39 and bool(row[39]))
+            else advertisement_status(row[15], row[13], row[14], row[40] if len(row) > 40 else None, row[41] if len(row) > 41 else None)
         )
     }
 
@@ -9141,7 +11064,7 @@ def admin_list_advertisements():
 
 
 @app.get(
-    "/admin/advertisements/{advertisement_id}",
+    "/admin/advertisements/{advertisement_id:int}",
     dependencies=[Depends(require_owner)]
 )
 def admin_get_advertisement(
@@ -9200,6 +11123,8 @@ def admin_create_advertisement(
     _validate_advertisement_values(
         start_date_value=data.start_date,
         end_date_value=data.end_date,
+        start_time_value=data.start_time,
+        end_time_value=data.end_time,
         ad_type=data.ad_type,
         media_type=data.media_type,
         duration_seconds=data.duration_seconds,
@@ -9241,7 +11166,13 @@ def admin_create_advertisement(
                     billing_notes,
                     ad_slot,
                     movie_ranking_industry,
-                    actor_ranking_industry
+                    actor_ranking_industry,
+                    target_actor_ids,
+                    target_movie_ids,
+                    target_actor_movies,
+                    is_draft,
+                    start_time,
+                    end_time
                 )
                 VALUES (
                     %s, %s, %s,
@@ -9254,7 +11185,8 @@ def admin_create_advertisement(
                     %s, %s,
                     %s, %s, %s,
                     %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s
                 )
                 RETURNING id
             """, (
@@ -9286,7 +11218,13 @@ def admin_create_advertisement(
                 _clean_optional_ad_text(data.billing_notes),
                 data.ad_slot,
                 _clean_optional_ad_text(data.movie_ranking_industry),
-                _clean_optional_ad_text(data.actor_ranking_industry)
+                _clean_optional_ad_text(data.actor_ranking_industry),
+                _normalize_id_list(data.target_actor_ids),
+                _normalize_id_list(data.target_movie_ids),
+                bool(data.target_actor_movies),
+                bool(data.is_draft),
+                data.start_time,
+                data.end_time
             ))
 
             advertisement_id = cur.fetchone()[0]
@@ -9295,13 +11233,13 @@ def admin_create_advertisement(
 
     return {
         "success": True,
-        "message": "Advertisement created successfully",
+        "message": "Advertisement draft saved successfully" if data.is_draft else "Advertisement created successfully",
         "advertisement_id": advertisement_id
     }
 
 
 @app.put(
-    "/admin/advertisements/{advertisement_id}",
+    "/admin/advertisements/{advertisement_id:int}",
     dependencies=[Depends(require_owner)]
 )
 def admin_update_advertisement(
@@ -9334,7 +11272,9 @@ def admin_update_advertisement(
                     amount_paid,
                     total_amount,
                     traffic_weight,
-                    ad_slot
+                    ad_slot,
+                    start_time,
+                    end_time
                 FROM advertisements
                 WHERE id = %s
             """, (advertisement_id,))
@@ -9371,10 +11311,14 @@ def admin_update_advertisement(
             prospective_total = update_data.get("total_amount", existing[10])
             prospective_weight = update_data.get("traffic_weight", existing[11])
             prospective_ad_slot = update_data.get("ad_slot", existing[12])
+            prospective_start_time = update_data.get("start_time", existing[13])
+            prospective_end_time = update_data.get("end_time", existing[14])
 
             _validate_advertisement_values(
                 start_date_value=prospective_start_date,
                 end_date_value=prospective_end_date,
+                start_time_value=prospective_start_time,
+                end_time_value=prospective_end_time,
                 ad_type=prospective_ad_type,
                 media_type=prospective_media_type,
                 duration_seconds=prospective_duration,
@@ -9402,6 +11346,10 @@ def admin_update_advertisement(
                 "billing_notes",
                 "movie_ranking_industry",
                 "actor_ranking_industry",
+                "target_actor_ids",
+                "target_movie_ids",
+                "target_actor_movies",
+                "is_draft",
             }
 
             allowed_fields = {
@@ -9418,7 +11366,9 @@ def admin_update_advertisement(
                 "duration_seconds",
                 "frequency",
                 "start_date",
+                "start_time",
                 "end_date",
+                "end_time",
                 "is_active",
                 "amount_paid",
                 "total_amount",
@@ -9447,6 +11397,8 @@ def admin_update_advertisement(
 
                 if field == "target_url":
                     value = _normalize_target_url(value)
+                elif field in {"target_actor_ids", "target_movie_ids"}:
+                    value = _normalize_id_list(value)
                 elif field in required_text_fields:
                     value = _clean_required_ad_text(
                         value,
@@ -9485,7 +11437,7 @@ def admin_update_advertisement(
 
 
 @app.patch(
-    "/admin/advertisements/{advertisement_id}/status",
+    "/admin/advertisements/{advertisement_id:int}/status",
     dependencies=[Depends(require_owner)]
 )
 def admin_set_advertisement_status(
@@ -9497,10 +11449,13 @@ def admin_set_advertisement_status(
         with conn.cursor() as cur:
             cur.execute("""
                 UPDATE advertisements
-                SET is_active = %s, updated_at = NOW()
+                SET
+                    is_active = %s,
+                    is_draft = CASE WHEN %s THEN FALSE ELSE is_draft END,
+                    updated_at = NOW()
                 WHERE id = %s
-                RETURNING id, is_active
-            """, (bool(data.is_active), advertisement_id))
+                RETURNING id, is_active, is_draft
+            """, (bool(data.is_active), bool(data.is_active), advertisement_id))
             row = cur.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="Advertisement not found")
@@ -9509,12 +11464,13 @@ def admin_set_advertisement_status(
         "success": True,
         "advertisement_id": row[0],
         "is_active": bool(row[1]),
-        "message": "Advertisement activated" if row[1] else "Advertisement paused"
+        "is_draft": bool(row[2]),
+        "message": "Draft activated as live campaign" if row[1] else "Advertisement paused"
     }
 
 
 @app.patch(
-    "/admin/advertisements/{advertisement_id}/toggle",
+    "/admin/advertisements/{advertisement_id:int}/toggle",
     dependencies=[Depends(require_owner)]
 )
 def admin_toggle_advertisement(
@@ -9553,7 +11509,7 @@ def admin_toggle_advertisement(
 
 
 @app.delete(
-    "/admin/advertisements/{advertisement_id}",
+    "/admin/advertisements/{advertisement_id:int}",
     dependencies=[Depends(require_owner)]
 )
 def admin_delete_advertisement(
@@ -9651,7 +11607,7 @@ def _build_simple_invoice_pdf(invoice: dict) -> bytes:
     return bytes(pdf)
 
 
-@app.post("/admin/advertisements/{advertisement_id}/invoice", dependencies=[Depends(require_owner)])
+@app.post("/admin/advertisements/{advertisement_id:int}/invoice", dependencies=[Depends(require_owner)])
 def admin_generate_advertisement_invoice(advertisement_id: int):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -9690,7 +11646,7 @@ def admin_generate_advertisement_invoice(advertisement_id: int):
             "download_url": f"/admin/invoices/{invoice_id}/pdf"}
 
 
-@app.get("/admin/advertisements/{advertisement_id}/invoices", dependencies=[Depends(require_owner)])
+@app.get("/admin/advertisements/{advertisement_id:int}/invoices", dependencies=[Depends(require_owner)])
 def admin_advertisement_invoice_history(advertisement_id: int):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -9754,15 +11710,71 @@ PUBLIC_AD_SELECT_COLUMNS = """
     traffic_weight,
     ad_slot,
     movie_ranking_industry,
-    actor_ranking_industry
+    actor_ranking_industry,
+    target_actor_ids,
+    target_movie_ids,
+    target_actor_movies,
+    is_draft,
+    start_time,
+    end_time
 """
+
+
+def _ad_matches_precise_target(ad: dict, placement: Optional[str], actor_id: Optional[int], movie_id: Optional[int]) -> bool:
+    actor_ids = _parse_id_list(ad.get("target_actor_ids"))
+    movie_ids = _parse_id_list(ad.get("target_movie_ids"))
+
+    if placement in {"actor_detail", "actor_movies"} and actor_ids:
+        if not actor_id or int(actor_id) not in actor_ids:
+            return False
+
+    if placement == "movie_detail" and movie_ids:
+        if not movie_id or int(movie_id) not in movie_ids:
+            return False
+
+    # A movie campaign selected through an actor may target all of that actor's movies.
+    if placement == "movie_detail" and ad.get("target_actor_movies") and actor_ids and not movie_ids:
+        if not movie_id:
+            return False
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT 1 FROM actor_movies
+                    WHERE movie_id=%s AND actor_id = ANY(%s)
+                    LIMIT 1
+                """, (int(movie_id), actor_ids))
+                if not cur.fetchone():
+                    return False
+    return True
+
+
+def _weighted_pick(items, count=1):
+    """Weighted sampling without replacement; deterministic safety for zero/invalid weights."""
+    import random
+    pool = list(items)
+    selected = []
+    count = max(0, min(int(count), len(pool)))
+    while pool and len(selected) < count:
+        weights = [max(0.0001, float(item.get("traffic_weight") or 1)) for item in pool]
+        chosen = random.choices(pool, weights=weights, k=1)[0]
+        selected.append(chosen)
+        pool.remove(chosen)
+    return selected
+
+
+def _inventory_key(ad: dict):
+    if ad.get("ad_type") == "in_content":
+        return f"in_content:{int(ad.get('ad_slot') or 1)}"
+    return str(ad.get("ad_type") or "unknown")
 
 
 @app.get("/ads/active")
 def get_active_public_advertisements(
     placement: Optional[str] = None,
     page: Optional[str] = None,
-    ranking_industry: Optional[str] = None
+    ranking_industry: Optional[str] = None,
+    actor_id: Optional[int] = None,
+    movie_id: Optional[int] = None
 ):
     today = date.today()
 
@@ -9773,11 +11785,12 @@ def get_active_public_advertisements(
                 SELECT {PUBLIC_AD_SELECT_COLUMNS}
                 FROM advertisements
                 WHERE is_active = TRUE
-                  AND start_date <= %s
-                  AND end_date >= %s
+                  AND is_draft = FALSE
+                  AND (start_date + COALESCE(start_time, TIME '00:00:00')) <= (NOW() AT TIME ZONE 'Asia/Kolkata')
+                  AND (end_date + COALESCE(end_time, TIME '23:59:59.999999')) >= (NOW() AT TIME ZONE 'Asia/Kolkata')
                 ORDER BY random()
                 """,
-                (today, today)
+                ()
             )
             rows = cur.fetchall()
 
@@ -9792,7 +11805,9 @@ def get_active_public_advertisements(
                 "placement", "page_target", "duration_seconds",
                 "frequency", "start_date", "end_date", "is_active",
                 "traffic_weight", "ad_slot",
-                "movie_ranking_industry", "actor_ranking_industry"
+                "movie_ranking_industry", "actor_ranking_industry",
+                "target_actor_ids", "target_movie_ids", "target_actor_movies", "is_draft",
+                "start_time", "end_time"
             ],
             row
         ))
@@ -9841,23 +11856,23 @@ def get_active_public_advertisements(
             if page not in targets:
                 continue
 
-        for key in ("start_date", "end_date"):
+        if not _ad_matches_precise_target(ad, placement, actor_id, movie_id):
+            continue
+
+        for key in ("start_date", "end_date", "start_time", "end_time"):
             if ad.get(key):
                 ad[key] = ad[key].isoformat()
 
         if ad.get("ad_type") == "in_content" and ad.get("ad_slot") == 0:
-            slot_one = dict(ad)
-            slot_two = dict(ad)
-            slot_three = dict(ad)
-            slot_one["ad_slot"] = 1
-            slot_two["ad_slot"] = 2
-            slot_three["ad_slot"] = 3
-
-            # Keep the existing virtual Slot 2 ID for backward compatibility.
-            # Slot-aware public rendering permits the same campaign in Slot 1/2/3.
-            slot_two["id"] = -abs(int(ad["id"]))
-
-            ads.extend([slot_one, slot_two, slot_three])
+            expanded = []
+            for slot_no in range(1, 7):
+                virtual = dict(ad)
+                virtual["ad_slot"] = slot_no
+                # Unique negative virtual ID per slot while preserving source campaign ID.
+                virtual["source_advertisement_id"] = int(ad["id"])
+                virtual["id"] = -(abs(int(ad["id"])) * 10 + slot_no)
+                expanded.append(virtual)
+            ads.extend(expanded)
         else:
             ads.append(ad)
 
@@ -9962,3 +11977,394 @@ def track_advertisement_skip(advertisement_id: int):
     return {"success": True}
 
 
+
+
+# ============================================================
+# BOXOFFICEX AD V2: ROTATION + MASTER INVENTORY
+# ============================================================
+
+AD_ROTATION_CAPACITY = 5
+SPONSORED_LINK_VISIBLE_LIMIT = 10
+MASTER_PUBLIC_PLACEMENTS = [
+    "homepage", "new_movies", "movie_detail", "actors_list", "actor_detail",
+    "actor_movies", "articles_list", "article_detail", "movie_rankings",
+    "actor_rankings", "actor_compare_select", "actor_compare_results",
+    "movie_compare_select", "movie_compare_results",
+]
+MASTER_STANDARD_TYPES = [
+    "full_screen", "top_banner", "top_sticky", "bottom_sticky", "small_video",
+]
+
+
+def _fetch_eligible_ads_for_inventory(placement: str, actor_id=None, movie_id=None):
+    today = date.today()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                SELECT {PUBLIC_AD_SELECT_COLUMNS}
+                FROM advertisements
+                WHERE is_active=TRUE AND is_draft=FALSE
+                  AND (start_date + COALESCE(start_time, TIME '00:00:00')) <= (NOW() AT TIME ZONE 'Asia/Kolkata')
+                  AND (end_date + COALESCE(end_time, TIME '23:59:59.999999')) >= (NOW() AT TIME ZONE 'Asia/Kolkata')
+            """)
+            rows = cur.fetchall()
+    keys = [
+        "id", "advertiser_name", "business_category", "campaign_name", "ad_type",
+        "media_type", "media_url", "mobile_media_url", "target_url", "placement",
+        "page_target", "duration_seconds", "frequency", "start_date", "end_date",
+        "is_active", "traffic_weight", "ad_slot", "movie_ranking_industry",
+        "actor_ranking_industry", "target_actor_ids", "target_movie_ids",
+        "target_actor_movies", "is_draft", "start_time", "end_time"
+    ]
+    eligible=[]
+    for row in rows:
+        ad=dict(zip(keys,row))
+        groups={p.strip() for p in (ad.get("placement") or "").split(",") if p.strip()}
+        compatibles={placement}|AD_PLACEMENT_LEGACY_ALIASES.get(placement,set())
+        if "sitewide" not in groups and not groups.intersection(compatibles):
+            continue
+        if not _ad_matches_precise_target(ad, placement, actor_id, movie_id):
+            continue
+        eligible.append(ad)
+    return eligible
+
+
+@app.get("/ads/rotate")
+def rotate_public_advertisements(
+    placement: str,
+    actor_id: Optional[int] = None,
+    movie_id: Optional[int] = None
+):
+    """Return one weighted campaign per standard/in-content inventory key."""
+    eligible = _fetch_eligible_ads_for_inventory(placement, actor_id, movie_id)
+    pools = {}
+    for ad in eligible:
+        if ad.get("ad_type") == "sponsored_link":
+            continue
+        if ad.get("ad_type") == "in_content" and int(ad.get("ad_slot") or 0) == 0:
+            for slot_no in range(1,7):
+                clone=dict(ad); clone["ad_slot"]=slot_no
+                pools.setdefault(_inventory_key(clone), []).append(clone)
+        else:
+            pools.setdefault(_inventory_key(ad), []).append(ad)
+    selected=[]
+    for key, pool in pools.items():
+        chosen=_weighted_pick(pool,1)
+        if chosen:
+            item=chosen[0]
+            item["inventory_key"]=key
+            for d in ("start_date","end_date","start_time","end_time"):
+                if item.get(d): item[d]=item[d].isoformat()
+            selected.append(item)
+    return {"advertisements": selected}
+
+
+@app.get("/ads/sponsored-links")
+def rotate_sponsored_links(
+    placement: str,
+    actor_id: Optional[int] = None,
+    movie_id: Optional[int] = None,
+    limit: int = SPONSORED_LINK_VISIBLE_LIMIT
+):
+    eligible = [a for a in _fetch_eligible_ads_for_inventory(placement, actor_id, movie_id)
+                if a.get("ad_type") == "sponsored_link"]
+    chosen = _weighted_pick(eligible, min(max(int(limit or 10),1), SPONSORED_LINK_VISIBLE_LIMIT))
+    result=[]
+    for ad in chosen:
+        result.append({
+            "id": ad["id"], "advertiser_name": ad["advertiser_name"],
+            "campaign_name": ad["campaign_name"], "media_url": ad["media_url"],
+            "mobile_media_url": ad.get("mobile_media_url"), "target_url": ad["target_url"],
+            "traffic_weight": float(ad.get("traffic_weight") or 1),
+        })
+    return {"count": len(result), "max_visible": SPONSORED_LINK_VISIBLE_LIMIT, "sponsors": result}
+
+
+
+def _inventory_package_label(ad):
+    if ad.get("ad_type") == "sponsored_link":
+        return ad.get("sponsored_package") or "rotation"
+    return ad.get("ad_package") or "standard"
+
+
+def _inventory_campaign_locks(ad):
+    return bool(
+        ad.get("exclusive_inventory")
+        or ad.get("ad_package") == "exclusive"
+        or ad.get("sponsored_package") == "takeover"
+    )
+
+
+def _time_to_minutes(value, default_minutes):
+    if value is None:
+        return default_minutes
+    try:
+        return value.hour * 60 + value.minute
+    except Exception:
+        text = str(value)
+        parts = text.split(":")
+        try:
+            return int(parts[0]) * 60 + int(parts[1])
+        except Exception:
+            return default_minutes
+
+
+def _ad_intervals_overlap(
+    start_date_a, end_date_a, start_time_a, end_time_a,
+    start_date_b, end_date_b, start_time_b, end_time_b
+):
+    # Date ranges do not overlap.
+    if end_date_a < start_date_b or end_date_b < start_date_a:
+        return False
+
+    # If overlap spans more than one calendar day, they overlap regardless of exact times.
+    latest_start = max(start_date_a, start_date_b)
+    earliest_end = min(end_date_a, end_date_b)
+    if latest_start < earliest_end:
+        return True
+
+    # Same boundary day only: compare time windows.
+    a_start = _time_to_minutes(start_time_a, 0)
+    a_end = _time_to_minutes(end_time_a, 23 * 60 + 59)
+    b_start = _time_to_minutes(start_time_b, 0)
+    b_end = _time_to_minutes(end_time_b, 23 * 60 + 59)
+    return not (a_end < b_start or b_end < a_start)
+
+
+def _package_label(ad):
+    if ad.get("ad_type") == "sponsored_link":
+        return ad.get("sponsored_package") or "rotation"
+    return ad.get("ad_package") or "standard"
+
+
+def _campaign_locks_inventory(ad):
+    return bool(
+        ad.get("exclusive_inventory")
+        or (ad.get("ad_package") == "exclusive")
+        or (ad.get("sponsored_package") == "takeover")
+    )
+
+
+
+
+@app.get("/admin/advertisements/master-inventory", dependencies=[Depends(require_owner)])
+def admin_advertisement_master_inventory(
+    placement: str,
+    actor_id: Optional[int] = None,
+    movie_id: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    start_time: Optional[time] = None,
+    end_time: Optional[time] = None
+):
+    requested_start = start_date or date.today()
+    requested_end = end_date or requested_start
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id,
+                    advertiser_name,
+                    campaign_name,
+                    ad_type,
+                    placement,
+                    page_target,
+                    ad_slot,
+                    frequency,
+                    traffic_weight,
+                    start_date,
+                    end_date,
+                    start_time,
+                    end_time,
+                    is_active,
+                    COALESCE(is_draft, FALSE),
+                    target_actor_ids,
+                    target_movie_ids,
+                    target_actor_profile,
+                    target_actor_movies,
+                    COALESCE(ad_package, 'standard'),
+                    COALESCE(sponsored_package, 'rotation'),
+                    COALESCE(exclusive_inventory, FALSE)
+                FROM advertisements
+                WHERE is_active = TRUE
+                  AND COALESCE(is_draft, FALSE) = FALSE
+                ORDER BY start_date, id
+            """)
+            rows = cur.fetchall()
+
+    cols = [
+        "id","advertiser_name","campaign_name","ad_type","placement","page_target",
+        "ad_slot","frequency","traffic_weight","start_date","end_date",
+        "start_time","end_time","is_active","is_draft","target_actor_ids",
+        "target_movie_ids","target_actor_profile","target_actor_movies",
+        "ad_package","sponsored_package","exclusive_inventory"
+    ]
+
+    def parse_ids(value):
+        if value is None:
+            return set()
+        if isinstance(value, (list, tuple, set)):
+            raw = value
+        else:
+            raw = re.findall(r"\d+", str(value))
+        out = set()
+        for item in raw:
+            try:
+                out.add(int(item))
+            except Exception:
+                pass
+        return out
+
+    eligible = []
+
+    for row in rows:
+        ad = dict(zip(cols, row))
+
+        groups = {
+            item.strip()
+            for item in str(ad.get("placement") or "").split(",")
+            if item.strip()
+        }
+
+        if "sitewide" not in groups and placement not in groups:
+            continue
+
+        actor_targets = parse_ids(ad.get("target_actor_ids"))
+        if actor_targets:
+            if actor_id is None or actor_id not in actor_targets:
+                continue
+            if placement == "actor_detail" and ad.get("target_actor_profile") is False:
+                continue
+            if placement == "actor_movies" and ad.get("target_actor_movies") is False:
+                continue
+
+        movie_targets = parse_ids(ad.get("target_movie_ids"))
+        if movie_targets and (movie_id is None or movie_id not in movie_targets):
+            continue
+
+        if not _ad_intervals_overlap(
+            ad["start_date"], ad["end_date"], ad.get("start_time"), ad.get("end_time"),
+            requested_start, requested_end, start_time, end_time
+        ):
+            continue
+
+        ad["package"] = _inventory_package_label(ad)
+        ad["locks_inventory"] = _inventory_campaign_locks(ad)
+
+        for key in ("start_date", "end_date"):
+            if ad.get(key):
+                ad[key] = ad[key].isoformat()
+        for key in ("start_time", "end_time"):
+            if ad.get(key):
+                ad[key] = ad[key].isoformat()
+
+        eligible.append(ad)
+
+    inventory = []
+
+    for ad_type in ["full_screen", "top_banner", "top_sticky", "bottom_sticky", "small_video"]:
+        campaigns = [a for a in eligible if a["ad_type"] == ad_type]
+        locked = next((a for a in campaigns if a["locks_inventory"]), None)
+        used = 5 if locked else min(5, len(campaigns))
+        inventory.append({
+            "key": ad_type,
+            "label": ad_type.replace("_", " ").title(),
+            "kind": "standard",
+            "capacity": 5,
+            "used": used,
+            "available": 0 if locked else max(0, 5 - used),
+            "locked": bool(locked),
+            "locked_by": locked,
+            "campaigns": campaigns,
+        })
+
+    for slot in range(1, 7):
+        campaigns = [
+            a for a in eligible
+            if a["ad_type"] == "in_content"
+            and int(a.get("ad_slot") or 0) in {0, slot}
+        ]
+        locked = next((a for a in campaigns if a["locks_inventory"]), None)
+        used = 5 if locked else min(5, len(campaigns))
+        inventory.append({
+            "key": f"in_content_{slot}",
+            "label": f"In-Content Slot {slot}",
+            "kind": "in_content",
+            "capacity": 5,
+            "used": used,
+            "available": 0 if locked else max(0, 5 - used),
+            "locked": bool(locked),
+            "locked_by": locked,
+            "campaigns": campaigns,
+        })
+
+    sponsored = [a for a in eligible if a["ad_type"] == "sponsored_link"]
+    takeover = next((a for a in sponsored if a.get("sponsored_package") == "takeover"), None)
+
+    fixed_map = {"diamond": 1, "platinum": 2, "gold": 3, "silver": 4, "bronze": 5}
+    occupied = {}
+    for ad in sponsored:
+        pkg = ad.get("sponsored_package") or "rotation"
+        if pkg in fixed_map and fixed_map[pkg] not in occupied:
+            occupied[fixed_map[pkg]] = ad
+
+    fixed_positions = []
+    for pkg, pos in fixed_map.items():
+        fixed_positions.append({
+            "position": pos,
+            "package": pkg,
+            "campaign": occupied.get(pos),
+            "available": takeover is None and occupied.get(pos) is None,
+        })
+
+    return {
+        "placement": placement,
+        "actor_id": actor_id,
+        "movie_id": movie_id,
+        "requested_window": {
+            "start_date": requested_start.isoformat(),
+            "end_date": requested_end.isoformat(),
+            "start_time": start_time.isoformat() if start_time else None,
+            "end_time": end_time.isoformat() if end_time else None,
+        },
+        "inventory": inventory,
+        "sponsored_links": {
+            "takeover": takeover,
+            "fixed_positions": fixed_positions,
+            "rotation_pool": [
+                ad for ad in sponsored
+                if (ad.get("sponsored_package") or "rotation") == "rotation"
+            ],
+            "visible_rotation_positions": 5,
+            "max_visible_links": 10,
+        }
+    }
+
+@app.get("/admin/advertisements/target-actors", dependencies=[Depends(require_owner)])
+def admin_ad_target_actor_search(q: str = ""):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id,name,profession,photo FROM actors
+                WHERE (%s='' OR name ILIKE %s)
+                ORDER BY name LIMIT 30
+            """, ((q or '').strip(), f"%{(q or '').strip()}%"))
+            rows=cur.fetchall()
+    return {"actors":[{"id":r[0],"name":r[1],"profession":r[2],"photo":safe_actor_photo(r[3])} for r in rows]}
+
+
+@app.get("/admin/advertisements/target-actors/{actor_id}/movies", dependencies=[Depends(require_owner)])
+def admin_ad_target_actor_movies(actor_id: int, q: str = ""):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT m.id,m.title,m.release_date,m.poster
+                FROM actor_movies am JOIN movies m ON m.id=am.movie_id
+                WHERE am.actor_id=%s AND (%s='' OR m.title ILIKE %s)
+                ORDER BY m.release_date DESC NULLS LAST, m.title
+                LIMIT 100
+            """, (actor_id, (q or '').strip(), f"%{(q or '').strip()}%"))
+            rows=cur.fetchall()
+    return {"movies":[{"id":r[0],"title":r[1],"release_date":str(r[2]) if r[2] else None,
+                        "poster":safe_movie_poster(r[3])} for r in rows]}

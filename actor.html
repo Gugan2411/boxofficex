@@ -3330,6 +3330,44 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+<style id="boxofficex-unified-brand-footer">
+/* Unified BoxOfficeX branding and footer — visual styles only */
+.logo,.bx-master-mobile-logo{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.logo .logo-icon,.bx-master-mobile-logo .icon,.bx-unified-brand-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:35px!important;height:35px!important;flex:0 0 35px!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+  box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
+}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.bx-standard-footer{
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
+  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+}
+.bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
+.bx-unified-brand{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+@media(max-width:700px){
+  .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
+  .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
+  .bx-footer-inner{padding:27px 15px calc(84px + env(safe-area-inset-bottom))!important}
+  .bx-unified-brand{font-size:17px!important}.bx-unified-brand-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+  .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
+}
+</style>
 </head>
 
 
@@ -3580,7 +3618,10 @@ html,body{scroll-padding-top:0!important}
 
 <footer class="bx-standard-footer">
   <div class="bx-footer-inner">
-    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <a href="/index.html" class="bx-unified-brand bx-footer-brand" aria-label="BoxOfficeX Home">
+      <span class="bx-unified-brand-icon" aria-hidden="true">🎬</span>
+      <strong>BOXOFFICE<span class="bx-unified-x">X</span></strong>
+    </a>
     <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
     <nav class="bx-footer-links" aria-label="Footer navigation">
       <a href="/about.html">About</a>
@@ -3603,12 +3644,95 @@ html,body{scroll-padding-top:0!important}
 
 <script>
 
-function boxOfficeXActorImageUrl(value, absolute = false) {
+function boxOfficeXActorPlaceholderHash(value) {
+    let result = 2166136261;
+    const text = String(value || "BOXOFFICEX").toLowerCase();
+    for (let index = 0; index < text.length; index += 1) {
+        result ^= text.charCodeAt(index);
+        result = Math.imul(result, 16777619);
+    }
+    return result >>> 0;
+}
+
+function boxOfficeXActorPlaceholderXml(value) {
+    return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+function boxOfficeXActorPlaceholderInitials(name) {
+    const words = String(name || "Actor").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "BX";
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return words.slice(0, 3).map(word => word.charAt(0)).join("").toUpperCase();
+}
+
+function boxOfficeXActorPlaceholder(name) {
+    const actorName = String(name || "Actor").trim() || "Actor";
+    const actorHash = boxOfficeXActorPlaceholderHash(actorName);
+    const firstHue = actorHash % 360;
+    const secondHue = (firstHue + 38 + ((actorHash >>> 8) % 83)) % 360;
+    const thirdHue = (secondHue + 42 + ((actorHash >>> 20) % 67)) % 360;
+    const accentHue = (firstHue + 145 + ((actorHash >>> 17) % 71)) % 360;
+    const firstColor = `hsl(${firstHue} ${55 + ((actorHash >>> 4) % 26)}% 13%)`;
+    const secondColor = `hsl(${secondHue} ${58 + ((actorHash >>> 12) % 24)}% 34%)`;
+    const thirdColor = `hsl(${thirdHue} 66% 20%)`;
+    const accentColor = `hsl(${accentHue} 88% 68%)`;
+    const initials = boxOfficeXActorPlaceholderXml(boxOfficeXActorPlaceholderInitials(actorName));
+    const safeName = boxOfficeXActorPlaceholderXml(actorName);
+    const actorNameFontSize = actorName.length <= 11 ? 50 : actorName.length <= 17 ? 42 : 34;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" role="img" aria-label="${safeName} image not available">
+        <defs>
+            <linearGradient id="actorGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="${firstColor}"/><stop offset=".56" stop-color="${secondColor}"/><stop offset="1" stop-color="${thirdColor}"/>
+            </linearGradient>
+            <radialGradient id="premiumGlow" cx="78%" cy="12%" r="74%">
+                <stop offset="0" stop-color="${accentColor}" stop-opacity=".28"/><stop offset="1" stop-color="${accentColor}" stop-opacity="0"/>
+            </radialGradient>
+            <pattern id="actorPattern" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+                <rect width="16" height="64" fill="#ffffff" fill-opacity=".035"/>
+            </pattern>
+            <linearGradient id="glassShine" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ffffff" stop-opacity=".30"/><stop offset=".42" stop-color="#ffffff" stop-opacity=".07"/><stop offset="1" stop-color="#ffffff" stop-opacity=".02"/>
+            </linearGradient>
+            <filter id="glassShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000000" flood-opacity=".28"/>
+            </filter>
+        </defs>
+        <rect width="600" height="760" rx="28" fill="url(#actorGradient)"/>
+        <rect width="600" height="760" rx="28" fill="url(#premiumGlow)"/>
+        <rect width="600" height="760" rx="28" fill="url(#actorPattern)"/>
+        <circle cx="500" cy="90" r="150" fill="${accentColor}" fill-opacity=".13"/>
+        <rect x="92" y="104" width="416" height="414" rx="78" fill="url(#glassShine)" stroke="#ffffff" stroke-opacity=".38" stroke-width="4" filter="url(#glassShadow)"/>
+        <path d="M118 148 Q170 116 240 116 L410 116 Q455 116 482 146" fill="none" stroke="#ffffff" stroke-opacity=".44" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="300" cy="300" r="164" fill="#ffffff" fill-opacity=".09" stroke="#ffffff" stroke-opacity=".24" stroke-width="3"/>
+        <text x="300" y="342" text-anchor="middle" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="118" font-weight="800" letter-spacing="5">${initials}</text>
+        <line x1="155" y1="544" x2="445" y2="544" stroke="${accentColor}" stroke-width="11" stroke-linecap="round"/>
+        <text x="300" y="608" text-anchor="middle" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="${actorNameFontSize}" font-weight="800">${safeName}</text>
+        <rect x="142" y="646" width="316" height="82" rx="24" fill="#ffffff" fill-opacity=".88" stroke="#ffffff" stroke-opacity=".92" stroke-width="2"/>
+        <path d="M165 660 Q215 650 290 650 L414 650" fill="none" stroke="#ffffff" stroke-opacity=".95" stroke-width="5" stroke-linecap="round"/>
+        <text x="300" y="691" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="900" letter-spacing="3"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400">X</tspan></text>
+        <text x="300" y="716" text-anchor="middle" fill="#344054" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="700" letter-spacing="2">ACTOR PROFILE</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+}
+
+// Cloudinary URLs and backend data remain intact. Change to false later to
+// restore real actor photos; missing/broken photos will still use placeholders.
+const BOXOFFICEX_USE_ACTOR_PLACEHOLDERS = true;
+
+function boxOfficeXActorImageUrl(value, absolute = false, actorName = "Actor") {
     const photo = value == null ? "" : String(value).trim();
     let url;
 
-    if (!photo) {
-        url = "/actor-images/coming-soon.png";
+    if (BOXOFFICEX_USE_ACTOR_PLACEHOLDERS && !absolute) {
+        return boxOfficeXActorPlaceholder(actorName);
+    }
+
+    if (!photo || /(?:coming[-_]?soon|default[-_]?actor|default)\.(?:png|jpe?g|webp|avif)(?:[?#].*)?$/i.test(photo)) {
+        return absolute
+            ? "https://boxoffice-x.com/images/boxofficex-share.jpg"
+            : boxOfficeXActorPlaceholder(actorName);
     } else if (/^https?:\/\//i.test(photo)) {
         url = photo;
     } else if (photo.startsWith("/")) {
@@ -3623,6 +3747,14 @@ function boxOfficeXActorImageUrl(value, absolute = false) {
         return "https://boxoffice-x.com" + url;
     }
     return url;
+}
+
+if (BOXOFFICEX_USE_ACTOR_PLACEHOLDERS) {
+    const initialActorPhoto = document.getElementById("actorPhoto");
+    if (initialActorPhoto) {
+        initialActorPhoto.onerror = null;
+        initialActorPhoto.src = boxOfficeXActorPlaceholder("Actor");
+    }
 }
 
 function boxOfficeXMoviePosterUrl(value, absolute = false) {
@@ -3896,7 +4028,7 @@ function updateActorSEO(actor) {
         "https://boxoffice-x.com/actor.html?id=" +
         encodeURIComponent(actorId);
 
-    const photoUrl = actor.photo ? boxOfficeXActorImageUrl(actor.photo, true) : "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const photoUrl = "https://boxoffice-x.com/images/boxofficex-share.jpg";
 
     document.title = title;
 
@@ -4111,11 +4243,11 @@ function renderActorComparisonInterlinks(currentActor, actors){
         link.href=`/compare.html?hero1=${encodeURIComponent(currentActor.id)}&hero2=${encodeURIComponent(other.id)}`;
         link.setAttribute("aria-label",`Compare ${currentActor.name || "actor"} with ${other.name || "actor"}`);
 
-        const image=boxOfficeXActorImageUrl(other.photo || "");
+        const image=boxOfficeXActorImageUrl(other.photo || "", false, other.name || "Actor");
         link.innerHTML=`
-            <img src="${image}" alt="${escapeRelatedActorHTML(other.name || "Actor")} photo"
+            <img src="${image}" data-actor-name="${escapeRelatedActorHTML(other.name || "Actor")}" alt="${escapeRelatedActorHTML(other.name || "Actor")} photo"
                  loading="lazy" decoding="async"
-                 onerror="this.onerror=null;this.src='/actor-images/default.jpg';">
+                 onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.dataset.actorName);">
             <div class="bx-actor-compare-copy">
                 <div class="bx-actor-compare-vs">${escapeRelatedActorHTML(currentActor.name || "Actor")} vs</div>
                 <div class="bx-actor-compare-name">${escapeRelatedActorHTML(other.name || "Actor")}</div>
@@ -4292,13 +4424,19 @@ else {
             "No biography available.";
 
 
-        if (actor.photo) {
-
-            document.getElementById(
-                "actorPhoto"
-            ).src =
-                boxOfficeXActorImageUrl(actor.photo);
-
+        const actorPhotoElement = document.getElementById("actorPhoto");
+        if (actorPhotoElement) {
+            actorPhotoElement.dataset.actorName = actor.name || "Actor";
+            actorPhotoElement.alt = (actor.name || "Actor") + " profile";
+            actorPhotoElement.onerror = function () {
+                actorPhotoElement.onerror = null;
+                actorPhotoElement.src = boxOfficeXActorPlaceholder(actor.name || "Actor");
+            };
+            actorPhotoElement.src = boxOfficeXActorImageUrl(
+                actor.photo,
+                false,
+                actor.name || "Actor"
+            );
         }
 
     })

@@ -2395,6 +2395,44 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+<style id="boxofficex-unified-brand-footer">
+/* Unified BoxOfficeX branding and footer — visual styles only */
+.logo,.bx-master-mobile-logo{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.logo .logo-icon,.bx-master-mobile-logo .icon,.bx-unified-brand-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:35px!important;height:35px!important;flex:0 0 35px!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#4d8dff,#795cff)!important;
+  box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
+}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.bx-standard-footer{
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
+  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+}
+.bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
+.bx-unified-brand{
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
+  letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
+}
+.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+@media(max-width:700px){
+  .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
+  .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
+  .bx-footer-inner{padding:27px 15px calc(84px + env(safe-area-inset-bottom))!important}
+  .bx-unified-brand{font-size:17px!important}.bx-unified-brand-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+  .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
+}
+</style>
 </head>
 
 <body>
@@ -2464,7 +2502,10 @@ html,body{scroll-padding-top:0!important}
 
 <footer class="bx-standard-footer">
   <div class="bx-footer-inner">
-    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <a href="/index.html" class="bx-unified-brand bx-footer-brand" aria-label="BoxOfficeX Home">
+      <span class="bx-unified-brand-icon" aria-hidden="true">🎬</span>
+      <strong>BOXOFFICE<span class="bx-unified-x">X</span></strong>
+    </a>
     <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
     <nav class="bx-footer-links" aria-label="Footer navigation">
       <a href="/about.html">About</a>
@@ -2498,10 +2539,100 @@ html,body{scroll-padding-top:0!important}
         return value;
     }
 
+    function moviePlaceholderHash(value){
+        let result = 2166136261;
+        const text = String(value || "BOXOFFICEX").toLowerCase();
+        for (let index = 0; index < text.length; index += 1){
+            result ^= text.charCodeAt(index);
+            result = Math.imul(result, 16777619);
+        }
+        return result >>> 0;
+    }
+
+    function moviePlaceholderXml(value){
+        return String(value == null ? "" : value)
+            .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+    }
+
+    function moviePlaceholderLines(title){
+        const value = String(title || "MOVIE").trim().toUpperCase();
+        if (value.length <= 14) return [value];
+        const words = value.split(/\s+/);
+        const lines = [];
+        let current = "";
+        words.forEach(word => {
+            const candidate = current ? current + " " + word : word;
+            if (candidate.length > 15 && current){
+                lines.push(current);
+                current = word;
+            } else {
+                current = candidate;
+            }
+        });
+        if (current) lines.push(current);
+        if (lines.length > 3){
+            const compact = lines.slice(0,3);
+            compact[2] = compact[2].slice(0,13) + "…";
+            return compact;
+        }
+        return lines;
+    }
+
+    function moviePlaceholder(movie){
+    const item=typeof movie==="object"&&movie?movie:{title:movie};
+    const title=String(item.title||"Movie").trim()||"Movie";
+    const source=title.toUpperCase();
+    const parts=[];
+    source.split(/\s+/).filter(Boolean).forEach(word=>{
+        if(word.length<=14)parts.push(word);
+        else for(let i=0;i<word.length;i+=14)parts.push(word.slice(i,i+14));
+    });
+    const lines=[];let current="";
+    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>15&&current){lines.push(current);current=part}else current=next});
+    if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,12)+"…"}
+    const longest=Math.max(...lines.map(line=>line.length));
+    const preferred=lines.length===1?(longest<=5?140:longest<=8?112:longest<=11?88:72):lines.length===2?(longest<=10?82:68):lines.length===3?58:46;
+    const size=Math.max(34,Math.min(preferred,Math.floor(450/Math.max(1,longest*.66))));
+    const gap=size+10,start=390-((lines.length-1)*gap/2);
+    const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${moviePlaceholderXml(line)}</text>`).join("");
+    const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
+    const language=String(item.language||"").trim().toUpperCase();
+    const meta=[year,language].filter(Boolean).join("  •  ");
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="${moviePlaceholderXml(title)} movie placeholder">
+      <defs>
+        <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset=".52" stop-color="#f4f2ed"/><stop offset="1" stop-color="#ebe9e4"/></linearGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .055"/></feComponentTransfer></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9b9b9b" stop-opacity=".25"/><stop offset="1" stop-color="#c8c8c8" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="600" height="900" fill="url(#paper)"/>
+      <rect width="600" height="900" filter="url(#grain)" opacity=".72"/>
+      <g opacity=".22" transform="rotate(24 45 230)"><rect x="-48" y="-55" width="90" height="520" rx="8" fill="url(#fade)"/><path d="M-32-35v480M26-35v480" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <g opacity=".18" transform="rotate(-18 570 720)"><rect x="550" y="505" width="92" height="470" rx="8" fill="url(#fade)"/><path d="M566 520v430M624 520v430" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <circle cx="64" cy="790" r="120" fill="none" stroke="#a8a8a8" stroke-width="24" opacity=".08"/>
+      ${titleSvg}
+      <line x1="115" y1="525" x2="485" y2="525" stroke="#ad1726" stroke-width="5"/>
+      ${meta?`<text x="300" y="575" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="500" letter-spacing="7">${moviePlaceholderXml(meta)}</text>`:""}
+      <text x="300" y="846" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">BOXOFFICEX MOVIE PLACEHOLDER</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)
+}
+
+    // Keep stored Cloudinary/local poster data intact. Change to false later to
+    // show real posters again; missing and broken posters retain placeholders.
+    const BOXOFFICEX_USE_MOVIE_PLACEHOLDERS = true;
+
     function posterUrl(movie){
-        return movie.poster
-            ? "/posters/" + encodeURIComponent(movie.poster)
-            : "/posters/coming-soon.png";
+        if (BOXOFFICEX_USE_MOVIE_PLACEHOLDERS) return moviePlaceholder(movie);
+        const value = movie?.poster == null ? "" : String(movie.poster).trim();
+        if (!value || /(?:coming[-_]?soon|default[-_]?movie|default)\.(?:png|jpe?g|webp|avif)(?:[?#].*)?$/i.test(value)){
+            return moviePlaceholder(movie);
+        }
+        if (/^https?:\/\//i.test(value)) return value;
+        if (value.startsWith("/")) return value;
+        if (value.startsWith("posters/")) return "/" + value;
+        return "/posters/" + encodeURIComponent(value);
     }
 
     function updateSeo(actorName, verdictName){
@@ -2596,7 +2727,6 @@ html,body{scroll-padding-top:0!important}
                             src="${posterUrl(movie)}"
                             alt="${escapeHtml(safeValue(movie.title,"Movie"))} poster"
                             loading="lazy"
-                            onerror="this.onerror=null;this.src='/posters/coming-soon.png'"
                         >
                     </div>
 
@@ -2607,6 +2737,11 @@ html,body{scroll-padding-top:0!important}
                         <div class="verdict-pill">🎬 ${escapeHtml(movieVerdict)}</div>
                     </div>
                 `;
+
+                const posterImage = card.querySelector(".poster-wrap img");
+                posterImage.addEventListener("error", function(){
+                    posterImage.src = moviePlaceholder(movie);
+                }, {once:true});
 
                 const openMovie = () => {
                     window.location.href = "/movie.html?id=" + encodeURIComponent(movie.id);

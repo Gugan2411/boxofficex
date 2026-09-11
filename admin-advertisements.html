@@ -369,6 +369,10 @@
             line-height: 1.5;
         }
 
+        input[type="time"] {
+            color-scheme: dark;
+        }
+
         .switch-row {
             display: flex;
             align-items: center;
@@ -492,6 +496,11 @@
         .badge.expired {
             background: #351919;
             color: var(--red);
+        }
+
+        .badge.draft {
+            background:#2b2510;
+            color:#ffdd70;
         }
 
         .badge.type {
@@ -915,7 +924,7 @@
 
         .ad-mode-grid {
             display:grid;
-            grid-template-columns:repeat(2,minmax(0,1fr));
+            grid-template-columns:repeat(3,minmax(0,1fr));
             gap:12px;
             margin-bottom:20px;
         }
@@ -958,7 +967,95 @@
         .placement-option { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel-2); font-size:11px; font-weight:800; cursor:pointer; }
         .placement-option input { width:auto; }
         @media (max-width:650px){ .placement-grid { grid-template-columns:1fr 1fr; } }
-    </style>
+    
+
+        /* ===== BOXOFFICEX AD V2: targeting + master inventory ===== */
+        .master-panel { border-color:#35507d; background:radial-gradient(circle at top right,rgba(141,181,255,.12),transparent 32%),linear-gradient(180deg,#111827,#0b1120); box-shadow:0 18px 50px rgba(0,0,0,.22); }
+        .master-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px; }
+        .master-tabs button { padding:10px 13px; border:1px solid #31405f; border-radius:10px; background:#121b2d; color:#dce5f5; font-weight:900; cursor:pointer; transition:.18s ease; }
+        .master-tabs button:hover { transform:translateY(-1px); border-color:#526a9d; }
+        .master-tabs button.active { border-color:#6d91d3; background:linear-gradient(135deg,#20345b,#182540); color:#dbe8ff; box-shadow:0 0 0 1px rgba(141,181,255,.12) inset; }
+        .master-search-row { display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:10px; margin-bottom:14px; }
+        .inventory-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+        .inventory-card { position:relative; overflow:hidden; padding:17px; border:1px solid #2c3a58; border-radius:16px; background:linear-gradient(145deg,#151d31,#101625); box-shadow:0 10px 24px rgba(0,0,0,.18); }
+        .inventory-card::before { content:""; position:absolute; inset:0 auto 0 0; width:5px; background:#7de2bb; }
+        .inventory-card.open::before { background:#8db5ff; }
+        .inventory-card.near::before { background:#ffcc33; }
+        .inventory-card.full::before { background:#ff9a9a; }
+        .inventory-card .inv-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+        .inventory-card .inv-title { font-size:14px; font-weight:1000; color:#fff; }
+        .inventory-card .inv-sub { margin-top:4px; font-size:10px; color:#8fa0bd; }
+        .inventory-card .inv-count { min-width:72px; text-align:center; padding:8px 10px; border-radius:12px; background:#0b1120; border:1px solid #34425f; font-size:20px; font-weight:1000; }
+        .inventory-card.empty .inv-count { color:var(--green); }
+        .inventory-card.open .inv-count { color:var(--blue); }
+        .inventory-card.near .inv-count { color:var(--yellow); }
+        .inventory-card.full .inv-count { color:var(--red); }
+        .inv-status { display:inline-flex; margin-top:9px; padding:5px 8px; border-radius:999px; font-size:9px; font-weight:1000; letter-spacing:.4px; }
+        .inventory-card.empty .inv-status { background:#142c22; color:var(--green); }
+        .inventory-card.open .inv-status { background:#18263c; color:var(--blue); }
+        .inventory-card.near .inv-status { background:#2b2510; color:var(--yellow); }
+        .inventory-card.full .inv-status { background:#351919; color:var(--red); }
+        .capacity-bar { height:8px; margin:13px 0 9px; background:#29334d; border-radius:999px; overflow:hidden; }
+        .capacity-fill { height:100%; border-radius:inherit; background:var(--green); }
+        .inventory-card.open .capacity-fill { background:var(--blue); }
+        .inventory-card.near .capacity-fill { background:var(--yellow); }
+        .inventory-card.full .capacity-fill { background:var(--red); }
+        .inventory-card .campaign-mini { margin-top:8px; padding:8px 9px; border:1px solid rgba(255,255,255,.06); border-radius:9px; background:rgba(5,7,13,.28); font-size:10px; color:var(--muted); line-height:1.5; }
+        .targeting-box { grid-column:1/-1; padding:16px; border:1px solid #35507d; border-radius:14px; background:#0f1829; }
+        .target-choice-row { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
+        .target-choice { padding:9px 11px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); color:white; cursor:pointer; font-weight:800; }
+        .target-choice.active { border-color:#526a9d; background:#182540; color:var(--blue); }
+        .search-results { max-height:240px; overflow:auto; margin-top:8px; border:1px solid var(--border); border-radius:10px; background:#0b1120; }
+        .search-result-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); cursor:pointer; }
+        .search-result-item:last-child { border-bottom:0; }
+        .search-result-item:hover { background:#151f34; }
+        .selected-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
+        .selected-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid #35507d; border-radius:999px; background:#182540; color:#dbe8ff; font-size:10px; font-weight:900; }
+        .selected-chip button { border:0; background:transparent; color:var(--red); cursor:pointer; font-weight:1000; }
+        .movie-picker-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; }
+        .sponsor-note { padding:12px; border:1px solid #745f2b; border-radius:10px; background:#2b2510; color:#ffe29a; font-size:11px; line-height:1.55; }
+
+        .draft-preview-center { margin-top:18px; padding:18px; border:1px solid #35507d; border-radius:16px; background:linear-gradient(145deg,#0f1829,#0b1120); }
+        .draft-preview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
+        .draft-preview-head h3 { font-size:17px; }
+        .preview-page-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+        .preview-page-card { padding:12px; border:1px solid #2d3b58; border-radius:12px; background:#121b2d; }
+        .preview-page-card strong { display:block; font-size:11px; color:#fff; margin-bottom:8px; }
+        .preview-page-card button { width:100%; padding:8px; border:1px solid #3c527c; border-radius:8px; background:#1a2b49; color:#bcd1ff; font-size:10px; font-weight:900; cursor:pointer; }
+        .preview-page-card button:hover { background:#243a61; }
+        .draft-badge { display:inline-flex; padding:6px 9px; border-radius:999px; background:#2b2510; color:#ffdd70; font-size:9px; font-weight:1000; }
+        @media(max-width:950px){.preview-page-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        @media(max-width:650px){.preview-page-grid{grid-template-columns:1fr;}}
+
+        @media(max-width:900px){.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        @media(max-width:650px){.inventory-grid{grid-template-columns:1fr}.master-search-row{grid-template-columns:1fr}}
+
+    
+/* ===== BoxOfficeX V6 commercial packages ===== */
+.bx-package-panel{margin-top:18px;padding:18px;border:1px solid #29334d;border-radius:16px;background:linear-gradient(180deg,#111827,#0d1423)}
+.bx-package-title{font-weight:900;font-size:13px;letter-spacing:.5px;color:#ffcc33;margin-bottom:12px}
+.bx-package-grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px}
+.bx-package-card{position:relative;border:1px solid #29334d;background:#151d31;border-radius:14px;padding:14px;cursor:pointer;transition:.18s ease;min-height:96px}
+.bx-package-card:hover{transform:translateY(-2px);border-color:#8db5ff}
+.bx-package-card input{position:absolute;opacity:0;pointer-events:none}
+.bx-package-card.selected{outline:2px solid #ffcc33;border-color:#ffcc33;background:#1b2438}
+.bx-package-card .pkg-name{font-weight:900;color:#fff;font-size:13px}
+.bx-package-card .pkg-note{font-size:11px;color:#aeb8ce;margin-top:6px;line-height:1.35}
+.bx-package-card.exclusive .pkg-name{color:#ffcc33}
+.bx-rate-box{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.bx-rate-box .field{margin:0}
+.bx-rate-hint{font-size:11px;color:#aeb8ce;margin-top:8px}
+.bx-sponsor-package-grid{grid-template-columns:repeat(4,minmax(120px,1fr))}
+.bx-lock{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:#3a2d0b;color:#ffcc33;font-size:10px;font-weight:900}
+.bx-tier{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.3px}
+.bx-tier-exclusive,.bx-tier-takeover{background:#3a2d0b;color:#ffcc33}
+.bx-tier-platinum,.bx-tier-diamond{background:#172554;color:#bfdbfe}
+.bx-tier-gold{background:#422006;color:#fde68a}
+.bx-tier-silver{background:#263244;color:#dbeafe}
+.bx-tier-standard,.bx-tier-rotation,.bx-tier-bronze{background:#16372a;color:#a7f3d0}
+@media(max-width:900px){.bx-package-grid,.bx-sponsor-package-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bx-rate-box{grid-template-columns:1fr}}
+
+</style>
 </head>
 
 <body>
@@ -1040,6 +1137,30 @@
     </section>
 
 
+
+    <section class="panel master-panel" id="masterInventoryPanel">
+        <div class="panel-head">
+            <div>
+                <h2>🧭 Advertisement Master Inventory</h2>
+                <p>Verify effective active inventory before selling a campaign. Sitewide + page-type + exact actor/movie campaigns are counted together.</p>
+            </div>
+            <button class="secondary-btn" type="button" onclick="loadMasterInventory()">🔄 Refresh</button>
+        </div>
+        <div class="master-tabs" id="masterPageTabs"></div>
+        <div id="masterObjectSearch" style="display:none">
+            <div class="master-search-row">
+                <input id="masterSearchInput" type="search" placeholder="Search..." oninput="debouncedMasterSearch()">
+                <button type="button" class="secondary-btn" onclick="clearMasterObject()">Clear</button>
+            </div>
+            <div id="masterSearchResults" class="search-results" style="display:none"></div>
+            <div id="masterSelectedObject" class="selected-chips"></div>
+        </div>
+        <div id="masterContext" class="muted" style="margin-bottom:12px"></div>
+<div id="masterInventoryError" class="message bad" style="display:none;margin-bottom:12px"></div>
+        <div id="inventoryGrid" class="inventory-grid"></div>
+        <div id="sponsoredPoolMaster" class="sponsor-note" style="margin-top:14px">Sponsored Links: loading...</div>
+    </section>
+
     <section id="createCampaign" class="panel">
 
         <div class="panel-head">
@@ -1060,7 +1181,11 @@
             </button>
             <button id="inContentAdModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('in_content')">
                 <strong>🧩 In-Content Ads</strong>
-                <span>Image or video placed only inside the predetermined Slot 1 / Slot 2 positions already built into BoxOfficeX pages.</span>
+                <span>Image or video placed inside BoxOfficeX content Slots 1–6. Each exact slot supports up to 5 rotating client campaigns.</span>
+            </button>
+            <button id="sponsoredLinkModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('sponsored_link')">
+                <strong>🔗 Sponsored Links</strong>
+                <span>Full-width clickable sponsor images. Unlimited active pool; up to 10 selected by weighted rotation per page.</span>
             </button>
         </div>
 
@@ -1104,6 +1229,12 @@
             <div id="inContentTypeGroup" class="form-group" style="display:none">
                 <label>Advertisement Type *</label>
                 <div class="locked-format">🧩 In-content Image / Video</div>
+            </div>
+
+            <div id="sponsoredLinkTypeGroup" class="form-group" style="display:none">
+                <label>Advertisement Type *</label>
+                <div class="locked-format">🔗 Full-width Clickable Sponsored Link</div>
+                <div class="slot-note">Entire image is clickable. Desktop and optional mobile creative are supported.</div>
             </div>
 
             <div class="form-group">
@@ -1226,9 +1357,51 @@
                     <option value="1">Slot 1</option>
                     <option value="2">Slot 2</option>
                     <option value="3">Slot 3</option>
-                    <option value="0">All Available Slots (1 + 2 + 3)</option>
+                    <option value="4">Slot 4</option>
+                    <option value="5">Slot 5</option>
+                    <option value="6">Slot 6</option>
+                    <option value="0">All Available Slots (1 - 6)</option>
                 </select>
-                <div class="helper">Each page uses only the slots it supports. All Available Slots fills Slot 1, Slot 2 and Slot 3 wherever those positions exist.</div>
+                <div class="helper">Each page uses only the slots it supports. All Available Slots fills Slot 1 through Slot 6 wherever those positions exist.</div>
+            </div>
+
+
+            <div class="targeting-box" id="advancedTargetingBox">
+                <label>🎯 Precise Actor / Movie Targeting</label>
+                <div class="helper">Leave on General to target every item in the selected page type. Specific targeting can include multiple actors or multiple movies.</div>
+                <div class="target-choice-row">
+                    <button type="button" class="target-choice active" data-target-mode="general" onclick="setTargetMode('general')">General / All</button>
+                    <button type="button" class="target-choice" data-target-mode="actors" onclick="setTargetMode('actors')">Specific Actors</button>
+                    <button type="button" class="target-choice" data-target-mode="movies" onclick="setTargetMode('movies')">Specific Movies</button>
+                </div>
+
+                <div id="actorTargetPicker" style="display:none">
+                    <label>Search and select actors</label>
+                    <input id="actorTargetSearch" type="search" placeholder="Type Vijay, Rajinikanth, Ajith..." oninput="debouncedActorTargetSearch()">
+                    <div id="actorTargetResults" class="search-results" style="display:none"></div>
+                    <div id="selectedActorChips" class="selected-chips"></div>
+                    <div class="switch-row" style="margin-top:10px">
+                        <input id="targetActorMovies" type="checkbox">
+                        <span>For Movie Detail campaigns: cover all movies of the selected actor(s)</span>
+                    </div>
+                </div>
+
+                <div id="movieTargetPicker" style="display:none">
+                    <label>Step 1 — Search actor</label>
+                    <input id="movieActorSearch" type="search" placeholder="Search actor first..." oninput="debouncedMovieActorSearch()">
+                    <div id="movieActorResults" class="search-results" style="display:none"></div>
+                    <div id="selectedMovieActor" class="selected-chips"></div>
+
+                    <div id="actorMoviePicker" style="display:none">
+                        <div class="movie-picker-head">
+                            <label style="margin:0">Step 2 — Select one or more movies</label>
+                            <button type="button" class="mini-btn" onclick="selectAllLoadedActorMovies()">SELECT ALL LOADED</button>
+                        </div>
+                        <input id="actorMovieSearch" type="search" placeholder="Search this actor's movies..." oninput="debouncedActorMovieSearch()">
+                        <div id="actorMovieResults" class="search-results"></div>
+                        <div id="selectedMovieChips" class="selected-chips"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="movieRankingIndustryGroup" class="form-group" style="display:none">
@@ -1285,8 +1458,20 @@
             </div>
 
             <div class="form-group">
+                <label>Start Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+                <input id="startTime" type="time">
+                <div class="helper">Leave empty to start automatically at 12:00 AM on the start date.</div>
+            </div>
+
+            <div class="form-group">
                 <label>End Date *</label>
                 <input id="endDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>End Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+                <input id="endTime" type="time">
+                <div class="helper">Leave empty to run until 11:59 PM on the end date.</div>
             </div>
 
             <div class="form-group">
@@ -1316,7 +1501,40 @@
                 <input id="clientPhone" type="text" placeholder="+91 ...">
             </div>
 
-            <div class="form-group full">
+            
+<div class="bx-package-panel" id="commercialPackagePanel">
+  <div class="bx-package-title">CAMPAIGN PACKAGE & RATE</div>
+
+  <div id="normalPackageSection"><div class="helper" style="margin-bottom:10px"><strong>Standard / In-Content Package</strong> — Exclusive or shared rotation.</div>
+    <div class="bx-package-grid" id="normalPackageGrid">
+      <label class="bx-package-card exclusive"><input type="radio" name="ad_package" value="exclusive"><div class="pkg-name">🔒 Exclusive</div><div class="pkg-note">One client owns the exact selected inventory. No rotation during overlapping schedule.</div></label>
+      <label class="bx-package-card"><input type="radio" name="ad_package" value="platinum"><div class="pkg-name">💎 Platinum</div><div class="pkg-note">Highest priority shared rotation package.</div></label>
+      <label class="bx-package-card"><input type="radio" name="ad_package" value="gold"><div class="pkg-name">🥇 Gold</div><div class="pkg-note">High-priority shared rotation.</div></label>
+      <label class="bx-package-card"><input type="radio" name="ad_package" value="silver"><div class="pkg-name">🥈 Silver</div><div class="pkg-note">Mid-tier shared rotation.</div></label>
+      <label class="bx-package-card selected"><input type="radio" name="ad_package" value="standard" checked><div class="pkg-name">Standard</div><div class="pkg-note">Base-rate shared rotation package.</div></label>
+    </div>
+  </div>
+
+  <div id="sponsorPackageSection" style="display:none"><div class="helper" style="margin-bottom:10px"><strong>Sponsored Links Package</strong> — Takeover, fixed positions #1–#5, or rotation #6–#10.</div>
+    <div class="bx-package-grid bx-sponsor-package-grid" id="sponsorPackageGrid">
+      <label class="bx-package-card exclusive"><input type="radio" name="sponsored_package" value="takeover"><div class="pkg-name">👑 Takeover</div><div class="pkg-note">Only sponsored link shown in the targeted block.</div></label>
+      <label class="bx-package-card"><input type="radio" name="sponsored_package" value="diamond"><div class="pkg-name">💎 Diamond · #1</div><div class="pkg-note">Fixed Sponsored Link position 1.</div></label>
+      <label class="bx-package-card"><input type="radio" name="sponsored_package" value="platinum"><div class="pkg-name">🏆 Platinum · #2</div><div class="pkg-note">Fixed Sponsored Link position 2.</div></label>
+      <label class="bx-package-card"><input type="radio" name="sponsored_package" value="gold"><div class="pkg-name">🥇 Gold · #3</div><div class="pkg-note">Fixed Sponsored Link position 3.</div></label>
+      <label class="bx-package-card"><input type="radio" name="sponsored_package" value="silver"><div class="pkg-name">🥈 Silver · #4</div><div class="pkg-note">Fixed Sponsored Link position 4.</div></label>
+      <label class="bx-package-card"><input type="radio" name="sponsored_package" value="bronze"><div class="pkg-name">🥉 Bronze · #5</div><div class="pkg-note">Fixed Sponsored Link position 5.</div></label>
+      <label class="bx-package-card selected"><input type="radio" name="sponsored_package" value="rotation" checked><div class="pkg-name">🔄 Rotation · #6–10</div><div class="pkg-note">Rotating sponsored-link inventory.</div></label>
+    </div>
+  </div>
+
+  <div class="bx-rate-box">
+    <div class="field"><label>Base Rate</label><input type="number" id="packageBaseRate" min="0" step="0.01" placeholder="0"></div>
+    <div class="field"><label>Suggested Rate</label><input type="number" id="packageSuggestedRate" min="0" step="0.01" readonly placeholder="0"></div>
+    <div class="field"><label>Final Agreed Rate</label><input type="number" id="packageFinalRate" min="0" step="0.01" placeholder="Enter negotiated amount"></div>
+  </div>
+  <div class="bx-rate-hint" id="packageRateHint">Standard package uses the base rate. You can override the final agreed amount after negotiation.</div>
+</div>
+<div class="form-group full">
                 <label>Billing Address</label>
                 <input id="billingAddress" type="text" placeholder="Client billing address">
             </div>
@@ -1354,16 +1572,20 @@
 
         <div class="form-actions">
 
-            <button id="createButton" class="primary-btn" onclick="createAdvertisement()">
-                💾 CREATE CAMPAIGN
+            <button id="draftButton" class="secondary-btn" onclick="createAdvertisement(true)">
+                📝 SAVE DRAFT
+            </button>
+
+            <button id="createButton" class="primary-btn" onclick="createAdvertisement(false)">
+                🚀 CREATE / ACTIVATE CAMPAIGN
             </button>
 
             <button type="button" class="secondary-btn" onclick="openCampaignPreview()">
-                👁️ PREVIEW CAMPAIGN
+                👁️ QUICK PREVIEW
             </button>
 
-            <button id="previewOnPageButton" type="button" class="secondary-btn" style="display:none" onclick="previewOnTargetPage()">
-                🌐 PREVIEW ON PAGE
+            <button id="previewOnPageButton" type="button" class="secondary-btn" onclick="previewOnTargetPage()">
+                🌐 PREVIEW SELECTED PAGE
             </button>
 
             <button class="secondary-btn" onclick="resetCreateForm()">
@@ -1373,6 +1595,17 @@
         </div>
 
         <div id="createMessage" class="message"></div>
+
+        <div class="draft-preview-center">
+            <div class="draft-preview-head">
+                <div>
+                    <h3>🧪 Draft Real-Page Preview Center</h3>
+                    <div class="helper">Preview the current unsaved ad on any BoxOfficeX public page. This does not count impressions or clicks.</div>
+                </div>
+                <span class="draft-badge">PRIVATE PREVIEW</span>
+            </div>
+            <div id="previewPageGrid" class="preview-page-grid"></div>
+        </div>
 
     </section>
 
@@ -1408,6 +1641,7 @@
                 <option value="scheduled">Scheduled</option>
                 <option value="paused">Paused</option>
                 <option value="expired">Expired</option>
+                <option value="draft">Draft</option>
             </select>
 
             <select id="typeFilter" onchange="renderCampaigns()">
@@ -1642,9 +1876,12 @@
                     <option value="1">Slot 1</option>
                     <option value="2">Slot 2</option>
                     <option value="3">Slot 3</option>
-                    <option value="0">All Available Slots (1 + 2 + 3)</option>
+                    <option value="4">Slot 4</option>
+                    <option value="5">Slot 5</option>
+                    <option value="6">Slot 6</option>
+                    <option value="0">All Available Slots (1 - 6)</option>
                 </select>
-                <div class="helper">Only applies to the new In-content Image / Video format.</div>
+                <div class="helper">Supports Slot 1–6 or All Available Slots for In-content Image / Video.</div>
             </div>
 
             <div id="editMovieRankingIndustryGroup" class="form-group" style="display:none">
@@ -1684,8 +1921,20 @@
             </div>
 
             <div class="form-group">
+                <label>Start Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+                <input id="editStartTime" type="time">
+                <div class="helper">Empty = 12:00 AM on the start date.</div>
+            </div>
+
+            <div class="form-group">
                 <label>End Date *</label>
                 <input id="editEndDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>End Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+                <input id="editEndTime" type="time">
+                <div class="helper">Empty = 11:59 PM on the end date.</div>
             </div>
 
             <div class="form-group">
@@ -1820,7 +2069,8 @@
             }
         });
 
-        let data = {};
+        let data = {
+      ...bxPackagePayload(),};
 
         try {
             data = await response.json();
@@ -1920,39 +2170,36 @@
     };
 
     function setCreateAdMode(mode) {
-        createAdMode = mode === "in_content" ? "in_content" : "standard";
-
+        createAdMode = ["standard", "in_content", "sponsored_link"].includes(mode) ? mode : "standard";
         const standardButton = document.getElementById("standardAdModeButton");
         const inContentButton = document.getElementById("inContentAdModeButton");
+        const sponsorButton = document.getElementById("sponsoredLinkModeButton");
         const standardGroup = document.getElementById("standardAdTypeGroup");
         const inContentGroup = document.getElementById("inContentTypeGroup");
+        const sponsorGroup = document.getElementById("sponsoredLinkTypeGroup");
         const slotGroup = document.getElementById("adSlotGroup");
         const pagePreview = document.getElementById("previewOnPageButton");
         const createButton = document.getElementById("createButton");
 
         if (standardButton) standardButton.classList.toggle("active", createAdMode === "standard");
         if (inContentButton) inContentButton.classList.toggle("active", createAdMode === "in_content");
+        if (sponsorButton) sponsorButton.classList.toggle("active", createAdMode === "sponsored_link");
         if (standardGroup) standardGroup.style.display = createAdMode === "standard" ? "block" : "none";
         if (inContentGroup) inContentGroup.style.display = createAdMode === "in_content" ? "block" : "none";
+        if (sponsorGroup) sponsorGroup.style.display = createAdMode === "sponsored_link" ? "block" : "none";
         if (slotGroup) slotGroup.style.display = createAdMode === "in_content" ? "block" : "none";
-        if (pagePreview) pagePreview.style.display = createAdMode === "in_content" ? "inline-flex" : "none";
-        if (createButton) createButton.textContent =
-            createAdMode === "in_content" ? "🚀 PUBLISH IN-CONTENT CAMPAIGN" : "💾 CREATE STANDARD CAMPAIGN";
-
-        const activeToggle = document.getElementById("isActive");
-        if (activeToggle && activeToggle.closest(".form-group")) {
-            activeToggle.closest(".form-group").style.display =
-                createAdMode === "in_content" ? "none" : "block";
-        }
-
+        if (pagePreview) pagePreview.style.display = "inline-flex";
+        if (createButton) createButton.textContent = createAdMode === "in_content"
+            ? "🚀 CREATE IN-CONTENT CAMPAIGN"
+            : createAdMode === "sponsored_link" ? "🔗 CREATE SPONSORED LINK" : "💾 CREATE STANDARD CAMPAIGN";
         syncDurationVisibility();
-        syncRankingIndustryControls("create");
+        syncRankingIndustryControls("create");        if (typeof bxRefreshPackageMode === "function") bxRefreshPackageMode();
     }
 
     function currentCreateAdType() {
-        return createAdMode === "in_content"
-            ? "in_content"
-            : document.getElementById("adType").value;
+        if (createAdMode === "in_content") return "in_content";
+        if (createAdMode === "sponsored_link") return "sponsored_link";
+        return document.getElementById("adType").value;
     }
 
     function syncEditAdControls() {
@@ -2045,7 +2292,9 @@
             "pageTarget",
             "durationSeconds",
             "startDate",
+            "startTime",
             "endDate",
+            "endTime",
             "totalAmount",
             "amountPaid",
             "clientEmail",
@@ -2265,7 +2514,8 @@
                 }
             );
 
-            let data = {};
+            let data = {
+      ...bxPackagePayload(),};
 
             try {
                 data = await response.json();
@@ -2560,22 +2810,22 @@
         if (ad.ad_type === "sponsored_link") {
             contentSlot.innerHTML = `
                 <div class="preview-in-content">
-                    <div class="preview-ad-label">Sponsored</div>
-                    <div class="preview-sponsored-link">
-                        <div><strong>${campaign}</strong><small>${advertiser} • ${category}</small></div>
-                        <div class="cta">↗</div>
-                    </div>
+                    <div class="preview-ad-label">Sponsored Links</div>
+                    <a href="${previewEscape(ad.target_url || '#')}" target="_blank" rel="sponsored noopener" class="preview-ad-card" style="display:block;cursor:pointer;text-decoration:none">
+                        ${media}
+                    </a>
                 </div>`;
             return;
         }
 
         if (ad.ad_type === "in_content" && Number(ad.ad_slot) === 0) {
-            contentSlot.innerHTML = `
-                <div class="preview-in-content"><div class="preview-ad-label">Advertisement • Slot 1</div><div class="preview-ad-card">${media}</div></div>
-                <div class="preview-content-block" style="margin-top:14px"></div>
-                <div class="preview-in-content"><div class="preview-ad-label">Advertisement • Slot 2</div><div class="preview-ad-card">${media}</div></div>
-                <div class="preview-content-block" style="margin-top:14px"></div>
-                <div class="preview-in-content"><div class="preview-ad-label">Advertisement • Slot 3</div><div class="preview-ad-card">${media}</div></div>`;
+            contentSlot.innerHTML = [1,2,3,4,5,6].map(slot => `
+                <div class="preview-in-content">
+                    <div class="preview-ad-label">Advertisement • Slot ${slot}</div>
+                    <div class="preview-ad-card">${media}</div>
+                </div>
+                ${slot < 6 ? '<div class="preview-content-block" style="margin-top:14px"></div>' : ''}
+            `).join('');
             return;
         }
 
@@ -2630,49 +2880,72 @@
 
 
 
-    function previewOnTargetPage(){
-        const ad = getCreatePreviewData();
-        ad.ad_slot = Number(document.getElementById("adSlot").value || 1);
-        if (ad.ad_type !== "in_content") {
-            alert("Preview on Page is for the new In-content Image / Video format.");
-            return;
-        }
-        if (ad.ad_slot === 0) {
-            ad.ad_slot = 1;
-            alert("All Available Slots selected. This live-page preview opens Slot 1. The campaign will publish to every supported slot on the selected page(s).");
-        }
-        if(!ad.media_url){
-            alert("Upload/select the advertisement media before page preview.");
-            return;
-        }
-        const selected = getSelectedPlacements("create").split(",").map(x=>x.trim()).filter(Boolean);
+    function getPreviewPageTarget(pageKey){
+        const actorId = [...selectedTargetActors.keys()][0] || 1;
+        const movieId = [...selectedTargetMovies.keys()][0] || 1;
         const pageMap = {
-            homepage:"/index.html", new_movies:"/new-movies.html", movie_detail:"/movie.html?id=1",
-            actors_list:"/actors.html", actor_detail:"/actor.html?id=1", actor_movies:"/actor-movies.html?id=1",
-            articles_list:"/articles.html", article_detail:"/article.html?id=1", movie_rankings:"/movie-rankings.html",
-            actor_rankings:"/rankings.html", actor_compare_select:"/compare-select.html",
-            actor_compare_results:"/compare.html", movie_compare_select:"/movie-compare-select.html",
+            homepage:"/index.html",
+            new_movies:"/new-movies.html",
+            movie_detail:`/movie.html?id=${movieId}`,
+            actors_list:"/actors.html",
+            actor_detail:`/actor.html?id=${actorId}`,
+            actor_movies:`/actor-movies.html?id=${actorId}`,
+            articles_list:"/articles.html",
+            article_detail:"/article.html?id=1",
+            movie_rankings:"/movie-rankings.html",
+            actor_rankings:"/rankings.html",
+            actor_compare_select:"/compare-select.html",
+            actor_compare_results:"/compare.html",
+            movie_compare_select:"/movie-compare-select.html",
             movie_compare_results:"/movie-compare.html"
         };
-        let target = document.getElementById("pageTarget").value.trim();
-        if(!target){
-            const first = selected.find(x => x !== "sitewide");
-            target = pageMap[first] || "/index.html";
-        } else {
-            target = target.split(",")[0].trim();
-        }
-        localStorage.setItem("boxofficex_ad_page_preview", JSON.stringify(ad));
-        const joiner = target.includes("?") ? "&" : "?";
-        window.open(`${target}${joiner}bx_ad_preview=1`, "_blank", "noopener");
+        return pageMap[pageKey] || "/index.html";
     }
 
-    async function createAdvertisement() {
+    function previewOnExactPage(pageKey){
+        const ad = getCreatePreviewData();
+        ad.target_actor_ids = [...selectedTargetActors.keys()];
+        ad.target_movie_ids = [...selectedTargetMovies.keys()];
+        ad.target_actor_movies = !!document.getElementById("targetActorMovies")?.checked;
+        ad.is_draft = true;
+        if (!ad.media_url && ad.ad_type !== "sponsored_link") {
+            showMessage("createMessage", "Upload or enter the advertisement media before real-page preview.", false);
+            return;
+        }
+        const target = getPreviewPageTarget(pageKey);
+        localStorage.setItem("boxofficex_ad_page_preview", JSON.stringify(ad));
+        const joiner = target.includes("?") ? "&" : "?";
+        window.open(`${target}${joiner}bx_ad_preview=1&bx_preview_page=${encodeURIComponent(pageKey)}`, "_blank", "noopener");
+    }
+
+    function previewOnTargetPage(){
+        const selected = getSelectedPlacements("create").split(",").map(x=>x.trim()).filter(Boolean);
+        const first = selected.find(x => x !== "sitewide") || "homepage";
+        previewOnExactPage(first);
+    }
+
+    function renderPreviewPageGrid(){
+        const grid=document.getElementById("previewPageGrid");
+        if(!grid) return;
+        const pages=[
+            ["homepage","🏠 Homepage"],["new_movies","🆕 New Movies"],["movie_detail","🎬 Movie Detail"],
+            ["actors_list","👥 Actors List"],["actor_detail","⭐ Actor Profile"],["actor_movies","🎞 Actor Movies"],
+            ["articles_list","📰 Articles List"],["article_detail","📄 Article Detail"],["movie_rankings","🏆 Movie Rankings"],
+            ["actor_rankings","🏆 Actor Rankings"],["actor_compare_select","⚔ Actor Compare Select"],
+            ["actor_compare_results","⚔ Actor Compare Result"],["movie_compare_select","🎬 Movie Compare Select"],
+            ["movie_compare_results","🎬 Movie Compare Result"]
+        ];
+        grid.innerHTML=pages.map(([key,label])=>`<div class="preview-page-card"><strong>${label}</strong><button type="button" onclick="previewOnExactPage('${key}')">Preview Real Page</button></div>`).join("");
+    }
+
+    async function createAdvertisement(saveAsDraft = false) {
 
         hideMessage("createMessage");
 
-        const button = document.getElementById("createButton");
+        const button = saveAsDraft ? document.getElementById("draftButton") : document.getElementById("createButton");
 
         const payload = {
+      ...bxPackagePayload(),
             advertiser_name:
                 document.getElementById("advertiserName").value.trim(),
 
@@ -2718,13 +2991,17 @@
             start_date:
                 document.getElementById("startDate").value,
 
+            start_time:
+                document.getElementById("startTime").value || null,
+
             end_date:
                 document.getElementById("endDate").value,
 
+            end_time:
+                document.getElementById("endTime").value || null,
+
             is_active:
-                createAdMode === "in_content"
-                    ? true
-                    : document.getElementById("isActive").checked,
+                saveAsDraft ? false : document.getElementById("isActive").checked,
 
             amount_paid:
                 numberOrNull(document.getElementById("amountPaid").value),
@@ -2745,7 +3022,11 @@
             payment_due_date:
                 document.getElementById("paymentDueDate").value || null,
             billing_notes:
-                document.getElementById("billingNotes").value.trim() || null
+                document.getElementById("billingNotes").value.trim() || null,
+            target_actor_ids: [...selectedTargetActors.keys()],
+            target_movie_ids: [...selectedTargetMovies.keys()],
+            target_actor_movies: !!document.getElementById("targetActorMovies")?.checked,
+            is_draft: !!saveAsDraft
         };
 
 
@@ -2768,15 +3049,15 @@
 
 
         button.disabled = true;
-        button.textContent = "Creating...";
+        button.textContent = saveAsDraft ? "Saving Draft..." : "Creating...";
 
         if (!payload.placement) {
             showMessage("createMessage", "Select at least one page before creating the campaign.", false);
             return;
         }
 
-        if (payload.ad_type === "in_content" && ![0, 1, 2].includes(Number(payload.ad_slot))) {
-            showMessage("createMessage", "Choose Slot 1, Slot 2 or Both.", false);
+        if (payload.ad_type === "in_content" && ![0, 1, 2, 3, 4, 5, 6].includes(Number(payload.ad_slot))) {
+            showMessage("createMessage", "Choose Slot 1-6 or All Available Slots.", false);
             return;
         }
 
@@ -2792,7 +3073,7 @@
 
             showMessage(
                 "createMessage",
-                data.message || "Campaign created successfully.",
+                saveAsDraft ? "Draft saved successfully." : (data.message || "Campaign created successfully."),
                 true
             );
 
@@ -2802,7 +3083,7 @@
 
             showMessage(
                 "createMessage",
-                data.message || "Campaign created successfully.",
+                saveAsDraft ? "Draft saved successfully." : (data.message || "Campaign created successfully."),
                 true
             );
 
@@ -2819,7 +3100,7 @@
         } finally {
 
             button.disabled = false;
-            button.textContent = "💾 CREATE CAMPAIGN";
+            button.textContent = saveAsDraft ? "📝 SAVE DRAFT" : "🚀 CREATE / ACTIVATE CAMPAIGN";
 
         }
 
@@ -2923,7 +3204,8 @@
                 return false;
             }
 
-            if (status && ad.status !== status) {
+            const effectiveStatus = ad.is_draft ? "draft" : ad.status;
+            if (status && effectiveStatus !== status) {
                 return false;
             }
 
@@ -2955,15 +3237,10 @@
 
         body.innerHTML = filtered.map(ad => {
 
-            const actionLabel =
-                ad.is_active
-                    ? "Pause"
-                    : "Activate";
+            const displayStatus = ad.is_draft ? "draft" : ad.status;
+            const actionLabel = ad.is_draft ? "Activate Draft" : (ad.is_active ? "Pause" : "Activate");
 
-            const actionClass =
-                ad.is_active
-                    ? "warn"
-                    : "good";
+            const actionClass = ad.is_draft ? "good" : (ad.is_active ? "warn" : "good");
 
             return `
                 <tr>
@@ -3004,8 +3281,8 @@
                     </td>
 
                     <td>
-                        <span class="badge ${escapeHtml(ad.status)}">
-                            ${escapeHtml(ad.status)}
+                        <span class="badge ${escapeHtml(displayStatus)}">
+                            ${escapeHtml(displayStatus)}
                         </span>
                     </td>
 
@@ -3109,8 +3386,14 @@
         document.getElementById("editStartDate").value =
             ad.start_date || "";
 
+        document.getElementById("editStartTime").value =
+            ad.start_time || "";
+
         document.getElementById("editEndDate").value =
             ad.end_date || "";
+
+        document.getElementById("editEndTime").value =
+            ad.end_time || "";
 
         document.getElementById("editTotalAmount").value = ad.total_amount ?? "";
         document.getElementById("editAmountPaid").value = ad.amount_paid ?? "";
@@ -3148,6 +3431,7 @@
             Number(document.getElementById("editId").value);
 
         const payload = {
+      ...bxPackagePayload(),
             advertiser_name:
                 document.getElementById("editAdvertiserName").value.trim(),
 
@@ -3195,8 +3479,14 @@
             start_date:
                 document.getElementById("editStartDate").value,
 
+            start_time:
+                document.getElementById("editStartTime").value || null,
+
             end_date:
                 document.getElementById("editEndDate").value,
+
+            end_time:
+                document.getElementById("editEndTime").value || null,
 
             amount_paid: numberOrNull(document.getElementById("editAmountPaid").value),
             total_amount: numberOrNull(document.getElementById("editTotalAmount").value),
@@ -3385,6 +3675,329 @@
 
 
     initializePage();
+
+
+    // ============================================================
+    // BOXOFFICEX AD V2 — PRECISE TARGETING + MASTER INVENTORY
+    // ============================================================
+    const selectedTargetActors = new Map();
+    const selectedTargetMovies = new Map();
+    let selectedMovieFilterActor = null;
+    let loadedActorMovies = [];
+    let targetMode = "general";
+    let targetTimer = null;
+
+    function setTargetMode(mode){
+        targetMode = ["general","actors","movies"].includes(mode) ? mode : "general";
+        document.querySelectorAll('[data-target-mode]').forEach(b => b.classList.toggle('active', b.dataset.targetMode === targetMode));
+        document.getElementById('actorTargetPicker').style.display = targetMode === 'actors' ? 'block' : 'none';
+        document.getElementById('movieTargetPicker').style.display = targetMode === 'movies' ? 'block' : 'none';
+        if(targetMode === 'general'){
+            selectedTargetActors.clear(); selectedTargetMovies.clear(); selectedMovieFilterActor=null;
+            renderSelectedActorChips(); renderSelectedMovieChips();
+        }
+    }
+
+    function debounceCall(fn){ clearTimeout(targetTimer); targetTimer=setTimeout(fn,220); }
+    function debouncedActorTargetSearch(){ debounceCall(searchTargetActors); }
+    function debouncedMovieActorSearch(){ debounceCall(searchMovieActors); }
+    function debouncedActorMovieSearch(){ debounceCall(loadSelectedActorMovies); }
+
+    async function fetchTargetActors(q){
+        const data = await apiRequest(`/admin/advertisements/target-actors?q=${encodeURIComponent(q||'')}`);
+        return data.actors || [];
+    }
+    function renderActorResults(containerId, actors, clickFn){
+        const box=document.getElementById(containerId);
+        box.style.display='block';
+        box.innerHTML = actors.length ? actors.map(a=>`<div class="search-result-item" onclick="${clickFn}(${a.id}, '${escapeHtml(String(a.name)).replace(/'/g,"\\'")}')"><span><strong>${escapeHtml(a.name)}</strong><div class="muted">${escapeHtml(a.profession||'Actor')}</div></span><span>＋</span></div>`).join('') : '<div class="empty-state">No actors found.</div>';
+    }
+    async function searchTargetActors(){ renderActorResults('actorTargetResults', await fetchTargetActors(document.getElementById('actorTargetSearch').value), 'addTargetActor'); }
+    async function searchMovieActors(){ renderActorResults('movieActorResults', await fetchTargetActors(document.getElementById('movieActorSearch').value), 'chooseMovieFilterActor'); }
+    function addTargetActor(id,name){ selectedTargetActors.set(Number(id),name); renderSelectedActorChips(); }
+    function removeTargetActor(id){ selectedTargetActors.delete(Number(id)); renderSelectedActorChips(); }
+    function renderSelectedActorChips(){
+        const box=document.getElementById('selectedActorChips'); if(!box)return;
+        box.innerHTML=[...selectedTargetActors].map(([id,name])=>`<span class="selected-chip">${escapeHtml(name)} <button type="button" onclick="removeTargetActor(${id})">×</button></span>`).join('');
+    }
+    function chooseMovieFilterActor(id,name){
+        selectedMovieFilterActor={id:Number(id),name};
+        selectedTargetActors.clear(); selectedTargetActors.set(Number(id),name);
+        document.getElementById('selectedMovieActor').innerHTML=`<span class="selected-chip">${escapeHtml(name)} <button type="button" onclick="clearMovieFilterActor()">×</button></span>`;
+        document.getElementById('movieActorResults').style.display='none';
+        document.getElementById('actorMoviePicker').style.display='block';
+        loadSelectedActorMovies();
+    }
+    function clearMovieFilterActor(){ selectedMovieFilterActor=null; selectedTargetActors.clear(); selectedTargetMovies.clear(); loadedActorMovies=[]; document.getElementById('selectedMovieActor').innerHTML=''; document.getElementById('actorMoviePicker').style.display='none'; renderSelectedMovieChips(); }
+    async function loadSelectedActorMovies(){
+        if(!selectedMovieFilterActor)return;
+        const q=document.getElementById('actorMovieSearch').value || '';
+        const data=await apiRequest(`/admin/advertisements/target-actors/${selectedMovieFilterActor.id}/movies?q=${encodeURIComponent(q)}`);
+        loadedActorMovies=data.movies||[];
+        const box=document.getElementById('actorMovieResults');
+        box.innerHTML=loadedActorMovies.length ? loadedActorMovies.map(m=>`<label class="search-result-item"><span><strong>${escapeHtml(m.title)}</strong><div class="muted">${escapeHtml(m.release_date||'')}</div></span><input type="checkbox" ${selectedTargetMovies.has(Number(m.id))?'checked':''} onchange="toggleTargetMovie(${m.id}, '${escapeHtml(String(m.title)).replace(/'/g,"\\'")}', this.checked)"></label>`).join('') : '<div class="empty-state">No movies found for this actor.</div>';
+    }
+    function toggleTargetMovie(id,title,checked){ if(checked)selectedTargetMovies.set(Number(id),title); else selectedTargetMovies.delete(Number(id)); renderSelectedMovieChips(); }
+    function selectAllLoadedActorMovies(){ loadedActorMovies.forEach(m=>selectedTargetMovies.set(Number(m.id),m.title)); renderSelectedMovieChips(); loadSelectedActorMovies(); }
+    function removeTargetMovie(id){ selectedTargetMovies.delete(Number(id)); renderSelectedMovieChips(); loadSelectedActorMovies(); }
+    function renderSelectedMovieChips(){ const box=document.getElementById('selectedMovieChips'); if(!box)return; box.innerHTML=[...selectedTargetMovies].map(([id,title])=>`<span class="selected-chip">${escapeHtml(title)} <button type="button" onclick="removeTargetMovie(${id})">×</button></span>`).join(''); }
+
+    const MASTER_PAGES = [
+        ['homepage','Homepage'],['new_movies','New Movies'],['movie_detail','Movie Detail'],['actors_list','Actors List'],
+        ['actor_detail','Actor Profile'],['actor_movies','Actor Movies'],['articles_list','Articles List'],['article_detail','Article Detail'],
+        ['movie_rankings','Movie Rankings'],['actor_rankings','Actor Rankings'],['actor_compare_select','Actor Compare Select'],
+        ['actor_compare_results','Actor Compare Result'],['movie_compare_select','Movie Compare Select'],['movie_compare_results','Movie Compare Result']
+    ];
+    let masterPlacement='homepage', masterActorId=null, masterMovieId=null, masterMovieActor=null, masterTimer=null;
+    function initMasterTabs(){
+        const box=document.getElementById('masterPageTabs'); if(!box)return;
+        box.innerHTML=MASTER_PAGES.map(([key,label])=>`<button type="button" data-master-page="${key}" onclick="setMasterPage('${key}')">${label}</button>`).join('');
+        setMasterPage('homepage');
+    }
+    function setMasterPage(page){ masterPlacement=page; masterActorId=null; masterMovieId=null; document.querySelectorAll('[data-master-page]').forEach(b=>b.classList.toggle('active',b.dataset.masterPage===page)); const needs=page==='actor_detail'||page==='actor_movies'||page==='movie_detail'; document.getElementById('masterObjectSearch').style.display=needs?'block':'none'; document.getElementById('masterSearchInput').placeholder=page==='movie_detail'?'Search actor first (example: Rajinikanth)...':'Search actor...'; document.getElementById('masterSelectedObject').innerHTML=''; document.getElementById('masterSearchResults').style.display='none'; loadMasterInventory(); }
+    function debouncedMasterSearch(){ clearTimeout(masterTimer); masterTimer=setTimeout(searchMasterObject,220); }
+    async function searchMasterObject(){
+        const q=document.getElementById('masterSearchInput').value.trim(); if(!q){document.getElementById('masterSearchResults').style.display='none';return;}
+        if(masterPlacement==='actor_detail'||masterPlacement==='actor_movies'){
+            renderMasterActorResults(await fetchTargetActors(q)); return;
+        }
+        // Movie master follows the same fast actor-first workflow as campaign creation.
+        if(masterPlacement==='movie_detail'){
+            if(!masterMovieActor){
+                renderMasterActorResults(await fetchTargetActors(q), true);
+            } else {
+                const data=await apiRequest(`/admin/advertisements/target-actors/${masterMovieActor.id}/movies?q=${encodeURIComponent(q)}`);
+                renderMasterMovieResults(data.movies||[]);
+            }
+        }
+    }
+    function renderMasterActorResults(items, forMovie=false){ const b=document.getElementById('masterSearchResults'); b.style.display='block'; b.innerHTML=items.map(a=>`<div class="search-result-item" onclick="${forMovie?'selectMasterMovieActor':'selectMasterActor'}(${a.id},'${escapeHtml(String(a.name)).replace(/'/g,"\'")}')"><strong>${escapeHtml(a.name)}</strong><span>${forMovie?'Show movies →':'View slots →'}</span></div>`).join('')||'<div class="empty-state">No actors found.</div>'; }
+    function renderMasterMovieResults(items){ const b=document.getElementById('masterSearchResults'); b.style.display='block'; b.innerHTML=items.slice(0,30).map(m=>`<div class="search-result-item" onclick="selectMasterMovie(${m.id},'${escapeHtml(String(m.title||m.name)).replace(/'/g,"\\'")}')"><strong>${escapeHtml(m.title||m.name||'Movie')}</strong><span>View slots →</span></div>`).join('')||'<div class="empty-state">No movies found.</div>'; }
+
+    async function selectMasterMovieActor(id,name){
+        masterMovieActor={id:Number(id),name}; masterMovieId=null; masterActorId=null;
+        document.getElementById('masterSelectedObject').innerHTML=`<span class="selected-chip">Actor: ${escapeHtml(name)} <button type="button" onclick="clearMasterObject()">×</button></span>`;
+        document.getElementById('masterSearchInput').value='';
+        document.getElementById('masterSearchInput').placeholder=`Search ${name} movies...`;
+        const data=await apiRequest(`/admin/advertisements/target-actors/${id}/movies?q=`);
+        renderMasterMovieResults(data.movies||[]);
+    }
+
+    function selectMasterActor(id,name){masterActorId=Number(id);masterMovieId=null;document.getElementById('masterSelectedObject').innerHTML=`<span class="selected-chip">${escapeHtml(name)}</span>`;document.getElementById('masterSearchResults').style.display='none';loadMasterInventory();}
+    function selectMasterMovie(id,name){masterMovieId=Number(id);masterActorId=null;document.getElementById('masterSelectedObject').innerHTML=`<span class="selected-chip">${escapeHtml(name)}</span>`;document.getElementById('masterSearchResults').style.display='none';loadMasterInventory();}
+    function clearMasterObject(){masterActorId=null;masterMovieId=null;masterMovieActor=null;document.getElementById('masterSearchInput').value='';document.getElementById('masterSearchInput').placeholder=masterPlacement==='movie_detail'?'Search actor first (example: Rajinikanth)...':'Search actor...';document.getElementById('masterSelectedObject').innerHTML='';document.getElementById('masterSearchResults').style.display='none';loadMasterInventory();}
+    async function loadMasterInventory(){
+        const grid = document.getElementById('inventoryGrid');
+        const errBox = document.getElementById('masterInventoryError');
+        const sponsorMaster = document.getElementById('sponsoredPoolMaster');
+
+        if(!grid) return;
+
+        if(errBox){
+            errBox.style.display='none';
+            errBox.textContent='';
+        }
+
+        grid.innerHTML='<div class="empty-state">Loading inventory...</div>';
+        if(sponsorMaster) sponsorMaster.textContent='Sponsored Links: loading...';
+
+        let url=`/admin/advertisements/master-inventory?placement=${encodeURIComponent(masterPlacement)}`;
+        if(masterActorId) url+=`&actor_id=${encodeURIComponent(masterActorId)}`;
+        if(masterMovieId) url+=`&movie_id=${encodeURIComponent(masterMovieId)}`;
+
+        try{
+            const data=await apiRequest(url);
+
+            if(!data || !Array.isArray(data.inventory)){
+                throw new Error('Master Inventory returned an invalid response.');
+            }
+
+            const cards=data.inventory;
+
+            const context=document.getElementById('masterContext');
+            if(context){
+                const pageLabel=MASTER_PAGES.find(x=>x[0]===masterPlacement)?.[1]||masterPlacement;
+                context.textContent=
+                    `${pageLabel}` +
+                    `${masterActorId?' • Actor ID '+masterActorId:''}` +
+                    `${masterMovieId?' • Movie ID '+masterMovieId:''}`;
+            }
+
+            grid.innerHTML=cards.map(c=>{
+                const used=Number(c.used||0);
+                const capacity=Math.max(1,Number(c.capacity||5));
+                const available=Math.max(0,Number(c.available ?? (capacity-used)));
+                const pct=Math.min(100,(used/capacity)*100);
+                const locked=Boolean(c.locked);
+
+                const cls=locked?'full':used===0?'empty':used>=capacity?'full':used===capacity-1?'near':'open';
+                const status=locked
+                    ? '🔒 EXCLUSIVE'
+                    : used>=capacity
+                        ? 'FULL'
+                        : used===0
+                            ? 'FULLY AVAILABLE'
+                            : used===capacity-1
+                                ? 'ONLY 1 LEFT'
+                                : `${available} AVAILABLE`;
+
+                const campaigns=Array.isArray(c.campaigns)?c.campaigns:[];
+
+                return `<div class="inventory-card ${cls}">
+                    <div class="inv-top">
+                        <div>
+                            <div class="inv-title">${escapeHtml(c.label||c.key||'Inventory')}</div>
+                            <div class="inv-sub">${locked?'Exclusive inventory':'Weighted rotation'} • max ${capacity} clients</div>
+                            <span class="inv-status">${status}</span>
+                        </div>
+                        <div class="inv-count">${used} / ${capacity}</div>
+                    </div>
+
+                    <div class="capacity-bar">
+                        <div class="capacity-fill" style="width:${pct}%"></div>
+                    </div>
+
+                    ${locked && c.locked_by
+                        ? `<div class="campaign-mini"><strong>🔒 Locked by ${escapeHtml(c.locked_by.advertiser_name||'Client')}</strong><br>${escapeHtml(c.locked_by.campaign_name||'')}</div>`
+                        : ''
+                    }
+
+                    ${campaigns.map((a,i)=>`
+                        <div class="campaign-mini">
+                            <strong>${i+1}. ${escapeHtml(a.advertiser_name||'Client')}</strong>
+                            — ${escapeHtml(a.campaign_name||'')}
+                            <br>
+                            ${escapeHtml(a.package||a.ad_package||a.sponsored_package||'standard')}
+                            • Weight ${Number(a.traffic_weight||1)}
+                            • ${escapeHtml(a.frequency||'always')}
+                        </div>
+                    `).join('') || '<div class="campaign-mini">No overlapping campaigns in this inventory.</div>'}
+                </div>`;
+            }).join('');
+
+            const s=data.sponsored_links||{};
+            const fixed=Array.isArray(s.fixed_positions)?s.fixed_positions:[];
+            const fixedBooked=fixed.filter(x=>x && x.campaign).length;
+            const pool=Array.isArray(s.rotation_pool)?s.rotation_pool.length:0;
+
+            if(sponsorMaster){
+                sponsorMaster.innerHTML=`
+                    <strong>Sponsored Links</strong>
+                    — ${s.takeover?'🔒 TAKEOVER ACTIVE • ':''}
+                    Fixed premium booked: ${fixedBooked}/5
+                    • Rotation pool: ${pool}
+                    • Max visible: ${Number(s.max_visible_links||10)}
+                `;
+            }
+
+        }catch(e){
+            const message=e?.message || 'Master Inventory failed to load.';
+            grid.innerHTML='<div class="empty-state">Master Inventory unavailable.</div>';
+            if(sponsorMaster) sponsorMaster.textContent='Sponsored Links: unavailable';
+            if(errBox){
+                errBox.textContent=message;
+                errBox.style.display='block';
+            }
+            console.error('Master Inventory error:', e);
+        }
+    }
+
+    
+
+
+
+window.addEventListener('DOMContentLoaded',()=>{
+    try{
+        initMasterTabs();
+        setTargetMode('general');
+        renderPreviewPageGrid();
+    }catch(e){
+        console.error('Advertisement admin initialization error:', e);
+        const err=document.getElementById('masterInventoryError');
+        if(err){
+            err.textContent=e?.message || 'Advertisement admin initialization failed.';
+            err.style.display='block';
+        }
+    }
+});
+
+// ===== BoxOfficeX V6 package UI =====
+const BX_PACKAGE_MULTIPLIERS = {exclusive:3, platinum:2, gold:1.6, silver:1.3, standard:1};
+const BX_SPONSOR_MULTIPLIERS = {takeover:4, diamond:2.5, platinum:2, gold:1.7, silver:1.4, bronze:1.2, rotation:1};
+
+function bxIsSponsoredLinkMode(){
+  if (typeof createAdMode !== "undefined" && createAdMode === "sponsored_link") return true;
+  const values = [
+    document.querySelector('[name="ad_type"]:checked')?.value,
+    document.getElementById('adType')?.value,
+    document.getElementById('format')?.value,
+    document.getElementById('adFormat')?.value
+  ].filter(Boolean).map(v => String(v).toLowerCase());
+  return values.some(v => v === 'sponsored_link');
+}
+function bxRefreshPackageMode(){
+  const sponsored = bxIsSponsoredLinkMode();
+  const normal = document.getElementById('normalPackageSection');
+  const sponsor = document.getElementById('sponsorPackageSection');
+  if(normal) normal.style.display = sponsored ? 'none' : '';
+  if(sponsor) sponsor.style.display = sponsored ? '' : 'none';
+  bxUpdateSuggestedRate();
+}
+function bxSelectedPackage(){
+  if(bxIsSponsoredLinkMode()){
+    return document.querySelector('[name="sponsored_package"]:checked')?.value || 'rotation';
+  }
+  return document.querySelector('[name="ad_package"]:checked')?.value || 'standard';
+}
+function bxUpdateSuggestedRate(){
+  const base = Number(document.getElementById('packageBaseRate')?.value || 0);
+  const pkg = bxSelectedPackage();
+  const mult = bxIsSponsoredLinkMode() ? (BX_SPONSOR_MULTIPLIERS[pkg] || 1) : (BX_PACKAGE_MULTIPLIERS[pkg] || 1);
+  const suggested = Math.round(base * mult * 100) / 100;
+  const el = document.getElementById('packageSuggestedRate');
+  if(el) el.value = suggested || '';
+  const hint = document.getElementById('packageRateHint');
+  if(hint){
+    if(pkg === 'exclusive') hint.textContent = 'Exclusive locks the exact selected Standard/In-Content inventory for one client during the overlapping schedule.';
+    else if(pkg === 'takeover') hint.textContent = 'Takeover shows only this sponsor in the targeted Sponsored Links block during the campaign schedule.';
+    else if(['diamond','platinum','gold','silver','bronze'].includes(pkg) && bxIsSponsoredLinkMode()) hint.textContent = 'Fixed Sponsored Link package: this campaign keeps its named position while eligible.';
+    else hint.textContent = 'Shared rotation package. Suggested rate is calculated from Base Rate × package multiplier; Final Agreed Rate remains editable.';
+  }
+}
+function bxPackagePayload(){
+  const sponsored = bxIsSponsoredLinkMode();
+  const adPkg = sponsored ? 'standard' : bxSelectedPackage();
+  const spPkg = sponsored ? bxSelectedPackage() : 'rotation';
+  return {
+    ad_package: adPkg,
+    sponsored_package: spPkg,
+    exclusive_inventory: adPkg === 'exclusive' || spPkg === 'takeover',
+    suggested_rate: Number(document.getElementById('packageSuggestedRate')?.value || 0),
+    final_rate: Number(document.getElementById('packageFinalRate')?.value || 0)
+  };
+}
+function bxInitPackageUI(){
+  document.querySelectorAll('.bx-package-card input').forEach(input=>{
+    input.addEventListener('change', ()=>{
+      const group = input.name;
+      document.querySelectorAll(`input[name="${group}"]`).forEach(i=>i.closest('.bx-package-card')?.classList.toggle('selected', i.checked));
+      bxUpdateSuggestedRate();
+    });
+  });
+  document.getElementById('packageBaseRate')?.addEventListener('input', bxUpdateSuggestedRate);
+  document.querySelectorAll('[name="ad_type"],#adType,#format,#adFormat').forEach(el=>el.addEventListener('change', bxRefreshPackageMode));
+  bxRefreshPackageMode();
+}
+document.addEventListener('DOMContentLoaded', bxInitPackageUI);
+
+
+function bxPackageBadge(pkg){
+  if(!pkg) return '';
+  const p=String(pkg).toLowerCase();
+  const label=p.charAt(0).toUpperCase()+p.slice(1);
+  return `<span class="bx-tier bx-tier-${p}">${label}</span>`;
+}
+
 </script>
 
 </body>
