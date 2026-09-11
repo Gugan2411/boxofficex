@@ -4093,8 +4093,27 @@ function formatDate(value) {
 
 function formatUpdatedTime(value) {
     if (!value) return "";
-    const date = new Date(value);
+
+    /*
+     * Render/PostgreSQL commonly returns TIMESTAMP WITHOUT TIME ZONE
+     * values without a trailing Z/offset. Those timestamps are stored
+     * in the server's UTC context, so explicitly interpret timezone-less
+     * values as UTC before converting to India time.
+     */
+    let raw = String(value).trim();
+
+    const hasTimezone =
+        /Z$/i.test(raw) ||
+        /[+-]\d{2}:?\d{2}$/.test(raw);
+
+    if (!hasTimezone) {
+        raw += "Z";
+    }
+
+    const date = new Date(raw);
+
     if (Number.isNaN(date.getTime())) return "";
+
     return date.toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata",
         day: "2-digit",
@@ -4102,6 +4121,7 @@ function formatUpdatedTime(value) {
         year: "numeric",
         hour: "numeric",
         minute: "2-digit",
+        second: "2-digit",
         hour12: true
     }) + " IST";
 }
