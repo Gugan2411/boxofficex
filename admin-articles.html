@@ -1370,16 +1370,32 @@ return e;
 }
 
 function weeklyTotalsFromDays(days){
-const weeks=[];
+const previews=(days||[]).filter(
+d=>String(d.type||"REGULAR").toUpperCase()==="PREVIEW"
+);
+
 const regularDays=(days||[]).filter(
 d=>String(d.type||"REGULAR").toUpperCase()==="REGULAR"
 );
-for(let start=0;start<regularDays.length;start+=7){
-const slice=regularDays.slice(start,start+7);
+
+const weeks=[];
+
+const weekStarts=regularDays.length
+? Array.from({length:Math.ceil(regularDays.length/7)},(_,i)=>i*7)
+: (previews.length?[0]:[]);
+
+weekStarts.forEach((start,weekIndex)=>{
+const regularSlice=regularDays.slice(start,start+7);
+
+const slice=weekIndex===0
+? [...previews,...regularSlice]
+: regularSlice;
+
 const total={
-week:Math.floor(start/7)+1,
-from_day:start+1,
-to_day:start+slice.length,
+week:weekIndex+1,
+from_day:regularSlice.length ? Number(regularSlice[0]?.number)||start+1 : null,
+to_day:regularSlice.length ? Number(regularSlice[regularSlice.length-1]?.number)||start+regularSlice.length : null,
+includes_preview:weekIndex===0&&previews.length>0,
 tamil_nadu:0,
 kerala:0,
 karnataka:0,
@@ -1387,6 +1403,7 @@ telugu_states:0,
 rest_of_india:0,
 overseas:0
 };
+
 slice.forEach(d=>{
 total.tamil_nadu+=boNum(d.tamil_nadu);
 total.kerala+=boNum(d.kerala);
@@ -1395,10 +1412,19 @@ total.telugu_states+=boNum(d.telugu_states);
 total.rest_of_india+=boNum(d.rest_of_india);
 total.overseas+=boNum(d.overseas);
 });
-total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;
+
+total.india=
+total.tamil_nadu+
+total.kerala+
+total.karnataka+
+total.telugu_states+
+total.rest_of_india;
+
 total.worldwide=total.india+total.overseas;
+
 weeks.push(total);
-}
+});
+
 return weeks;
 }
 
@@ -1519,7 +1545,11 @@ return `
 <tbody>
 ${weeks.map(w=>`
 <tr>
-<td><strong>Week ${w.week}</strong><div style="color:#77839a;margin-top:3px">Day ${w.from_day}–${w.to_day}</div></td>
+<td><strong>Week ${w.week}</strong><div style="color:#77839a;margin-top:3px">${
+w.includes_preview
+? (w.from_day!==null ? `Preview + Day ${w.from_day}–${w.to_day}` : `Preview / Premiere`)
+: `Day ${w.from_day}–${w.to_day}`
+}</div></td>
 <td>${w.tamil_nadu.toFixed(2)}</td>
 <td>${w.kerala.toFixed(2)}</td>
 <td>${w.karnataka.toFixed(2)}</td>
@@ -1561,7 +1591,7 @@ function boFinalSummaryHTML(days){
 const t=overallTotalsFromDays(days);
 return `
 <div class="bo-final-summary">
-<div class="bo-period-title">FINAL OVERALL GROSS — AUTOMATIC</div>
+<div class="bo-period-title">FINAL OVERALL GROSS — PREVIEW/PREMIERE + ALL REGULAR DAYS</div>
 <div class="bo-final-grid">
 <div class="bo-final-card"><span>Tamil Nadu</span><strong>${t.tamil_nadu.toFixed(2)} Cr</strong></div>
 <div class="bo-final-card"><span>Kerala</span><strong>${t.kerala.toFixed(2)} Cr</strong></div>

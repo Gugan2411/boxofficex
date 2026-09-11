@@ -5989,16 +5989,68 @@ def validate_block_type(value: str) -> str:
 
 @app.get("/admin/articles", dependencies=[Depends(require_admin)])
 def admin_list_articles():
+    """
+    Admin article list used by the sidebar and Draft Manager.
+
+    Important:
+    Return movie_ids and actor_ids here too. Reuse/future-draft creation
+    already copies article_movies/article_actors in the database; exposing
+    those links in this list response lets Draft Manager group generated
+    drafts under the correct linked movie instead of "No linked movie".
+    """
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT
-                    id, title, slug, subtitle, category, author,
-                    hero_image, status, views,
-                    published_at, created_at, updated_at
-                , is_future_draft, tracking_day, reused_from_article_id, scheduled_publish_at
-                FROM articles
-                ORDER BY created_at DESC, id DESC
+                    a.id,
+                    a.title,
+                    a.slug,
+                    a.subtitle,
+                    a.category,
+                    a.author,
+                    a.hero_image,
+                    a.status,
+                    a.views,
+                    a.published_at,
+                    a.created_at,
+                    a.updated_at,
+                    a.is_future_draft,
+                    a.tracking_day,
+                    a.reused_from_article_id,
+                    a.scheduled_publish_at,
+                    COALESCE(
+                        ARRAY_AGG(DISTINCT am.movie_id)
+                            FILTER (WHERE am.movie_id IS NOT NULL),
+                        ARRAY[]::BIGINT[]
+                    ) AS movie_ids,
+                    COALESCE(
+                        ARRAY_AGG(DISTINCT aa.actor_id)
+                            FILTER (WHERE aa.actor_id IS NOT NULL),
+                        ARRAY[]::BIGINT[]
+                    ) AS actor_ids
+                FROM articles a
+                LEFT JOIN article_movies am
+                    ON am.article_id = a.id
+                LEFT JOIN article_actors aa
+                    ON aa.article_id = a.id
+                GROUP BY
+                    a.id,
+                    a.title,
+                    a.slug,
+                    a.subtitle,
+                    a.category,
+                    a.author,
+                    a.hero_image,
+                    a.status,
+                    a.views,
+                    a.published_at,
+                    a.created_at,
+                    a.updated_at,
+                    a.is_future_draft,
+                    a.tracking_day,
+                    a.reused_from_article_id,
+                    a.scheduled_publish_at
+                ORDER BY a.created_at DESC, a.id DESC
             """)
             rows = cur.fetchall()
 
@@ -6021,6 +6073,8 @@ def admin_list_articles():
                 "tracking_day": r[13],
                 "reused_from_article_id": r[14],
                 "scheduled_publish_at": r[15],
+                "movie_ids": list(r[16] or []),
+                "actor_ids": list(r[17] or []),
             }
             for r in rows
         ]
@@ -7014,6 +7068,103 @@ def initialize_movie_preview_collections():
         conn.commit()
 
 
+
+# ============================================================
+# BOXOFFICEX FINALIZED MOVIE TOTAL RECALCULATION
+#
+# Headline movie totals = finalized Preview/Premiere
+#                       + all finalized regular day rows.
+#
+# Preview stays in movie_preview_collections so it never changes
+# Day 1 / Day 2 numbering in movie_daily_collections.
+# ============================================================
+
+def recalculate_finalized_movie_totals(conn, movie_id: int):
+    """
+    Recalculate the movie headline totals from:
+
+      1. movie_preview_collections
+      2. movie_daily_collections
+
+    Preview/Premiere therefore contributes to India / Overseas /
+    Worldwide totals without being inserted as Day 0 and without
+    shifting regular Day numbering.
+    """
+
+    with conn.cursor() as cur:
+
+        # Finalized regular-day totals.
+        cur.execute("""
+            SELECT
+                COALESCE(
+                    SUM(collection_crore)
+                    FILTER (
+                        WHERE state = ANY(%s)
+                    ),
+                    0
+                ),
+                COALESCE(
+                    SUM(collection_crore)
+                    FILTER (
+                        WHERE state = 'Overseas'
+                    ),
+                    0
+                )
+            FROM movie_daily_collections
+            WHERE movie_id = %s
+        """, (
+            list(LIVE_INDIA_REGIONS),
+            movie_id,
+        ))
+
+        daily_row = cur.fetchone() or (0, 0)
+
+        daily_india = float(daily_row[0] or 0)
+        daily_overseas = float(daily_row[1] or 0)
+
+        # Finalized preview / premiere totals.
+        cur.execute("""
+            SELECT
+                COALESCE(SUM(india_collection), 0),
+                COALESCE(SUM(overseas_collection), 0)
+            FROM movie_preview_collections
+            WHERE movie_id = %s
+        """, (movie_id,))
+
+        preview_row = cur.fetchone() or (0, 0)
+
+        preview_india = float(preview_row[0] or 0)
+        preview_overseas = float(preview_row[1] or 0)
+
+        movie_india = daily_india + preview_india
+        movie_overseas = daily_overseas + preview_overseas
+        movie_worldwide = movie_india + movie_overseas
+
+        cur.execute("""
+            UPDATE movies
+            SET
+                india_collection_crore = %s,
+                overseas_collection_crore = %s,
+                worldwide_collection_crore = %s
+            WHERE id = %s
+        """, (
+            movie_india,
+            movie_overseas,
+            movie_worldwide,
+            movie_id,
+        ))
+
+    return {
+        "india": round(movie_india, 2),
+        "overseas": round(movie_overseas, 2),
+        "worldwide": round(movie_worldwide, 2),
+        "preview_india": round(preview_india, 2),
+        "preview_overseas": round(preview_overseas, 2),
+        "daily_india": round(daily_india, 2),
+        "daily_overseas": round(daily_overseas, 2),
+    }
+
+
 # ============================================================
 # BOXOFFICEX FINAL-ONLY MOVIE SYNC
 # Phase 4
@@ -7247,6 +7398,13 @@ def admin_finalize_article_boxoffice_preview(
 
             preview_id = cur.fetchone()[0]
 
+        # Preview/Premiere is part of the movie gross.
+        # Recalculate headline totals from Preview + all finalized days.
+        movie_totals = recalculate_finalized_movie_totals(
+            conn,
+            data.movie_id,
+        )
+
         conn.commit()
 
     return {
@@ -7259,6 +7417,11 @@ def admin_finalize_article_boxoffice_preview(
             "india": round(india, 2),
             "overseas": round(overseas, 2),
             "worldwide": round(worldwide, 2),
+        },
+        "movie_totals": {
+            "india": movie_totals["india"],
+            "overseas": movie_totals["overseas"],
+            "worldwide": movie_totals["worldwide"],
         },
     }
 
@@ -7441,48 +7604,16 @@ def admin_finalize_article_boxoffice_day(
 
             day_worldwide = day_india + day_overseas
 
-            # Recalculate movie headline totals from all finalized days.
-            cur.execute("""
-                SELECT
-                    COALESCE(
-                        SUM(collection_crore)
-                        FILTER (
-                            WHERE state = ANY(%s)
-                        ),
-                        0
-                    ),
-                    COALESCE(
-                        SUM(collection_crore)
-                        FILTER (
-                            WHERE state = 'Overseas'
-                        ),
-                        0
-                    )
-                FROM movie_daily_collections
-                WHERE movie_id = %s
-            """, (
-                list(LIVE_INDIA_REGIONS),
+            # Recalculate headline totals from:
+            # Preview/Premiere + all finalized regular days.
+            movie_totals = recalculate_finalized_movie_totals(
+                conn,
                 data.movie_id,
-            ))
-            totals = cur.fetchone()
+            )
 
-            movie_india = float(totals[0] or 0)
-            movie_overseas = float(totals[1] or 0)
-            movie_worldwide = movie_india + movie_overseas
-
-            cur.execute("""
-                UPDATE movies
-                SET
-                    india_collection_crore = %s,
-                    overseas_collection_crore = %s,
-                    worldwide_collection_crore = %s
-                WHERE id = %s
-            """, (
-                movie_india,
-                movie_overseas,
-                movie_worldwide,
-                data.movie_id,
-            ))
+            movie_india = movie_totals["india"]
+            movie_overseas = movie_totals["overseas"]
+            movie_worldwide = movie_totals["worldwide"]
 
             # Mark/create the matching tracking row as FINAL + locked.
             cur.execute("""

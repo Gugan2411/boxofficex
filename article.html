@@ -4249,23 +4249,73 @@ const previews=rawDays
 const displayDays=[...previews,...regularDays];
 
 const total={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};
-/* Preview is intentionally excluded from Day 1+ weekly/final running totals. */
-regularDays.forEach(d=>Object.keys(total).forEach(k=>total[k]+=num(d[k])));
-total.india=total.tamil_nadu+total.kerala+total.karnataka+total.telugu_states+total.rest_of_india;
+
+/*
+Preview/Premiere contributes to gross totals.
+It never changes Day 1, Day 2... numbering.
+*/
+const grossEntries=[...previews,...regularDays];
+
+grossEntries.forEach(d=>
+    Object.keys(total).forEach(k=>total[k]+=num(d[k]))
+);
+
+total.india=
+    total.tamil_nadu+
+    total.kerala+
+    total.karnataka+
+    total.telugu_states+
+    total.rest_of_india;
+
 total.worldwide=total.india+total.overseas;
 
 const weeks=[];
-for(let x=0;x<regularDays.length;x+=7){
-    const slice=regularDays.slice(x,x+7);
-    const w={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};
-    slice.forEach(d=>Object.keys(w).forEach(k=>w[k]+=num(d[k])));
-    w.india=w.tamil_nadu+w.kerala+w.karnataka+w.telugu_states+w.rest_of_india;
+const weekStarts=regularDays.length
+    ? Array.from({length:Math.ceil(regularDays.length/7)},(_,i)=>i*7)
+    : (previews.length ? [0] : []);
+
+weekStarts.forEach((x,weekIndex)=>{
+    const regularSlice=regularDays.slice(x,x+7);
+
+    /* Preview/Premiere belongs to Week 1 gross only. */
+    const slice=weekIndex===0
+        ? [...previews,...regularSlice]
+        : regularSlice;
+
+    const w={
+        tamil_nadu:0,
+        kerala:0,
+        karnataka:0,
+        telugu_states:0,
+        rest_of_india:0,
+        overseas:0
+    };
+
+    slice.forEach(d=>
+        Object.keys(w).forEach(k=>w[k]+=num(d[k]))
+    );
+
+    w.india=
+        w.tamil_nadu+
+        w.kerala+
+        w.karnataka+
+        w.telugu_states+
+        w.rest_of_india;
+
     w.worldwide=w.india+w.overseas;
-    w.week=Math.floor(x/7)+1;
-    w.from=Number(slice[0]?.number)||x+1;
-    w.to=Number(slice[slice.length-1]?.number)||Math.min(x+7,regularDays.length);
+    w.week=weekIndex+1;
+    w.includesPreview=weekIndex===0 && previews.length>0;
+
+    if(regularSlice.length){
+        w.from=Number(regularSlice[0]?.number)||x+1;
+        w.to=Number(regularSlice[regularSlice.length-1]?.number)||x+regularSlice.length;
+    }else{
+        w.from=null;
+        w.to=null;
+    }
+
     weeks.push(w);
-}
+});
 
 const rows=displayDays.map((d,i)=>{
     const isPreview=String(d?.type||"REGULAR").toUpperCase()==="PREVIEW";
@@ -4292,13 +4342,17 @@ const rows=displayDays.map((d,i)=>{
 return `<div class="boxoffice-block">
 <div class="bo-tracking-head">
     <div class="boxoffice-title">Box Office Collection Report</div>
-    <div class="bo-tracking-note">Tracking status is shown separately for every day.</div>
+    <div class="bo-tracking-note">Preview/Premiere is included in Week 1 and Overall Gross without changing Day 1 numbering.</div>
 </div>
 <div class="bo-subtitle">Daily Collections</div>
 <div class="bo-swipe-hint">↔ Swipe to view status and area-wise collections</div>
 <div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Status</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${rows}</tbody></table></div>
-${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table bo-weekly-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>Day ${w.from}–${w.to}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
-<div class="bo-subtitle">Final Overall Gross — Automatic</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
+${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table bo-weekly-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>${
+w.includesPreview
+    ? (w.from!==null ? `Preview + Day ${w.from}–${w.to}` : `Preview / Premiere`)
+    : `Day ${w.from}–${w.to}`
+}</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
+<div class="bo-subtitle">Final Overall Gross — Preview + All Days</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
 }
 
 async function renderMovieBlock(data) {
