@@ -5022,7 +5022,7 @@ html,body{scroll-padding-top:0!important}
 
                 <div class="weekly-card">
 
-                    <table class="weekly-table day-state-matrix">
+                    <table class="weekly-table day-state-matrix movie-mobile-day-stack">
 
                         <thead>
                             <tr>
@@ -6251,7 +6251,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
         body.innerHTML = "";
 
-        if (!records.length) {
+        if (!records.length && !(previews || []).length) {
 
             body.innerHTML = `
                 <tr>
@@ -6284,10 +6284,17 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             row.innerHTML = `
 
                 <td class="preview-label">
-                    ${escapeHtmlText(
-                        preview.label ||
-                        "Preview / Premiere"
-                    )}
+                    <span class="movie-mobile-day-label preview">
+                        ${escapeHtmlText(
+                            preview.label ||
+                            "Preview / Premiere"
+                        )}
+                    </span>
+                    <span class="movie-mobile-day-date">
+                        ${escapeHtmlText(
+                            preview.date || "—"
+                        )}
+                    </span>
                     <small>Before Day 1</small>
                 </td>
 
@@ -6501,9 +6508,12 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                 </td>
 
                 <td>
-                    Day ${weekStartDay}
-                    -
-                    Day ${weekEndDay}
+                    ${
+                        currentWeekNumber === 1 &&
+                        (previews || []).length
+                            ? `Preview + Day ${weekStartDay} - Day ${weekEndDay}`
+                            : `Day ${weekStartDay} - Day ${weekEndDay}`
+                    }
                 </td>
 
                 ${
@@ -6540,6 +6550,29 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
 
         resetWeekTotals();
+
+        /*
+         * Preview / Premiere contributes to Week 1 gross,
+         * but never changes Day 1 numbering.
+         */
+        (previews || []).forEach(preview => {
+            const previewRegionValues = {
+                "Tamil Nadu": Number(preview.tamil_nadu || 0),
+                "Kerala": Number(preview.kerala || 0),
+                "Karnataka": Number(preview.karnataka || 0),
+                "Telugu States": Number(preview.telugu_states || 0),
+                "Rest of India": Number(preview.rest_of_india || 0)
+            };
+
+            indiaRegions.forEach(region => {
+                weekRegionTotals[region] +=
+                    Number(previewRegionValues[region] || 0);
+            });
+
+            weekIndiaTotal += Number(preview.india || 0);
+            weekOverseasTotal += Number(preview.overseas || 0);
+            weekWorldwideTotal += Number(preview.worldwide || 0);
+        });
 
 
         dates.forEach((date, index) => {
@@ -6681,7 +6714,12 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
             row.innerHTML = `
                 <td class="day-label">
-                    Day ${actualDayNumber}
+                    <span class="movie-mobile-day-label">
+                        Day ${actualDayNumber}
+                    </span>
+                    <span class="movie-mobile-day-date">
+                        ${escapeHtmlText(date)}
+                    </span>
                 </td>
 
                 <td>
@@ -8336,112 +8374,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
 
-<script>
-(function(){
 
-    function num(v){
-        var n = Number(v);
-        return Number.isFinite(n) ? n : 0;
-    }
-
-    function stackMovieDayDates(){
-        document.querySelectorAll(".day-state-matrix").forEach(function(table){
-            var headers = table.querySelectorAll("thead th");
-            if(headers.length < 2) return;
-
-            var h1 = (headers[0].textContent || "").trim().toUpperCase();
-            var h2 = (headers[1].textContent || "").trim().toUpperCase();
-
-            if(h1 !== "DAY" || h2 !== "DATE") return;
-
-            table.classList.add("movie-mobile-day-stack");
-
-            table.querySelectorAll("tbody tr").forEach(function(row){
-                if(row.classList.contains("week-summary-row")) return;
-
-                var cells = row.children;
-                if(cells.length < 2) return;
-
-                var dayCell = cells[0];
-                var dateCell = cells[1];
-
-                var dateText = (dateCell.textContent || "").trim();
-                if(!dateText) return;
-
-                var existing = dayCell.querySelector(".movie-mobile-day-date");
-                if(existing){
-                    existing.textContent = dateText;
-                    return;
-                }
-
-                var labelText = (dayCell.textContent || "").trim();
-                if(!labelText) return;
-
-                var isPreview = /preview|premiere/i.test(labelText);
-
-                dayCell.textContent = "";
-
-                var label = document.createElement("span");
-                label.className = "movie-mobile-day-label" + (isPreview ? " preview" : "");
-                label.textContent = labelText;
-
-                var date = document.createElement("span");
-                date.className = "movie-mobile-day-date";
-                date.textContent = dateText;
-
-                dayCell.appendChild(label);
-                dayCell.appendChild(date);
-            });
-        });
-    }
-
-    /*
-      The backend now stores headline totals as:
-      finalized Preview/Premiere + all finalized Day 1+ rows.
-      This helper updates visible movie summary values from the movie API data
-      whenever the page already exposes those totals in DOM.
-    */
-    function refreshVisibleMovieTotals(){
-        var indiaEl = document.querySelector(
-            '[data-field="india_collection_crore"], #indiaCollection, .india-collection-value'
-        );
-        var overseasEl = document.querySelector(
-            '[data-field="overseas_collection_crore"], #overseasCollection, .overseas-collection-value'
-        );
-        var worldwideEl = document.querySelector(
-            '[data-field="worldwide_collection_crore"], #worldwideCollection, .worldwide-value'
-        );
-
-        /*
-          Do not overwrite unless page logic has already supplied values.
-          The main backend/movie fetch remains authoritative.
-        */
-        [indiaEl, overseasEl, worldwideEl].forEach(function(el){
-            if(!el) return;
-            el.dataset.boxofficexCombinedTotals = "true";
-        });
-    }
-
-    function applyMovieMobileFixes(){
-        stackMovieDayDates();
-        refreshVisibleMovieTotals();
-    }
-
-    document.addEventListener("DOMContentLoaded", function(){
-        applyMovieMobileFixes();
-
-        var observer = new MutationObserver(function(){
-            applyMovieMobileFixes();
-        });
-
-        observer.observe(document.body, {
-            childList:true,
-            subtree:true
-        });
-    });
-
-})();
-</script>
 
 </body>
 

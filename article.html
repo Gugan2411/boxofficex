@@ -4325,7 +4325,10 @@ const rows=displayDays.map((d,i)=>{
         : `Day ${Number.isFinite(dayNumber)&&dayNumber>0?dayNumber:(regularDays.indexOf(d)+1)}`;
     const s=statusInfo(d?.status);
     return `<tr>
-        <td><span class="bo-day-label ${isPreview?"bo-preview-label":""}">${dayLabel}</span></td>
+        <td>
+            <span class="bo-day-label ${isPreview?"bo-preview-label":""}">${dayLabel}</span>
+            <span class="bo-mobile-day-date">${esc(fmt(d.date))}</span>
+        </td>
         <td>${esc(fmt(d.date))}</td>
         <td><span class="bo-status ${s.cls}">${esc(s.label)}</span><span class="bo-status-help">${esc(s.help)}</span></td>
         <td>${money(d.tamil_nadu)}</td>
@@ -4346,7 +4349,7 @@ return `<div class="boxoffice-block">
 </div>
 <div class="bo-subtitle">Daily Collections</div>
 <div class="bo-swipe-hint">↔ Swipe to view status and area-wise collections</div>
-<div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr><th>Day</th><th>Date</th><th>Status</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${rows}</tbody></table></div>
+<div class="bo-detail-wrap"><table class="bo-detail-table bo-daily-mobile-stack"><thead><tr><th>Day</th><th>Date</th><th>Status</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${rows}</tbody></table></div>
 ${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table bo-weekly-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>${
 w.includesPreview
     ? (w.from!==null ? `Preview + Day ${w.from}–${w.to}` : `Preview / Premiere`)
@@ -5681,10 +5684,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     .bo-mobile-day-date{
-        display:none;
-    }
-
-    .bo-detail-table.bo-daily-mobile-stack .bo-mobile-day-date{
         display:block;
         margin-top:4px;
         color:#667085;
@@ -5692,6 +5691,14 @@ document.addEventListener("DOMContentLoaded", function () {
         line-height:1.25;
         font-weight:700;
         white-space:normal;
+    }
+}
+
+
+/* Desktop keeps the normal separate DATE column. */
+@media (min-width:701px){
+    .bo-mobile-day-date{
+        display:none !important;
     }
 }
 
@@ -5773,69 +5780,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
 
-<script>
-(function(){
-    function stackDailyCollectionDatesOnMobile(){
-        document.querySelectorAll(".bo-detail-table").forEach(function(table){
-            var headers = table.querySelectorAll("thead th");
-            if(headers.length < 2) return;
 
-            var h1 = (headers[0].textContent || "").trim().toUpperCase();
-            var h2 = (headers[1].textContent || "").trim().toUpperCase();
-
-            /* Only DAILY COLLECTIONS has DAY + DATE as its first columns.
-               Weekly totals starts with WEEK + DAYS, so it is untouched. */
-            if(h1 !== "DAY" || h2 !== "DATE") return;
-
-            table.classList.add("bo-daily-mobile-stack");
-
-            table.querySelectorAll("tbody tr").forEach(function(row){
-                var cells = row.children;
-                if(cells.length < 2) return;
-
-                var dayCell = cells[0];
-                var dateCell = cells[1];
-                var dateText = (dateCell.textContent || "").trim();
-                if(!dateText) return;
-
-                /* Avoid duplicate stacking if article content rerenders. */
-                var existing = dayCell.querySelector(".bo-mobile-day-date");
-                if(existing){
-                    existing.textContent = dateText;
-                    return;
-                }
-
-                var originalDay = (dayCell.textContent || "").trim();
-                var isPreview = /preview|premiere/i.test(originalDay);
-
-                dayCell.textContent = "";
-
-                var label = document.createElement("span");
-                label.className = "bo-mobile-day-label" +
-                    (isPreview ? " bo-preview-label" : "");
-                label.textContent = originalDay;
-
-                var date = document.createElement("span");
-                date.className = "bo-mobile-day-date";
-                date.textContent = dateText;
-
-                dayCell.appendChild(label);
-                dayCell.appendChild(date);
-            });
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", function(){
-        stackDailyCollectionDatesOnMobile();
-
-        /* Article blocks are loaded asynchronously. */
-        var observer = new MutationObserver(function(){
-            stackDailyCollectionDatesOnMobile();
-        });
-        observer.observe(document.body, {childList:true, subtree:true});
-    });
-})();
-</script>
 
 </body>
 </html>
