@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OTT Inventory | BoxOfficeX Admin</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1b2d;--panel2:#10243d;--line:#243b57;--text:#f4f7fb;
+  --muted:#9fb1c7;--blue:#2f80ed;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+a{color:inherit;text-decoration:none}button,input,select{font:inherit}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(7,17,31,.96);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1500px;margin:auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-size:22px;font-weight:900}.brand span{color:#65a6ff}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:800;background:#23364f;color:white}
+.btn-primary{background:var(--blue)}.btn-outline{background:transparent;border:1px solid var(--line)}.btn-small{padding:7px 10px;font-size:12px}
+.page{max-width:1500px;margin:auto;padding:24px 22px 50px}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:20px}
+.hero h1{margin:0 0 6px;font-size:30px}.hero p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.75fr);gap:20px}
+.card{background:linear-gradient(180deg,var(--panel),#0a1728);border:1px solid var(--line);border-radius:16px}
+.card-head{padding:17px 19px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card-head h2{margin:0;font-size:17px}.card-body{padding:19px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;margin-bottom:6px;color:#cbd8e8;font-size:12px;font-weight:800}
+.field input,.field select{width:100%;border:1px solid var(--line);background:#081626;color:#fff;border-radius:10px;padding:10px 11px;outline:none}
+.field input:focus,.field select:focus{border-color:#4b91f1}
+.search-box{position:relative}.results{display:none;position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);max-height:280px;overflow:auto;background:#0b1b2e;border:1px solid var(--line);border-radius:11px}
+.results.show{display:block}.result{padding:10px 11px;border-bottom:1px solid rgba(36,59,87,.55);cursor:pointer}.result:hover{background:#132842}
+.result strong{display:block}.result small{color:var(--muted)}
+.package-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.pkg{padding:11px;border:1px solid #2e4968;border-radius:11px;background:#091a2d;color:#dce9f8;cursor:pointer;text-align:left}
+.pkg.active{border-color:#66a8ff;background:#15375e}.pkg strong{display:block;font-size:11px}.pkg small{display:block;margin-top:4px;color:#9fb1c7;font-size:9px}
+.check-row{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.result-panel{margin-top:18px;border:1px solid #29496c;border-radius:14px;background:#071625;padding:16px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:#0b1b2e;border:1px solid #203a57;border-radius:11px;padding:12px}.metric span{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;margin-top:4px;font-size:21px}
+.state{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:1000}
+.good{background:rgba(34,197,94,.15);color:#7bec9f}.warn{background:rgba(245,158,11,.15);color:#ffd073}.full{background:rgba(239,68,68,.15);color:#ff9494}
+.overlap{margin-top:9px;padding:10px;border:1px solid #223d5b;border-radius:9px;background:#0a1a2c}
+.overlap strong{display:block;font-size:12px}.overlap span{display:block;margin-top:3px;color:#9fb1c7;font-size:10px}
+.table-wrap{overflow:auto}.bookings{width:100%;border-collapse:collapse;min-width:760px}.bookings th,.bookings td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:11px;vertical-align:top}
+.bookings th{color:#86b6f7;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.tag{display:inline-flex;padding:4px 7px;border-radius:999px;background:#132943;color:#a9c9f6;font-size:9px;font-weight:800;margin:2px}
+.empty{padding:24px;text-align:center;color:var(--muted)}.notice{margin-top:12px;color:#9fb1c7;font-size:10px;line-height:1.5}
+@media(max-width:1050px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.page{padding:16px 12px 32px}.hero{align-items:flex-start;flex-direction:column}.form-grid,.package-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.topbar-inner{padding:12px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span>BOXOFFICE</span> X <small style="font-size:12px;color:#9fb1c7">OTT INVENTORY</small></div>
+    <div class="actions">
+      <a class="btn btn-outline btn-small" href="/admin-ott-sponsorships.html">OTT Campaigns</a>
+      <a class="btn btn-outline btn-small" href="/admin.html">Dashboard</a>
+      <button class="btn btn-small" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="hero">
+    <div>
+      <h1>OTT Slot Availability</h1>
+      <p>Check sellable OTT inventory before quoting a client. Maximum rotation: 4 sponsors.</p>
+    </div>
+    <button class="btn btn-outline" id="refreshBookingsBtn">Refresh Bookings</button>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head"><h2>Check Available Slots</h2><span id="statusPill" class="state warn">NOT CHECKED</span></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Coverage</label>
+            <select id="coverage">
+              <option value="movie_selected">Selected Movie</option>
+              <option value="movie_all">All Movies</option>
+              <option value="actor_selected">Selected Actor</option>
+              <option value="actor_all">All Actors</option>
+              <option value="all_ott">All OTT Inventory</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Placement</label>
+            <select id="placement">
+              <option value="movie_page">Movie Page</option>
+              <option value="movie_compare">Movie Comparison</option>
+              <option value="actor_page">Actor Page</option>
+              <option value="actor_compare">Actor Comparison</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-top:12px">
+          <div class="field search-box" id="movieSearchBox">
+            <label>Movie</label>
+            <input id="movieSearch" autocomplete="off" placeholder="Search movie..." />
+            <input id="movieId" type="hidden">
+            <div class="results" id="movieResults"></div>
+          </div>
+          <div class="field search-box" id="actorSearchBox" style="display:none">
+            <label>Actor</label>
+            <input id="actorSearch" autocomplete="off" placeholder="Search actor..." />
+            <input id="actorId" type="hidden">
+            <div class="results" id="actorResults"></div>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-top:12px">
+          <div class="field"><label>Start Date</label><input id="startDate" type="date"></div>
+          <div class="field"><label>End Date</label><input id="endDate" type="date"></div>
+        </div>
+
+        <div style="margin-top:14px;font-size:11px;font-weight:900;color:#8fbaf2">Client Package</div>
+        <div class="package-grid">
+          <button type="button" class="pkg" data-tier="diamond"><strong>💎 Diamond</strong><small>Exclusive · 1 sponsor</small></button>
+          <button type="button" class="pkg" data-tier="platinum"><strong>🏆 Platinum</strong><small>2-way rotation</small></button>
+          <button type="button" class="pkg" data-tier="gold"><strong>🥇 Gold</strong><small>3-way rotation</small></button>
+          <button type="button" class="pkg active" data-tier="silver"><strong>🥈 Silver</strong><small>4-way rotation</small></button>
+        </div>
+
+        <div class="check-row">
+          <button class="btn btn-primary" id="checkBtn">Check Availability</button>
+          <button class="btn btn-outline" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="result-panel" id="resultPanel">
+          <div class="empty">Choose coverage, placement, dates and package, then check availability.</div>
+        </div>
+
+        <div class="notice">
+          Rule: the strictest overlapping package controls capacity. Example: a Diamond exclusive campaign blocks every overlapping slot for the same dates and target.
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Current OTT Bookings</h2><span id="bookingCount" style="color:#9fb1c7;font-size:11px">0</span></div>
+      <div class="card-body">
+        <div class="table-wrap">
+          <table class="bookings">
+            <thead><tr><th>Client / Campaign</th><th>Package</th><th>Coverage</th><th>Placements</th><th>Dates</th><th>Status</th></tr></thead>
+            <tbody id="bookingRows"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+let tier='silver';
+
+async function api(url,opt={}){
+  const res=await fetch(url,{credentials:'include',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});
+  if(res.status===401){location.href='/admin-login.html';throw new Error('Login required')}
+  let data=null;try{data=await res.json()}catch{}
+  if(!res.ok) throw new Error(data?.detail||`Request failed (${res.status})`);
+  return data;
+}
+async function checkSession(){
+  const d=await api('/admin/session');
+  if(!d.logged_in){location.href='/admin-login.html';return}
+  if(d.admin?.role!=='owner'){document.body.innerHTML='<div style="padding:40px;color:white">Owner access required.</div>';throw new Error('Owner only')}
+}
+function debounce(fn,ms=250){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+function setDates(){
+  const now=new Date(),end=new Date(now);end.setDate(end.getDate()+30);
+  $('startDate').value=now.toISOString().slice(0,10);$('endDate').value=end.toISOString().slice(0,10);
+}
+function syncCoverage(){
+  const c=$('coverage').value;
+  const movie=c.startsWith('movie_'),actor=c.startsWith('actor_');
+
+  $('movieSearchBox').style.display=movie&&c==='movie_selected'?'block':'none';
+  $('actorSearchBox').style.display=actor&&c==='actor_selected'?'block':'none';
+
+  const placement=$('placement');
+  const movieAllowed=new Set(['movie_page','movie_compare']);
+  const actorAllowed=new Set(['actor_page','actor_compare']);
+
+  [...placement.options].forEach(opt=>{
+    if(c==='all_ott'){
+      opt.hidden=false;
+      opt.disabled=false;
+    }else if(movie){
+      opt.hidden=!movieAllowed.has(opt.value);
+      opt.disabled=!movieAllowed.has(opt.value);
+    }else if(actor){
+      opt.hidden=!actorAllowed.has(opt.value);
+      opt.disabled=!actorAllowed.has(opt.value);
+    }
+  });
+
+  if(c==='all_ott'){
+    placement.disabled=true;
+  }else{
+    placement.disabled=false;
+    const allowed=movie?movieAllowed:actorAllowed;
+    if(!allowed.has(placement.value)){
+      placement.value=[...allowed][0];
+    }
+  }
+
+  $('movieId').value='';
+  $('actorId').value='';
+  if(c!=='movie_selected') $('movieSearch').value='';
+  if(c!=='actor_selected') $('actorSearch').value='';
+}
+$('coverage').onchange=syncCoverage;
+document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{
+  tier=b.dataset.tier;
+  document.querySelectorAll('[data-tier]').forEach(x=>x.classList.toggle('active',x===b));
+});
+
+const searchMovies=debounce(async()=>{
+  const q=$('movieSearch').value.trim(); if(q.length<2){$('movieResults').classList.remove('show');return}
+  const d=await api('/search?q='+encodeURIComponent(q)+'&limit=15');
+  $('movieResults').innerHTML=(d.movies||[]).map(x=>`<div class="result" data-mid="${x.id}" data-title="${esc(x.title)}"><strong>${esc(x.title)}</strong><small>${esc(x.release_date||'')} ${x.language?'· '+esc(x.language):''}</small></div>`).join('')||'<div class="empty">No movies found</div>';
+  $('movieResults').classList.add('show');
+});
+const searchActors=debounce(async()=>{
+  const q=$('actorSearch').value.trim(); if(q.length<2){$('actorResults').classList.remove('show');return}
+  const d=await api('/search?q='+encodeURIComponent(q)+'&limit=15');
+  $('actorResults').innerHTML=(d.actors||[]).map(x=>`<div class="result" data-aid="${x.id}" data-name="${esc(x.name)}"><strong>${esc(x.name)}</strong><small>${esc(x.profession||'Actor')}</small></div>`).join('')||'<div class="empty">No actors found</div>';
+  $('actorResults').classList.add('show');
+});
+$('movieSearch').oninput=searchMovies;$('actorSearch').oninput=searchActors;
+$('movieResults').onclick=e=>{const r=e.target.closest('[data-mid]');if(!r)return;$('movieId').value=r.dataset.mid;$('movieSearch').value=r.dataset.title;$('movieResults').classList.remove('show')};
+$('actorResults').onclick=e=>{const r=e.target.closest('[data-aid]');if(!r)return;$('actorId').value=r.dataset.aid;$('actorSearch').value=r.dataset.name;$('actorResults').classList.remove('show')};
+
+function payloadFor(placement){
+  const c=$('coverage').value;
+  const movieIds=(c==='movie_selected'&&$('movieId').value)?[Number($('movieId').value)]:[];
+  const actorIds=(c==='actor_selected'&&$('actorId').value)?[Number($('actorId').value)]:[];
+  return {
+    platform_name:'Inventory Check',
+    campaign_name:'Inventory Check',
+    sponsored_text:'Inventory Check',
+    cta_text:'Watch Now',
+    target_url:'https://boxoffice-x.com/',
+    fixed_fee:0,cpc_rate:0,cpa_rate:0,
+    start_date:$('startDate').value,start_time:null,end_date:$('endDate').value,end_time:null,
+    is_draft:false,is_active:true,
+    movie_ids:movieIds,actor_ids:actorIds,placements:[placement],
+    package_tier:tier,rotation_weight:1,quoted_rate:0
+  };
+}
+function renderOne(label,inv){
+  const cap=Number(inv.effective_capacity||0),booked=Number(inv.booked||0),avail=Number(inv.available_slots||0);
+  const cls=!inv.can_book?'full':avail===1?'warn':'good';
+  const txt=!inv.can_book?'SOLD OUT':avail===1?'1 SLOT LEFT':`${avail} SLOTS AVAILABLE`;
+  return `<div style="margin-bottom:15px">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>${esc(label)}</strong><span class="state ${cls}">${txt}</span></div>
+    <div class="metrics" style="margin-top:10px">
+      <div class="metric"><span>Capacity</span><strong>${cap}</strong></div>
+      <div class="metric"><span>Booked</span><strong>${booked}</strong></div>
+      <div class="metric"><span>Available</span><strong>${avail}</strong></div>
+      <div class="metric"><span>Package</span><strong style="font-size:13px">${esc(inv.package_label||tier)}</strong></div>
+    </div>
+    <div>${(inv.overlapping_campaigns||[]).map(x=>`<div class="overlap"><strong>${esc(x.platform_name)} · ${esc(x.campaign_name)}</strong><span>${esc(String(x.package_tier||'').toUpperCase())} · ${esc((x.placements||[]).join(', '))}</span></div>`).join('')}</div>
+  </div>`;
+}
+async function checkAvailability(){
+  const c=$('coverage').value;
+  if(!$('startDate').value||!$('endDate').value) throw new Error('Choose dates first.');
+  if(c==='movie_selected'&&!$('movieId').value) throw new Error('Select a movie.');
+  if(c==='actor_selected'&&!$('actorId').value) throw new Error('Select an actor.');
+
+  let placements=[];
+  if(c==='all_ott') placements=['movie_page','movie_compare','actor_page','actor_compare'];
+  else placements=[$('placement').value];
+
+  const results=[];
+  for(const p of placements){
+    const d=await api('/admin/ott-sponsorships/inventory/check',{method:'POST',body:JSON.stringify(payloadFor(p))});
+    results.push([p,d.inventory]);
+  }
+  $('resultPanel').innerHTML=results.map(([p,inv])=>renderOne(p.replaceAll('_',' ').toUpperCase(),inv)).join('');
+  const sold=results.some(([,x])=>!x.can_book),one=results.some(([,x])=>x.available_slots===1);
+  $('statusPill').textContent=sold?'SOLD OUT':one?'LIMITED':'AVAILABLE';
+  $('statusPill').className='state '+(sold?'full':one?'warn':'good');
+}
+$('checkBtn').onclick=()=>checkAvailability().catch(e=>alert(e.message));
+$('clearBtn').onclick=()=>{ $('movieSearch').value='';$('movieId').value='';$('actorSearch').value='';$('actorId').value='';$('resultPanel').innerHTML='<div class="empty">Choose coverage, placement, dates and package, then check availability.</div>';$('statusPill').textContent='NOT CHECKED';$('statusPill').className='state warn'; };
+
+function scopeLabel(c){
+  const hasM=(c.placements||[]).some(x=>x.startsWith('movie_')),hasA=(c.placements||[]).some(x=>x.startsWith('actor_'));
+  const m=(c.movie_ids||[]).length,a=(c.actor_ids||[]).length;
+  if(hasM&&hasA&&!m&&!a)return 'All OTT';
+  if(hasM&&!m&&!hasA)return 'All Movies';
+  if(hasA&&!a&&!hasM)return 'All Actors';
+  const parts=[];if(m)parts.push(`${m} movie${m===1?'':'s'}`);if(a)parts.push(`${a} actor${a===1?'':'s'}`);
+  return parts.join(' + ')||'Custom';
+}
+async function loadBookings(){
+  const d=await api('/admin/ott-sponsorships');
+  const rows=(d.campaigns||[]).filter(c=>c.status!=='ended');
+  $('bookingCount').textContent=`${rows.length} active / scheduled / draft`;
+  $('bookingRows').innerHTML=rows.length?rows.map(c=>`<tr>
+    <td><strong>${esc(c.platform_name)}</strong><br><span style="color:#9fb1c7">${esc(c.campaign_name)}</span></td>
+    <td>${esc(c.package_label||String(c.package_tier||'silver').toUpperCase())}</td>
+    <td>${esc(scopeLabel(c))}</td>
+    <td>${(c.placements||[]).map(p=>`<span class="tag">${esc(p.replaceAll('_',' '))}</span>`).join('')}</td>
+    <td>${esc(String(c.start_date||'').slice(0,10))}<br>to ${esc(String(c.end_date||'').slice(0,10))}</td>
+    <td>${esc(String(c.status||'').toUpperCase())}</td>
+  </tr>`).join(''):'<tr><td colspan="6" class="empty">No bookings yet.</td></tr>';
+}
+$('refreshBookingsBtn').onclick=loadBookings;
+$('logoutBtn').onclick=async()=>{try{await api('/admin/logout',{method:'POST'})}catch{}location.href='/admin-login.html'};
+
+(async()=>{await checkSession();setDates();syncCoverage();await loadBookings()})().catch(console.error);
+</script>
+</body>
+</html>

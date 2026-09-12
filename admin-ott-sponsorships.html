@@ -129,6 +129,19 @@
 @media(max-width:700px){
   .target-scope-row,.premium-presets{grid-template-columns:1fr}
 }
+
+.ott-package-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ott-package{
+  border:1px solid #2e4968;background:#091a2d;border-radius:13px;padding:13px;
+  cursor:pointer;text-align:left;color:#dce9f8;min-height:98px
+}
+.ott-package:hover{border-color:#4d86cb;background:#0d2440}
+.ott-package.active{border-color:#66a8ff;background:linear-gradient(135deg,#15375e,#102944);box-shadow:0 0 0 2px rgba(47,128,237,.12) inset}
+.ott-package .tier{font-size:13px;font-weight:1000}
+.ott-package .rotate{margin-top:5px;color:#8fbaf2;font-size:10px;font-weight:900}
+.ott-package .desc{margin-top:6px;color:#9fb1c7;font-size:9px;line-height:1.4}
+@media(max-width:850px){.ott-package-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.ott-package-grid,.rate-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -136,6 +149,7 @@
   <div class="topbar-inner">
     <div class="brand"><span>BOXOFFICE</span> X <small style="font-size:12px;color:#9fb1c7">ADMIN</small></div>
     <div class="top-actions">
+      <a class="btn btn-outline btn-small" href="/admin-ott-inventory.html">OTT Inventory</a>
       <a class="btn btn-outline btn-small" href="/admin-advertisements.html">Advertisements</a>
       <a class="btn btn-outline btn-small" href="/admin.html">Dashboard</a>
       <button class="btn btn-danger btn-small" id="logoutBtn">Logout</button>
@@ -276,7 +290,48 @@
           </div>
 
           <div class="section">
-            <div class="section-title">4. Commercial Model</div>
+            <div class="section-title">4. Package & Rotation</div>
+            <div class="notice" style="margin-bottom:14px">Check live slot availability from the separate <a href="/admin-ott-inventory.html" style="color:#8fc1ff;font-weight:900">OTT Inventory Dashboard</a>.</div>
+
+            <div class="ott-package-grid">
+              <button type="button" class="ott-package" data-package="diamond">
+                <div class="tier">💎 Diamond</div>
+                <div class="rotate">Exclusive · 1 sponsor</div>
+                <div class="desc">100% OTT sponsorship ownership for the selected inventory.</div>
+              </button>
+              <button type="button" class="ott-package" data-package="platinum">
+                <div class="tier">🏆 Platinum</div>
+                <div class="rotate">2-way rotation</div>
+                <div class="desc">Maximum 2 overlapping sponsors on the selected inventory.</div>
+              </button>
+              <button type="button" class="ott-package" data-package="gold">
+                <div class="tier">🥇 Gold</div>
+                <div class="rotate">3-way rotation</div>
+                <div class="desc">Maximum 3 overlapping sponsors.</div>
+              </button>
+              <button type="button" class="ott-package active" data-package="silver">
+                <div class="tier">🥈 Silver</div>
+                <div class="rotate">4-way rotation</div>
+                <div class="desc">Maximum 4 overlapping sponsors.</div>
+              </button>
+            </div>
+
+            <div class="rate-row">
+              <div class="field">
+                <label>Quoted Package Rate ₹</label>
+                <input id="quotedRate" type="number" min="0" step="0.01" value="0" />
+                <div class="hint">Your negotiated fixed package quote. Separate from CPC/CPA.</div>
+              </div>
+              <div class="field">
+                <label>Rotation Weight</label>
+                <input id="rotationWeight" type="number" min="0.01" step="0.01" value="1" />
+                <div class="hint">1 = equal share. Increase only when you intentionally sell more delivery share.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">5. Commercial Model</div>
             <div class="grid-3">
               <div class="field"><label>Fixed Placement Fee ₹</label><input id="fixedFee" type="number" min="0" step="0.01" value="0" /></div>
               <div class="field"><label>CPC Rate ₹</label><input id="cpcRate" type="number" min="0" step="0.01" value="0" /></div>
@@ -285,7 +340,7 @@
           </div>
 
           <div class="section">
-            <div class="section-title">5. Campaign Schedule</div>
+            <div class="section-title">6. Campaign Schedule</div>
             <div class="grid-2">
               <div class="grid-2"><div class="field"><label>Start Date *</label><input id="startDate" type="date" required /></div><div class="field"><label>Start Time</label><input id="startTime" type="time" /></div></div>
               <div class="grid-2"><div class="field"><label>End Date *</label><input id="endDate" type="date" required /></div><div class="field"><label>End Time</label><input id="endTime" type="time" /></div></div>
@@ -293,7 +348,7 @@
           </div>
 
           <div class="section">
-            <div class="section-title">6. Preview</div>
+            <div class="section-title">7. Preview</div>
             <div class="grid-3">
               <div class="field"><label>Preview Placement</label><select id="previewPlacement"><option value="movie_page">Movie Page</option><option value="movie_compare">Movie Compare</option><option value="actor_page">Actor Page</option><option value="actor_compare">Actor Compare</option></select></div>
               <div class="field"><label>Preview Movie</label><select id="previewMovie"><option value="">Select movie</option></select></div>
@@ -324,10 +379,22 @@
   </div>
 </main>
 
-<div class="modal" id="reportModal"><div class="modal-box"><div class="modal-head"><h3 style="margin:0">Campaign Report</h3><button class="btn btn-outline btn-small" id="closeReportBtn">Close</button></div><div class="modal-body" id="reportBody"></div></div></div>
+<div class="modal" id="reportModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 style="margin:0">Campaign Report</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-primary btn-small" id="downloadReportPdfBtn" disabled>Download PDF</button>
+        <button class="btn btn-outline btn-small" id="downloadReportCsvBtn" disabled>Download CSV</button>
+        <button class="btn btn-outline btn-small" id="closeReportBtn">Close</button>
+      </div>
+    </div>
+    <div class="modal-body" id="reportBody"></div>
+  </div>
+</div>
 
 <script>
-const state={movies:[],actors:[],editing:null,campaigns:[],allMovies:false,allActors:false,preset:'custom'};
+const state={movies:[],actors:[],editing:null,campaigns:[],allMovies:false,allActors:false,preset:'custom',reportCampaignId:null,packageTier:'silver'};
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function errorText(value,fallback='Request failed'){
@@ -448,6 +515,19 @@ document.querySelectorAll('input[name="placement"]').forEach(x=>{
       state.preset='custom';
       updatePremiumPresetUI();
     }
+  });
+});
+
+function updatePackageUI(){
+  document.querySelectorAll('[data-package]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.package===state.packageTier);
+  });
+}
+document.querySelectorAll('[data-package]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    state.packageTier=btn.dataset.package;
+    updatePackageUI();
+    
   });
 });
 
@@ -723,7 +803,10 @@ function payload(isDraft,isActive){return{
   is_active:isActive,
   movie_ids:state.allMovies?[]:state.movies.map(x=>x.id),
   actor_ids:state.allActors?[]:state.actors.map(x=>x.id),
-  placements:placements()
+  placements:placements(),
+  package_tier:state.packageTier,
+  rotation_weight:Number($('rotationWeight').value||1),
+  quoted_rate:Number($('quotedRate').value||0)
 }}
 function validate(p){
   const missing=[];
@@ -751,6 +834,12 @@ function validate(p){
   if(!p.placements.length){
     throw new Error('Select at least one placement.');
   }
+  if(Number(p.rotation_weight||0)<=0){
+    throw new Error('Rotation Weight must be greater than 0.');
+  }
+  if(Number(p.quoted_rate||0)<0){
+    throw new Error('Quoted Package Rate cannot be negative.');
+  }
 
   if(p.placements.some(x=>x.startsWith('movie_')) && !state.allMovies && !p.movie_ids.length){
     throw new Error('Select at least one movie or choose All Movies.');
@@ -767,8 +856,7 @@ async function save(isDraft,isActive){
   try{
     const p=payload(isDraft,isActive);
     validate(p);
-
-    btn.classList.add('is-working');
+btn.classList.add('is-working');
     btn.textContent=isDraft?'Saving Draft...':'Publishing...';
 
     const id=$('campaignId').value;
@@ -811,12 +899,12 @@ async function save(isDraft,isActive){
   }
 }
 $('saveDraftBtn').onclick=()=>save(true,false);$('publishBtn').onclick=()=>save(false,true);
-function resetForm(){state.editing=null;state.movies=[];state.actors=[];state.allMovies=false;state.allActors=false;state.preset='custom';$('campaignForm').reset();$('campaignId').value='';$('ctaText').value='Watch Now';$('fixedFee').value=0;$('cpcRate').value=0;$('cpaRate').value=0;$('formTitle').textContent='Create OTT Campaign';$('editingLabel').textContent='NEW';$('editingLabel').className='status-pill draft';$('previewArea').innerHTML='';renderLogo();renderSelected();updateTargetScopeUI();setDefaultDates()}
+function resetForm(){state.editing=null;state.movies=[];state.actors=[];state.allMovies=false;state.allActors=false;state.preset='custom';state.packageTier='silver';$('campaignForm').reset();$('campaignId').value='';$('ctaText').value='Watch Now';$('fixedFee').value=0;$('cpcRate').value=0;$('cpaRate').value=0;$('quotedRate').value=0;$('rotationWeight').value=1;$('formTitle').textContent='Create OTT Campaign';$('editingLabel').textContent='NEW';$('editingLabel').className='status-pill draft';$('previewArea').innerHTML='';renderLogo();renderSelected();updateTargetScopeUI();updatePackageUI();setDefaultDates()}
 $('resetBtn').onclick=resetForm;$('newCampaignBtn').onclick=()=>{resetForm();window.scrollTo({top:0,behavior:'smooth'})};
 function setDefaultDates(){const now=new Date();const d=new Date(now);const end=new Date(now);end.setDate(end.getDate()+30);const fmt=x=>x.toISOString().slice(0,10);$('startDate').value=fmt(d);$('endDate').value=fmt(end)}
 async function loadCampaigns(){try{const d=await api('/admin/ott-sponsorships');state.campaigns=d.campaigns||[];renderCampaigns()}catch(e){$('campaignList').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function statusClass(s){return ['active','scheduled','paused','ended','draft'].includes(s)?s:'draft'}
-function renderCampaigns(){if(!state.campaigns.length){$('campaignList').innerHTML='<div class="empty">No OTT campaigns yet.</div>';return}$('campaignList').innerHTML=state.campaigns.map(c=>`<div class="campaign"><div class="campaign-top"><div><div class="campaign-name">${esc(c.campaign_name)}</div><div class="campaign-platform">${esc(c.platform_name)}</div></div><span class="status-pill ${statusClass(c.status)}">${esc(c.status)}</span></div><div class="campaign-meta"><div class="metric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div><div class="metric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div><div class="metric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div><div class="metric"><span>Movies</span><strong>${(c.placements||[]).some(x=>x.startsWith('movie_')) && !(c.movie_ids||[]).length?'ALL':(c.movie_ids?.length||0)}</strong></div><div class="metric"><span>Actors</span><strong>${(c.placements||[]).some(x=>x.startsWith('actor_')) && !(c.actor_ids||[]).length?'ALL':(c.actor_ids?.length||0)}</strong></div><div class="metric"><span>Revenue*</span><strong>${money(c.estimated_total_revenue)}</strong></div></div><div class="campaign-actions"><button class="btn btn-primary btn-small" data-edit="${c.id}">Edit</button><button class="btn btn-outline btn-small" data-report="${c.id}">Report</button><button class="btn btn-danger btn-small" data-delete="${c.id}">Delete</button></div></div>`).join('')}
+function renderCampaigns(){if(!state.campaigns.length){$('campaignList').innerHTML='<div class="empty">No OTT campaigns yet.</div>';return}$('campaignList').innerHTML=state.campaigns.map(c=>`<div class="campaign"><div class="campaign-top"><div><div class="campaign-name">${esc(c.campaign_name)}</div><div class="campaign-platform">${esc(c.platform_name)} · ${esc(c.package_label||String(c.package_tier||"silver").toUpperCase())}</div></div><span class="status-pill ${statusClass(c.status)}">${esc(c.status)}</span></div><div class="campaign-meta"><div class="metric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div><div class="metric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div><div class="metric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div><div class="metric"><span>Movies</span><strong>${(c.placements||[]).some(x=>x.startsWith('movie_')) && !(c.movie_ids||[]).length?'ALL':(c.movie_ids?.length||0)}</strong></div><div class="metric"><span>Actors</span><strong>${(c.placements||[]).some(x=>x.startsWith('actor_')) && !(c.actor_ids||[]).length?'ALL':(c.actor_ids?.length||0)}</strong></div><div class="metric"><span>Revenue*</span><strong>${money(c.estimated_total_revenue)}</strong></div></div><div class="campaign-actions"><button class="btn btn-primary btn-small" data-edit="${c.id}">Edit</button><button class="btn btn-outline btn-small" data-report="${c.id}">Report</button><button class="btn btn-danger btn-small" data-delete="${c.id}">Delete</button></div></div>`).join('')}
 $('campaignList').onclick=async e=>{const edit=e.target.dataset.edit,report=e.target.dataset.report,del=e.target.dataset.delete;if(edit)await editCampaign(edit);if(report)await showReport(report);if(del&&confirm('Delete this OTT sponsorship campaign?')){try{await api('/admin/ott-sponsorships/'+del,{method:'DELETE'});showMessage('Campaign deleted.');if($('campaignId').value==del)resetForm();loadCampaigns()}catch(er){showMessage(er.message,'error')}}};
 async function fetchMovieById(id){try{const d=await api('/movies/'+id);return{id,title:d.title||d.movie?.title||`Movie #${id}`,release_date:d.release_date||d.movie?.release_date,poster:d.poster||d.movie?.poster}}catch(e){return{id,title:`Movie #${id}`}}}
 async function fetchActorById(id){try{const d=await api('/actors/'+id);return{id,name:d.name||d.actor?.name||`Actor #${id}`,photo:d.photo||d.actor?.photo,profession:d.profession||d.actor?.profession}}catch(e){return{id,name:`Actor #${id}`}}}
@@ -836,6 +924,11 @@ async function editCampaign(id){
     $('fixedFee').value=c.fixed_fee||0;
     $('cpcRate').value=c.cpc_rate||0;
     $('cpaRate').value=c.cpa_rate||0;
+    state.packageTier=c.package_tier||'silver';
+    $('quotedRate').value=c.quoted_rate||0;
+    $('rotationWeight').value=c.rotation_weight||1;
+    updatePackageUI();
+    
     $('startDate').value=String(c.start_date||'').slice(0,10);
     $('startTime').value=c.start_time?String(c.start_time).slice(0,5):'';
     $('endDate').value=String(c.end_date||'').slice(0,10);
@@ -965,10 +1058,84 @@ $('previewBtn').onclick=()=>{
     </div>
   `;
 };
-async function showReport(id){try{const d=await api(`/admin/ott-sponsorships/${id}/report`);const c=d.campaign;const rows=d.placement_performance||[];$('reportBody').innerHTML=`<div class="report-grid"><div class="bigmetric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div><div class="bigmetric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div><div class="bigmetric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div><div class="bigmetric"><span>Conversions</span><strong>${Number(c.conversions||0).toLocaleString()}</strong></div></div><div class="report-grid" style="margin-top:12px"><div class="bigmetric"><span>Fixed Fee</span><strong>${money(c.fixed_fee)}</strong></div><div class="bigmetric"><span>CPC Revenue</span><strong>${money(c.estimated_cpc_revenue)}</strong></div><div class="bigmetric"><span>CPA Revenue</span><strong>${money(c.estimated_cpa_revenue)}</strong></div><div class="bigmetric"><span>Estimated Total</span><strong>${money(c.estimated_total_revenue)}</strong></div></div><h4 style="margin-top:22px">Placement Performance</h4>${rows.length?rows.map(r=>`<div class="campaign" style="margin-bottom:8px"><strong>${esc(r.placement.replace('_',' '))}</strong><div class="campaign-meta"><div class="metric"><span>Impressions</span><strong>${r.impressions}</strong></div><div class="metric"><span>Clicks</span><strong>${r.clicks}</strong></div><div class="metric"><span>CTR</span><strong>${Number(r.ctr||0).toFixed(2)}%</strong></div></div></div>`).join(''):'<div class="empty">No events recorded yet.</div>'}<div class="hint">* Estimated total = fixed fee + click rate × clicks + CPA rate × manually/partner-reported conversions.</div>`;$('reportModal').classList.add('show')}catch(e){showMessage(e.message,'error')}}
+async function showReport(id){
+  try{
+    const d=await api(`/admin/ott-sponsorships/${id}/report`);
+    const c=d.campaign;
+    const rows=d.placement_performance||[];
+
+    state.reportCampaignId=id;
+    $('downloadReportPdfBtn').disabled=false;
+    $('downloadReportCsvBtn').disabled=false;
+
+    $('reportBody').innerHTML=`
+      <div class="report-grid">
+        <div class="bigmetric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div>
+        <div class="bigmetric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div>
+        <div class="bigmetric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div>
+        <div class="bigmetric"><span>Conversions</span><strong>${Number(c.conversions||0).toLocaleString()}</strong></div>
+      </div>
+
+      <div class="report-grid" style="margin-top:12px">
+        <div class="bigmetric"><span>Fixed Fee</span><strong>${money(c.fixed_fee)}</strong></div>
+        <div class="bigmetric"><span>CPC Revenue</span><strong>${money(c.estimated_cpc_revenue)}</strong></div>
+        <div class="bigmetric"><span>CPA Revenue</span><strong>${money(c.estimated_cpa_revenue)}</strong></div>
+        <div class="bigmetric"><span>Estimated Total</span><strong>${money(c.estimated_total_revenue)}</strong></div>
+      </div>
+
+      <h4 style="margin-top:22px">Placement Performance</h4>
+      ${
+        rows.length
+          ? rows.map(r=>`
+              <div class="campaign" style="margin-bottom:8px">
+                <strong>${esc(r.placement.replaceAll('_',' '))}</strong>
+                <div class="campaign-meta">
+                  <div class="metric"><span>Impressions</span><strong>${Number(r.impressions||0).toLocaleString()}</strong></div>
+                  <div class="metric"><span>Clicks</span><strong>${Number(r.clicks||0).toLocaleString()}</strong></div>
+                  <div class="metric"><span>CTR</span><strong>${Number(r.ctr||0).toFixed(2)}%</strong></div>
+                  <div class="metric"><span>Conversions</span><strong>${Number(r.conversions||0).toLocaleString()}</strong></div>
+                </div>
+              </div>
+            `).join('')
+          : '<div class="empty">No events recorded yet.</div>'
+      }
+
+      <div class="hint" style="margin-top:12px">
+        Download PDF for a shareable client report or CSV for spreadsheet analysis.
+        Estimated total = fixed fee + click rate × clicks + CPA rate × reported conversions.
+      </div>
+    `;
+
+    $('reportModal').classList.add('show');
+  }catch(e){
+    state.reportCampaignId=null;
+    $('downloadReportPdfBtn').disabled=true;
+    $('downloadReportCsvBtn').disabled=true;
+    showMessage(e.message,'error');
+  }
+}
+
+function downloadOttReport(format){
+  const id=state.reportCampaignId;
+  if(!id){
+    showMessage('Open a campaign report first.','error');
+    return;
+  }
+  const url=`/admin/ott-sponsorships/${encodeURIComponent(id)}/report.${format}`;
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+$('downloadReportPdfBtn').onclick=()=>downloadOttReport('pdf');
+$('downloadReportCsvBtn').onclick=()=>downloadOttReport('csv');
+
 $('closeReportBtn').onclick=()=>$('reportModal').classList.remove('show');$('reportModal').onclick=e=>{if(e.target===$('reportModal'))$('reportModal').classList.remove('show')};$('refreshBtn').onclick=loadCampaigns;
 $('logoutBtn').onclick=async()=>{try{await api('/admin/logout',{method:'POST'});}catch{}location.href='/admin-login.html'};
-(async()=>{try{await checkSession();setDefaultDates();renderSelected();updateTargetScopeUI();await loadCampaigns()}catch(e){console.error(e)}})();
+(async()=>{try{await checkSession();setDefaultDates();renderSelected();updateTargetScopeUI();updatePackageUI();await loadCampaigns()}catch(e){console.error(e)}})();
 </script>
 </body>
 </html>

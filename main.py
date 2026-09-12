@@ -12527,6 +12527,9 @@ class OTTSponsorshipCreateData(BaseModel):
     placements: Optional[list[Literal[
         "movie_page", "movie_compare", "actor_page", "actor_compare"
     ]]] = None
+    package_tier: Literal["diamond", "platinum", "gold", "silver"] = "silver"
+    rotation_weight: float = 1.0
+    quoted_rate: float = 0
 
 
 class OTTSponsorshipUpdateData(BaseModel):
@@ -12550,6 +12553,9 @@ class OTTSponsorshipUpdateData(BaseModel):
     placements: Optional[list[Literal[
         "movie_page", "movie_compare", "actor_page", "actor_compare"
     ]]] = None
+    package_tier: Optional[Literal["diamond", "platinum", "gold", "silver"]] = None
+    rotation_weight: Optional[float] = None
+    quoted_rate: Optional[float] = None
 
 
 class OTTSponsorshipConversionData(BaseModel):
@@ -12562,6 +12568,31 @@ OTT_PLACEMENTS = {
     "actor_page",
     "actor_compare",
 }
+
+OTT_PACKAGE_CAPACITY = {
+    "diamond": 1,
+    "platinum": 2,
+    "gold": 3,
+    "silver": 4,
+}
+
+OTT_PACKAGE_LABELS = {
+    "diamond": "Diamond · Exclusive",
+    "platinum": "Platinum · 2-way rotation",
+    "gold": "Gold · 3-way rotation",
+    "silver": "Silver · 4-way rotation",
+}
+
+
+def _ott_package_capacity(tier: str) -> int:
+    return int(OTT_PACKAGE_CAPACITY.get((tier or "silver").lower(), 4))
+
+
+def _ott_clean_package_tier(tier: Optional[str]) -> str:
+    value = (tier or "silver").strip().lower()
+    if value not in OTT_PACKAGE_CAPACITY:
+        raise HTTPException(status_code=400, detail="Invalid OTT package tier")
+    return value
 
 
 @app.on_event("startup")
@@ -12594,6 +12625,21 @@ def initialize_ott_sponsorship_system():
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     CHECK (end_date >= start_date)
                 )
+            """)
+
+            cur.execute("ALTER TABLE ott_sponsorships ADD COLUMN IF NOT EXISTS package_tier TEXT NOT NULL DEFAULT 'silver'")
+            cur.execute("ALTER TABLE ott_sponsorships ADD COLUMN IF NOT EXISTS rotation_capacity INTEGER NOT NULL DEFAULT 4")
+            cur.execute("ALTER TABLE ott_sponsorships ADD COLUMN IF NOT EXISTS rotation_weight NUMERIC(10,2) NOT NULL DEFAULT 1")
+            cur.execute("ALTER TABLE ott_sponsorships ADD COLUMN IF NOT EXISTS quoted_rate NUMERIC(12,2) NOT NULL DEFAULT 0")
+            cur.execute("""
+                UPDATE ott_sponsorships
+                SET rotation_capacity = CASE LOWER(COALESCE(package_tier,'silver'))
+                    WHEN 'diamond' THEN 1
+                    WHEN 'platinum' THEN 2
+                    WHEN 'gold' THEN 3
+                    ELSE 4
+                END
+                WHERE rotation_capacity IS NULL OR rotation_capacity < 1 OR rotation_capacity > 4
             """)
 
             cur.execute("""
@@ -12698,6 +12744,15 @@ def _validate_ott_campaign_data(
             )
 
 
+def _validate_ott_package_values(package_tier=None, rotation_weight=None, quoted_rate=None):
+    if package_tier is not None:
+        _ott_clean_package_tier(package_tier)
+    if rotation_weight is not None and float(rotation_weight) <= 0:
+        raise HTTPException(status_code=400, detail="Rotation weight must be greater than 0")
+    if quoted_rate is not None and float(quoted_rate) < 0:
+        raise HTTPException(status_code=400, detail="Quoted rate cannot be negative")
+
+
 def _ott_campaign_status(campaign: dict) -> str:
     if campaign.get("is_draft"):
         return "draft"
@@ -12797,7 +12852,8 @@ def _get_ott_campaign(sponsorship_id: int):
                     cta_text, target_url, fixed_fee, cpc_rate, cpa_rate,
                     start_date, start_time, end_date, end_time,
                     is_draft, is_active, impressions, clicks, conversions,
-                    created_by, created_at, updated_at
+                    created_by, created_at, updated_at,
+                    package_tier, rotation_capacity, rotation_weight, quoted_rate
                 FROM ott_sponsorships
                 WHERE id = %s
             """, (sponsorship_id,))
@@ -12811,6 +12867,7 @@ def _get_ott_campaign(sponsorship_id: int):
                 "start_date", "start_time", "end_date", "end_time",
                 "is_draft", "is_active", "impressions", "clicks", "conversions",
                 "created_by", "created_at", "updated_at",
+                "package_tier", "rotation_capacity", "rotation_weight", "quoted_rate",
             ]
             campaign = dict(zip(keys, row))
 
@@ -12860,6 +12917,11 @@ def _get_ott_campaign(sponsorship_id: int):
     campaign["fixed_fee"] = float(campaign["fixed_fee"] or 0)
     campaign["cpc_rate"] = float(campaign["cpc_rate"] or 0)
     campaign["cpa_rate"] = float(campaign["cpa_rate"] or 0)
+    campaign["package_tier"] = (campaign.get("package_tier") or "silver").lower()
+    campaign["rotation_capacity"] = int(campaign.get("rotation_capacity") or _ott_package_capacity(campaign["package_tier"]))
+    campaign["rotation_weight"] = float(campaign.get("rotation_weight") or 1)
+    campaign["quoted_rate"] = float(campaign.get("quoted_rate") or 0)
+    campaign["package_label"] = OTT_PACKAGE_LABELS.get(campaign["package_tier"], OTT_PACKAGE_LABELS["silver"])
     campaign["estimated_cpc_revenue"] = round(campaign["clicks"] * campaign["cpc_rate"], 2)
     campaign["estimated_cpa_revenue"] = round(campaign["conversions"] * campaign["cpa_rate"], 2)
     campaign["estimated_total_revenue"] = round(
@@ -12957,6 +13019,361 @@ def admin_ott_actor_search(q: str = "", limit: int = 30):
     ]}
 
 
+
+def _ott_campaign_time_window(start_date_value, start_time_value, end_date_value, end_time_value):
+    return (
+        datetime.combine(start_date_value, start_time_value or time.min),
+        datetime.combine(end_date_value, end_time_value or time.max),
+    )
+
+
+def _ott_targets_intersect(cur, campaign_id: int, placement: str, movie_ids, actor_ids) -> bool:
+    """
+    Empty incoming list means ALL for that family.
+    Existing campaign with zero target rows also means ALL.
+    """
+    if placement in {"movie_page", "movie_compare"}:
+        cur.execute(
+            "SELECT movie_id FROM ott_sponsorship_movies WHERE sponsorship_id=%s",
+            (campaign_id,)
+        )
+        existing = {int(r[0]) for r in cur.fetchall()}
+        incoming = {int(x) for x in (movie_ids or [])}
+        return (not existing) or (not incoming) or bool(existing & incoming)
+
+    cur.execute(
+        "SELECT actor_id FROM ott_sponsorship_actors WHERE sponsorship_id=%s",
+        (campaign_id,)
+    )
+    existing = {int(r[0]) for r in cur.fetchall()}
+    incoming = {int(x) for x in (actor_ids or [])}
+    return (not existing) or (not incoming) or bool(existing & incoming)
+
+
+def _ott_overlapping_campaigns(
+    cur,
+    *,
+    placements,
+    movie_ids,
+    actor_ids,
+    start_date_value,
+    start_time_value,
+    end_date_value,
+    end_time_value,
+    exclude_id=None,
+):
+    new_start, new_end = _ott_campaign_time_window(
+        start_date_value, start_time_value, end_date_value, end_time_value
+    )
+
+    cur.execute("""
+        SELECT
+            s.id, s.platform_name, s.campaign_name, s.package_tier,
+            s.rotation_capacity, s.start_date, s.start_time, s.end_date, s.end_time
+        FROM ott_sponsorships s
+        WHERE s.is_draft = FALSE
+          AND s.is_active = TRUE
+          AND (%s IS NULL OR s.id <> %s)
+          AND (s.start_date + COALESCE(s.start_time, TIME '00:00:00')) <= %s
+          AND (s.end_date + COALESCE(s.end_time, TIME '23:59:59.999999')) >= %s
+        ORDER BY s.id
+    """, (exclude_id, exclude_id, new_end, new_start))
+
+    rows = cur.fetchall()
+    result = []
+
+    for row in rows:
+        campaign_id = int(row[0])
+        cur.execute(
+            "SELECT placement FROM ott_sponsorship_placements WHERE sponsorship_id=%s",
+            (campaign_id,)
+        )
+        existing_placements = {r[0] for r in cur.fetchall()}
+        shared = existing_placements & set(placements or [])
+        if not shared:
+            continue
+
+        matching_placements = []
+        for placement in shared:
+            if _ott_targets_intersect(cur, campaign_id, placement, movie_ids, actor_ids):
+                matching_placements.append(placement)
+
+        if matching_placements:
+            result.append({
+                "id": campaign_id,
+                "platform_name": row[1],
+                "campaign_name": row[2],
+                "package_tier": (row[3] or "silver").lower(),
+                "rotation_capacity": int(row[4] or 4),
+                "placements": sorted(matching_placements),
+            })
+
+    return result
+
+
+def _ott_inventory_snapshot(
+    *,
+    placements,
+    movie_ids,
+    actor_ids,
+    start_date_value,
+    start_time_value,
+    end_date_value,
+    end_time_value,
+    package_tier,
+    exclude_id=None,
+):
+    """
+    Compute inventory independently for each placement and each concrete target.
+
+    This avoids false sold-out results when, for example:
+    - one sponsor occupies movie_page
+    - another sponsor occupies movie_compare
+
+    It also avoids over-counting unrelated selected movies/actors:
+    Leo-only and Jailer-only bookings are checked on their own target buckets,
+    rather than being summed as if both occupied the same page.
+    """
+    package_tier = _ott_clean_package_tier(package_tier)
+    requested_capacity = _ott_package_capacity(package_tier)
+
+    start_dt, end_dt = _ott_campaign_time_window(
+        start_date_value, start_time_value, end_date_value, end_time_value
+    )
+
+    placement_results = []
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            for placement in list(dict.fromkeys(placements or [])):
+                if placement not in OTT_PLACEMENTS:
+                    continue
+
+                is_movie = placement in {"movie_page", "movie_compare"}
+                incoming_ids = {
+                    int(x) for x in ((movie_ids if is_movie else actor_ids) or [])
+                }
+
+                cur.execute("""
+                    SELECT
+                        s.id,
+                        s.platform_name,
+                        s.campaign_name,
+                        s.package_tier,
+                        s.rotation_capacity
+                    FROM ott_sponsorships s
+                    JOIN ott_sponsorship_placements p
+                      ON p.sponsorship_id = s.id
+                    WHERE s.is_draft = FALSE
+                      AND s.is_active = TRUE
+                      AND p.placement = %s
+                      AND (%s IS NULL OR s.id <> %s)
+                      AND (s.start_date + COALESCE(s.start_time, TIME '00:00:00')) <= %s
+                      AND (s.end_date + COALESCE(s.end_time, TIME '23:59:59.999999')) >= %s
+                    ORDER BY s.id
+                """, (placement, exclude_id, exclude_id, end_dt, start_dt))
+
+                rows = cur.fetchall()
+                campaigns = []
+
+                for row in rows:
+                    campaign_id = int(row[0])
+
+                    if is_movie:
+                        cur.execute(
+                            "SELECT movie_id FROM ott_sponsorship_movies WHERE sponsorship_id=%s",
+                            (campaign_id,)
+                        )
+                    else:
+                        cur.execute(
+                            "SELECT actor_id FROM ott_sponsorship_actors WHERE sponsorship_id=%s",
+                            (campaign_id,)
+                        )
+
+                    target_ids = {int(r[0]) for r in cur.fetchall()}
+
+                    campaigns.append({
+                        "id": campaign_id,
+                        "platform_name": row[1],
+                        "campaign_name": row[2],
+                        "package_tier": (row[3] or "silver").lower(),
+                        "rotation_capacity": int(row[4] or 4),
+                        "target_ids": target_ids,  # empty = ALL
+                        "placements": [placement],
+                    })
+
+                # Build exact target buckets.
+                # Selected incoming IDs: every selected target must have capacity.
+                # ALL incoming: evaluate global bucket plus every specifically-booked
+                # target because any one of those pages could be the bottleneck.
+                if incoming_ids:
+                    buckets = sorted(incoming_ids)
+                else:
+                    specific_ids = set()
+                    for c in campaigns:
+                        specific_ids.update(c["target_ids"])
+                    buckets = [None] + sorted(specific_ids)
+
+                if not buckets:
+                    buckets = [None]
+
+                bucket_results = []
+
+                for target_id in buckets:
+                    matching = []
+                    for c in campaigns:
+                        if not c["target_ids"] or target_id is None:
+                            # Global campaign applies to every target.
+                            # For the generic ALL bucket (None), only global campaigns
+                            # apply; target-specific campaigns are checked in their own buckets.
+                            if not c["target_ids"]:
+                                matching.append(c)
+                        elif target_id in c["target_ids"]:
+                            matching.append(c)
+
+                    effective_capacity = min(
+                        [requested_capacity]
+                        + [int(c.get("rotation_capacity") or 4) for c in matching]
+                    )
+                    booked = len(matching)
+                    available = max(0, effective_capacity - booked)
+                    can_book = booked < effective_capacity
+
+                    bucket_results.append({
+                        "target_id": target_id,
+                        "effective_capacity": effective_capacity,
+                        "booked": booked,
+                        "available_slots": available,
+                        "can_book": can_book,
+                        "campaigns": matching,
+                    })
+
+                # The least-available target is the sellability bottleneck.
+                bottleneck = min(
+                    bucket_results,
+                    key=lambda x: (
+                        1 if x["can_book"] else 0,
+                        x["available_slots"],
+                        -x["booked"],
+                    )
+                )
+
+                placement_results.append({
+                    "placement": placement,
+                    "effective_capacity": bottleneck["effective_capacity"],
+                    "booked": bottleneck["booked"],
+                    "available_slots": bottleneck["available_slots"],
+                    "can_book": all(x["can_book"] for x in bucket_results),
+                    "bottleneck_target_id": bottleneck["target_id"],
+                    "overlapping_campaigns": [
+                        {
+                            "id": c["id"],
+                            "platform_name": c["platform_name"],
+                            "campaign_name": c["campaign_name"],
+                            "package_tier": c["package_tier"],
+                            "rotation_capacity": c["rotation_capacity"],
+                            "placements": c["placements"],
+                        }
+                        for c in bottleneck["campaigns"]
+                    ],
+                })
+
+    if not placement_results:
+        return {
+            "package_tier": package_tier,
+            "package_label": OTT_PACKAGE_LABELS[package_tier],
+            "requested_capacity": requested_capacity,
+            "effective_capacity": requested_capacity,
+            "booked": 0,
+            "available_slots": requested_capacity,
+            "can_book": True,
+            "overlapping_campaigns": [],
+            "placement_inventory": [],
+        }
+
+    can_book = all(x["can_book"] for x in placement_results)
+    bottleneck = min(
+        placement_results,
+        key=lambda x: (
+            1 if x["can_book"] else 0,
+            x["available_slots"],
+            -x["booked"],
+        )
+    )
+
+    return {
+        "package_tier": package_tier,
+        "package_label": OTT_PACKAGE_LABELS[package_tier],
+        "requested_capacity": requested_capacity,
+        "effective_capacity": bottleneck["effective_capacity"],
+        "booked": bottleneck["booked"],
+        "available_slots": bottleneck["available_slots"],
+        "can_book": can_book,
+        "overlapping_campaigns": bottleneck["overlapping_campaigns"],
+        "placement_inventory": placement_results,
+    }
+
+
+def _validate_ott_inventory_or_raise(
+    *,
+    placements,
+    movie_ids,
+    actor_ids,
+    start_date_value,
+    start_time_value,
+    end_date_value,
+    end_time_value,
+    package_tier,
+    exclude_id=None,
+):
+    snapshot = _ott_inventory_snapshot(
+        placements=placements,
+        movie_ids=movie_ids,
+        actor_ids=actor_ids,
+        start_date_value=start_date_value,
+        start_time_value=start_time_value,
+        end_date_value=end_date_value,
+        end_time_value=end_time_value,
+        package_tier=package_tier,
+        exclude_id=exclude_id,
+    )
+    if not snapshot["can_book"]:
+        names = ", ".join(
+            f"{x['platform_name']} ({x['package_tier'].title()})"
+            for x in snapshot["overlapping_campaigns"][:6]
+        ) or "existing sponsorships"
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"OTT inventory sold out for the selected target/date range. "
+                f"Capacity {snapshot['effective_capacity']}, booked {snapshot['booked']}. "
+                f"Overlapping campaigns: {names}"
+            )
+        )
+    return snapshot
+
+
+@app.post("/admin/ott-sponsorships/inventory/check", dependencies=[Depends(require_owner)])
+def admin_check_ott_inventory(data: OTTSponsorshipCreateData):
+    _validate_ott_campaign_data(
+        data.start_date, data.end_date, data.fixed_fee, data.cpc_rate, data.cpa_rate, data.target_url
+    )
+    _validate_ott_package_values(data.package_tier, data.rotation_weight, data.quoted_rate)
+    _validate_ott_package_values(data.package_tier, data.rotation_weight, data.quoted_rate)
+    return {
+        "inventory": _ott_inventory_snapshot(
+            placements=data.placements or [],
+            movie_ids=data.movie_ids or [],
+            actor_ids=data.actor_ids or [],
+            start_date_value=data.start_date,
+            start_time_value=data.start_time,
+            end_date_value=data.end_date,
+            end_time_value=data.end_time,
+            package_tier=data.package_tier,
+        )
+    }
+
+
 @app.post("/admin/ott-sponsorships", dependencies=[Depends(require_owner)])
 def admin_create_ott_sponsorship(data: OTTSponsorshipCreateData, request: Request):
     admin = current_admin(request)
@@ -12982,6 +13399,21 @@ def admin_create_ott_sponsorship(data: OTTSponsorshipCreateData, request: Reques
     # [] + movie placement(s) => all movies
     # [] + actor placement(s) => all actors
 
+    if not data.is_draft and data.is_active:
+        _validate_ott_inventory_or_raise(
+            placements=placements,
+            movie_ids=movie_ids,
+            actor_ids=actor_ids,
+            start_date_value=data.start_date,
+            start_time_value=data.start_time,
+            end_date_value=data.end_date,
+            end_time_value=data.end_time,
+            package_tier=data.package_tier,
+        )
+
+    package_tier = _ott_clean_package_tier(data.package_tier)
+    rotation_capacity = _ott_package_capacity(package_tier)
+
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
@@ -12989,9 +13421,11 @@ def admin_create_ott_sponsorship(data: OTTSponsorshipCreateData, request: Reques
                     platform_name, campaign_name, logo_url, sponsored_text, cta_text, target_url,
                     fixed_fee, cpc_rate, cpa_rate,
                     start_date, start_time, end_date, end_time,
-                    is_draft, is_active, created_by
+                    is_draft, is_active, created_by,
+                    package_tier, rotation_capacity, rotation_weight, quoted_rate
                 ) VALUES (
-                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                    %s,%s,%s,%s
                 ) RETURNING id
             """, (
                 data.platform_name.strip(), data.campaign_name.strip(), data.logo_url,
@@ -12999,6 +13433,7 @@ def admin_create_ott_sponsorship(data: OTTSponsorshipCreateData, request: Reques
                 data.fixed_fee, data.cpc_rate, data.cpa_rate,
                 data.start_date, data.start_time, data.end_date, data.end_time,
                 data.is_draft, data.is_active, admin["id"],
+                package_tier, rotation_capacity, data.rotation_weight, data.quoted_rate,
             ))
             sponsorship_id = cur.fetchone()[0]
             _replace_ott_targets(cur, sponsorship_id, movie_ids, actor_ids, placements)
@@ -13049,11 +13484,37 @@ def admin_update_ott_sponsorship(sponsorship_id: int, data: OTTSponsorshipUpdate
     final_movie_ids = data.movie_ids if data.movie_ids is not None else existing["movie_ids"]
     final_actor_ids = data.actor_ids if data.actor_ids is not None else existing["actor_ids"]
     final_placements = data.placements if data.placements is not None else existing["placements"]
+    final_package_tier = _ott_clean_package_tier(
+        data.package_tier if data.package_tier is not None else existing.get("package_tier")
+    )
+    final_rotation_weight = (
+        data.rotation_weight if data.rotation_weight is not None else existing.get("rotation_weight", 1)
+    )
+    final_quoted_rate = (
+        data.quoted_rate if data.quoted_rate is not None else existing.get("quoted_rate", 0)
+    )
+    _validate_ott_package_values(final_package_tier, final_rotation_weight, final_quoted_rate)
 
     if not final_placements:
         raise HTTPException(status_code=400, detail="Select at least one OTT placement")
     # Empty target lists are valid premium coverage:
     # no movie rows = all movies; no actor rows = all actors.
+
+    final_is_draft = data.is_draft if data.is_draft is not None else existing["is_draft"]
+    final_is_active = data.is_active if data.is_active is not None else existing["is_active"]
+
+    if not final_is_draft and final_is_active:
+        _validate_ott_inventory_or_raise(
+            placements=final_placements,
+            movie_ids=final_movie_ids,
+            actor_ids=final_actor_ids,
+            start_date_value=final_start,
+            start_time_value=data.start_time if data.start_time is not None else existing["start_time"],
+            end_date_value=final_end,
+            end_time_value=data.end_time if data.end_time is not None else existing["end_time"],
+            package_tier=final_package_tier,
+            exclude_id=sponsorship_id,
+        )
 
     fields = []
     values = []
@@ -13073,7 +13534,14 @@ def admin_update_ott_sponsorship(sponsorship_id: int, data: OTTSponsorshipUpdate
         "end_time": data.end_time,
         "is_draft": data.is_draft,
         "is_active": data.is_active,
+        "package_tier": data.package_tier,
+        "rotation_weight": data.rotation_weight,
+        "quoted_rate": data.quoted_rate,
     }
+
+    if data.package_tier is not None:
+        fields.append("rotation_capacity = %s")
+        values.append(_ott_package_capacity(final_package_tier))
 
     for field, value in simple_fields.items():
         if value is not None:
@@ -13174,26 +13642,14 @@ def admin_preview_ott_sponsorship(
     }
 
 
-def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
-    """
-    OTT targeting rules:
-    - placement must match
-    - selected target rows = precise targeting
-    - zero movie target rows = ALL movies for movie placements
-    - zero actor target rows = ALL actors for actor placements
-    - when both a precise campaign and an all-inventory campaign match,
-      precise targeting wins first; newest campaign wins within the same tier
-    """
+def _eligible_active_ott_sponsorships(placement: str, movie_id=None, actor_id=None):
     if placement not in OTT_PLACEMENTS:
-        return None
+        return []
 
     now_ist_naive = datetime.now(ZoneInfo("Asia/Kolkata")).replace(tzinfo=None)
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            joins = [
-                "JOIN ott_sponsorship_placements p ON p.sponsorship_id = s.id"
-            ]
             where = [
                 "s.is_draft = FALSE",
                 "s.is_active = TRUE",
@@ -13202,51 +13658,35 @@ def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
                 "(s.end_date + COALESCE(s.end_time, TIME '23:59:59.999999')) >= %s",
             ]
             params = [placement, now_ist_naive, now_ist_naive]
-            specificity_order = "0"
 
             if placement in {"movie_page", "movie_compare"}:
                 if not movie_id:
-                    return None
-
+                    return []
                 where.append("""
                     (
                         NOT EXISTS (
-                            SELECT 1
-                            FROM ott_sponsorship_movies sm_any
+                            SELECT 1 FROM ott_sponsorship_movies sm_any
                             WHERE sm_any.sponsorship_id = s.id
                         )
                         OR EXISTS (
-                            SELECT 1
-                            FROM ott_sponsorship_movies sm_match
+                            SELECT 1 FROM ott_sponsorship_movies sm_match
                             WHERE sm_match.sponsorship_id = s.id
                               AND sm_match.movie_id = %s
                         )
                     )
                 """)
                 params.append(int(movie_id))
-
-                specificity_order = """
-                    CASE WHEN EXISTS (
-                        SELECT 1
-                        FROM ott_sponsorship_movies sm_specific
-                        WHERE sm_specific.sponsorship_id = s.id
-                    ) THEN 1 ELSE 0 END
-                """
-
-            elif placement in {"actor_page", "actor_compare"}:
+            else:
                 if not actor_id:
-                    return None
-
+                    return []
                 where.append("""
                     (
                         NOT EXISTS (
-                            SELECT 1
-                            FROM ott_sponsorship_actors sa_any
+                            SELECT 1 FROM ott_sponsorship_actors sa_any
                             WHERE sa_any.sponsorship_id = s.id
                         )
                         OR EXISTS (
-                            SELECT 1
-                            FROM ott_sponsorship_actors sa_match
+                            SELECT 1 FROM ott_sponsorship_actors sa_match
                             WHERE sa_match.sponsorship_id = s.id
                               AND sa_match.actor_id = %s
                         )
@@ -13254,25 +13694,49 @@ def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
                 """)
                 params.append(int(actor_id))
 
-                specificity_order = """
-                    CASE WHEN EXISTS (
-                        SELECT 1
-                        FROM ott_sponsorship_actors sa_specific
-                        WHERE sa_specific.sponsorship_id = s.id
-                    ) THEN 1 ELSE 0 END
-                """
-
             cur.execute(f"""
                 SELECT s.id
                 FROM ott_sponsorships s
-                {' '.join(joins)}
+                JOIN ott_sponsorship_placements p ON p.sponsorship_id = s.id
                 WHERE {' AND '.join(where)}
-                ORDER BY {specificity_order} DESC, s.id DESC
-                LIMIT 1
+                ORDER BY s.id
             """, tuple(params))
-            row = cur.fetchone()
+            ids = [int(r[0]) for r in cur.fetchall()]
 
-    return _get_ott_campaign(row[0]) if row else None
+    campaigns = [_get_ott_campaign(x) for x in ids]
+    campaigns = [x for x in campaigns if x]
+
+    # Defensive inventory enforcement: if old/manual DB data exceeds a package promise,
+    # only the strictest allowed number of campaigns is eligible.
+    if campaigns:
+        max_live = min(int(x.get("rotation_capacity") or 4) for x in campaigns)
+        campaigns = campaigns[:max_live]
+
+    return campaigns
+
+
+def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
+    campaigns = _eligible_active_ott_sponsorships(placement, movie_id, actor_id)
+    if not campaigns:
+        return None
+    if len(campaigns) == 1:
+        return campaigns[0]
+
+    import random
+    weights = [max(0.01, float(x.get("rotation_weight") or 1)) for x in campaigns]
+    return random.choices(campaigns, weights=weights, k=1)[0]
+
+
+def _campaign_is_eligible_for_live_target(
+    sponsorship_id: int,
+    placement: str,
+    movie_id=None,
+    actor_id=None,
+):
+    return any(
+        int(c["id"]) == int(sponsorship_id)
+        for c in _eligible_active_ott_sponsorships(placement, movie_id, actor_id)
+    )
 
 
 def _require_live_ott_campaign_match(
@@ -13281,13 +13745,16 @@ def _require_live_ott_campaign_match(
     movie_id=None,
     actor_id=None,
 ):
-    campaign = _find_active_ott_sponsorship(
+    if not _campaign_is_eligible_for_live_target(
+        sponsorship_id=sponsorship_id,
         placement=placement,
         movie_id=movie_id,
         actor_id=actor_id,
-    )
-    if not campaign or int(campaign["id"]) != int(sponsorship_id):
+    ):
         raise HTTPException(status_code=404, detail="Active OTT sponsorship not found for this target")
+    campaign = _get_ott_campaign(sponsorship_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
     return campaign
 
 
@@ -13437,6 +13904,9 @@ def _build_ott_report_pdf(report: dict) -> bytes:
         f"Campaign: {c.get('campaign_name') or '-'}",
         f"OTT Platform: {c.get('platform_name') or '-'}",
         f"Status: {str(c.get('status') or '-').upper()}",
+        f"Package: {c.get('package_label') or '-'}",
+        f"Rotation capacity: {int(c.get('rotation_capacity') or 4)}",
+        f"Quoted package rate: INR {float(c.get('quoted_rate') or 0):,.2f}",
         f"Campaign period: {c.get('start_date') or '-'} to {c.get('end_date') or '-'}",
         f"Placements: {', '.join(c.get('placements') or []) or '-'}",
         "",
@@ -13595,6 +14065,9 @@ def admin_download_ott_campaign_report_csv(sponsorship_id: int):
         ["Campaign Name", c.get("campaign_name")],
         ["OTT Platform", c.get("platform_name")],
         ["Status", c.get("status")],
+        ["Package", c.get("package_label")],
+        ["Rotation Capacity", c.get("rotation_capacity")],
+        ["Quoted Package Rate INR", c.get("quoted_rate", 0)],
         ["Start Date", c.get("start_date")],
         ["End Date", c.get("end_date")],
         ["Placements", ", ".join(c.get("placements") or [])],
