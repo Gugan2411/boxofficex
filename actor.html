@@ -2304,6 +2304,150 @@ body.bx-bottom-ad-visible{
     }
 }
 
+
+/* =========================================================
+   BOXOFFICEX OTT CONTEXTUAL SPONSORSHIP — ACTOR PAGE
+========================================================= */
+.bx-ott-actor-card{
+    position:relative;
+    display:block;
+    margin-top:22px;
+    overflow:hidden;
+    border:1px solid rgba(37,99,235,.22);
+    border-radius:17px;
+    background:
+        radial-gradient(circle at 88% -30%,rgba(37,99,235,.14),transparent 44%),
+        linear-gradient(135deg,#fff 0%,#f7faff 100%);
+    box-shadow:0 10px 28px rgba(15,23,42,.08);
+    color:inherit;
+    text-decoration:none!important;
+    cursor:pointer;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.bx-ott-actor-card[hidden]{display:none!important}
+.bx-ott-actor-card:hover{
+    transform:translateY(-2px);
+    border-color:rgba(37,99,235,.42);
+    box-shadow:0 15px 36px rgba(15,23,42,.13);
+}
+.bx-ott-actor-card:focus-visible{
+    outline:3px solid rgba(37,99,235,.22);
+    outline-offset:3px;
+}
+.bx-ott-actor-top{
+    min-height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 15px;
+    border-bottom:1px solid rgba(15,23,42,.08);
+    background:rgba(248,250,252,.78);
+}
+.bx-ott-actor-sponsored{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:#64748b;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.55px;
+    text-transform:uppercase;
+}
+.bx-ott-actor-sponsored:before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:#2563eb;
+    box-shadow:0 0 0 4px rgba(37,99,235,.10);
+}
+.bx-ott-actor-platform{
+    color:#2563eb;
+    font-size:10px;
+    font-weight:900;
+    text-align:right;
+}
+.bx-ott-actor-body{
+    position:relative;
+    display:grid;
+    grid-template-columns:86px minmax(0,1fr) auto;
+    gap:17px;
+    align-items:center;
+    padding:17px;
+}
+.bx-ott-actor-logo-wrap{
+    width:86px;height:60px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:9px;
+    border:1px solid #e2e8f0;
+    border-radius:13px;
+    background:#fff;
+    box-shadow:0 5px 14px rgba(15,23,42,.06);
+}
+.bx-ott-actor-logo{
+    display:block;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+}
+.bx-ott-actor-copy{min-width:0}
+.bx-ott-actor-title{
+    color:#111827;
+    font-size:16px;
+    line-height:1.35;
+    font-weight:1000;
+}
+.bx-ott-actor-note{
+    margin-top:5px;
+    color:#64748b;
+    font-size:10px;
+    line-height:1.5;
+    font-weight:600;
+}
+.bx-ott-actor-cta{
+    min-height:43px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:10px 17px;
+    border-radius:11px;
+    background:linear-gradient(135deg,#326fe5,#285bc0);
+    color:#fff!important;
+    font-size:12px;
+    font-weight:900;
+    white-space:nowrap;
+    box-shadow:0 8px 18px rgba(37,99,235,.22);
+}
+@media(max-width:700px){
+    .bx-ott-actor-card{margin-top:16px;border-radius:14px}
+    .bx-ott-actor-top{min-height:35px;padding:7px 11px}
+    .bx-ott-actor-sponsored{font-size:8px;letter-spacing:.3px}
+    .bx-ott-actor-platform{
+        max-width:42%;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        font-size:9px;
+    }
+    .bx-ott-actor-body{
+        grid-template-columns:62px minmax(0,1fr);
+        gap:11px;
+        padding:12px;
+    }
+    .bx-ott-actor-logo-wrap{
+        width:62px;height:49px;padding:7px;border-radius:10px;
+    }
+    .bx-ott-actor-title{font-size:13px}
+    .bx-ott-actor-note{font-size:9px;margin-top:4px}
+    .bx-ott-actor-cta{
+        grid-column:1/-1;
+        width:100%;
+        min-height:40px;
+        margin-top:1px;
+    }
+}
 </style>
 
 
@@ -3548,6 +3692,40 @@ html,body{scroll-padding-top:0!important}
 
     </section>
 
+    <!-- ==========================================
+         OTT CONTEXTUAL SPONSORSHIP — ACTOR PAGE
+         Entire card is clickable
+    ========================================== -->
+    <a
+        id="bxOttActorSponsor"
+        class="bx-ott-actor-card"
+        href="#"
+        target="_blank"
+        rel="sponsored noopener"
+        aria-label="Sponsored streaming collection"
+        hidden
+    >
+        <div class="bx-ott-actor-top">
+            <span class="bx-ott-actor-sponsored">Streaming Partner · Sponsored</span>
+            <span class="bx-ott-actor-platform" id="bxOttActorPlatform"></span>
+        </div>
+
+        <div class="bx-ott-actor-body">
+            <div class="bx-ott-actor-logo-wrap" id="bxOttActorLogoWrap">
+                <img id="bxOttActorLogo" class="bx-ott-actor-logo" alt="" loading="lazy" decoding="async">
+            </div>
+
+            <div class="bx-ott-actor-copy">
+                <div id="bxOttActorText" class="bx-ott-actor-title"></div>
+                <div id="bxOttActorNote" class="bx-ott-actor-note"></div>
+            </div>
+
+            <span id="bxOttActorCta" class="bx-ott-actor-cta">
+                Explore Now <span aria-hidden="true">→</span>
+            </span>
+        </div>
+    </a>
+
 
 <section class="bx-actor-compare-interlinks" id="bxActorCompareInterlinks" style="display:none;">
         <div class="bx-actor-compare-head">
@@ -4265,6 +4443,93 @@ function escapeRelatedActorHTML(value){
 }
 
 
+
+// ==========================================
+// OTT CONTEXTUAL SPONSORSHIP — ACTOR PAGE
+// ==========================================
+async function bxOttRecordActorImpression(campaignId, currentActorId){
+    try{
+        await fetch(
+            `/ott/sponsorship/${encodeURIComponent(campaignId)}/impression` +
+            `?placement=actor_page&actor_id=${encodeURIComponent(currentActorId)}`,
+            {
+                method:"POST",
+                keepalive:true,
+                credentials:"same-origin"
+            }
+        );
+    }catch(error){}
+}
+
+function bxOttRenderActorCampaign(campaign, actor){
+    const root=document.getElementById("bxOttActorSponsor");
+    if(!root || !campaign?.id || !actor?.id) return;
+
+    const platform=campaign.platform_name || "OTT Partner";
+    const message=campaign.sponsored_text || `Watch ${actor.name}'s selected hits on ${platform}`;
+    const cta=campaign.cta_text || "Explore Now";
+    const clickUrl=campaign.click_url ||
+        `/ott/sponsorship/${encodeURIComponent(campaign.id)}/click?placement=actor_page&actor_id=${encodeURIComponent(actor.id)}`;
+
+    document.getElementById("bxOttActorPlatform").textContent=platform;
+    document.getElementById("bxOttActorText").textContent=message;
+    document.getElementById("bxOttActorNote").textContent=
+        `Explore ${actor.name}'s movies available on the sponsoring streaming platform.`;
+
+    const logo=document.getElementById("bxOttActorLogo");
+    const logoWrap=document.getElementById("bxOttActorLogoWrap");
+    if(campaign.logo_url){
+        logo.src=campaign.logo_url;
+        logo.alt=`${platform} logo`;
+        logoWrap.style.display="";
+    }else{
+        logo.removeAttribute("src");
+        logo.alt="";
+        logoWrap.style.display="none";
+    }
+
+    const ctaEl=document.getElementById("bxOttActorCta");
+    ctaEl.textContent="";
+    ctaEl.append(document.createTextNode(cta));
+    const arrow=document.createElement("span");
+    arrow.setAttribute("aria-hidden","true");
+    arrow.textContent="→";
+    ctaEl.append(arrow);
+
+    root.href=clickUrl;
+    root.setAttribute("aria-label",`${message}. ${cta}`);
+    root.hidden=false;
+
+    bxOttRecordActorImpression(campaign.id,actor.id);
+}
+
+async function bxOttLoadActorSponsorship(actor){
+    const root=document.getElementById("bxOttActorSponsor");
+    if(!root || !actor?.id) return;
+    root.hidden=true;
+
+    try{
+        const response=await fetch(
+            `/ott/sponsorship?placement=actor_page&actor_id=${encodeURIComponent(actor.id)}`,
+            {
+                cache:"no-store",
+                headers:{"Accept":"application/json"}
+            }
+        );
+
+        if(!response.ok) return;
+
+        const data=await response.json();
+        const campaign=data?.sponsorship || null;
+
+        if(!campaign?.id) return;
+        bxOttRenderActorCampaign(campaign,actor);
+    }catch(error){
+        console.warn("BoxOfficeX actor OTT sponsorship unavailable:",error);
+    }
+}
+
+
 // ==========================================
 // GET ACTOR ID
 // ==========================================
@@ -4399,6 +4664,9 @@ else {
         updateActorSEO(actor);
 
         renderActorComparisonInterlinks(actor, actors);
+
+        // Load this actor's contextual OTT sponsorship.
+        bxOttLoadActorSponsorship(actor);
 
         trackActorView();
 

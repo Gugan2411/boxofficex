@@ -2067,6 +2067,76 @@ margin-top:6px;text-align:center;color:#7a8699;font-size:8px
   .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
 }
 </style>
+
+<style id="bx-ott-movie-compare-final-style">
+.bx-ott-movie-compare-wrap{
+  display:grid;grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);
+  gap:14px;align-items:stretch;margin:14px 0 20px;
+}
+.bx-ott-movie-compare-slot{min-width:0}
+.bx-ott-movie-compare-slot.right{grid-column:3}
+.bx-ott-movie-card{
+  height:100%;display:block;overflow:hidden;text-decoration:none!important;color:#111827;
+  border:1px solid rgba(37,99,235,.22);border-radius:15px;
+  background:radial-gradient(circle at 92% -20%,rgba(37,99,235,.13),transparent 42%),
+             linear-gradient(135deg,#fff,#f8fbff);
+  box-shadow:0 9px 24px rgba(15,23,42,.07);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.bx-ott-movie-card:hover{transform:translateY(-2px);border-color:#b9cff4;box-shadow:0 13px 30px rgba(15,23,42,.11)}
+.bx-ott-movie-card:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px}
+.bx-ott-movie-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  min-height:34px;padding:7px 10px;border-bottom:1px solid #e7edf5;background:rgba(248,250,252,.78)
+}
+.bx-ott-movie-sponsored{
+  display:flex;align-items:center;gap:6px;color:#64748b;
+  font-size:7.5px;font-weight:1000;letter-spacing:.45px;text-transform:uppercase
+}
+.bx-ott-movie-sponsored:before{
+  content:"";width:6px;height:6px;border-radius:50%;background:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.10)
+}
+.bx-ott-movie-platform{
+  max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#2563eb;font-size:8.5px;font-weight:1000
+}
+.bx-ott-movie-body{
+  display:grid;grid-template-columns:58px minmax(0,1fr);
+  gap:10px;align-items:center;padding:11px
+}
+.bx-ott-movie-logo-wrap{
+  width:58px;height:48px;display:flex;align-items:center;justify-content:center;
+  padding:7px;border:1px solid #e2e8f0;border-radius:10px;background:#fff
+}
+.bx-ott-movie-logo{max-width:100%;max-height:100%;object-fit:contain}
+.bx-ott-movie-copy{min-width:0}
+.bx-ott-movie-text{color:#172033;font-size:11px;line-height:1.35;font-weight:1000}
+.bx-ott-movie-sub{margin-top:4px;color:#718096;font-size:8px;line-height:1.35;font-weight:700}
+.bx-ott-movie-cta{
+  grid-column:1/-1;min-height:35px;display:flex;align-items:center;justify-content:center;
+  gap:6px;margin-top:1px;border-radius:9px;background:linear-gradient(135deg,#326fe5,#285bc0);
+  color:#fff!important;font-size:9px;font-weight:1000;box-shadow:0 6px 14px rgba(37,99,235,.18)
+}
+@media(max-width:700px){
+  .bx-ott-movie-compare-wrap{
+    grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);
+    gap:6px;margin:9px 0 14px
+  }
+  .bx-ott-movie-compare-slot.right{grid-column:3}
+  .bx-ott-movie-card{border-radius:11px}
+  .bx-ott-movie-head{min-height:29px;padding:5px 6px}
+  .bx-ott-movie-sponsored{font-size:5.5px;gap:4px;letter-spacing:.15px}
+  .bx-ott-movie-sponsored:before{width:5px;height:5px;box-shadow:none}
+  .bx-ott-movie-platform{font-size:6.5px}
+  .bx-ott-movie-body{grid-template-columns:36px minmax(0,1fr);gap:6px;padding:7px 6px}
+  .bx-ott-movie-logo-wrap{width:36px;height:32px;padding:4px;border-radius:7px}
+  .bx-ott-movie-text{font-size:7.5px;line-height:1.3}
+  .bx-ott-movie-sub{font-size:6px;margin-top:2px}
+  .bx-ott-movie-cta{min-height:29px;border-radius:7px;font-size:7px}
+}
+</style>
+
 </head>
 <body>
 <div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
@@ -2644,6 +2714,97 @@ function updateComparisonSEO(a,b){
         JSON.stringify(schema);
 }
 
+
+function bxOttMovieCompareEsc(value){
+  return String(value??"").replace(/[&<>"']/g,ch=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[ch]));
+}
+
+function bxOttMovieCompareCardHTML(campaign,movie){
+  const platform=campaign.platform_name||"OTT Partner";
+  const message=campaign.sponsored_text||`Watch ${movie.title} on ${platform}`;
+  const cta=campaign.cta_text||"Watch Now";
+  const clickUrl=campaign.click_url ||
+    `/ott/sponsorship/${encodeURIComponent(campaign.id)}/click` +
+    `?placement=movie_compare&movie_id=${encodeURIComponent(movie.id)}`;
+
+  return `
+    <a class="bx-ott-movie-card"
+       href="${bxOttMovieCompareEsc(clickUrl)}"
+       target="_blank"
+       rel="sponsored noopener"
+       aria-label="${bxOttMovieCompareEsc(message)}. ${bxOttMovieCompareEsc(cta)}">
+      <div class="bx-ott-movie-head">
+        <span class="bx-ott-movie-sponsored">Streaming Partner · Sponsored</span>
+        <span class="bx-ott-movie-platform">${bxOttMovieCompareEsc(platform)}</span>
+      </div>
+      <div class="bx-ott-movie-body">
+        ${campaign.logo_url ? `
+          <div class="bx-ott-movie-logo-wrap">
+            <img class="bx-ott-movie-logo"
+                 src="${bxOttMovieCompareEsc(campaign.logo_url)}"
+                 alt="${bxOttMovieCompareEsc(platform)} logo"
+                 loading="lazy" decoding="async">
+          </div>` : ""}
+        <div class="bx-ott-movie-copy">
+          <div class="bx-ott-movie-text">${bxOttMovieCompareEsc(message)}</div>
+          <div class="bx-ott-movie-sub">${bxOttMovieCompareEsc(movie.title)} streaming availability</div>
+        </div>
+        <span class="bx-ott-movie-cta">${bxOttMovieCompareEsc(cta)} <span aria-hidden="true">→</span></span>
+      </div>
+    </a>`;
+}
+
+async function bxOttMovieCompareImpression(campaignId,movieId){
+  try{
+    await fetch(
+      `/ott/sponsorship/${encodeURIComponent(campaignId)}/impression` +
+      `?placement=movie_compare&movie_id=${encodeURIComponent(movieId)}`,
+      {
+        method:"POST",
+        keepalive:true,
+        credentials:"same-origin"
+      }
+    );
+  }catch(e){}
+}
+
+async function bxOttLoadOneMovieCompare(movie,slotId){
+  const slot=document.getElementById(slotId);
+  if(!slot||!movie?.id)return false;
+
+  try{
+    const r=await fetch(
+      `/ott/sponsorship?placement=movie_compare&movie_id=${encodeURIComponent(movie.id)}`,
+      {cache:"no-store",credentials:"same-origin"}
+    );
+    if(!r.ok)return false;
+
+    const data=await r.json();
+    const campaign=data?.sponsorship||null;
+    if(!campaign?.id)return false;
+
+    slot.innerHTML=bxOttMovieCompareCardHTML(campaign,movie);
+    bxOttMovieCompareImpression(campaign.id,movie.id);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+async function bxOttLoadMovieCompare(a,b){
+  const wrap=document.getElementById("bxOttMovieCompareWrap");
+  if(!wrap)return;
+
+  const [left,right]=await Promise.all([
+    bxOttLoadOneMovieCompare(a,"bxOttMovie1Slot"),
+    bxOttLoadOneMovieCompare(b,"bxOttMovie2Slot")
+  ]);
+
+  wrap.hidden=!(left||right);
+}
+
 async function load(){
 const p=new URLSearchParams(location.search),aId=p.get("a"),bId=p.get("b");
 if(!aId||!bId||aId===bId){document.getElementById("app").innerHTML=`<div class="error">Choose two different movies first.<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`;return}
@@ -2659,6 +2820,12 @@ document.getElementById("app").innerHTML=`
 <div class="vs">VS</div>
 <div class="movie-card"><img src="${poster(b)}" alt="${esc(b.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><h2>${esc(b.title)}</h2><p>${text(b.language)} • ${date(b.release_date)}</p></div>
 </section>
+
+<section class="bx-ott-movie-compare-wrap" id="bxOttMovieCompareWrap" hidden>
+  <div class="bx-ott-movie-compare-slot" id="bxOttMovie1Slot"></div>
+  <div class="bx-ott-movie-compare-slot right" id="bxOttMovie2Slot"></div>
+</section>
+
 <section class="table">
 ${row("Release Date",a,b,date,null,"release_date")}
 ${row("Language",a,b,text,null,"language")}
@@ -2720,6 +2887,7 @@ ${theatricalEfficiencyWinnerHTML(a,b)}
   <div class="more-movie-grid" id="moreMovieComparisonsGrid"><div class="more-movie-empty">Finding related movie comparisons...</div></div>
 </section>`;
 window.currentMovieComparison={a,b};
+bxOttLoadMovieCompare(a,b);
 loadMovieComparisonEngagement(a.id,b.id);
 loadMovieComparisonComments(a.id,b.id);
 loadMoreMovieComparisons(a,b);

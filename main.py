@@ -12499,3 +12499,874 @@ def admin_ad_target_actor_movies(actor_id: int, q: str = ""):
             rows=cur.fetchall()
     return {"movies":[{"id":r[0],"title":r[1],"release_date":str(r[2]) if r[2] else None,
                         "poster":safe_movie_poster(r[3])} for r in rows]}
+
+
+# ============================================================
+# BOXOFFICEX OTT CONTEXTUAL SPONSORSHIP
+# V1 - BACKEND FOUNDATION
+# ============================================================
+
+class OTTSponsorshipCreateData(BaseModel):
+    platform_name: str
+    campaign_name: str
+    logo_url: Optional[str] = None
+    sponsored_text: str
+    cta_text: str = "Watch Now"
+    target_url: str
+    fixed_fee: float = 0
+    cpc_rate: float = 0
+    cpa_rate: float = 0
+    start_date: date
+    start_time: Optional[time] = None
+    end_date: date
+    end_time: Optional[time] = None
+    is_draft: bool = True
+    is_active: bool = False
+    movie_ids: Optional[list[int]] = None
+    actor_ids: Optional[list[int]] = None
+    placements: Optional[list[Literal[
+        "movie_page", "movie_compare", "actor_page", "actor_compare"
+    ]]] = None
+
+
+class OTTSponsorshipUpdateData(BaseModel):
+    platform_name: Optional[str] = None
+    campaign_name: Optional[str] = None
+    logo_url: Optional[str] = None
+    sponsored_text: Optional[str] = None
+    cta_text: Optional[str] = None
+    target_url: Optional[str] = None
+    fixed_fee: Optional[float] = None
+    cpc_rate: Optional[float] = None
+    cpa_rate: Optional[float] = None
+    start_date: Optional[date] = None
+    start_time: Optional[time] = None
+    end_date: Optional[date] = None
+    end_time: Optional[time] = None
+    is_draft: Optional[bool] = None
+    is_active: Optional[bool] = None
+    movie_ids: Optional[list[int]] = None
+    actor_ids: Optional[list[int]] = None
+    placements: Optional[list[Literal[
+        "movie_page", "movie_compare", "actor_page", "actor_compare"
+    ]]] = None
+
+
+class OTTSponsorshipConversionData(BaseModel):
+    conversions: int
+
+
+OTT_PLACEMENTS = {
+    "movie_page",
+    "movie_compare",
+    "actor_page",
+    "actor_compare",
+}
+
+
+@app.on_event("startup")
+def initialize_ott_sponsorship_system():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ott_sponsorships (
+                    id BIGSERIAL PRIMARY KEY,
+                    platform_name TEXT NOT NULL,
+                    campaign_name TEXT NOT NULL,
+                    logo_url TEXT,
+                    sponsored_text TEXT NOT NULL,
+                    cta_text TEXT NOT NULL DEFAULT 'Watch Now',
+                    target_url TEXT NOT NULL,
+                    fixed_fee NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (fixed_fee >= 0),
+                    cpc_rate NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (cpc_rate >= 0),
+                    cpa_rate NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (cpa_rate >= 0),
+                    start_date DATE NOT NULL,
+                    start_time TIME,
+                    end_date DATE NOT NULL,
+                    end_time TIME,
+                    is_draft BOOLEAN NOT NULL DEFAULT TRUE,
+                    is_active BOOLEAN NOT NULL DEFAULT FALSE,
+                    impressions BIGINT NOT NULL DEFAULT 0 CHECK (impressions >= 0),
+                    clicks BIGINT NOT NULL DEFAULT 0 CHECK (clicks >= 0),
+                    conversions BIGINT NOT NULL DEFAULT 0 CHECK (conversions >= 0),
+                    created_by BIGINT REFERENCES admins(id) ON DELETE SET NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    CHECK (end_date >= start_date)
+                )
+            """)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ott_sponsorship_movies (
+                    id BIGSERIAL PRIMARY KEY,
+                    sponsorship_id BIGINT NOT NULL REFERENCES ott_sponsorships(id) ON DELETE CASCADE,
+                    movie_id BIGINT NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (sponsorship_id, movie_id)
+                )
+            """)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ott_sponsorship_actors (
+                    id BIGSERIAL PRIMARY KEY,
+                    sponsorship_id BIGINT NOT NULL REFERENCES ott_sponsorships(id) ON DELETE CASCADE,
+                    actor_id BIGINT NOT NULL REFERENCES actors(id) ON DELETE CASCADE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (sponsorship_id, actor_id)
+                )
+            """)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ott_sponsorship_placements (
+                    id BIGSERIAL PRIMARY KEY,
+                    sponsorship_id BIGINT NOT NULL REFERENCES ott_sponsorships(id) ON DELETE CASCADE,
+                    placement TEXT NOT NULL CHECK (
+                        placement IN ('movie_page','movie_compare','actor_page','actor_compare')
+                    ),
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (sponsorship_id, placement)
+                )
+            """)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ott_sponsorship_events (
+                    id BIGSERIAL PRIMARY KEY,
+                    sponsorship_id BIGINT NOT NULL REFERENCES ott_sponsorships(id) ON DELETE CASCADE,
+                    placement TEXT NOT NULL CHECK (
+                        placement IN ('movie_page','movie_compare','actor_page','actor_compare')
+                    ),
+                    event_type TEXT NOT NULL CHECK (
+                        event_type IN ('impression','click','conversion')
+                    ),
+                    movie_id BIGINT REFERENCES movies(id) ON DELETE SET NULL,
+                    actor_id BIGINT REFERENCES actors(id) ON DELETE SET NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ott_sponsorship_dates
+                ON ott_sponsorships (is_draft, is_active, start_date, end_date)
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ott_sponsorship_movies_movie
+                ON ott_sponsorship_movies (movie_id)
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ott_sponsorship_actors_actor
+                ON ott_sponsorship_actors (actor_id)
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ott_sponsorship_placements_value
+                ON ott_sponsorship_placements (placement, sponsorship_id)
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ott_sponsorship_events_campaign
+                ON ott_sponsorship_events (sponsorship_id, created_at DESC)
+            """)
+
+        conn.commit()
+
+    print("BOXOFFICEX OTT SPONSORSHIP SYSTEM: READY", flush=True)
+
+
+def _validate_ott_campaign_data(
+    start_date_value,
+    end_date_value,
+    fixed_fee,
+    cpc_rate,
+    cpa_rate,
+    target_url=None,
+):
+    if start_date_value and end_date_value and end_date_value < start_date_value:
+        raise HTTPException(status_code=400, detail="Campaign end date cannot be before start date")
+
+    for value, label in [
+        (fixed_fee, "fixed_fee"),
+        (cpc_rate, "cpc_rate"),
+        (cpa_rate, "cpa_rate"),
+    ]:
+        if value is not None and float(value) < 0:
+            raise HTTPException(status_code=400, detail=f"{label} cannot be negative")
+
+    if target_url is not None:
+        url = target_url.strip()
+        if not (url.startswith("https://") or url.startswith("http://")):
+            raise HTTPException(
+                status_code=400,
+                detail="OTT target URL must begin with http:// or https://"
+            )
+
+
+def _ott_campaign_status(campaign: dict) -> str:
+    if campaign.get("is_draft"):
+        return "draft"
+    if not campaign.get("is_active"):
+        return "paused"
+
+    tz = ZoneInfo("Asia/Kolkata")
+    now_ist = datetime.now(tz)
+    campaign_start = datetime.combine(
+        campaign["start_date"],
+        campaign.get("start_time") or time.min,
+        tzinfo=tz,
+    )
+    campaign_end = datetime.combine(
+        campaign["end_date"],
+        campaign.get("end_time") or time.max,
+        tzinfo=tz,
+    )
+
+    if now_ist < campaign_start:
+        return "scheduled"
+    if now_ist > campaign_end:
+        return "ended"
+    return "active"
+
+
+def _validate_ott_target_ids(cur, movie_ids=None, actor_ids=None):
+    if movie_ids is not None:
+        clean_movie_ids = sorted(set(int(x) for x in movie_ids))
+        if clean_movie_ids:
+            cur.execute("SELECT id FROM movies WHERE id = ANY(%s)", (clean_movie_ids,))
+            found = {r[0] for r in cur.fetchall()}
+            missing = [x for x in clean_movie_ids if x not in found]
+            if missing:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid movie IDs: {', '.join(map(str, missing))}"
+                )
+
+    if actor_ids is not None:
+        clean_actor_ids = sorted(set(int(x) for x in actor_ids))
+        if clean_actor_ids:
+            cur.execute("SELECT id FROM actors WHERE id = ANY(%s)", (clean_actor_ids,))
+            found = {r[0] for r in cur.fetchall()}
+            missing = [x for x in clean_actor_ids if x not in found]
+            if missing:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid actor IDs: {', '.join(map(str, missing))}"
+                )
+
+
+def _replace_ott_targets(cur, sponsorship_id: int, movie_ids=None, actor_ids=None, placements=None):
+    _validate_ott_target_ids(cur, movie_ids, actor_ids)
+
+    if movie_ids is not None:
+        clean_movie_ids = sorted(set(int(x) for x in movie_ids))
+        cur.execute("DELETE FROM ott_sponsorship_movies WHERE sponsorship_id = %s", (sponsorship_id,))
+        for movie_id in clean_movie_ids:
+            cur.execute(
+                "INSERT INTO ott_sponsorship_movies (sponsorship_id, movie_id) VALUES (%s, %s)",
+                (sponsorship_id, movie_id)
+            )
+
+    if actor_ids is not None:
+        clean_actor_ids = sorted(set(int(x) for x in actor_ids))
+        cur.execute("DELETE FROM ott_sponsorship_actors WHERE sponsorship_id = %s", (sponsorship_id,))
+        for actor_id in clean_actor_ids:
+            cur.execute(
+                "INSERT INTO ott_sponsorship_actors (sponsorship_id, actor_id) VALUES (%s, %s)",
+                (sponsorship_id, actor_id)
+            )
+
+    if placements is not None:
+        clean_placements = set(placements)
+        invalid = clean_placements - OTT_PLACEMENTS
+        if invalid:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid OTT placements: " + ", ".join(sorted(invalid))
+            )
+
+        cur.execute("DELETE FROM ott_sponsorship_placements WHERE sponsorship_id = %s", (sponsorship_id,))
+        for placement in sorted(clean_placements):
+            cur.execute(
+                "INSERT INTO ott_sponsorship_placements (sponsorship_id, placement) VALUES (%s, %s)",
+                (sponsorship_id, placement)
+            )
+
+
+def _get_ott_campaign(sponsorship_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id, platform_name, campaign_name, logo_url, sponsored_text,
+                    cta_text, target_url, fixed_fee, cpc_rate, cpa_rate,
+                    start_date, start_time, end_date, end_time,
+                    is_draft, is_active, impressions, clicks, conversions,
+                    created_by, created_at, updated_at
+                FROM ott_sponsorships
+                WHERE id = %s
+            """, (sponsorship_id,))
+            row = cur.fetchone()
+            if not row:
+                return None
+
+            keys = [
+                "id", "platform_name", "campaign_name", "logo_url", "sponsored_text",
+                "cta_text", "target_url", "fixed_fee", "cpc_rate", "cpa_rate",
+                "start_date", "start_time", "end_date", "end_time",
+                "is_draft", "is_active", "impressions", "clicks", "conversions",
+                "created_by", "created_at", "updated_at",
+            ]
+            campaign = dict(zip(keys, row))
+
+            cur.execute("""
+                SELECT sm.movie_id, m.title, m.release_date, m.language, m.industry, m.poster
+                FROM ott_sponsorship_movies sm
+                JOIN movies m ON m.id = sm.movie_id
+                WHERE sm.sponsorship_id = %s
+                ORDER BY m.title
+            """, (sponsorship_id,))
+            campaign["movies"] = [
+                {
+                    "id": r[0], "title": r[1],
+                    "release_date": str(r[2]) if r[2] else None,
+                    "language": r[3], "industry": r[4],
+                    "poster": safe_movie_poster(r[5]),
+                }
+                for r in cur.fetchall()
+            ]
+            campaign["movie_ids"] = [x["id"] for x in campaign["movies"]]
+
+            cur.execute("""
+                SELECT sa.actor_id, a.name, a.profession, a.photo
+                FROM ott_sponsorship_actors sa
+                JOIN actors a ON a.id = sa.actor_id
+                WHERE sa.sponsorship_id = %s
+                ORDER BY a.name
+            """, (sponsorship_id,))
+            campaign["actors"] = [
+                {
+                    "id": r[0], "name": r[1], "profession": r[2],
+                    "photo": safe_actor_photo(r[3]),
+                }
+                for r in cur.fetchall()
+            ]
+            campaign["actor_ids"] = [x["id"] for x in campaign["actors"]]
+
+            cur.execute("""
+                SELECT placement
+                FROM ott_sponsorship_placements
+                WHERE sponsorship_id = %s
+                ORDER BY placement
+            """, (sponsorship_id,))
+            campaign["placements"] = [r[0] for r in cur.fetchall()]
+
+    campaign["status"] = _ott_campaign_status(campaign)
+    campaign["fixed_fee"] = float(campaign["fixed_fee"] or 0)
+    campaign["cpc_rate"] = float(campaign["cpc_rate"] or 0)
+    campaign["cpa_rate"] = float(campaign["cpa_rate"] or 0)
+    campaign["estimated_cpc_revenue"] = round(campaign["clicks"] * campaign["cpc_rate"], 2)
+    campaign["estimated_cpa_revenue"] = round(campaign["conversions"] * campaign["cpa_rate"], 2)
+    campaign["estimated_total_revenue"] = round(
+        campaign["fixed_fee"] + campaign["estimated_cpc_revenue"] + campaign["estimated_cpa_revenue"], 2
+    )
+    campaign["ctr"] = round(
+        (campaign["clicks"] / campaign["impressions"] * 100) if campaign["impressions"] else 0,
+        2,
+    )
+    return campaign
+
+
+def _ott_public_payload(campaign: dict, placement: str, movie_id=None, actor_id=None):
+    suffix = f"?placement={placement}"
+    if movie_id:
+        suffix += f"&movie_id={int(movie_id)}"
+    if actor_id:
+        suffix += f"&actor_id={int(actor_id)}"
+
+    return {
+        "id": campaign["id"],
+        "platform_name": campaign["platform_name"],
+        "logo_url": campaign["logo_url"],
+        "sponsored_text": campaign["sponsored_text"],
+        "cta_text": campaign["cta_text"],
+        "placement": placement,
+        "impression_url": f"/ott/sponsorship/{campaign['id']}/impression{suffix}",
+        "click_url": f"/ott/sponsorship/{campaign['id']}/click{suffix}",
+    }
+
+
+@app.get("/admin/ott-sponsorships/search/movies", dependencies=[Depends(require_owner)])
+def admin_ott_movie_search(q: str = "", limit: int = 30):
+    query = (q or "").strip()
+    limit = max(1, min(int(limit or 30), 50))
+    contains = f"%{query}%"
+    starts = f"{query}%"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, release_date, language, industry, poster
+                FROM movies
+                WHERE %s = '' OR title ILIKE %s
+                ORDER BY
+                    CASE
+                        WHEN LOWER(title) = LOWER(%s) THEN 0
+                        WHEN title ILIKE %s THEN 1
+                        ELSE 2
+                    END,
+                    release_date DESC NULLS LAST,
+                    title
+                LIMIT %s
+            """, (query, contains, query, starts, limit))
+            rows = cur.fetchall()
+
+    return {"movies": [
+        {
+            "id": r[0], "title": r[1],
+            "release_date": str(r[2]) if r[2] else None,
+            "language": r[3], "industry": r[4],
+            "poster": safe_movie_poster(r[5]),
+        }
+        for r in rows
+    ]}
+
+
+@app.get("/admin/ott-sponsorships/search/actors", dependencies=[Depends(require_owner)])
+def admin_ott_actor_search(q: str = "", limit: int = 30):
+    query = (q or "").strip()
+    limit = max(1, min(int(limit or 30), 50))
+    contains = f"%{query}%"
+    starts = f"{query}%"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, name, profession, photo
+                FROM actors
+                WHERE %s = '' OR name ILIKE %s
+                ORDER BY
+                    CASE
+                        WHEN LOWER(name) = LOWER(%s) THEN 0
+                        WHEN name ILIKE %s THEN 1
+                        ELSE 2
+                    END,
+                    name
+                LIMIT %s
+            """, (query, contains, query, starts, limit))
+            rows = cur.fetchall()
+
+    return {"actors": [
+        {"id": r[0], "name": r[1], "profession": r[2], "photo": safe_actor_photo(r[3])}
+        for r in rows
+    ]}
+
+
+@app.post("/admin/ott-sponsorships", dependencies=[Depends(require_owner)])
+def admin_create_ott_sponsorship(data: OTTSponsorshipCreateData, request: Request):
+    admin = current_admin(request)
+    _validate_ott_campaign_data(
+        data.start_date, data.end_date, data.fixed_fee, data.cpc_rate, data.cpa_rate, data.target_url
+    )
+
+    if not data.platform_name.strip():
+        raise HTTPException(status_code=400, detail="OTT platform name is required")
+    if not data.campaign_name.strip():
+        raise HTTPException(status_code=400, detail="Campaign name is required")
+    if not data.sponsored_text.strip():
+        raise HTTPException(status_code=400, detail="Sponsored text is required")
+
+    movie_ids = data.movie_ids or []
+    actor_ids = data.actor_ids or []
+    placements = data.placements or []
+
+    if not placements:
+        raise HTTPException(status_code=400, detail="Select at least one OTT placement")
+
+    if ({"movie_page", "movie_compare"} & set(placements)) and not movie_ids:
+        raise HTTPException(status_code=400, detail="Select at least one movie for movie placements")
+
+    if ({"actor_page", "actor_compare"} & set(placements)) and not actor_ids:
+        raise HTTPException(status_code=400, detail="Select at least one actor for actor placements")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO ott_sponsorships (
+                    platform_name, campaign_name, logo_url, sponsored_text, cta_text, target_url,
+                    fixed_fee, cpc_rate, cpa_rate,
+                    start_date, start_time, end_date, end_time,
+                    is_draft, is_active, created_by
+                ) VALUES (
+                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                ) RETURNING id
+            """, (
+                data.platform_name.strip(), data.campaign_name.strip(), data.logo_url,
+                data.sponsored_text.strip(), data.cta_text.strip() or "Watch Now", data.target_url.strip(),
+                data.fixed_fee, data.cpc_rate, data.cpa_rate,
+                data.start_date, data.start_time, data.end_date, data.end_time,
+                data.is_draft, data.is_active, admin["id"],
+            ))
+            sponsorship_id = cur.fetchone()[0]
+            _replace_ott_targets(cur, sponsorship_id, movie_ids, actor_ids, placements)
+        conn.commit()
+
+    return {"success": True, "sponsorship": _get_ott_campaign(sponsorship_id)}
+
+
+@app.get("/admin/ott-sponsorships", dependencies=[Depends(require_owner)])
+def admin_list_ott_sponsorships(status: Optional[str] = None):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM ott_sponsorships ORDER BY created_at DESC")
+            ids = [r[0] for r in cur.fetchall()]
+
+    campaigns = [_get_ott_campaign(x) for x in ids]
+    if status:
+        wanted = status.strip().lower()
+        campaigns = [x for x in campaigns if x and x.get("status") == wanted]
+    return {"campaigns": campaigns}
+
+
+@app.get("/admin/ott-sponsorships/{sponsorship_id}", dependencies=[Depends(require_owner)])
+def admin_get_ott_sponsorship(sponsorship_id: int):
+    campaign = _get_ott_campaign(sponsorship_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+    return {"campaign": campaign}
+
+
+@app.put("/admin/ott-sponsorships/{sponsorship_id}", dependencies=[Depends(require_owner)])
+def admin_update_ott_sponsorship(sponsorship_id: int, data: OTTSponsorshipUpdateData):
+    existing = _get_ott_campaign(sponsorship_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+
+    effective_start = data.start_date if data.start_date is not None else existing["start_date"]
+    effective_end = data.end_date if data.end_date is not None else existing["end_date"]
+    _validate_ott_campaign_data(
+        effective_start,
+        effective_end,
+        data.fixed_fee if data.fixed_fee is not None else existing["fixed_fee"],
+        data.cpc_rate if data.cpc_rate is not None else existing["cpc_rate"],
+        data.cpa_rate if data.cpa_rate is not None else existing["cpa_rate"],
+        data.target_url if data.target_url is not None else existing["target_url"],
+    )
+
+    final_movie_ids = data.movie_ids if data.movie_ids is not None else existing["movie_ids"]
+    final_actor_ids = data.actor_ids if data.actor_ids is not None else existing["actor_ids"]
+    final_placements = data.placements if data.placements is not None else existing["placements"]
+
+    if not final_placements:
+        raise HTTPException(status_code=400, detail="Select at least one OTT placement")
+    if ({"movie_page", "movie_compare"} & set(final_placements)) and not final_movie_ids:
+        raise HTTPException(status_code=400, detail="Select at least one movie for movie placements")
+    if ({"actor_page", "actor_compare"} & set(final_placements)) and not final_actor_ids:
+        raise HTTPException(status_code=400, detail="Select at least one actor for actor placements")
+
+    fields = []
+    values = []
+    simple_fields = {
+        "platform_name": data.platform_name,
+        "campaign_name": data.campaign_name,
+        "logo_url": data.logo_url,
+        "sponsored_text": data.sponsored_text,
+        "cta_text": data.cta_text,
+        "target_url": data.target_url,
+        "fixed_fee": data.fixed_fee,
+        "cpc_rate": data.cpc_rate,
+        "cpa_rate": data.cpa_rate,
+        "start_date": data.start_date,
+        "start_time": data.start_time,
+        "end_date": data.end_date,
+        "end_time": data.end_time,
+        "is_draft": data.is_draft,
+        "is_active": data.is_active,
+    }
+
+    for field, value in simple_fields.items():
+        if value is not None:
+            if isinstance(value, str):
+                value = value.strip()
+                if field in {"platform_name", "campaign_name", "sponsored_text", "cta_text", "target_url"} and not value:
+                    raise HTTPException(status_code=400, detail=f"{field} cannot be empty")
+            fields.append(f"{field} = %s")
+            values.append(value)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            if fields:
+                fields.append("updated_at = NOW()")
+                values.append(sponsorship_id)
+                cur.execute(
+                    f"UPDATE ott_sponsorships SET {', '.join(fields)} WHERE id = %s",
+                    tuple(values)
+                )
+
+            _replace_ott_targets(
+                cur,
+                sponsorship_id,
+                data.movie_ids,
+                data.actor_ids,
+                data.placements,
+            )
+        conn.commit()
+
+    return {"success": True, "sponsorship": _get_ott_campaign(sponsorship_id)}
+
+
+@app.delete("/admin/ott-sponsorships/{sponsorship_id}", dependencies=[Depends(require_owner)])
+def admin_delete_ott_sponsorship(sponsorship_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM ott_sponsorships WHERE id = %s RETURNING id", (sponsorship_id,))
+            row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+    return {"success": True}
+
+
+@app.patch("/admin/ott-sponsorships/{sponsorship_id}/conversions", dependencies=[Depends(require_owner)])
+def admin_set_ott_conversions(sponsorship_id: int, data: OTTSponsorshipConversionData):
+    if data.conversions < 0:
+        raise HTTPException(status_code=400, detail="Conversions cannot be negative")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE ott_sponsorships
+                SET conversions = %s, updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+            """, (data.conversions, sponsorship_id))
+            row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+    return {"success": True, "sponsorship": _get_ott_campaign(sponsorship_id)}
+
+
+@app.get("/admin/ott-sponsorships/{sponsorship_id}/preview", dependencies=[Depends(require_owner)])
+def admin_preview_ott_sponsorship(
+    sponsorship_id: int,
+    placement: str,
+    movie_id: Optional[int] = None,
+    actor_id: Optional[int] = None,
+):
+    campaign = _get_ott_campaign(sponsorship_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+    if placement not in OTT_PLACEMENTS:
+        raise HTTPException(status_code=400, detail="Invalid OTT placement")
+    if placement not in campaign["placements"]:
+        raise HTTPException(status_code=400, detail="This campaign does not have that placement enabled")
+
+    if placement in {"movie_page", "movie_compare"}:
+        if not movie_id:
+            raise HTTPException(status_code=400, detail="movie_id is required")
+        if int(movie_id) not in campaign["movie_ids"]:
+            raise HTTPException(status_code=400, detail="Selected movie is not targeted by this campaign")
+
+    if placement in {"actor_page", "actor_compare"}:
+        if not actor_id:
+            raise HTTPException(status_code=400, detail="actor_id is required")
+        if int(actor_id) not in campaign["actor_ids"]:
+            raise HTTPException(status_code=400, detail="Selected actor is not targeted by this campaign")
+
+    return {
+        "preview": True,
+        "campaign_status": campaign["status"],
+        "sponsorship": _ott_public_payload(campaign, placement, movie_id, actor_id),
+    }
+
+
+def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
+    if placement not in OTT_PLACEMENTS:
+        return None
+
+    now_ist_naive = datetime.now(ZoneInfo("Asia/Kolkata")).replace(tzinfo=None)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            joins = [
+                "JOIN ott_sponsorship_placements p ON p.sponsorship_id = s.id"
+            ]
+            where = [
+                "s.is_draft = FALSE",
+                "s.is_active = TRUE",
+                "p.placement = %s",
+                "(s.start_date + COALESCE(s.start_time, TIME '00:00:00')) <= %s",
+                "(s.end_date + COALESCE(s.end_time, TIME '23:59:59.999999')) >= %s",
+            ]
+            params = [placement, now_ist_naive, now_ist_naive]
+
+            if placement in {"movie_page", "movie_compare"}:
+                if not movie_id:
+                    return None
+                joins.append("JOIN ott_sponsorship_movies sm ON sm.sponsorship_id = s.id")
+                where.append("sm.movie_id = %s")
+                params.append(int(movie_id))
+
+            if placement in {"actor_page", "actor_compare"}:
+                if not actor_id:
+                    return None
+                joins.append("JOIN ott_sponsorship_actors sa ON sa.sponsorship_id = s.id")
+                where.append("sa.actor_id = %s")
+                params.append(int(actor_id))
+
+            cur.execute(f"""
+                SELECT DISTINCT s.id
+                FROM ott_sponsorships s
+                {' '.join(joins)}
+                WHERE {' AND '.join(where)}
+                ORDER BY s.id DESC
+                LIMIT 1
+            """, tuple(params))
+            row = cur.fetchone()
+
+    return _get_ott_campaign(row[0]) if row else None
+
+
+def _require_live_ott_campaign_match(
+    sponsorship_id: int,
+    placement: str,
+    movie_id=None,
+    actor_id=None,
+):
+    campaign = _find_active_ott_sponsorship(
+        placement=placement,
+        movie_id=movie_id,
+        actor_id=actor_id,
+    )
+    if not campaign or int(campaign["id"]) != int(sponsorship_id):
+        raise HTTPException(status_code=404, detail="Active OTT sponsorship not found for this target")
+    return campaign
+
+
+@app.get("/ott/sponsorship")
+def public_ott_sponsorship(
+    placement: str,
+    movie_id: Optional[int] = None,
+    actor_id: Optional[int] = None,
+):
+    if placement not in OTT_PLACEMENTS:
+        raise HTTPException(status_code=400, detail="Invalid OTT placement")
+    if placement in {"movie_page", "movie_compare"} and not movie_id:
+        raise HTTPException(status_code=400, detail="movie_id is required")
+    if placement in {"actor_page", "actor_compare"} and not actor_id:
+        raise HTTPException(status_code=400, detail="actor_id is required")
+
+    campaign = _find_active_ott_sponsorship(placement, movie_id, actor_id)
+    if not campaign:
+        return {"sponsorship": None}
+    return {"sponsorship": _ott_public_payload(campaign, placement, movie_id, actor_id)}
+
+
+@app.post("/ott/sponsorship/{sponsorship_id}/impression")
+def track_ott_impression(
+    sponsorship_id: int,
+    placement: str,
+    movie_id: Optional[int] = None,
+    actor_id: Optional[int] = None,
+):
+    if placement not in OTT_PLACEMENTS:
+        raise HTTPException(status_code=400, detail="Invalid placement")
+
+    _require_live_ott_campaign_match(sponsorship_id, placement, movie_id, actor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE ott_sponsorships
+                SET impressions = impressions + 1, updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+            """, (sponsorship_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+
+            cur.execute("""
+                INSERT INTO ott_sponsorship_events (
+                    sponsorship_id, placement, event_type, movie_id, actor_id
+                ) VALUES (%s, %s, 'impression', %s, %s)
+            """, (sponsorship_id, placement, movie_id, actor_id))
+        conn.commit()
+
+    return {"success": True}
+
+
+@app.get("/ott/sponsorship/{sponsorship_id}/click")
+def track_ott_click(
+    sponsorship_id: int,
+    placement: str,
+    movie_id: Optional[int] = None,
+    actor_id: Optional[int] = None,
+):
+    if placement not in OTT_PLACEMENTS:
+        raise HTTPException(status_code=400, detail="Invalid placement")
+
+    campaign = _require_live_ott_campaign_match(sponsorship_id, placement, movie_id, actor_id)
+    target_url = campaign["target_url"]
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE ott_sponsorships
+                SET clicks = clicks + 1, updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+            """, (sponsorship_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+
+            cur.execute("""
+                INSERT INTO ott_sponsorship_events (
+                    sponsorship_id, placement, event_type, movie_id, actor_id
+                ) VALUES (%s, %s, 'click', %s, %s)
+            """, (sponsorship_id, placement, movie_id, actor_id))
+        conn.commit()
+
+    return Response(status_code=307, headers={"Location": target_url})
+
+
+@app.get("/admin/ott-sponsorships/{sponsorship_id}/report", dependencies=[Depends(require_owner)])
+def admin_ott_campaign_report(sponsorship_id: int):
+    campaign = _get_ott_campaign(sponsorship_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="OTT sponsorship not found")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    placement,
+                    COUNT(*) FILTER (WHERE event_type = 'impression') AS impressions,
+                    COUNT(*) FILTER (WHERE event_type = 'click') AS clicks,
+                    COUNT(*) FILTER (WHERE event_type = 'conversion') AS conversions
+                FROM ott_sponsorship_events
+                WHERE sponsorship_id = %s
+                GROUP BY placement
+                ORDER BY placement
+            """, (sponsorship_id,))
+            rows = cur.fetchall()
+
+    placement_performance = []
+    for placement, impressions, clicks, conversions in rows:
+        impressions = int(impressions or 0)
+        clicks = int(clicks or 0)
+        conversions = int(conversions or 0)
+        placement_performance.append({
+            "placement": placement,
+            "impressions": impressions,
+            "clicks": clicks,
+            "conversions": conversions,
+            "ctr": round((clicks / impressions * 100) if impressions else 0, 2),
+        })
+
+    return {
+        "campaign": campaign,
+        "placement_performance": placement_performance,
+    }
+
+
+@app.get("/admin-ott-sponsorships.html", dependencies=[Depends(require_owner)])
+def admin_ott_sponsorships_page():
+    return FileResponse(BASE_DIR / "admin-ott-sponsorships.html")
