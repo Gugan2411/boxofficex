@@ -14116,3 +14116,8 @@ def admin_download_ott_campaign_report_csv(sponsorship_id: int):
 @app.get("/admin-ott-sponsorships.html", dependencies=[Depends(require_owner)])
 def admin_ott_sponsorships_page():
     return FileResponse(BASE_DIR / "admin-ott-sponsorships.html")
+
+
+@app.get("/admin-ott-inventory.html", dependencies=[Depends(require_owner)])
+def admin_ott_inventory_page():
+    return FileResponse(BASE_DIR / "admin-ott-inventory.html")
