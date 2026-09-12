@@ -61,6 +61,74 @@
 .bottom-toast .notice{margin:0;box-shadow:0 16px 45px rgba(0,0,0,.38);border-width:1px;font-size:13px}
 .btn.is-working{opacity:.65;pointer-events:none}
 .results:not(.show){display:none!important}
+
+.premium-targeting{
+  margin-bottom:16px;
+  padding:16px;
+  border:1px solid #31557e;
+  border-radius:14px;
+  background:
+    radial-gradient(circle at top right,rgba(47,128,237,.16),transparent 36%),
+    #081a2e;
+}
+.premium-targeting-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;
+}
+.premium-targeting-head strong{font-size:14px;color:#dcecff}
+.premium-targeting-head span{display:block;margin-top:4px;color:var(--muted);font-size:11px;line-height:1.45}
+.premium-badge{
+  flex:0 0 auto;padding:5px 8px;border-radius:999px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);color:#190d00;
+  font-size:9px;font-weight:1000;letter-spacing:.05em;
+}
+.premium-presets{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;
+}
+.premium-preset{
+  min-height:74px;padding:11px;border:1px solid #2d4969;border-radius:11px;
+  background:#0a2139;color:#e7f1ff;text-align:left;cursor:pointer;
+}
+.premium-preset:hover{border-color:#4b91f1;background:#0d2947}
+.premium-preset.active{
+  border-color:#65a6ff;background:linear-gradient(135deg,#153963,#102a49);
+  box-shadow:0 0 0 2px rgba(47,128,237,.10) inset;
+}
+.premium-preset strong{display:block;font-size:12px}
+.premium-preset small{display:block;margin-top:5px;color:#9fb1c7;font-size:9px;line-height:1.4}
+.target-scope-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;
+}
+.scope-card{
+  border:1px solid var(--line);border-radius:12px;background:#09182a;padding:12px;
+}
+.scope-card-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;
+}
+.scope-card-head strong{font-size:12px}
+.scope-switch{display:flex;gap:6px}
+.scope-switch button{
+  padding:6px 9px;border:1px solid #345477;border-radius:8px;
+  background:#10243d;color:#a9bdd6;cursor:pointer;font-size:9px;font-weight:900;
+}
+.scope-switch button.active{
+  border-color:#4b91f1;background:#173963;color:#dcebff;
+}
+.scope-status{
+  padding:8px 10px;border-radius:9px;background:#071321;
+  color:#9fb1c7;font-size:10px;line-height:1.45;
+}
+.scope-status.all{color:#8fc1ff;border:1px solid rgba(75,145,241,.28)}
+.all-target-chip{
+  display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 10px;
+  border:1px solid #3a6494;border-radius:999px;background:#102a49;
+  color:#9fc8ff;font-size:10px;font-weight:900;
+}
+@media(max-width:900px){
+  .premium-presets{grid-template-columns:1fr 1fr}
+}
+@media(max-width:700px){
+  .target-scope-row,.premium-presets{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -111,24 +179,87 @@
           </div>
 
           <div class="section">
-            <div class="section-title">2. Target Movies & Actors</div>
+            <div class="section-title">2. Premium Coverage & Targeting</div>
+
+            <div class="premium-targeting">
+              <div class="premium-targeting-head">
+                <div>
+                  <strong>Premium Coverage Presets</strong>
+                  <span>Choose a complete inventory package instantly, then fine-tune placements below if needed.</span>
+                </div>
+                <div class="premium-badge">PREMIUM</div>
+              </div>
+
+              <div class="premium-presets">
+                <button type="button" class="premium-preset" data-premium-preset="all">
+                  <strong>🌐 All OTT Inventory</strong>
+                  <small>All movies, movie comparisons, actors and actor comparisons.</small>
+                </button>
+                <button type="button" class="premium-preset" data-premium-preset="movies">
+                  <strong>🎬 All Movie Inventory</strong>
+                  <small>Every Movie Page + every Movie Comparison.</small>
+                </button>
+                <button type="button" class="premium-preset" data-premium-preset="actors">
+                  <strong>⭐ All Actor Inventory</strong>
+                  <small>Every Actor Page + every Actor Comparison.</small>
+                </button>
+                <button type="button" class="premium-preset active" data-premium-preset="custom">
+                  <strong>🎯 Custom Targeting</strong>
+                  <small>Select individual movies and/or actors.</small>
+                </button>
+              </div>
+            </div>
+
+            <div class="target-scope-row">
+              <div class="scope-card">
+                <div class="scope-card-head">
+                  <strong>Movie Target Scope</strong>
+                  <div class="scope-switch">
+                    <button type="button" id="movieScopeSelected" class="active">Selected</button>
+                    <button type="button" id="movieScopeAll">All Movies</button>
+                  </div>
+                </div>
+                <div class="scope-status" id="movieScopeStatus">
+                  Only movies selected below will receive this campaign. In All Movies mode, selected movies are preview samples only.
+                </div>
+              </div>
+
+              <div class="scope-card">
+                <div class="scope-card-head">
+                  <strong>Actor Target Scope</strong>
+                  <div class="scope-switch">
+                    <button type="button" id="actorScopeSelected" class="active">Selected</button>
+                    <button type="button" id="actorScopeAll">All Actors</button>
+                  </div>
+                </div>
+                <div class="scope-status" id="actorScopeStatus">
+                  Only actors selected below will receive this campaign. In All Actors mode, selected actors are preview samples only.
+                </div>
+              </div>
+            </div>
+
             <div class="grid-2">
               <div class="field search-box">
-                <label>Search Movies</label><input id="movieSearch" autocomplete="off" placeholder="Type Leo, Jailer, Pushpa 2..." />
+                <label>Search Movies <span class="hint">(also usable as preview samples in All Movies mode)</span></label>
+                <input id="movieSearch" autocomplete="off" placeholder="Type Leo, Jailer, Pushpa 2..." />
                 <div class="results" id="movieResults"></div>
                 <div class="ott-search-actions">
                     <div id="movieSearchCount" class="ott-search-count">0 selected in search</div>
                     <button type="button" id="addSelectedMoviesBtn" class="ott-add-selected" disabled>+ Add Selected Movies</button>
                 </div>
+                <div id="allMoviesBadge"></div>
                 <div class="chips" id="selectedMovies"></div>
               </div>
+
               <div class="field search-box">
-                <label>Search Actors</label><input id="actorSearch" autocomplete="off" placeholder="Type Vijay, Ajith, Allu Arjun..." />
+                <label>Search Actors <span class="hint">(also usable as preview samples in All Actors mode)</span></label>
+                <input id="actorSearch" autocomplete="off" placeholder="Type Vijay, Ajith, Allu Arjun..." />
                 <div class="results" id="actorResults"></div>
                 <div class="ott-search-actions">
                     <div id="actorSearchCount" class="ott-search-count">0 selected in search</div>
                     <button type="button" id="addSelectedActorsBtn" class="ott-add-selected" disabled>+ Add Selected Actors</button>
                 </div>
+                <div id="allActorsBadge"></div>
                 <div class="chips" id="selectedActors"></div>
               </div>
             </div>
@@ -196,7 +327,7 @@
 <div class="modal" id="reportModal"><div class="modal-box"><div class="modal-head"><h3 style="margin:0">Campaign Report</h3><button class="btn btn-outline btn-small" id="closeReportBtn">Close</button></div><div class="modal-body" id="reportBody"></div></div></div>
 
 <script>
-const state={movies:[],actors:[],editing:null,campaigns:[]};
+const state={movies:[],actors:[],editing:null,campaigns:[],allMovies:false,allActors:false,preset:'custom'};
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function errorText(value,fallback='Request failed'){
@@ -225,6 +356,101 @@ function showMessage(text,type='success'){
 async function api(url,opt={}){const res=await fetch(url,{credentials:'include',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt}); if(res.status===401){location.href='/admin-login.html';throw new Error('Login required')} let data=null; try{data=await res.json()}catch{} if(!res.ok) throw new Error(errorText(data?.detail||data,`Request failed (${res.status})`)); return data}
 async function checkSession(){const d=await api('/admin/session');if(!d.logged_in){location.href='/admin-login.html';return}if(d.admin?.role!=='owner'){document.body.innerHTML='<div style="padding:40px;color:white">Owner access required.</div>';throw new Error('Owner only')}}
 function debounce(fn,ms=250){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+
+function setPlacementValues(values){
+  const wanted=new Set(values);
+  document.querySelectorAll('input[name="placement"]').forEach(x=>{
+    x.checked=wanted.has(x.value);
+  });
+}
+
+function updatePremiumPresetUI(){
+  document.querySelectorAll('[data-premium-preset]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.premiumPreset===state.preset);
+  });
+}
+
+function updateTargetScopeUI(){
+  $('movieScopeSelected').classList.toggle('active',!state.allMovies);
+  $('movieScopeAll').classList.toggle('active',state.allMovies);
+  $('actorScopeSelected').classList.toggle('active',!state.allActors);
+  $('actorScopeAll').classList.toggle('active',state.allActors);
+
+  $('movieScopeStatus').className='scope-status'+(state.allMovies?' all':'');
+  $('actorScopeStatus').className='scope-status'+(state.allActors?' all':'');
+
+  $('movieScopeStatus').textContent=state.allMovies
+    ? 'Premium coverage: campaign is eligible on ALL movies for the enabled movie placements.'
+    : 'Only movies selected below will receive this campaign.';
+
+  $('actorScopeStatus').textContent=state.allActors
+    ? 'Premium coverage: campaign is eligible on ALL actors for the enabled actor placements.'
+    : 'Only actors selected below will receive this campaign.';
+
+  $('allMoviesBadge').innerHTML=state.allMovies
+    ? '<span class="all-target-chip">🌐 ALL MOVIES TARGETED</span>'
+    : '';
+
+  $('allActorsBadge').innerHTML=state.allActors
+    ? '<span class="all-target-chip">🌐 ALL ACTORS TARGETED</span>'
+    : '';
+
+  updatePremiumPresetUI();
+}
+
+function setMovieScope(all){
+  state.allMovies=!!all;
+  if(state.preset!=='all'&&state.preset!=='movies') state.preset='custom';
+  updateTargetScopeUI();
+}
+
+function setActorScope(all){
+  state.allActors=!!all;
+  if(state.preset!=='all'&&state.preset!=='actors') state.preset='custom';
+  updateTargetScopeUI();
+}
+
+function applyPremiumPreset(name){
+  state.preset=name;
+
+  if(name==='all'){
+    state.allMovies=true;
+    state.allActors=true;
+    setPlacementValues(['movie_page','movie_compare','actor_page','actor_compare']);
+  }else if(name==='movies'){
+    state.allMovies=true;
+    state.allActors=false;
+    setPlacementValues(['movie_page','movie_compare']);
+  }else if(name==='actors'){
+    state.allMovies=false;
+    state.allActors=true;
+    setPlacementValues(['actor_page','actor_compare']);
+  }else{
+    state.allMovies=false;
+    state.allActors=false;
+  }
+
+  updateTargetScopeUI();
+}
+
+$('movieScopeSelected').onclick=()=>setMovieScope(false);
+$('movieScopeAll').onclick=()=>setMovieScope(true);
+$('actorScopeSelected').onclick=()=>setActorScope(false);
+$('actorScopeAll').onclick=()=>setActorScope(true);
+
+document.querySelectorAll('[data-premium-preset]').forEach(btn=>{
+  btn.addEventListener('click',()=>applyPremiumPreset(btn.dataset.premiumPreset));
+});
+
+document.querySelectorAll('input[name="placement"]').forEach(x=>{
+  x.addEventListener('change',()=>{
+    if(state.preset!=='custom'){
+      state.preset='custom';
+      updatePremiumPresetUI();
+    }
+  });
+});
+
 function renderLogo(){const url=$('logoUrl').value.trim();$('logoPreview').innerHTML=url?`<img src="${esc(url)}" onerror="this.parentNode.textContent='Logo could not load'">`:'No logo selected'}
 $('logoUrl').addEventListener('input',renderLogo);
 $('uploadLogoBtn').onclick=()=>$('logoFile').click();
@@ -479,7 +705,26 @@ $('addSelectedActorsBtn').addEventListener('click',()=>{
   updateActorSearchCount();
 });
 function placements(){return [...document.querySelectorAll('input[name="placement"]:checked')].map(x=>x.value)}
-function payload(isDraft,isActive){return{platform_name:$('platformName').value.trim(),campaign_name:$('campaignName').value.trim(),logo_url:$('logoUrl').value.trim()||null,sponsored_text:$('sponsoredText').value.trim(),cta_text:$('ctaText').value.trim()||'Watch Now',target_url:$('targetUrl').value.trim(),fixed_fee:Number($('fixedFee').value||0),cpc_rate:Number($('cpcRate').value||0),cpa_rate:Number($('cpaRate').value||0),start_date:$('startDate').value,start_time:$('startTime').value||null,end_date:$('endDate').value,end_time:$('endTime').value||null,is_draft:isDraft,is_active:isActive,movie_ids:state.movies.map(x=>x.id),actor_ids:state.actors.map(x=>x.id),placements:placements()}}
+function payload(isDraft,isActive){return{
+  platform_name:$('platformName').value.trim(),
+  campaign_name:$('campaignName').value.trim(),
+  logo_url:$('logoUrl').value.trim()||null,
+  sponsored_text:$('sponsoredText').value.trim(),
+  cta_text:$('ctaText').value.trim()||'Watch Now',
+  target_url:$('targetUrl').value.trim(),
+  fixed_fee:Number($('fixedFee').value||0),
+  cpc_rate:Number($('cpcRate').value||0),
+  cpa_rate:Number($('cpaRate').value||0),
+  start_date:$('startDate').value,
+  start_time:$('startTime').value||null,
+  end_date:$('endDate').value,
+  end_time:$('endTime').value||null,
+  is_draft:isDraft,
+  is_active:isActive,
+  movie_ids:state.allMovies?[]:state.movies.map(x=>x.id),
+  actor_ids:state.allActors?[]:state.actors.map(x=>x.id),
+  placements:placements()
+}}
 function validate(p){
   const missing=[];
   if(!p.platform_name) missing.push('OTT Platform');
@@ -507,12 +752,12 @@ function validate(p){
     throw new Error('Select at least one placement.');
   }
 
-  if(p.placements.some(x=>x.startsWith('movie_')) && !p.movie_ids.length){
-    throw new Error('Select at least one movie for Movie Page / Movie Comparison placement.');
+  if(p.placements.some(x=>x.startsWith('movie_')) && !state.allMovies && !p.movie_ids.length){
+    throw new Error('Select at least one movie or choose All Movies.');
   }
 
-  if(p.placements.some(x=>x.startsWith('actor_')) && !p.actor_ids.length){
-    throw new Error('Select at least one actor for Actor Page / Actor Comparison placement.');
+  if(p.placements.some(x=>x.startsWith('actor_')) && !state.allActors && !p.actor_ids.length){
+    throw new Error('Select at least one actor or choose All Actors.');
   }
 }
 async function save(isDraft,isActive){
@@ -566,12 +811,12 @@ async function save(isDraft,isActive){
   }
 }
 $('saveDraftBtn').onclick=()=>save(true,false);$('publishBtn').onclick=()=>save(false,true);
-function resetForm(){state.editing=null;state.movies=[];state.actors=[];$('campaignForm').reset();$('campaignId').value='';$('ctaText').value='Watch Now';$('fixedFee').value=0;$('cpcRate').value=0;$('cpaRate').value=0;$('formTitle').textContent='Create OTT Campaign';$('editingLabel').textContent='NEW';$('editingLabel').className='status-pill draft';$('previewArea').innerHTML='';renderLogo();renderSelected();setDefaultDates()}
+function resetForm(){state.editing=null;state.movies=[];state.actors=[];state.allMovies=false;state.allActors=false;state.preset='custom';$('campaignForm').reset();$('campaignId').value='';$('ctaText').value='Watch Now';$('fixedFee').value=0;$('cpcRate').value=0;$('cpaRate').value=0;$('formTitle').textContent='Create OTT Campaign';$('editingLabel').textContent='NEW';$('editingLabel').className='status-pill draft';$('previewArea').innerHTML='';renderLogo();renderSelected();updateTargetScopeUI();setDefaultDates()}
 $('resetBtn').onclick=resetForm;$('newCampaignBtn').onclick=()=>{resetForm();window.scrollTo({top:0,behavior:'smooth'})};
 function setDefaultDates(){const now=new Date();const d=new Date(now);const end=new Date(now);end.setDate(end.getDate()+30);const fmt=x=>x.toISOString().slice(0,10);$('startDate').value=fmt(d);$('endDate').value=fmt(end)}
 async function loadCampaigns(){try{const d=await api('/admin/ott-sponsorships');state.campaigns=d.campaigns||[];renderCampaigns()}catch(e){$('campaignList').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function statusClass(s){return ['active','scheduled','paused','ended','draft'].includes(s)?s:'draft'}
-function renderCampaigns(){if(!state.campaigns.length){$('campaignList').innerHTML='<div class="empty">No OTT campaigns yet.</div>';return}$('campaignList').innerHTML=state.campaigns.map(c=>`<div class="campaign"><div class="campaign-top"><div><div class="campaign-name">${esc(c.campaign_name)}</div><div class="campaign-platform">${esc(c.platform_name)}</div></div><span class="status-pill ${statusClass(c.status)}">${esc(c.status)}</span></div><div class="campaign-meta"><div class="metric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div><div class="metric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div><div class="metric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div><div class="metric"><span>Movies</span><strong>${c.movie_ids?.length||0}</strong></div><div class="metric"><span>Actors</span><strong>${c.actor_ids?.length||0}</strong></div><div class="metric"><span>Revenue*</span><strong>${money(c.estimated_total_revenue)}</strong></div></div><div class="campaign-actions"><button class="btn btn-primary btn-small" data-edit="${c.id}">Edit</button><button class="btn btn-outline btn-small" data-report="${c.id}">Report</button><button class="btn btn-danger btn-small" data-delete="${c.id}">Delete</button></div></div>`).join('')}
+function renderCampaigns(){if(!state.campaigns.length){$('campaignList').innerHTML='<div class="empty">No OTT campaigns yet.</div>';return}$('campaignList').innerHTML=state.campaigns.map(c=>`<div class="campaign"><div class="campaign-top"><div><div class="campaign-name">${esc(c.campaign_name)}</div><div class="campaign-platform">${esc(c.platform_name)}</div></div><span class="status-pill ${statusClass(c.status)}">${esc(c.status)}</span></div><div class="campaign-meta"><div class="metric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div><div class="metric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div><div class="metric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div><div class="metric"><span>Movies</span><strong>${(c.placements||[]).some(x=>x.startsWith('movie_')) && !(c.movie_ids||[]).length?'ALL':(c.movie_ids?.length||0)}</strong></div><div class="metric"><span>Actors</span><strong>${(c.placements||[]).some(x=>x.startsWith('actor_')) && !(c.actor_ids||[]).length?'ALL':(c.actor_ids?.length||0)}</strong></div><div class="metric"><span>Revenue*</span><strong>${money(c.estimated_total_revenue)}</strong></div></div><div class="campaign-actions"><button class="btn btn-primary btn-small" data-edit="${c.id}">Edit</button><button class="btn btn-outline btn-small" data-report="${c.id}">Report</button><button class="btn btn-danger btn-small" data-delete="${c.id}">Delete</button></div></div>`).join('')}
 $('campaignList').onclick=async e=>{const edit=e.target.dataset.edit,report=e.target.dataset.report,del=e.target.dataset.delete;if(edit)await editCampaign(edit);if(report)await showReport(report);if(del&&confirm('Delete this OTT sponsorship campaign?')){try{await api('/admin/ott-sponsorships/'+del,{method:'DELETE'});showMessage('Campaign deleted.');if($('campaignId').value==del)resetForm();loadCampaigns()}catch(er){showMessage(er.message,'error')}}};
 async function fetchMovieById(id){try{const d=await api('/movies/'+id);return{id,title:d.title||d.movie?.title||`Movie #${id}`,release_date:d.release_date||d.movie?.release_date,poster:d.poster||d.movie?.poster}}catch(e){return{id,title:`Movie #${id}`}}}
 async function fetchActorById(id){try{const d=await api('/actors/'+id);return{id,name:d.name||d.actor?.name||`Actor #${id}`,photo:d.photo||d.actor?.photo,profession:d.profession||d.actor?.profession}}catch(e){return{id,name:`Actor #${id}`}}}
@@ -599,6 +844,13 @@ async function editCampaign(id){
     document.querySelectorAll('input[name="placement"]').forEach(
       x=>x.checked=(c.placements||[]).includes(x.value)
     );
+
+    const hasMoviePlacement=(c.placements||[]).some(x=>x.startsWith('movie_'));
+    const hasActorPlacement=(c.placements||[]).some(x=>x.startsWith('actor_'));
+
+    state.allMovies=hasMoviePlacement && !(c.movie_ids||[]).length;
+    state.allActors=hasActorPlacement && !(c.actor_ids||[]).length;
+    state.preset='custom';
 
     state.movies=(c.movie_ids||[]).map(id=>({id,title:`Movie #${id}`}));
     state.actors=(c.actor_ids||[]).map(id=>({id,name:`Actor #${id}`}));
@@ -640,6 +892,7 @@ async function editCampaign(id){
     );
 
     renderSelected();
+    updateTargetScopeUI();
     renderLogo();
     $('formTitle').textContent='Edit OTT Campaign';
     $('editingLabel').textContent=(c.status||'draft').toUpperCase();
@@ -715,7 +968,7 @@ $('previewBtn').onclick=()=>{
 async function showReport(id){try{const d=await api(`/admin/ott-sponsorships/${id}/report`);const c=d.campaign;const rows=d.placement_performance||[];$('reportBody').innerHTML=`<div class="report-grid"><div class="bigmetric"><span>Impressions</span><strong>${Number(c.impressions||0).toLocaleString()}</strong></div><div class="bigmetric"><span>Clicks</span><strong>${Number(c.clicks||0).toLocaleString()}</strong></div><div class="bigmetric"><span>CTR</span><strong>${Number(c.ctr||0).toFixed(2)}%</strong></div><div class="bigmetric"><span>Conversions</span><strong>${Number(c.conversions||0).toLocaleString()}</strong></div></div><div class="report-grid" style="margin-top:12px"><div class="bigmetric"><span>Fixed Fee</span><strong>${money(c.fixed_fee)}</strong></div><div class="bigmetric"><span>CPC Revenue</span><strong>${money(c.estimated_cpc_revenue)}</strong></div><div class="bigmetric"><span>CPA Revenue</span><strong>${money(c.estimated_cpa_revenue)}</strong></div><div class="bigmetric"><span>Estimated Total</span><strong>${money(c.estimated_total_revenue)}</strong></div></div><h4 style="margin-top:22px">Placement Performance</h4>${rows.length?rows.map(r=>`<div class="campaign" style="margin-bottom:8px"><strong>${esc(r.placement.replace('_',' '))}</strong><div class="campaign-meta"><div class="metric"><span>Impressions</span><strong>${r.impressions}</strong></div><div class="metric"><span>Clicks</span><strong>${r.clicks}</strong></div><div class="metric"><span>CTR</span><strong>${Number(r.ctr||0).toFixed(2)}%</strong></div></div></div>`).join(''):'<div class="empty">No events recorded yet.</div>'}<div class="hint">* Estimated total = fixed fee + click rate × clicks + CPA rate × manually/partner-reported conversions.</div>`;$('reportModal').classList.add('show')}catch(e){showMessage(e.message,'error')}}
 $('closeReportBtn').onclick=()=>$('reportModal').classList.remove('show');$('reportModal').onclick=e=>{if(e.target===$('reportModal'))$('reportModal').classList.remove('show')};$('refreshBtn').onclick=loadCampaigns;
 $('logoutBtn').onclick=async()=>{try{await api('/admin/logout',{method:'POST'});}catch{}location.href='/admin-login.html'};
-(async()=>{try{await checkSession();setDefaultDates();renderSelected();await loadCampaigns()}catch(e){console.error(e)}})();
+(async()=>{try{await checkSession();setDefaultDates();renderSelected();updateTargetScopeUI();await loadCampaigns()}catch(e){console.error(e)}})();
 </script>
 </body>
 </html>

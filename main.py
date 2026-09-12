@@ -12978,11 +12978,9 @@ def admin_create_ott_sponsorship(data: OTTSponsorshipCreateData, request: Reques
     if not placements:
         raise HTTPException(status_code=400, detail="Select at least one OTT placement")
 
-    if ({"movie_page", "movie_compare"} & set(placements)) and not movie_ids:
-        raise HTTPException(status_code=400, detail="Select at least one movie for movie placements")
-
-    if ({"actor_page", "actor_compare"} & set(placements)) and not actor_ids:
-        raise HTTPException(status_code=400, detail="Select at least one actor for actor placements")
+    # Empty target lists intentionally mean ALL targets for the enabled family:
+    # [] + movie placement(s) => all movies
+    # [] + actor placement(s) => all actors
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -13054,10 +13052,8 @@ def admin_update_ott_sponsorship(sponsorship_id: int, data: OTTSponsorshipUpdate
 
     if not final_placements:
         raise HTTPException(status_code=400, detail="Select at least one OTT placement")
-    if ({"movie_page", "movie_compare"} & set(final_placements)) and not final_movie_ids:
-        raise HTTPException(status_code=400, detail="Select at least one movie for movie placements")
-    if ({"actor_page", "actor_compare"} & set(final_placements)) and not final_actor_ids:
-        raise HTTPException(status_code=400, detail="Select at least one actor for actor placements")
+    # Empty target lists are valid premium coverage:
+    # no movie rows = all movies; no actor rows = all actors.
 
     fields = []
     values = []
@@ -13162,13 +13158,13 @@ def admin_preview_ott_sponsorship(
     if placement in {"movie_page", "movie_compare"}:
         if not movie_id:
             raise HTTPException(status_code=400, detail="movie_id is required")
-        if int(movie_id) not in campaign["movie_ids"]:
+        if campaign["movie_ids"] and int(movie_id) not in campaign["movie_ids"]:
             raise HTTPException(status_code=400, detail="Selected movie is not targeted by this campaign")
 
     if placement in {"actor_page", "actor_compare"}:
         if not actor_id:
             raise HTTPException(status_code=400, detail="actor_id is required")
-        if int(actor_id) not in campaign["actor_ids"]:
+        if campaign["actor_ids"] and int(actor_id) not in campaign["actor_ids"]:
             raise HTTPException(status_code=400, detail="Selected actor is not targeted by this campaign")
 
     return {
@@ -13179,6 +13175,15 @@ def admin_preview_ott_sponsorship(
 
 
 def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
+    """
+    OTT targeting rules:
+    - placement must match
+    - selected target rows = precise targeting
+    - zero movie target rows = ALL movies for movie placements
+    - zero actor target rows = ALL actors for actor placements
+    - when both a precise campaign and an all-inventory campaign match,
+      precise targeting wins first; newest campaign wins within the same tier
+    """
     if placement not in OTT_PLACEMENTS:
         return None
 
@@ -13197,27 +13202,72 @@ def _find_active_ott_sponsorship(placement: str, movie_id=None, actor_id=None):
                 "(s.end_date + COALESCE(s.end_time, TIME '23:59:59.999999')) >= %s",
             ]
             params = [placement, now_ist_naive, now_ist_naive]
+            specificity_order = "0"
 
             if placement in {"movie_page", "movie_compare"}:
                 if not movie_id:
                     return None
-                joins.append("JOIN ott_sponsorship_movies sm ON sm.sponsorship_id = s.id")
-                where.append("sm.movie_id = %s")
+
+                where.append("""
+                    (
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM ott_sponsorship_movies sm_any
+                            WHERE sm_any.sponsorship_id = s.id
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM ott_sponsorship_movies sm_match
+                            WHERE sm_match.sponsorship_id = s.id
+                              AND sm_match.movie_id = %s
+                        )
+                    )
+                """)
                 params.append(int(movie_id))
 
-            if placement in {"actor_page", "actor_compare"}:
+                specificity_order = """
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM ott_sponsorship_movies sm_specific
+                        WHERE sm_specific.sponsorship_id = s.id
+                    ) THEN 1 ELSE 0 END
+                """
+
+            elif placement in {"actor_page", "actor_compare"}:
                 if not actor_id:
                     return None
-                joins.append("JOIN ott_sponsorship_actors sa ON sa.sponsorship_id = s.id")
-                where.append("sa.actor_id = %s")
+
+                where.append("""
+                    (
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM ott_sponsorship_actors sa_any
+                            WHERE sa_any.sponsorship_id = s.id
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM ott_sponsorship_actors sa_match
+                            WHERE sa_match.sponsorship_id = s.id
+                              AND sa_match.actor_id = %s
+                        )
+                    )
+                """)
                 params.append(int(actor_id))
 
+                specificity_order = """
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM ott_sponsorship_actors sa_specific
+                        WHERE sa_specific.sponsorship_id = s.id
+                    ) THEN 1 ELSE 0 END
+                """
+
             cur.execute(f"""
-                SELECT DISTINCT s.id
+                SELECT s.id
                 FROM ott_sponsorships s
                 {' '.join(joins)}
                 WHERE {' AND '.join(where)}
-                ORDER BY s.id DESC
+                ORDER BY {specificity_order} DESC, s.id DESC
                 LIMIT 1
             """, tuple(params))
             row = cur.fetchone()
@@ -13327,8 +13377,7 @@ def track_ott_click(
     return Response(status_code=307, headers={"Location": target_url})
 
 
-@app.get("/admin/ott-sponsorships/{sponsorship_id}/report", dependencies=[Depends(require_owner)])
-def admin_ott_campaign_report(sponsorship_id: int):
+def _get_ott_campaign_report_data(sponsorship_id: int):
     campaign = _get_ott_campaign(sponsorship_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="OTT sponsorship not found")
@@ -13365,6 +13414,230 @@ def admin_ott_campaign_report(sponsorship_id: int):
         "campaign": campaign,
         "placement_performance": placement_performance,
     }
+
+
+@app.get("/admin/ott-sponsorships/{sponsorship_id}/report", dependencies=[Depends(require_owner)])
+def admin_ott_campaign_report(sponsorship_id: int):
+    return _get_ott_campaign_report_data(sponsorship_id)
+
+
+def _safe_report_filename(value: str) -> str:
+    value = re.sub(r"[^A-Za-z0-9._-]+", "-", str(value or "campaign")).strip("-")
+    return value or "campaign"
+
+
+def _build_ott_report_pdf(report: dict) -> bytes:
+    c = report["campaign"]
+    rows = report.get("placement_performance") or []
+
+    lines = [
+        "BOXOFFICEX - OTT SPONSORSHIP CAMPAIGN REPORT",
+        "",
+        f"Campaign ID: {c.get('id')}",
+        f"Campaign: {c.get('campaign_name') or '-'}",
+        f"OTT Platform: {c.get('platform_name') or '-'}",
+        f"Status: {str(c.get('status') or '-').upper()}",
+        f"Campaign period: {c.get('start_date') or '-'} to {c.get('end_date') or '-'}",
+        f"Placements: {', '.join(c.get('placements') or []) or '-'}",
+        "",
+        "TARGETING",
+        f"Movies: {'ALL' if any(str(x).startswith('movie_') for x in (c.get('placements') or [])) and not (c.get('movie_ids') or []) else len(c.get('movie_ids') or [])}",
+        f"Actors: {'ALL' if any(str(x).startswith('actor_') for x in (c.get('placements') or [])) and not (c.get('actor_ids') or []) else len(c.get('actor_ids') or [])}",
+        "",
+        "CAMPAIGN PERFORMANCE",
+        f"Impressions: {int(c.get('impressions') or 0):,}",
+        f"Clicks: {int(c.get('clicks') or 0):,}",
+        f"CTR: {float(c.get('ctr') or 0):.2f}%",
+        f"Conversions: {int(c.get('conversions') or 0):,}",
+        "",
+        "COMMERCIAL SUMMARY",
+        f"Fixed fee: INR {float(c.get('fixed_fee') or 0):,.2f}",
+        f"CPC rate: INR {float(c.get('cpc_rate') or 0):,.2f}",
+        f"CPA rate: INR {float(c.get('cpa_rate') or 0):,.2f}",
+        f"Estimated CPC revenue: INR {float(c.get('estimated_cpc_revenue') or 0):,.2f}",
+        f"Estimated CPA revenue: INR {float(c.get('estimated_cpa_revenue') or 0):,.2f}",
+        f"Estimated total revenue: INR {float(c.get('estimated_total_revenue') or 0):,.2f}",
+        "",
+        "PLACEMENT PERFORMANCE",
+    ]
+
+    if rows:
+        for r in rows:
+            lines.append(
+                f"{str(r.get('placement') or '').replace('_', ' ').title()}: "
+                f"{int(r.get('impressions') or 0):,} impressions | "
+                f"{int(r.get('clicks') or 0):,} clicks | "
+                f"{float(r.get('ctr') or 0):.2f}% CTR | "
+                f"{int(r.get('conversions') or 0):,} conversions"
+            )
+    else:
+        lines.append("No placement events recorded yet.")
+
+    lines += [
+        "",
+        "Generated by BoxOfficeX OTT Contextual Sponsorship System.",
+        "Estimated revenue is based on configured fixed fee, CPC and CPA values.",
+    ]
+
+    wrapped = []
+    for line in lines:
+        wrapped.extend(textwrap.wrap(str(line), width=88) or [""])
+
+    # Multi-page minimal PDF using built-in Helvetica.
+    pages = []
+    page_lines = []
+    for line in wrapped:
+        if len(page_lines) >= 39:
+            pages.append(page_lines)
+            page_lines = []
+        page_lines.append(line)
+    if page_lines or not pages:
+        pages.append(page_lines)
+
+    objects = []
+    # 1 Catalog, 2 Pages placeholder
+    objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
+    objects.append(b"")  # fill after page object numbers known
+
+    page_obj_nums = []
+    content_obj_nums = []
+    next_obj = 3
+
+    for page_index, lines_for_page in enumerate(pages):
+        page_obj_nums.append(next_obj)
+        content_obj_nums.append(next_obj + 1)
+        next_obj += 2
+
+        content = ["BT", "/F1 15 Tf", "45 805 Td"]
+        for i, line in enumerate(lines_for_page):
+            if i == 0:
+                content.append(f"({_pdf_escape(line)}) Tj")
+                content.append("/F1 9.5 Tf")
+            else:
+                content.append("0 -18 Td")
+                content.append(f"({_pdf_escape(line)}) Tj")
+        content.append("ET")
+        stream = "\n".join(content).encode("latin-1", "replace")
+
+        page_obj = (
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+            f"/Resources << /Font << /F1 {next_obj + (len(pages)-page_index-1)*0} 0 R >> >> "
+            f"/Contents {content_obj_nums[-1]} 0 R >>"
+        )
+        # Font object number is fixed after all page/content objects:
+        font_obj_num = 3 + len(pages) * 2
+        page_obj = (
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+            f"/Resources << /Font << /F1 {font_obj_num} 0 R >> >> "
+            f"/Contents {content_obj_nums[-1]} 0 R >>"
+        ).encode()
+
+        objects.append(page_obj)
+        objects.append(b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream")
+
+    font_obj_num = 3 + len(pages) * 2
+    objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+
+    kids = " ".join(f"{n} 0 R" for n in page_obj_nums)
+    objects[1] = f"<< /Type /Pages /Kids [{kids}] /Count {len(page_obj_nums)} >>".encode()
+
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for i, obj in enumerate(objects, 1):
+        offsets.append(len(pdf))
+        pdf.extend(f"{i} 0 obj\n".encode())
+        pdf.extend(obj)
+        pdf.extend(b"\nendobj\n")
+
+    xref = len(pdf)
+    pdf.extend(f"xref\n0 {len(objects)+1}\n".encode())
+    pdf.extend(b"0000000000 65535 f \n")
+    for off in offsets[1:]:
+        pdf.extend(f"{off:010d} 00000 n \n".encode())
+    pdf.extend(
+        f"trailer\n<< /Size {len(objects)+1} /Root 1 0 R >>\n"
+        f"startxref\n{xref}\n%%EOF".encode()
+    )
+    return bytes(pdf)
+
+
+@app.get("/admin/ott-sponsorships/{sponsorship_id}/report.pdf", dependencies=[Depends(require_owner)])
+def admin_download_ott_campaign_report_pdf(sponsorship_id: int):
+    report = _get_ott_campaign_report_data(sponsorship_id)
+    campaign = report["campaign"]
+    pdf = _build_ott_report_pdf(report)
+    filename = (
+        "BoxOfficeX-OTT-Report-"
+        + _safe_report_filename(campaign.get("campaign_name"))
+        + f"-{sponsorship_id}.pdf"
+    )
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@app.get("/admin/ott-sponsorships/{sponsorship_id}/report.csv", dependencies=[Depends(require_owner)])
+def admin_download_ott_campaign_report_csv(sponsorship_id: int):
+    report = _get_ott_campaign_report_data(sponsorship_id)
+    c = report["campaign"]
+    rows = report.get("placement_performance") or []
+
+    def csv_cell(value):
+        value = "" if value is None else str(value)
+        return '"' + value.replace('"', '""') + '"'
+
+    csv_rows = [
+        ["BOXOFFICEX OTT SPONSORSHIP CAMPAIGN REPORT"],
+        [],
+        ["Campaign ID", c.get("id")],
+        ["Campaign Name", c.get("campaign_name")],
+        ["OTT Platform", c.get("platform_name")],
+        ["Status", c.get("status")],
+        ["Start Date", c.get("start_date")],
+        ["End Date", c.get("end_date")],
+        ["Placements", ", ".join(c.get("placements") or [])],
+        [],
+        ["Impressions", c.get("impressions", 0)],
+        ["Clicks", c.get("clicks", 0)],
+        ["CTR %", c.get("ctr", 0)],
+        ["Conversions", c.get("conversions", 0)],
+        [],
+        ["Fixed Fee INR", c.get("fixed_fee", 0)],
+        ["CPC Rate INR", c.get("cpc_rate", 0)],
+        ["CPA Rate INR", c.get("cpa_rate", 0)],
+        ["Estimated CPC Revenue INR", c.get("estimated_cpc_revenue", 0)],
+        ["Estimated CPA Revenue INR", c.get("estimated_cpa_revenue", 0)],
+        ["Estimated Total Revenue INR", c.get("estimated_total_revenue", 0)],
+        [],
+        ["Placement", "Impressions", "Clicks", "CTR %", "Conversions"],
+    ]
+
+    for r in rows:
+        csv_rows.append([
+            r.get("placement"),
+            r.get("impressions", 0),
+            r.get("clicks", 0),
+            r.get("ctr", 0),
+            r.get("conversions", 0),
+        ])
+
+    content = "\ufeff" + "\r\n".join(
+        ",".join(csv_cell(v) for v in row)
+        for row in csv_rows
+    )
+
+    filename = (
+        "BoxOfficeX-OTT-Report-"
+        + _safe_report_filename(c.get("campaign_name"))
+        + f"-{sponsorship_id}.csv"
+    )
+    return Response(
+        content=content.encode("utf-8"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
 
 
 @app.get("/admin-ott-sponsorships.html", dependencies=[Depends(require_owner)])
