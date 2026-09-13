@@ -4025,24 +4025,22 @@ html,body{scroll-padding-top:0!important}
 function boxOfficeXPlaceholderHash(value){let result=2166136261;for(const character of String(value||"BOXOFFICEX").toLowerCase()){result^=character.charCodeAt(0);result=Math.imul(result,16777619)}return result>>>0}
 function boxOfficeXPlaceholderXml(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;")}
 function boxOfficeXPlaceholderColors(title){const h=boxOfficeXPlaceholderHash(title),a=h%360,b=(a+38+((h>>>8)%83))%360,c=(b+42+((h>>>20)%67))%360,d=(a+145+((h>>>17)%71))%360;return [`hsl(${a} ${55+((h>>>4)%26)}% 13%)`,`hsl(${b} ${58+((h>>>12)%24)}% 34%)`,`hsl(${c} 66% 20%)`,`hsl(${d} 88% 68%)`]}
-function boxOfficeXMovieLines(title){const value=String(title||"MOVIE").trim().toUpperCase();if(value.length<=14)return[value];const lines=[];let current="";value.split(/\s+/).forEach(word=>{const next=current?current+" "+word:word;if(next.length>15&&current){lines.push(current);current=word}else current=next});if(current)lines.push(current);if(lines.length>3){const result=lines.slice(0,3);result[2]=result[2].slice(0,13)+"…";return result}return lines}
+function boxOfficeXMovieLines(title){const value=String(title||"MOVIE").trim().toUpperCase();if(value.length<=14)return[value];const lines=[];let current="";value.split(/\s+/).forEach(word=>{const next=current?current+" "+word:word;if(next.length>10&&current){lines.push(current);current=word}else current=next});if(current)lines.push(current);if(lines.length>3){const result=lines.slice(0,3);result[2]=result[2].slice(0,13)+"…";return result}return lines}
 function boxOfficeXMoviePlaceholder(movie){
     const item=typeof movie==="object"&&movie?movie:{title:movie};
     const title=String(item.title||"Movie").trim()||"Movie";
     const source=title.toUpperCase();
     const parts=[];
     source.split(/\s+/).filter(Boolean).forEach(word=>{
-        if(word.length<=14)parts.push(word);
-        else for(let i=0;i<word.length;i+=14)parts.push(word.slice(i,i+14));
+        if(word.length<=10)parts.push(word);
+        else for(let i=0;i<word.length;i+=10)parts.push(word.slice(i,i+10));
     });
     const lines=[];let current="";
     parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>15&&current){lines.push(current);current=part}else current=next});
     if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
-    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,12)+"…"}
-    const longest=Math.max(...lines.map(line=>line.length));
-    const preferred=lines.length===1?(longest<=5?140:longest<=8?112:longest<=11?88:72):lines.length===2?(longest<=10?82:68):lines.length===3?58:46;
-    const size=Math.max(34,Math.min(preferred,Math.floor(450/Math.max(1,longest*.66))));
-    const gap=size+10,start=390-((lines.length-1)*gap/2);
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,9)+"…"}
+    const size=64;
+    const gap=76,start=390-((lines.length-1)*gap/2);
     const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${boxOfficeXPlaceholderXml(line)}</text>`).join("");
     const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
     const language=String(item.language||"").trim().toUpperCase();

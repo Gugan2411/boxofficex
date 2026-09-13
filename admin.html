@@ -922,6 +922,24 @@ tr:hover td {
             gap: 16px;
         }
 
+        #linkActorSelect[multiple] {
+            min-height: 210px;
+            padding: 8px;
+        }
+
+        #linkActorSelect[multiple] option {
+            padding: 10px 9px;
+            margin: 2px 0;
+            border-radius: 7px;
+        }
+
+        .actor-link-selected-count {
+            margin-top: 8px;
+            color: #7de2bb;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
         .linked-movies-section {
             margin-top: 28px;
             padding-top: 24px;
@@ -3033,7 +3051,7 @@ body.admin-owner-ready .admin-feature-card.owner-only{
         <div class="actor-movie-link-grid">
 
             <div class="form-group actor-movie-search-box">
-                <label>👤 Search & Select Actor</label>
+                <label>👥 Search & Select Multiple Actors</label>
 
                 <input
                     type="search"
@@ -3045,14 +3063,17 @@ body.admin-owner-ready .admin-feature-card.owner-only{
 
                 <select
                     id="linkActorSelect"
-                    onchange="loadLinkedMovies()"
+                    multiple
+                    size="8"
+                    onmousedown="toggleActorLinkOption(event)"
+                    onchange="syncActorLinkSelection()"
                 >
-                    <option value="">Search actor above...</option>
                 </select>
 
                 <div class="actor-movie-search-help">
-                    Type a name to show matching actors only.
+                    Search, then click each actor to select or remove them. Selected actors stay saved while you search another name.
                 </div>
+                <div class="actor-link-selected-count" id="linkActorSelectedCount">0 actors selected</div>
             </div>
 
             <div class="form-group actor-movie-search-box">
@@ -3079,8 +3100,7 @@ body.admin-owner-ready .admin-feature-card.owner-only{
 
         <div class="actor-movie-selection-note">
             💡 <strong>Multiple actors for one movie:</strong>
-            select the movie once, link the first actor, then search and select the next actor.
-            The movie stays selected so you can keep adding cast members quickly.
+            select one movie, choose all required actors, then link the complete cast in one action.
         </div>
 
         <button
@@ -3088,7 +3108,7 @@ body.admin-owner-ready .admin-feature-card.owner-only{
             class="save-button"
             onclick="linkActorMovie()"
         >
-            🔗 LINK ACTOR TO MOVIE
+            🔗 LINK SELECTED ACTORS TO MOVIE
         </button>
 
         <div
@@ -4006,8 +4026,8 @@ body.admin-owner-ready .admin-feature-card.owner-only{
             <div class="form-group">
                 <label for="commentModerationStatus">Filter Comments</label>
                 <select id="commentModerationStatus" onchange="loadCommentModeration()">
-                    <option value="reported">Reported First</option>
                     <option value="all">All Comments</option>
+                    <option value="reported">Reported Only</option>
                     <option value="visible">Visible</option>
                     <option value="hidden">Hidden</option>
                 </select>
@@ -7206,23 +7226,46 @@ window.addEventListener(
 
 let actorMovieLinkActors = [];
 let actorMovieLinkMovies = [];
+let selectedActorMovieLinkIds = new Set();
 
 function populateActorLinkSelect(list, keepValue) {
     const select = document.getElementById("linkActorSelect");
     if (!select) return;
 
-    select.innerHTML = '<option value="">Select Actor</option>';
+    select.innerHTML = "";
 
-    list.slice(0, 25).forEach(actor => {
+    list.slice(0, 50).forEach(actor => {
         const option = document.createElement("option");
         option.value = actor.id;
         option.textContent = actor.name || ("Actor #" + actor.id);
+        option.selected = selectedActorMovieLinkIds.has(String(actor.id));
         select.appendChild(option);
     });
+}
 
-    if (keepValue && [...select.options].some(o => o.value === String(keepValue))) {
-        select.value = String(keepValue);
-    }
+function updateActorLinkSelectedCount() {
+    const count = selectedActorMovieLinkIds.size;
+    const element = document.getElementById("linkActorSelectedCount");
+    if (element) element.textContent = `${count} actor${count === 1 ? "" : "s"} selected`;
+}
+
+function syncActorLinkSelection() {
+    const select = document.getElementById("linkActorSelect");
+    if (!select) return;
+    selectedActorMovieLinkIds = new Set(
+        [...select.selectedOptions].map(option => String(option.value))
+    );
+    updateActorLinkSelectedCount();
+    loadLinkedMovies();
+}
+
+function toggleActorLinkOption(event) {
+    const option = event.target.closest("option");
+    if (!option) return;
+    event.preventDefault();
+    option.selected = !option.selected;
+    syncActorLinkSelection();
+    event.currentTarget.focus();
 }
 
 function populateMovieLinkSelect(list, keepValue) {
@@ -7250,23 +7293,27 @@ function filterActorLinkOptions() {
     const select = document.getElementById("linkActorSelect");
     if (!search || !select) return;
 
-    const current = select.value;
     const query = search.value.trim().toLowerCase();
-
-    if (!query) {
-        select.innerHTML = '<option value="">Search actor above...</option>';
-        return;
-    }
 
     const matches = actorMovieLinkActors.filter(actor =>
         String(actor.name || "").toLowerCase().includes(query)
     );
 
-    populateActorLinkSelect(matches, current);
+    const selected = actorMovieLinkActors.filter(actor =>
+        selectedActorMovieLinkIds.has(String(actor.id))
+    );
+    const combined = [...selected];
+    matches.forEach(actor => {
+        if (!selectedActorMovieLinkIds.has(String(actor.id))) combined.push(actor);
+    });
+
+    populateActorLinkSelect(combined);
 
     if (!matches.length) {
-        select.innerHTML = '<option value="">No matching actors</option>';
+        if (!selected.length) select.innerHTML = '<option disabled>No matching actors</option>';
     }
+
+    updateActorLinkSelectedCount();
 }
 
 function filterMovieLinkOptions() {
@@ -7328,7 +7375,8 @@ function loadActorMovieLinkSelectors() {
         actorMovieLinkActors = Array.isArray(actorData.actors) ? actorData.actors : [];
         actorMovieLinkMovies = Array.isArray(movieData.movies) ? movieData.movies : [];
 
-        actorSelect.innerHTML = '<option value="">Search actor above...</option>';
+        populateActorLinkSelect(actorMovieLinkActors);
+        updateActorLinkSelectedCount();
         movieSelect.innerHTML = '<option value="">Search movie above...</option>';
     })
     .catch(error => {
@@ -7353,92 +7401,73 @@ function showActorMovieLinkMessage(text, type) {
 }
 
 
-function linkActorMovie() {
+async function linkActorMovie() {
 
-    const actorId =
-        document.getElementById("linkActorSelect").value;
+    const actorIds = [...selectedActorMovieLinkIds];
+    const movieId = document.getElementById("linkMovieSelect").value;
 
-    const movieId =
-        document.getElementById("linkMovieSelect").value;
-
-    if (!actorId || !movieId) {
-
+    if (!actorIds.length || !movieId) {
         showActorMovieLinkMessage(
-            "Please select both an actor and a movie.",
+            "Please select one movie and at least one actor.",
             "error"
         );
-
         return;
     }
 
-    const button =
-        document.getElementById("linkActorMovieButton");
-
+    const button = document.getElementById("linkActorMovieButton");
     button.disabled = true;
-    button.textContent = "⏳ LINKING...";
+    button.textContent = `⏳ LINKING ${actorIds.length} ACTOR${actorIds.length === 1 ? "" : "S"}...`;
 
-    fetch(
-        API_BASE + "/admin/actor-movies",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                actor_id: Number(actorId),
-                movie_id: Number(movieId)
-            })
-        }
-    )
-    .then(async response => {
+    let linkedCount = 0;
+    const failedActors = [];
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data.detail ||
-                "Unable to link actor and movie"
+    for (const actorId of actorIds) {
+        try {
+            const response = await fetch(
+                API_BASE + "/admin/actor-movies",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        actor_id: Number(actorId),
+                        movie_id: Number(movieId)
+                    })
+                }
             );
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Unable to link actor");
+            linkedCount += 1;
+        } catch (error) {
+            const actor = actorMovieLinkActors.find(item => String(item.id) === String(actorId));
+            failedActors.push(actor?.name || ("Actor #" + actorId));
+            console.error("Actor/movie link error:", error);
         }
+    }
 
-        return data;
-    })
-    .then(() => {
-
+    if (linkedCount) {
         showActorMovieLinkMessage(
-            "✅ Actor linked successfully. The movie is still selected — search another actor to add more cast members.",
-            "success"
+            failedActors.length
+                ? `⚠️ Linked ${linkedCount} actor(s). Failed: ${failedActors.join(", ")}.`
+                : `✅ ${linkedCount} actor${linkedCount === 1 ? "" : "s"} linked to the selected movie successfully.`,
+            failedActors.length ? "error" : "success"
         );
-
-        const actorSearch = document.getElementById("linkActorSearch");
-        const actorSelect = document.getElementById("linkActorSelect");
-
-        if (actorSearch) actorSearch.value = "";
-        if (actorSelect) {
-            actorSelect.innerHTML = '<option value="">Search actor above...</option>';
-            actorSelect.value = "";
-        }
-
-        const linkedMovies = document.getElementById("linkedMoviesList");
-        if (linkedMovies) {
-            linkedMovies.innerHTML =
-                '<div class="table-loading">Actor linked. Search another actor to add to the same selected movie.</div>';
-        }
-    })
-    .catch(error => {
-
-        console.error("Actor/movie link error:", error);
-
+    } else {
         showActorMovieLinkMessage(
-            "❌ " + error.message,
+            "❌ Unable to link the selected actors. Please try again.",
             "error"
         );
-    })
-    .finally(() => {
+    }
 
-        button.disabled = false;
-        button.textContent = "🔗 LINK ACTOR TO MOVIE";
-    });
+    if (!failedActors.length) {
+        selectedActorMovieLinkIds.clear();
+        const actorSearch = document.getElementById("linkActorSearch");
+        if (actorSearch) actorSearch.value = "";
+        populateActorLinkSelect(actorMovieLinkActors);
+        updateActorLinkSelectedCount();
+    }
+
+    button.disabled = false;
+    button.textContent = "🔗 LINK SELECTED ACTORS TO MOVIE";
 }
 
 
@@ -9377,6 +9406,7 @@ async function loadCurrentAdminIdentity() {
             });
             loadOwnerTeam();
             loadOwnerActivity();
+            loadCommentModeration();
         } else {
             document.querySelectorAll(".owner-only").forEach(el => {
                 el.style.display = "none";
@@ -9946,7 +9976,7 @@ async function modRequest(url, options={}){
 async function loadCommentModeration(){
     const list=document.getElementById("commentModerationList");
     if(!list) return;
-    const status=document.getElementById("commentModerationStatus")?.value || "reported";
+    const status=document.getElementById("commentModerationStatus")?.value || "all";
     list.innerHTML='<div class="table-loading">Loading comments...</div>';
     try{
         const data=await modRequest(`/admin/comments?status=${encodeURIComponent(status)}&limit=100`);
@@ -9986,11 +10016,6 @@ async function deleteAdminComment(commentId){
     try{await modRequest(`/admin/comments/${commentId}`,{method:"DELETE"});await loadCommentModeration();}
     catch(error){alert(error.message);}
 }
-document.addEventListener("DOMContentLoaded",()=>{
-    setTimeout(()=>{
-        if(window.BOXOFFICEX_CURRENT_ADMIN?.role === "owner") loadCommentModeration();
-    },700);
-});
 </script>
 
 

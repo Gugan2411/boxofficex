@@ -2585,17 +2585,15 @@ html,body{scroll-padding-top:0!important}
     const source=title.toUpperCase();
     const parts=[];
     source.split(/\s+/).filter(Boolean).forEach(word=>{
-        if(word.length<=14)parts.push(word);
-        else for(let i=0;i<word.length;i+=14)parts.push(word.slice(i,i+14));
+        if(word.length<=10)parts.push(word);
+        else for(let i=0;i<word.length;i+=10)parts.push(word.slice(i,i+10));
     });
     const lines=[];let current="";
-    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>15&&current){lines.push(current);current=part}else current=next});
+    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>10&&current){lines.push(current);current=part}else current=next});
     if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
-    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,12)+"…"}
-    const longest=Math.max(...lines.map(line=>line.length));
-    const preferred=lines.length===1?(longest<=5?140:longest<=8?112:longest<=11?88:72):lines.length===2?(longest<=10?82:68):lines.length===3?58:46;
-    const size=Math.max(34,Math.min(preferred,Math.floor(450/Math.max(1,longest*.66))));
-    const gap=size+10,start=390-((lines.length-1)*gap/2);
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,9)+"…"}
+    const size=64;
+    const gap=76,start=390-((lines.length-1)*gap/2);
     const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${moviePlaceholderXml(line)}</text>`).join("");
     const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
     const language=String(item.language||"").trim().toUpperCase();

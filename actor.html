@@ -3487,18 +3487,18 @@ html,body{scroll-padding-top:0!important}
   background:linear-gradient(135deg,#4d8dff,#795cff)!important;
   box-shadow:0 8px 22px rgba(77,141,255,.24)!important;font-size:18px!important;
 }
-.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
+.logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:var(--gold,#d97706)!important}
 .bx-standard-footer{
   width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
   background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
 }
 .bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
 .bx-unified-brand{
-  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:#111827!important;
   font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
   letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
 }
-.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
+.bx-unified-brand strong{color:#111827!important;font:inherit!important}
 .bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
 .bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
 .bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
@@ -4086,8 +4086,8 @@ function performGlobalSearch(query) {
 
         result.onclick = function () {
             window.location.href =
-                "actor.html?id=" +
-                encodeURIComponent(actor.id);
+                actor.url ||
+                ("/actor.html?id=" + encodeURIComponent(actor.id));
         };
 
         globalSearchResults.appendChild(result);
@@ -4110,8 +4110,8 @@ function performGlobalSearch(query) {
 
         result.onclick = function () {
             window.location.href =
-                "movie.html?id=" +
-                encodeURIComponent(movie.id);
+                movie.url ||
+                ("/movie.html?id=" + encodeURIComponent(movie.id));
         };
 
         globalSearchResults.appendChild(result);
@@ -4202,9 +4202,21 @@ function updateActorSEO(actor) {
         " movies, box office collections, highest-grossing films, " +
         "career statistics, blockbusters, hits and verdicts on BoxOfficeX.";
 
+    const canonicalPath =
+        actor.url ||
+        (
+            currentActorSlug
+                ? "/actor/" + encodeURIComponent(currentActorSlug)
+                : "/actor.html?id=" + encodeURIComponent(actorId)
+        );
+
     const canonical =
-        "https://boxoffice-x.com/actor.html?id=" +
-        encodeURIComponent(actorId);
+        "https://boxoffice-x.com" +
+        canonicalPath;
+
+    if (actor.slug) {
+        currentActorSlug = actor.slug;
+    }
 
     const photoUrl = "https://boxoffice-x.com/images/boxofficex-share.jpg";
 
@@ -4540,10 +4552,58 @@ const params =
     );
 
 
-const actorId =
+let actorId =
     params.get("id");
 
+const actorSlugMatch =
+    window.location.pathname.match(
+        /^\/actor\/([^/?#]+)\/?$/i
+    );
+
+let currentActorSlug =
+    actorSlugMatch
+        ? decodeURIComponent(actorSlugMatch[1])
+        : null;
+
 let highestGrossingMovieId = null;
+
+
+async function resolveActorIdentity() {
+
+    if (actorId) {
+        return true;
+    }
+
+    if (!currentActorSlug) {
+        return false;
+    }
+
+    const response = await fetch(
+        window.location.origin +
+        "/seo/resolve/actor/" +
+        encodeURIComponent(currentActorSlug),
+        { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            "Actor slug resolver returned HTTP " +
+            response.status
+        );
+    }
+
+    const resolved = await response.json();
+
+    if (!resolved || !resolved.id) {
+        throw new Error("Actor slug could not be resolved.");
+    }
+
+    actorId = String(resolved.id);
+    currentActorSlug =
+        resolved.slug || currentActorSlug;
+
+    return true;
+}
 
 
 console.log(
@@ -4553,10 +4613,21 @@ console.log(
 
 
 // ==========================================
-// CHECK ACTOR ID
+// CHECK ACTOR ID / RESOLVE CLEAN SLUG
 // ==========================================
 
-if (!actorId) {
+async function initializeActorPage() {
+
+    try {
+        await resolveActorIdentity();
+    } catch (error) {
+        console.error("Actor identity error:", error);
+        document.getElementById("actorName").innerText = "Actor not found";
+        document.getElementById("profession").innerText = "Invalid actor URL";
+        return;
+    }
+
+    if (!actorId) {
 
     document.getElementById(
         "actorName"
@@ -4791,8 +4862,8 @@ else {
                 function () {
 
                     window.location.href =
-                        "movie.html?id=" +
-                        movie.id;
+                        movie.url ||
+                        ("/movie.html?id=" + encodeURIComponent(movie.id));
 
                 };
 
@@ -5152,8 +5223,8 @@ else {
                     function () {
 
                         window.location.href =
-                            "movie.html?id=" +
-                            movie.id;
+                            movie.url ||
+                            ("/movie.html?id=" + encodeURIComponent(movie.id));
 
                     };
 
@@ -5183,6 +5254,10 @@ else {
     });
 
 }
+
+}
+
+initializeActorPage();
 
 
 
@@ -5437,8 +5512,8 @@ function openVerdict(verdict) {
                 function () {
 
                     window.location.href =
-                        "movie.html?id=" +
-                        movie.id;
+                        movie.url ||
+                        ("/movie.html?id=" + encodeURIComponent(movie.id));
 
                 };
 

@@ -11,6 +11,7 @@ import cloudinary
 import cloudinary.uploader
 from urllib.parse import urlparse
 import textwrap
+import unicodedata
 
 # ============================================================
 # CLOUDINARY CONFIGURATION
@@ -829,6 +830,12 @@ def initialize_advertisement_system():
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS is_draft BOOLEAN NOT NULL DEFAULT FALSE")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS start_time TIME")
             cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS end_time TIME")
+            # V2.1 package + exclusive inventory fields used by Master Inventory.
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS ad_package TEXT NOT NULL DEFAULT 'standard'")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS sponsored_package TEXT NOT NULL DEFAULT 'rotation'")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS exclusive_inventory BOOLEAN NOT NULL DEFAULT FALSE")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS suggested_rate NUMERIC(12,2) NOT NULL DEFAULT 0")
+            cur.execute("ALTER TABLE advertisements ADD COLUMN IF NOT EXISTS final_rate NUMERIC(12,2) NOT NULL DEFAULT 0")
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS advertisement_invoices (
@@ -2052,6 +2059,120 @@ def get_connection():
 
 
 # ============================================================
+# PUBLIC SEO SLUG HELPERS
+# Stage 1: no database schema migration required.
+# Numeric IDs remain the internal API / relationship keys.
+# ============================================================
+
+def seo_slugify(value: str) -> str:
+    """Create a stable, URL-safe lowercase slug from public text."""
+    value = unicodedata.normalize("NFKD", str(value or ""))
+    value = value.encode("ascii", "ignore").decode("ascii")
+    value = value.lower().strip()
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    return value.strip("-") or "item"
+
+
+def movie_seo_slug(movie_id: int, title: str, release_date=None) -> str:
+    """Movie slug: title + release year, with ID fallback when year is missing."""
+    base = seo_slugify(title)
+    year = None
+
+    if release_date:
+        try:
+            year = getattr(release_date, "year", None) or int(str(release_date)[:4])
+        except (TypeError, ValueError):
+            year = None
+
+    return f"{base}-{year}" if year else f"{base}-{movie_id}"
+
+
+def actor_seo_slug(actor_id: int, name: str) -> str:
+    """Actor slug: normalized public name. ID is only a fallback for blank names."""
+    base = seo_slugify(name)
+    return base if base != "item" else f"actor-{actor_id}"
+
+
+def _movie_slug_rows():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, release_date
+                FROM movies
+                ORDER BY id
+            """)
+            return cur.fetchall()
+
+
+def _actor_slug_rows():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, name
+                FROM actors
+                ORDER BY id
+            """)
+            return cur.fetchall()
+
+
+def _unique_movie_slug_map(rows=None):
+    """Return {movie_id: unique_slug}; duplicate title/year slugs receive -ID."""
+    rows = rows if rows is not None else _movie_slug_rows()
+    bases = {row[0]: movie_seo_slug(row[0], row[1], row[2]) for row in rows}
+    counts = {}
+    for base in bases.values():
+        counts[base] = counts.get(base, 0) + 1
+    return {
+        movie_id: (base if counts[base] == 1 else f"{base}-{movie_id}")
+        for movie_id, base in bases.items()
+    }
+
+
+def _unique_actor_slug_map(rows=None):
+    """Return {actor_id: unique_slug}; duplicate names receive -ID."""
+    rows = rows if rows is not None else _actor_slug_rows()
+    bases = {row[0]: actor_seo_slug(row[0], row[1]) for row in rows}
+    counts = {}
+    for base in bases.values():
+        counts[base] = counts.get(base, 0) + 1
+    return {
+        actor_id: (base if counts[base] == 1 else f"{base}-{actor_id}")
+        for actor_id, base in bases.items()
+    }
+
+
+def resolve_movie_slug(movie_slug: str):
+    requested = (movie_slug or "").strip().lower()
+    rows = _movie_slug_rows()
+    slug_map = _unique_movie_slug_map(rows)
+    for movie_id, title, release_date in rows:
+        if slug_map.get(movie_id) == requested:
+            return {
+                "id": movie_id,
+                "title": title,
+                "release_date": release_date,
+                "slug": requested,
+                "url": f"/movie/{requested}",
+            }
+    return None
+
+
+def resolve_actor_slug(actor_slug: str):
+    requested = (actor_slug or "").strip().lower()
+    rows = _actor_slug_rows()
+    slug_map = _unique_actor_slug_map(rows)
+    for actor_id, name in rows:
+        if slug_map.get(actor_id) == requested:
+            return {
+                "id": actor_id,
+                "name": name,
+                "slug": requested,
+                "url": f"/actor/{requested}",
+            }
+    return None
+
+
+# ============================================================
 # HOME
 # ============================================================
 
@@ -2253,9 +2374,109 @@ def actor_page():
     return FileResponse(BASE_DIR / "actor.html")
 
 
+# Clean public SEO routes.
+# movie.html / actor.html remain available during the migration stage.
+@app.get("/movie/{movie_slug}", include_in_schema=False)
+def movie_slug_page(movie_slug: str):
+    movie = resolve_movie_slug(movie_slug)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return FileResponse(BASE_DIR / "movie.html")
+
+
+@app.get("/actor/{actor_slug}", include_in_schema=False)
+def actor_slug_page(actor_slug: str):
+    actor = resolve_actor_slug(actor_slug)
+    if not actor:
+        raise HTTPException(status_code=404, detail="Actor not found")
+    return FileResponse(BASE_DIR / "actor.html")
+
+
+@app.get("/seo/resolve/movie/{movie_slug}", include_in_schema=False)
+def seo_resolve_movie(movie_slug: str):
+    movie = resolve_movie_slug(movie_slug)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return movie
+
+
+@app.get("/seo/resolve/actor/{actor_slug}", include_in_schema=False)
+def seo_resolve_actor(actor_slug: str):
+    actor = resolve_actor_slug(actor_slug)
+    if not actor:
+        raise HTTPException(status_code=404, detail="Actor not found")
+    return actor
+
+
 @app.get("/actors.html")
 def actors_page():
     return FileResponse(BASE_DIR / "actors.html")
+
+
+def resolve_actor_comparison_slug(comparison_slug: str):
+    slug_map = _unique_actor_slug_map()
+    by_slug = {slug: actor_id for actor_id, slug in slug_map.items()}
+
+    # Match only the canonical ID-ordered pair. This guarantees that
+    # A-vs-B and B-vs-A have one public SEO URL.
+    actor_ids = sorted(slug_map.keys())
+
+    for index, first_id in enumerate(actor_ids):
+        first_slug = slug_map[first_id]
+        prefix = first_slug + "-vs-"
+
+        if not comparison_slug.startswith(prefix):
+            continue
+
+        second_slug = comparison_slug[len(prefix):]
+        second_id = by_slug.get(second_slug)
+
+        if second_id is None or second_id == first_id:
+            continue
+
+        canonical_ids = sorted([first_id, second_id])
+
+        if canonical_ids != [first_id, second_id]:
+            continue
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, name FROM actors WHERE id IN (%s, %s)",
+                    (first_id, second_id)
+                )
+                rows = cur.fetchall()
+
+        actors = {row[0]: {"id": row[0], "name": row[1], "slug": slug_map[row[0]]}
+                  for row in rows}
+
+        if len(actors) != 2:
+            return None
+
+        return {
+            "actor1": actors[first_id],
+            "actor2": actors[second_id],
+            "canonical_slug": comparison_slug,
+            "canonical_url": f"/compare/{comparison_slug}"
+        }
+
+    return None
+
+
+@app.get("/compare/{comparison_slug}", include_in_schema=False)
+def actor_comparison_slug_page(comparison_slug: str):
+    comparison = resolve_actor_comparison_slug(comparison_slug)
+    if not comparison:
+        raise HTTPException(status_code=404, detail="Actor comparison not found")
+    return FileResponse(BASE_DIR / "compare.html")
+
+
+@app.get("/seo/resolve/actor-comparison/{comparison_slug}", include_in_schema=False)
+def seo_resolve_actor_comparison(comparison_slug: str):
+    comparison = resolve_actor_comparison_slug(comparison_slug)
+    if not comparison:
+        raise HTTPException(status_code=404, detail="Actor comparison not found")
+    return comparison
 
 
 @app.get("/compare-select.html")
@@ -2377,9 +2598,12 @@ def get_movies():
             rows = cur.fetchall()
 
     movies = []
+    slug_map = _unique_movie_slug_map(
+        [(row[0], row[1], row[2]) for row in rows]
+    )
 
     for row in rows:
-
+        slug = slug_map[row[0]]
         movies.append({
             "id": row[0],
             "title": row[1],
@@ -2388,10 +2612,63 @@ def get_movies():
             "worldwide_collection_crore": float(row[4]) if row[4] is not None else None,
             "verdict": row[5],
             "director": row[6],
-            "poster": safe_movie_poster(row[7])
+            "poster": safe_movie_poster(row[7]),
+            "slug": slug,
+            "url": f"/movie/{slug}"
         })
 
     return {
+        "movies": movies
+    }
+
+
+@app.get("/movies/comparison-eligible")
+def comparison_eligible_movies():
+    """
+    Movies eligible for public Movie Comparison.
+    BoxOfficeX V1 rule: worldwide collection must be at least ₹25 crore.
+    Day-wise collection is intentionally NOT required.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id,
+                    title,
+                    release_date,
+                    language,
+                    worldwide_collection_crore,
+                    verdict,
+                    director,
+                    poster
+                FROM movies
+                WHERE worldwide_collection_crore IS NOT NULL
+                  AND worldwide_collection_crore >= 25
+                ORDER BY worldwide_collection_crore DESC, id ASC
+            """)
+            rows = cur.fetchall()
+
+    all_slug_rows = _movie_slug_rows()
+    slug_map = _unique_movie_slug_map(all_slug_rows)
+
+    movies = []
+    for row in rows:
+        slug = slug_map.get(row[0], movie_seo_slug(row[0], row[1], row[2]))
+        movies.append({
+            "id": row[0],
+            "title": row[1],
+            "release_date": str(row[2]) if row[2] else None,
+            "language": row[3],
+            "worldwide_collection_crore": float(row[4]),
+            "verdict": row[5],
+            "director": row[6],
+            "poster": safe_movie_poster(row[7]),
+            "slug": slug,
+            "url": f"/movie/{slug}"
+        })
+
+    return {
+        "minimum_worldwide_crore": 25,
         "movies": movies
     }
 
@@ -3258,6 +3535,12 @@ def get_movie(movie_id: int):
             "error": "Movie not found"
         }
 
+    slug_map = _unique_movie_slug_map()
+    slug = slug_map.get(
+        row[0],
+        movie_seo_slug(row[0], row[1], row[2])
+    )
+
     return {
         "id": row[0],
         "title": row[1],
@@ -3270,7 +3553,9 @@ def get_movie(movie_id: int):
         "worldwide_collection_crore": float(row[8]) if row[8] is not None else None,
         "verdict": row[9],
         "director": row[10],
-        "poster": safe_movie_poster(row[11])
+        "poster": safe_movie_poster(row[11]),
+        "slug": slug,
+        "url": f"/movie/{slug}"
     }
 
 
@@ -3500,15 +3785,20 @@ def get_actors():
             rows = cur.fetchall()
 
     actors = []
+    slug_map = _unique_actor_slug_map(
+        [(row[0], row[1]) for row in rows]
+    )
 
     for row in rows:
-
+        slug = slug_map[row[0]]
         actors.append({
             "id": row[0],
             "name": row[1],
             "profession": row[2],
             "photo": safe_actor_photo(row[3]),
-            "bio": row[4]
+            "bio": row[4],
+            "slug": slug,
+            "url": f"/actor/{slug}"
         })
 
     return {
@@ -3836,12 +4126,22 @@ def get_actor(actor_id: int):
             "error": "Actor not found"
         }
 
+    slug_map = _unique_actor_slug_map(
+        [(row[0], row[1])]
+    )
+    slug = slug_map.get(
+        row[0],
+        actor_seo_slug(row[0], row[1])
+    )
+
     return {
         "id": row[0],
         "name": row[1],
         "profession": row[2],
         "photo": safe_actor_photo(row[3]),
-        "bio": row[4]
+        "bio": row[4],
+        "slug": slug,
+        "url": f"/actor/{slug}"
     }
 
 
@@ -4121,6 +4421,12 @@ def compare_actors(
     actor2_id: int
 ):
 
+    if actor1_id == actor2_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Choose two different actors"
+        )
+
     with get_connection() as conn:
         with conn.cursor() as cur:
 
@@ -4190,6 +4496,18 @@ def compare_actors(
 
             rows = cur.fetchall()
 
+    if len(rows) != 2:
+        found_ids = {row[0] for row in rows}
+        missing = [
+            actor_id
+            for actor_id in (actor1_id, actor2_id)
+            if actor_id not in found_ids
+        ]
+        raise HTTPException(
+            status_code=404,
+            detail=f"Actor not found: {', '.join(map(str, missing))}"
+        )
+
     result = []
 
     for row in rows:
@@ -4204,11 +4522,33 @@ def compare_actors(
             "blockbusters": row[6],
             "hits": row[7],
             "average_movies": row[8],
-            "flops": row[9]
+            "flops": row[9],
+            "slug": _unique_actor_slug_map().get(
+                row[0],
+                actor_seo_slug(row[0], row[1])
+            )
         })
 
+    canonical_actor_ids = sorted([actor1_id, actor2_id])
+    actors_by_id = {actor["id"]: actor for actor in result}
+    actor_slug_map = _unique_actor_slug_map()
+
+    canonical_slug = None
+    canonical_url = None
+    if all(actor_id in actors_by_id for actor_id in canonical_actor_ids):
+        first_slug = actor_slug_map.get(canonical_actor_ids[0])
+        second_slug = actor_slug_map.get(canonical_actor_ids[1])
+        if first_slug and second_slug:
+            canonical_slug = f"{first_slug}-vs-{second_slug}"
+            canonical_url = f"/compare/{canonical_slug}"
+
     return {
-        "comparison": result
+        "comparison": result,
+        "seo": {
+            "canonical_ids": canonical_actor_ids,
+            "canonical_slug": canonical_slug,
+            "canonical_url": canonical_url
+        }
     }
 
 
@@ -8656,8 +8996,27 @@ def compare_movies(movie1_id: int, movie2_id: int):
             detail=f"Movie not found: {', '.join(map(str, missing))}"
         )
 
+    # SEO / quality protection: only meaningful box-office movies are
+    # allowed into the public comparison system. Day-wise data is not required.
+    ineligible = [
+        {"id": row[0], "title": row[1], "worldwide_collection_crore": row[10]}
+        for row in rows
+        if row[10] is None or float(row[10]) < 25
+    ]
+
+    if ineligible:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Movie comparison requires at least ₹25 crore worldwide collection for both movies",
+                "minimum_worldwide_crore": 25,
+                "ineligible_movies": ineligible,
+            }
+        )
+
     def movie_to_dict(row):
 
+        slug_map = _unique_movie_slug_map()
         return {
             "id": row[0],
             "title": row[1],
@@ -8671,7 +9030,11 @@ def compare_movies(movie1_id: int, movie2_id: int):
             "overseas_collection_crore": float(row[9]) if row[9] is not None else None,
             "worldwide_collection_crore": float(row[10]) if row[10] is not None else None,
             "verdict": row[11],
-            "poster": safe_movie_poster(row[12])
+            "poster": safe_movie_poster(row[12]),
+            "slug": slug_map.get(
+                row[0],
+                movie_seo_slug(row[0], row[1], row[2])
+            )
         }
 
     movies_by_id = {
@@ -8737,12 +9100,181 @@ def compare_movies(movie1_id: int, movie2_id: int):
         )
     }
 
+    canonical_movie_ids = sorted([movie1_id, movie2_id])
+    canonical_movie_1 = movies_by_id[canonical_movie_ids[0]]
+    canonical_movie_2 = movies_by_id[canonical_movie_ids[1]]
+
+    slug_map = _unique_movie_slug_map()
+    slug1 = slug_map.get(
+        canonical_movie_1["id"],
+        movie_seo_slug(
+            canonical_movie_1["id"],
+            canonical_movie_1["title"],
+            canonical_movie_1["release_date"]
+        )
+    )
+    slug2 = slug_map.get(
+        canonical_movie_2["id"],
+        movie_seo_slug(
+            canonical_movie_2["id"],
+            canonical_movie_2["title"],
+            canonical_movie_2["release_date"]
+        )
+    )
+    canonical_slug = f"{slug1}-vs-{slug2}"
+
     return {
         "movie1": movie1,
         "movie2": movie2,
-        "winners": winners
+        "winners": winners,
+        "seo": {
+            "canonical_ids": canonical_movie_ids,
+            "canonical_slug": canonical_slug,
+            "canonical_url": f"/compare/movies/{canonical_slug}",
+            "minimum_worldwide_crore": 25
+        }
     }
 
+
+
+def resolve_movie_comparison_slug(comparison_slug: str):
+    slug_map = _unique_movie_slug_map()
+    by_slug = {slug: movie_id for movie_id, slug in slug_map.items()}
+
+    # Movie slugs themselves can contain "-vs-", so test known canonical
+    # movie slugs rather than splitting the string blindly.
+    movie_ids = sorted(slug_map.keys())
+
+    for first_id in movie_ids:
+        first_slug = slug_map[first_id]
+        prefix = first_slug + "-vs-"
+
+        if not comparison_slug.startswith(prefix):
+            continue
+
+        second_slug = comparison_slug[len(prefix):]
+        second_id = by_slug.get(second_slug)
+
+        if second_id is None or second_id == first_id:
+            continue
+
+        canonical_ids = sorted([first_id, second_id])
+
+        # Only one pair order is indexable.
+        if canonical_ids != [first_id, second_id]:
+            continue
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, title, release_date, worldwide_collection_crore
+                    FROM movies
+                    WHERE id IN (%s, %s)
+                """, (first_id, second_id))
+                rows = cur.fetchall()
+
+        movies = {
+            row[0]: {
+                "id": row[0],
+                "title": row[1],
+                "release_date": str(row[2]) if row[2] else None,
+                "worldwide_collection_crore":
+                    float(row[3]) if row[3] is not None else None,
+                "slug": slug_map[row[0]]
+            }
+            for row in rows
+        }
+
+        if len(movies) != 2:
+            return None
+
+        # Public comparison pages require reliable worldwide gross data
+        # and the ₹25 crore minimum.
+        for movie_id in canonical_ids:
+            gross = movies[movie_id]["worldwide_collection_crore"]
+            if gross is None or gross < 25:
+                return None
+
+        return {
+            "movie1": movies[first_id],
+            "movie2": movies[second_id],
+            "canonical_slug": comparison_slug,
+            "canonical_url": f"/compare/movies/{comparison_slug}"
+        }
+
+    return None
+
+
+@app.get("/compare/movies/{comparison_slug}", include_in_schema=False)
+def movie_comparison_slug_page(comparison_slug: str):
+    comparison = resolve_movie_comparison_slug(comparison_slug)
+    if not comparison:
+        raise HTTPException(status_code=404, detail="Movie comparison not found")
+    return FileResponse(BASE_DIR / "movie-compare.html")
+
+
+@app.get("/seo/resolve/movie-comparison/{comparison_slug}", include_in_schema=False)
+def seo_resolve_movie_comparison(comparison_slug: str):
+    comparison = resolve_movie_comparison_slug(comparison_slug)
+    if not comparison:
+        raise HTTPException(status_code=404, detail="Movie comparison not found")
+    return comparison
+
+
+@app.get("/seo/resolve/movie-comparison-by-ids/{movie1_id}/{movie2_id}", include_in_schema=False)
+def seo_resolve_movie_comparison_by_ids(movie1_id: int, movie2_id: int):
+    if movie1_id == movie2_id:
+        raise HTTPException(status_code=400, detail="Choose two different movies")
+
+    slug_map = _unique_movie_slug_map()
+
+    if movie1_id not in slug_map or movie2_id not in slug_map:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    canonical_ids = sorted([movie1_id, movie2_id])
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, release_date, worldwide_collection_crore
+                FROM movies
+                WHERE id IN (%s, %s)
+            """, (canonical_ids[0], canonical_ids[1]))
+            rows = cur.fetchall()
+
+    if len(rows) != 2:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    movies = {
+        row[0]: {
+            "id": row[0],
+            "title": row[1],
+            "release_date": str(row[2]) if row[2] else None,
+            "worldwide_collection_crore":
+                float(row[3]) if row[3] is not None else None,
+            "slug": slug_map[row[0]]
+        }
+        for row in rows
+    }
+
+    for movie_id in canonical_ids:
+        gross = movies[movie_id]["worldwide_collection_crore"]
+        if gross is None or gross < 25:
+            raise HTTPException(
+                status_code=404,
+                detail="Movie comparison is not eligible for public indexing"
+            )
+
+    canonical_slug = (
+        f"{slug_map[canonical_ids[0]]}-vs-{slug_map[canonical_ids[1]]}"
+    )
+
+    return {
+        "movie1": movies[canonical_ids[0]],
+        "movie2": movies[canonical_ids[1]],
+        "canonical_slug": canonical_slug,
+        "canonical_url": f"/compare/movies/{canonical_slug}"
+    }
 
 
 @app.get("/movie-compare-select.html")
@@ -10867,7 +11399,10 @@ ADVERTISEMENT_SELECT_COLUMNS = """
     target_actor_movies,
     is_draft,
     start_time,
-    end_time
+    end_time,
+    COALESCE(ad_package, 'standard'),
+    COALESCE(sponsored_package, 'rotation'),
+    COALESCE(exclusive_inventory, FALSE)
 """
 
 
@@ -11049,6 +11584,21 @@ def _validate_advertisement_values(
         raise HTTPException(status_code=400, detail="Traffic weight must be greater than 0 and at most 1000")
 
 
+
+def _normalize_ad_package(value):
+    value = (value or "standard").strip().lower()
+    if value not in {"standard", "premium", "exclusive"}:
+        raise HTTPException(status_code=400, detail="Invalid advertisement package")
+    return value
+
+
+def _normalize_sponsored_package(value):
+    value = (value or "rotation").strip().lower()
+    if value not in {"rotation", "diamond", "platinum", "gold", "silver", "bronze", "takeover"}:
+        raise HTTPException(status_code=400, detail="Invalid sponsored-link package")
+    return value
+
+
 def advertisement_status(
     is_active: bool,
     start_date_value: date,
@@ -11128,6 +11678,9 @@ def advertisement_row_to_dict(row):
         "is_draft": bool(row[39]) if len(row) > 39 else False,
         "start_time": row[40].isoformat(timespec="minutes") if len(row) > 40 and row[40] else None,
         "end_time": row[41].isoformat(timespec="minutes") if len(row) > 41 and row[41] else None,
+        "ad_package": row[42] if len(row) > 42 and row[42] else "standard",
+        "sponsored_package": row[43] if len(row) > 43 and row[43] else "rotation",
+        "exclusive_inventory": bool(row[44]) if len(row) > 44 else False,
         "pending_amount": max(0.0, round(float(row[24] or 0) - float(row[16] or 0), 2)),
         "payment_status": _payment_status(row[24], row[16], row[31]),
         "status": (
@@ -11303,7 +11856,10 @@ def admin_create_advertisement(
                     target_actor_movies,
                     is_draft,
                     start_time,
-                    end_time
+                    end_time,
+                    ad_package,
+                    sponsored_package,
+                    exclusive_inventory
                 )
                 VALUES (
                     %s, %s, %s,
@@ -11317,7 +11873,8 @@ def admin_create_advertisement(
                     %s, %s, %s,
                     %s, %s, %s,
                     %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s
                 )
                 RETURNING id
             """, (
@@ -11355,7 +11912,10 @@ def admin_create_advertisement(
                 bool(data.target_actor_movies),
                 bool(data.is_draft),
                 data.start_time,
-                data.end_time
+                data.end_time,
+                _normalize_ad_package(data.ad_package),
+                _normalize_sponsored_package(data.sponsored_package),
+                bool(data.exclusive_inventory)
             ))
 
             advertisement_id = cur.fetchone()[0]
@@ -11514,6 +12074,15 @@ def admin_update_advertisement(
                 "ad_slot",
                 "movie_ranking_industry",
                 "actor_ranking_industry",
+                "target_actor_ids",
+                "target_movie_ids",
+                "target_actor_movies",
+                "is_draft",
+                "ad_package",
+                "sponsored_package",
+                "exclusive_inventory",
+                "suggested_rate",
+                "final_rate",
             }
 
             if "placement" in update_data:
@@ -11530,6 +12099,10 @@ def admin_update_advertisement(
                     value = _normalize_target_url(value)
                 elif field in {"target_actor_ids", "target_movie_ids"}:
                     value = _normalize_id_list(value)
+                elif field == "ad_package":
+                    value = _normalize_ad_package(value)
+                elif field == "sponsored_package":
+                    value = _normalize_sponsored_package(value)
                 elif field in required_text_fields:
                     value = _clean_required_ad_text(
                         value,
@@ -12312,7 +12885,6 @@ def admin_advertisement_master_inventory(
                     COALESCE(is_draft, FALSE),
                     target_actor_ids,
                     target_movie_ids,
-                    target_actor_profile,
                     target_actor_movies,
                     COALESCE(ad_package, 'standard'),
                     COALESCE(sponsored_package, 'rotation'),
@@ -12328,7 +12900,7 @@ def admin_advertisement_master_inventory(
         "id","advertiser_name","campaign_name","ad_type","placement","page_target",
         "ad_slot","frequency","traffic_weight","start_date","end_date",
         "start_time","end_time","is_active","is_draft","target_actor_ids",
-        "target_movie_ids","target_actor_profile","target_actor_movies",
+        "target_movie_ids","target_actor_movies",
         "ad_package","sponsored_package","exclusive_inventory"
     ]
 
@@ -12358,15 +12930,22 @@ def admin_advertisement_master_inventory(
             if item.strip()
         }
 
-        if "sitewide" not in groups and placement not in groups:
+        compatible_placements = {placement}
+        compatible_placements.update(
+            AD_PLACEMENT_LEGACY_ALIASES.get(placement, set())
+        )
+        if (
+            "sitewide" not in groups
+            and not groups.intersection(compatible_placements)
+        ):
             continue
 
         actor_targets = parse_ids(ad.get("target_actor_ids"))
         if actor_targets:
             if actor_id is None or actor_id not in actor_targets:
                 continue
-            if placement == "actor_detail" and ad.get("target_actor_profile") is False:
-                continue
+            # actor_detail is selected by placement itself.
+            # actor_movies can additionally be restricted by target_actor_movies.
             if placement == "actor_movies" and ad.get("target_actor_movies") is False:
                 continue
 

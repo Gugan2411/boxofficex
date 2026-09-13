@@ -977,9 +977,15 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
 @media(max-width:700px){.compare-engagement{margin-top:20px;padding:13px 9px;border-radius:13px}.compare-engagement h2{font-size:17px}.compare-engagement-actions{gap:7px}.compare-action{min-height:43px;font-size:10px}.compare-votes{gap:5px}.compare-vote{padding:9px 4px;font-size:8px}.compare-comment-card{padding:10px}.compare-comment-text{font-size:10.5px}}
 
 
-.share-tools{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03)}
-.share-tools button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}
-.share-tools button:hover{border-color:rgba(77,141,255,.40);background:rgba(77,141,255,.10)}
+.fan-share-boost{margin-top:18px;padding:16px;border:1px solid #dbe3ef;border-radius:14px;background:linear-gradient(135deg,#f8fbff,#fffdf7);text-align:center}
+.fan-share-boost h3{margin:0;color:#111827;font-size:15px;font-weight:900}
+.fan-share-boost p{max-width:620px;margin:7px auto 13px;color:#64748b;font-size:11px;line-height:1.55}
+.share-tools{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0}
+.share-tools button{min-height:40px;display:inline-flex;align-items:center;gap:7px;border:1px solid #dbe3ef;background:#fff;color:#334155;border-radius:10px;padding:8px 11px;font-size:10px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(15,23,42,.05)}
+.share-tools button:hover{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;transform:translateY(-1px)}
+.share-tools .share-icon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;color:#fff;font-size:12px;font-weight:900}
+.share-icon.native{background:#6d5ce7}.share-icon.whatsapp{background:#22a45d}.share-icon.facebook{background:#1877f2}.share-icon.x{background:#111827}.share-icon.telegram{background:#229ed9}.share-icon.copy{background:#64748b}
+@media(max-width:700px){.fan-share-boost{padding:13px 9px}.share-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.share-tools button{justify-content:flex-start;padding:8px;font-size:9px}}
 
 
 /* =========================================================
@@ -1848,9 +1854,14 @@ font-size:9px;font-weight:800
 .bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
 .bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
 .bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
-.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
-.bx-footer-links a:hover{color:#ffbf18!important}
-.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+.bx-footer-links a,
+.bx-footer-links a:link,
+.bx-footer-links a:visited,
+.bx-footer-links .footer-advertise-link,
+.bx-footer-links .footer-advertise-link:link,
+.bx-footer-links .footer-advertise-link:visited{padding:3px 0!important;color:#475569!important;-webkit-text-fill-color:#475569!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a:hover,
+.bx-footer-links .footer-advertise-link:hover{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important}
 @media(max-width:700px){
   .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
   .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
@@ -1945,7 +1956,6 @@ font-size:9px;font-weight:800
     </div>
 
 
-<div id="heroShareTools"></div>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
 <section id="bxSponsoredLinkAd" class="bx-sponsored-link-wrap" aria-label="Sponsored links"></section>
 
@@ -2077,12 +2087,59 @@ const params =
     );
 
 
-const hero1 =
+let hero1 =
     params.get("hero1");
 
 
-const hero2 =
+let hero2 =
     params.get("hero2");
+
+
+const actorCompareSlugMatch =
+    window.location.pathname.match(
+        /^\/compare\/([^/?#]+)\/?$/i
+    );
+
+const actorCompareSlug =
+    actorCompareSlugMatch
+        ? decodeURIComponent(actorCompareSlugMatch[1])
+        : null;
+
+let actorComparisonCanonicalUrl = null;
+
+
+async function resolveActorComparisonIdentity() {
+
+    if (hero1 && hero2) {
+        return true;
+    }
+
+    if (!actorCompareSlug) {
+        return false;
+    }
+
+    const response = await fetch(
+        "/seo/resolve/actor-comparison/" +
+        encodeURIComponent(actorCompareSlug),
+        { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            "Actor comparison slug returned HTTP " +
+            response.status
+        );
+    }
+
+    const resolved = await response.json();
+
+    hero1 = resolved.actor1?.name || null;
+    hero2 = resolved.actor2?.name || null;
+    actorComparisonCanonicalUrl =
+        resolved.canonical_url || null;
+
+    return Boolean(hero1 && hero2);
+}
 
 
 
@@ -2180,7 +2237,7 @@ async function bxOttLoadActorCompare(actor1,actor2){
 // DYNAMIC COMPARISON SEO
 // ==========================================
 
-function updateComparisonSEO(actor1, actor2) {
+function updateComparisonSEO(actor1, actor2, comparisonCanonicalUrl=null) {
 
     const name1 = actor1.name;
     const name2 = actor2.name;
@@ -2194,15 +2251,28 @@ function updateComparisonSEO(actor1, actor2) {
         " by total movies, worldwide box office collections, averages, " +
         "blockbusters, hits, flops and highest-grossing films on BoxOfficeX.";
 
-    const canonicalUrl = new URL(
-        window.location.pathname,
-        window.location.origin
-    );
+    const actorIds = [Number(actor1.id), Number(actor2.id)]
+        .filter(Number.isFinite)
+        .sort((a,b)=>a-b);
 
-    canonicalUrl.searchParams.set("hero1", name1);
-    canonicalUrl.searchParams.set("hero2", name2);
+    const slugById = new Map([
+        [Number(actor1.id), actor1.slug],
+        [Number(actor2.id), actor2.slug]
+    ]);
 
-    const canonical = canonicalUrl.href;
+    const canonicalSlugs = actorIds
+        .map(id => slugById.get(id))
+        .filter(Boolean);
+
+    const canonical =
+        comparisonCanonicalUrl
+            ? "https://boxoffice-x.com" + comparisonCanonicalUrl
+            : (
+                canonicalSlugs.length === 2
+                    ? "https://boxoffice-x.com/compare/" +
+                      canonicalSlugs[0] + "-vs-" + canonicalSlugs[1]
+                    : window.location.href
+              );
 
     const image = window.location.origin + "/images/boxofficex-share.jpg";
 
@@ -2317,7 +2387,12 @@ function bxRelatedActorComparisonsHTML(actor1,actor2,actors){
     const links=pairs.map(([left,right])=>{
         const leftName=String(left?.name??"").trim();
         const rightName=String(right?.name??"").trim();
-        const href=`/compare.html?hero1=${encodeURIComponent(leftName)}&hero2=${encodeURIComponent(rightName)}`;
+        const pair=[left,right]
+            .slice()
+            .sort((x,y)=>Number(x?.id||0)-Number(y?.id||0));
+        const href=(pair[0]?.slug&&pair[1]?.slug)
+            ? `/compare/${pair[0].slug}-vs-${pair[1].slug}`
+            : `/compare.html?hero1=${encodeURIComponent(leftName)}&hero2=${encodeURIComponent(rightName)}`;
         const leftPhoto=bxRelatedComparisonEscape(bxRelatedActorPhoto(left));
         const rightPhoto=bxRelatedComparisonEscape(bxRelatedActorPhoto(right));
         return `
@@ -2349,26 +2424,11 @@ function bxRelatedActorComparisonsHTML(actor1,actor2,actors){
 
 // ==========================================
 // CHECK URL
+// Clean slug URLs do not have hero1/hero2 query parameters,
+// so resolve the slug first inside loadComparison().
 // ==========================================
 
-if (!hero1 || !hero2) {
-
-    document.getElementById(
-        "comparisonContent"
-    ).innerHTML = `
-
-        <div class="error">
-            Invalid comparison.
-        </div>
-
-    `;
-
-}
-else {
-
-    loadComparison();
-
-}
+loadComparison();
 
 
 // ==========================================
@@ -2376,6 +2436,24 @@ else {
 // ==========================================
 
 async function loadComparison() {
+    try {
+        await resolveActorComparisonIdentity();
+    } catch (error) {
+        console.error("Actor comparison identity error:", error);
+    }
+
+    if (!hero1 || !hero2) {
+        document.getElementById(
+            "comparisonContent"
+        ).innerHTML = `
+            <div class="error">
+                Invalid comparison.
+            </div>
+        `;
+        return;
+    }
+
+
 
     try {
 
@@ -2583,7 +2661,8 @@ async function loadComparison() {
 
         updateComparisonSEO(
             actor1,
-            actor2
+            actor2,
+            actorComparisonCanonicalUrl
         );
 
 
@@ -3489,8 +3568,8 @@ async function loadComparison() {
                 <h2>🎉 Fan Zone</h2>
                 <p class="compare-engagement-sub">React to ${actor1.name} vs ${actor2.name}</p>
                 <div class="compare-engagement-actions">
-                    <button type="button" class="compare-action" id="comparisonLikeBtn">❤️ Like <span id="comparisonLikeCount">0</span></button>
-                    <button type="button" class="compare-action" id="comparisonHypeBtn">🔥 Hype <span id="comparisonHypeCount">0</span></button>
+                    <button type="button" class="compare-action" id="comparisonLikeBtn">❤️ Like <span id="comparisonLikeCount">Be among the first!</span></button>
+                    <button type="button" class="compare-action" id="comparisonHypeBtn">🔥 Hype <span id="comparisonHypeCount">Be among the first!</span></button>
                 </div>
                 <div class="compare-vote-title">📊 Who wins this fan vote?</div>
                 <div class="compare-votes">
@@ -3511,6 +3590,11 @@ async function loadComparison() {
                         <div class="bx-fan-vote-segment right" id="hero2VoteBar" style="width:0%"></div>
                     </div>
                     <div class="bx-fan-vote-total" id="comparisonVoteTotal">0 total votes</div>
+                </div>
+                <div class="fan-share-boost">
+                    <h3>📣 Increase your favourite actor's votes</h3>
+                    <p>Share ${actor1.name} vs ${actor2.name} with your friends and family and invite them to vote in the BoxOfficeX Fan Zone.</p>
+                    <div id="heroFanShareTools"></div>
                 </div>
                 <div class="compare-comments">
                     <div class="compare-comments-head">
@@ -3535,6 +3619,7 @@ async function loadComparison() {
 
 
         initHeroComparisonEngagement(actor1, actor2);
+        bxInitFanShare(actor1.name, actor2.name);
 
 
     }
@@ -3892,8 +3977,13 @@ function initHeroComparisonEngagement(actor1,actor2){
     async function loadEngagement(){
         try{
             const d=await compareJSON(`${base}/engagement?visitor_id=${encodeURIComponent(visitorId)}`);
-            document.getElementById("comparisonLikeCount").textContent=d.like_count||0;
-            document.getElementById("comparisonHypeCount").textContent=d.hype_count||0;
+            const likeCount=Math.max(0,Number(d.like_count)||0);
+            const hypeCount=Math.max(0,Number(d.hype_count)||0);
+            const lowCountText=(count,isActive)=>isActive || count>=10
+                ? count.toLocaleString("en-IN")
+                : "Be among the first!";
+            document.getElementById("comparisonLikeCount").textContent=lowCountText(likeCount,!!d.liked);
+            document.getElementById("comparisonHypeCount").textContent=lowCountText(hypeCount,!!d.hyped);
             document.getElementById("comparisonLikeBtn").classList.toggle("active",!!d.liked);
             document.getElementById("comparisonHypeBtn").classList.toggle("active",!!d.hyped);
             const fv=d.fan_vote||{},c=fv.counts||{},p=fv.percentages||{};
@@ -4008,10 +4098,17 @@ document.addEventListener("DOMContentLoaded",function(){
 (function() {
     const productionUrl = "https://boxoffice-x.com/compare.html";
     const socialImage = "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const isActorComparisonResult =
+        Boolean(
+            new URLSearchParams(window.location.search).get("hero1") &&
+            new URLSearchParams(window.location.search).get("hero2")
+        ) ||
+        /^\/compare\/[^/?#]+\/?$/i.test(window.location.pathname);
+
     const canonicalTag = document.getElementById("canonicalUrl");
-    if (canonicalTag) canonicalTag.href = productionUrl;
+    if (canonicalTag && !isActorComparisonResult) canonicalTag.href = productionUrl;
     const ogUrlTag = document.getElementById("ogUrl");
-    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
+    if (ogUrlTag && !isActorComparisonResult) ogUrlTag.setAttribute("content", productionUrl);
     const ogImageTag = document.getElementById("ogImage");
     if (ogImageTag && !ogImageTag.getAttribute("content")) ogImageTag.setAttribute("content", socialImage);
     const twitterImageTag = document.getElementById("twitterImage");
@@ -4021,31 +4118,33 @@ document.addEventListener("DOMContentLoaded",function(){
 
 
 <script>
-function bxShareTools(title){
+function bxShareTools(title,message){
     const box=document.createElement("div");
     box.className="share-tools";
-    box.innerHTML='<button type="button" data-share-native>↗ Share</button><button type="button" data-share-whatsapp>WhatsApp</button><button type="button" data-share-x>𝕏</button><button type="button" data-share-facebook>Facebook</button><button type="button" data-share-copy>🔗 Copy Link</button>';
+    box.innerHTML='<button type="button" data-share-native><span class="share-icon native">↗</span>Share</button><button type="button" data-share-whatsapp><span class="share-icon whatsapp">W</span>WhatsApp</button><button type="button" data-share-facebook><span class="share-icon facebook">f</span>Facebook</button><button type="button" data-share-x><span class="share-icon x">𝕏</span>X</button><button type="button" data-share-telegram><span class="share-icon telegram">➤</span>Telegram</button><button type="button" data-share-copy><span class="share-icon copy">🔗</span><span data-copy-label>Copy Link</span></button>';
     const url=location.href;
     box.querySelector("[data-share-native]").onclick=async()=>{
-        if(navigator.share){try{await navigator.share({title,url})}catch(e){}}
+        if(navigator.share){try{await navigator.share({title,text:message,url})}catch(e){}}
         else if(navigator.clipboard){await navigator.clipboard.writeText(url)}
     };
-    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(title+" "+url),"_blank","noopener");
-    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(title)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(message+" "+url),"_blank","noopener");
     box.querySelector("[data-share-facebook]").onclick=()=>window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(message)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-telegram]").onclick=()=>window.open("https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(message),"_blank","noopener");
     box.querySelector("[data-share-copy]").onclick=async e=>{
-        try{await navigator.clipboard.writeText(url);e.currentTarget.textContent="✓ Copied"}
-        catch(_){e.currentTarget.textContent="Copy failed"}
+        const label=e.currentTarget.querySelector("[data-copy-label]");
+        try{await navigator.clipboard.writeText(url);label.textContent="Copied!";setTimeout(()=>label.textContent="Copy Link",1800)}
+        catch(_){label.textContent="Copy failed"}
     };
     return box;
 }
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
-    const el=document.getElementById("heroShareTools");
-    if(el) el.appendChild(bxShareTools(document.title.replace(" | BoxOfficeX","")));
-});
+function bxInitFanShare(actor1Name,actor2Name){
+    const el=document.getElementById("heroFanShareTools");
+    if(!el)return;
+    const title=`${actor1Name} vs ${actor2Name} Fan Vote | BoxOfficeX`;
+    const message=`${actor1Name} vs ${actor2Name} — who is your favourite actor? Vote now on BoxOfficeX!`;
+    el.replaceChildren(bxShareTools(title,message));
+}
 </script>
 
 <script>

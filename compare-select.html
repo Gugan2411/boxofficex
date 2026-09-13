@@ -1669,9 +1669,9 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
   width:100%!important;
   margin:48px 0 0!important;
   padding:0!important;
-  border-top:1px solid #dce3eb!important;
-  background:#eef2f7!important;
-  color:#64748b!important;
+  border-top:1px solid var(--bx-border,#dfe5ee)!important;
+  background:linear-gradient(180deg,#ffffff 0%,var(--bx-bg,#f5f7fb) 100%)!important;
+  color:var(--bx-muted,#667085)!important;
   text-align:center!important;
 }
 .bx-standard-footer .bx-footer-inner{
@@ -1693,7 +1693,7 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
 .bx-standard-footer .bx-footer-copy{
   max-width:760px!important;
   margin:8px auto 12px!important;
-  color:#64748b!important;
+  color:var(--bx-muted,#667085)!important;
   font-size:12px!important;
   line-height:1.55!important;
 }
@@ -1710,7 +1710,7 @@ body.bx-top-ad-visible{padding-top:var(--bx-top-sticky-space,80px)!important}
   min-height:32px!important;
   margin:0!important;
   padding:6px 2px!important;
-  color:#475569!important;
+  color:var(--bx-muted,#667085)!important;
   text-decoration:none!important;
   font-size:12px!important;
   font-weight:700!important;
@@ -2230,21 +2230,21 @@ html,body{scroll-padding-top:0!important}
 }
 .logo>span:last-child,.bx-master-mobile-logo .x,.bx-unified-x{color:#ffbf18!important}
 .bx-standard-footer{
-  width:100%!important;margin-top:36px!important;border-top:1px solid var(--border,rgba(255,255,255,.08))!important;
-  background:var(--bg,#060912)!important;color:var(--text,#fff)!important;
+  width:100%!important;margin-top:36px!important;border-top:1px solid var(--bx-border,#dfe5ee)!important;
+  background:linear-gradient(180deg,#ffffff 0%,var(--bx-bg,#f5f7fb) 100%)!important;color:var(--bx-text,#111827)!important;
 }
 .bx-footer-inner{max-width:1180px!important;margin:0 auto!important;padding:31px 18px calc(32px + env(safe-area-inset-bottom))!important;text-align:center!important}
 .bx-unified-brand{
-  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--text,#fff)!important;
+  display:inline-flex!important;align-items:center!important;gap:9px!important;color:var(--bx-text,#111827)!important;
   font-family:Arial,Helvetica,sans-serif!important;font-size:18px!important;font-weight:900!important;
   letter-spacing:.55px!important;text-decoration:none!important;white-space:nowrap!important;
 }
-.bx-unified-brand strong{color:var(--text,#fff)!important;font:inherit!important}
-.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--muted,#8d99ae)!important;font-size:11px!important;line-height:1.65!important}
+.bx-unified-brand strong{color:var(--bx-text,#111827)!important;font:inherit!important}
+.bx-footer-copy{max-width:690px!important;margin:11px auto 0!important;color:var(--bx-muted,#667085)!important;font-size:11px!important;line-height:1.65!important}
 .bx-footer-links{display:flex!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 19px!important;margin:15px 0 0!important}
-.bx-footer-links a{padding:3px 0!important;color:var(--muted,#b7c2d6)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.bx-footer-links a{padding:3px 0!important;color:var(--bx-muted,#667085)!important;background:none!important;border:0!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
 .bx-footer-links a:hover{color:#ffbf18!important}
-.bx-footer-links .footer-advertise-link{color:#ffbf18!important}
+.bx-footer-links .footer-advertise-link{color:var(--bx-muted,#667085)!important}
 @media(max-width:700px){
   .logo,.bx-master-mobile-logo{gap:7px!important;font-size:17px!important}
   .logo .logo-icon,.bx-master-mobile-logo .icon{width:31px!important;height:31px!important;flex-basis:31px!important;border-radius:9px!important;font-size:16px!important}
@@ -2912,15 +2912,70 @@ compareButton.addEventListener(
 
         }
 
-        window.location.href =
-            "compare.html?hero1=" +
-            encodeURIComponent(
-                selectedActor1.name
-            ) +
-            "&hero2=" +
-            encodeURIComponent(
-                selectedActor2.name
+        const actorIds = [
+            Number(selectedActor1.id),
+            Number(selectedActor2.id)
+        ];
+
+        if (
+            actorIds.length !== 2 ||
+            actorIds.some(id => !Number.isFinite(id))
+        ) {
+            message.innerText =
+                "Unable to open this comparison.";
+            return;
+        }
+
+        // Stage 4 backend creates one deterministic canonical pair URL.
+        // The lower actor ID is always first, so selecting the same pair
+        // in reverse order cannot create a duplicate comparison URL.
+        actorIds.sort((a, b) => a - b);
+
+        compareButton.disabled = true;
+        message.innerText = "Opening comparison...";
+
+        fetch(
+            window.location.origin +
+            "/compare/actors/" +
+            actorIds[0] +
+            "/" +
+            actorIds[1],
+            { cache: "no-store" }
+        )
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(
+                    "Comparison API failed: " +
+                    response.status
+                );
+            }
+            return response.json();
+        })
+        .then(data => {
+            const canonicalUrl =
+                data?.seo?.canonical_url ||
+                data?.canonical_url ||
+                null;
+
+            if (!canonicalUrl) {
+                throw new Error(
+                    "Canonical comparison URL missing"
+                );
+            }
+
+            window.location.href =
+                canonicalUrl;
+        })
+        .catch(error => {
+            console.error(
+                "Actor comparison navigation error:",
+                error
             );
+
+            compareButton.disabled = false;
+            message.innerText =
+                "Unable to open comparison. Please try again.";
+        });
 
     }
 );

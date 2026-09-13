@@ -1674,7 +1674,7 @@ html,body{scroll-padding-top:0!important}
 </section>
 
 <div class="action-row"><button id="compareBtn" class="compare-btn" disabled>🎬 COMPARE MOVIES</button></div>
-<div class="note">Choose two different movies to continue.</div>
+<div class="note">Choose two different movies to continue. Only movies with at least ₹25 crore worldwide gross are available for comparison.</div>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
 </main>
 
@@ -1818,12 +1818,38 @@ updateButton();
 }
 document.getElementById("searchA").addEventListener("input",()=>showResults("searchA","resultsA","A"));
 document.getElementById("searchB").addEventListener("input",()=>showResults("searchB","resultsB","B"));
-document.getElementById("compareBtn").onclick=()=>{
+document.getElementById("compareBtn").onclick=async()=>{
 if(!selectedA||!selectedB||selectedA.id===selectedB.id)return;
-location.href="movie-compare.html?a="+encodeURIComponent(selectedA.id)+"&b="+encodeURIComponent(selectedB.id);
+
+const btn=document.getElementById("compareBtn");
+const originalText=btn.textContent;
+btn.disabled=true;
+btn.textContent="OPENING COMPARISON...";
+
+try{
+    const r=await fetch(
+        `/seo/resolve/movie-comparison-by-ids/${encodeURIComponent(selectedA.id)}/${encodeURIComponent(selectedB.id)}`,
+        {cache:"no-store"}
+    );
+    if(!r.ok)throw new Error("Comparison URL could not be created");
+    const data=await r.json();
+    if(!data.canonical_url)throw new Error("Canonical comparison URL missing");
+    location.href=data.canonical_url;
+}catch(error){
+    console.error("Movie comparison navigation:",error);
+    btn.disabled=false;
+    btn.textContent=originalText;
+    alert("Unable to open this movie comparison right now. Please try again.");
+}
 };
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))document.querySelectorAll(".results").forEach(x=>x.style.display="none")});
-fetch("/movies").then(r=>{if(!r.ok)throw new Error("Movies API error: "+r.status);return r.json()}).then(d=>{movies=Array.isArray(d.movies)?d.movies:[]}).catch(error=>console.error("Movie loading error:",error));
+fetch("/movies").then(r=>{if(!r.ok)throw new Error("Movies API error: "+r.status);return r.json()}).then(d=>{
+    const allMovies=Array.isArray(d.movies)?d.movies:[];
+    movies=allMovies.filter(m=>{
+        const gross=Number(m.worldwide_collection_crore??m.worldwide_collection);
+        return Number.isFinite(gross)&&gross>=25;
+    });
+}).catch(error=>console.error("Movie loading error:",error));
 
 function setSiteNewBadge(ids,visible){ids.forEach(id=>{const badge=document.getElementById(id);if(badge)badge.classList.toggle("show",!!visible)})}
 function parseSiteDate(value){if(!value)return null;const p=String(value).slice(0,10).split("-").map(Number);if(p.length!==3||!p[0]||!p[1]||!p[2])return null;return new Date(p[0],p[1]-1,p[2])}

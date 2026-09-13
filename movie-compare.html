@@ -7,20 +7,20 @@
 <meta id="metaDescription" name="description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">
 <meta name="robots" content="index, follow">
 
-<link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/movie-compare.html">
+<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/movie-compare.html">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BoxOfficeX">
 <meta id="ogTitle" property="og:title" content="Movie Box Office Comparison | BoxOfficeX">
 <meta id="ogDescription" property="og:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">
-<meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/movie-compare.html">
-<meta id="ogImage" property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta id="ogUrl" property="og:url" content="https://boxofficex.in/movie-compare.html">
+<meta id="ogImage" property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="Movie Box Office Comparison | BoxOfficeX">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta id="twitterTitle" name="twitter:title" content="Movie Box Office Comparison | BoxOfficeX">
 <meta id="twitterDescription" name="twitter:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">
-<meta id="twitterImage" name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta id="twitterImage" name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Movie Box Office Comparison | BoxOfficeX">
 
 <script id="comparisonStructuredData" type="application/ld+json"></script>
@@ -168,9 +168,10 @@ header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!imp
 /* MOVIE COMPARISON FAN ENGAGEMENT */
 .fan-zone,.fan-comments{margin-top:18px;padding:18px;border:1px solid #dfe5ee;border-radius:15px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.06)}
 .fan-zone h2,.fan-comments h2{font-size:18px;margin-bottom:12px}
-.fan-actions{display:flex;flex-wrap:wrap;gap:9px}
+.fan-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .fan-btn,.vote-btn,.comment-action{border:1px solid #dbe4f0;border-radius:10px;background:#f8fafc;color:#344054;padding:9px 12px;font-weight:800;cursor:pointer}
 .fan-btn.active,.vote-btn.active{background:#eef4ff;border-color:#b9ceff;color:#2563eb}
+.fan-actions .fan-btn{width:100%;min-height:68px;padding:15px 18px;border-radius:14px;font-size:16px;font-weight:900;box-shadow:0 6px 16px rgba(15,23,42,.07)}
 .fan-vote-title{margin:16px 0 8px;font-size:11px;font-weight:900;color:#667085;text-transform:uppercase}
 .vote-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:8px}
 .vote-btn{min-width:0;overflow-wrap:anywhere}
@@ -186,12 +187,18 @@ header nav a.nav-compare:focus-visible{outline:3px solid rgba(228,61,79,.28)!imp
 .comment-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.comment-action{padding:6px 8px;font-size:10px}
 .top-fan-comment{display:none;margin:0 0 12px;padding:13px;border:1px solid #ead9a4;border-radius:12px;background:#fff9e8}
 .top-fan-comment.show{display:block}.top-fan-label{color:#9a6700;font-size:10px;font-weight:900;text-transform:uppercase}.top-fan-author{margin-top:6px;font-size:12px;font-weight:900}.top-fan-body{margin-top:5px;font-size:13px;color:#344054}.fan-status{min-height:16px;margin-top:8px;color:#667085;font-size:10px}
-@media(max-width:700px){.fan-zone,.fan-comments{padding:13px 10px}.fan-zone h2,.fan-comments h2{font-size:16px}.vote-grid{grid-template-columns:1fr 58px 1fr}.fan-btn,.vote-btn{padding:8px 6px;font-size:10px}}
+@media(max-width:700px){.fan-zone,.fan-comments{padding:13px 10px}.fan-zone h2,.fan-comments h2{font-size:16px}.fan-actions{gap:8px}.fan-actions .fan-btn{min-height:58px;padding:12px 8px;font-size:14px}.vote-grid{grid-template-columns:1fr 58px 1fr}.vote-btn{padding:8px 6px;font-size:10px}}
 
 
-.share-tools{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03)}
-.share-tools button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}
-.share-tools button:hover{border-color:rgba(77,141,255,.40);background:rgba(77,141,255,.10)}
+.fan-share-boost{margin-top:18px;padding:16px;border:1px solid #dbe3ef;border-radius:14px;background:linear-gradient(135deg,#f8fbff,#fffdf7);text-align:center}
+.fan-share-boost h3{margin:0;color:#111827;font-size:15px;font-weight:900}
+.fan-share-boost p{max-width:620px;margin:7px auto 13px;color:#64748b;font-size:11px;line-height:1.55}
+.share-tools{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0}
+.share-tools button{min-height:40px;display:inline-flex;align-items:center;gap:7px;border:1px solid #dbe3ef;background:#fff;color:#334155;border-radius:10px;padding:8px 11px;font-size:10px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(15,23,42,.05)}
+.share-tools button:hover{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;transform:translateY(-1px)}
+.share-tools .share-icon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;color:#fff;font-size:12px;font-weight:900}
+.share-icon.native{background:#6d5ce7}.share-icon.whatsapp{background:#22a45d}.share-icon.facebook{background:#1877f2}.share-icon.x{background:#111827}.share-icon.telegram{background:#229ed9}.share-icon.copy{background:#64748b}
+@media(max-width:700px){.fan-share-boost{padding:13px 9px}.share-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.share-tools button{justify-content:flex-start;padding:8px;font-size:9px}}
 
 
 /* =========================================================
@@ -2151,9 +2158,6 @@ margin-top:6px;text-align:center;color:#7a8699;font-size:8px
 <section id="bxMovieCompareAd" aria-label="Sponsored advertisement"></section>
 <main id="app"><div class="loading">Loading comparison...</div></main>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
-<div style="width:min(980px,calc(100% - 36px));margin:auto" id="movieCompareShareTools"></div>
-
-
 <div id="bxTopStickyAd" aria-label="Top sticky sponsored advertisement"></div>
 <div id="bxBottomStickyAd" aria-label="Bottom sticky sponsored advertisement"></div>
 <div id="bxSmallVideoAd" aria-label="Sponsored video advertisement"></div>
@@ -2659,15 +2663,26 @@ function commercialPerformanceWinnerHTML(a,b){
 }
 
 
-function updateComparisonSEO(a,b){
+function updateComparisonSEO(a,b,comparisonCanonicalUrl=null){
     const title = `${a.title} vs ${b.title} Box Office Comparison | BoxOfficeX`;
     const description =
         `Compare ${a.title} vs ${b.title}: budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.`;
 
+    const canonicalPath =
+        comparisonCanonicalUrl ||
+        (
+            a.slug && b.slug
+                ? `/compare/movies/${[a,b]
+                    .slice()
+                    .sort((x,y)=>Number(x.id)-Number(y.id))
+                    .map(m=>m.slug)
+                    .join("-vs-")}`
+                : `/movie-compare.html?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`
+        );
+
     const canonical =
         window.location.origin +
-        window.location.pathname +
-        `?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`;
+        canonicalPath;
 
     const imageA = absolutePoster(a);
     const imageB = absolutePoster(b);
@@ -2806,13 +2821,40 @@ async function bxOttLoadMovieCompare(a,b){
 }
 
 async function load(){
-const p=new URLSearchParams(location.search),aId=p.get("a"),bId=p.get("b");
-if(!aId||!bId||aId===bId){document.getElementById("app").innerHTML=`<div class="error">Choose two different movies first.<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`;return}
+const p=new URLSearchParams(location.search);
+let aId=p.get("a"),bId=p.get("b");
+
+const cleanMatch=location.pathname.match(/^\/compare\/movies\/([^/?#]+)\/?$/i);
+
+if((!aId||!bId) && cleanMatch){
+  try{
+    const rr=await fetch(
+      `/seo/resolve/movie-comparison/${encodeURIComponent(decodeURIComponent(cleanMatch[1]))}`,
+      {cache:"no-store"}
+    );
+    if(!rr.ok)throw new Error("Movie comparison URL not found");
+    const resolved=await rr.json();
+    aId=String(resolved.movie1.id);
+    bId=String(resolved.movie2.id);
+  }catch(error){
+    console.error("Movie comparison identity:",error);
+  }
+}
+
+if(!aId||!bId||aId===bId){document.getElementById("app").innerHTML=`<div class="error">Choose two different eligible movies first.<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`;return}
 try{
 const r=await fetch(`/compare/movies/${encodeURIComponent(aId)}/${encodeURIComponent(bId)}`);
-const d=await r.json();if(!r.ok)throw new Error(d.detail||"Comparison failed");
+const d=await r.json();
+if(!r.ok){
+  const detail=d?.detail;
+  const message=
+    typeof detail==="string"
+      ? detail
+      : (detail?.message || "Comparison failed");
+  throw new Error(message);
+}
 const a=d.movie1,b=d.movie2,w=d.winners||{};
-updateComparisonSEO(a,b);
+updateComparisonSEO(a,b,d?.seo?.canonical_url||null);
 document.getElementById("app").innerHTML=`
 <div class="top"><div class="eyebrow">BoxOfficeX Movie Comparison</div><h1>${esc(a.title)} vs ${esc(b.title)}</h1><a class="change" href="/movie-compare-select.html">↔ Change Movies</a></div>
 <section class="movie-heads">
@@ -2844,8 +2886,8 @@ ${theatricalEfficiencyWinnerHTML(a,b)}
 <section class="fan-zone">
   <h2>🎟️ Fan Zone</h2>
   <div class="fan-actions">
-    <button class="fan-btn" id="comparisonLikeBtn" type="button">❤️ Like <span id="comparisonLikeCount">0</span></button>
-    <button class="fan-btn" id="comparisonHypeBtn" type="button">🔥 Hype <span id="comparisonHypeCount">0</span></button>
+    <button class="fan-btn" id="comparisonLikeBtn" type="button">❤️ Like <span id="comparisonLikeCount">Be among the first!</span></button>
+    <button class="fan-btn" id="comparisonHypeBtn" type="button">🔥 Hype <span id="comparisonHypeCount">Be among the first!</span></button>
   </div>
   <div class="fan-vote-title">Which movie wins your vote?</div>
   <div class="vote-grid">
@@ -2867,6 +2909,11 @@ ${theatricalEfficiencyWinnerHTML(a,b)}
     </div>
     <div class="bx-movie-vote-total" id="comparisonVoteCounts">0 total votes</div>
   </div>
+  <div class="fan-share-boost">
+    <h3>📣 Increase your favourite movie's votes</h3>
+    <p>Share ${esc(a.title)} vs ${esc(b.title)} with your friends and family and invite them to vote in the BoxOfficeX Fan Zone.</p>
+    <div id="movieCompareShareTools"></div>
+  </div>
   <div class="fan-status" id="fanStatus"></div>
 </section>
 <section class="fan-comments">
@@ -2887,6 +2934,7 @@ ${theatricalEfficiencyWinnerHTML(a,b)}
   <div class="more-movie-grid" id="moreMovieComparisonsGrid"><div class="more-movie-empty">Finding related movie comparisons...</div></div>
 </section>`;
 window.currentMovieComparison={a,b};
+bxInitMovieFanShare(a.title,b.title);
 bxOttLoadMovieCompare(a,b);
 loadMovieComparisonEngagement(a.id,b.id);
 loadMovieComparisonComments(a.id,b.id);
@@ -2906,8 +2954,13 @@ async function comparisonJSON(url,options={}){
  return d;
 }
 function renderMovieComparisonEngagement(d,aId,bId){
- document.getElementById("comparisonLikeCount").textContent=d.like_count||0;
- document.getElementById("comparisonHypeCount").textContent=d.hype_count||0;
+ const likeCount=Math.max(0,Number(d.like_count)||0);
+ const hypeCount=Math.max(0,Number(d.hype_count)||0);
+ const lowCountText=(count,isActive)=>isActive || count>=10
+  ? count.toLocaleString("en-IN")
+  : "Be among the first!";
+ document.getElementById("comparisonLikeCount").textContent=lowCountText(likeCount,!!d.liked);
+ document.getElementById("comparisonHypeCount").textContent=lowCountText(hypeCount,!!d.hyped);
  document.getElementById("comparisonLikeBtn").classList.toggle("active",!!d.liked);
  document.getElementById("comparisonHypeBtn").classList.toggle("active",!!d.hyped);
  const v=d.fan_vote||{},c=v.counts||{},p=v.percentages||{};
@@ -2987,12 +3040,17 @@ document.addEventListener("DOMContentLoaded",function(){
 
 <script>
 (function() {
-    const productionUrl = "https://boxoffice-x.com/movie-compare.html";
-    const socialImage = "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const productionUrl = "https://boxofficex.in/movie-compare.html";
+    const socialImage = "https://boxofficex.in/images/boxofficex-share.jpg";
+    const q = new URLSearchParams(window.location.search);
+    const isMovieComparisonResult =
+        Boolean(q.get("a") && q.get("b")) ||
+        /^\/compare\/movies\/[^/?#]+\/?$/i.test(window.location.pathname);
+
     const canonicalTag = document.getElementById("canonicalUrl");
-    if (canonicalTag) canonicalTag.href = productionUrl;
+    if (canonicalTag && !isMovieComparisonResult) canonicalTag.href = productionUrl;
     const ogUrlTag = document.getElementById("ogUrl");
-    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
+    if (ogUrlTag && !isMovieComparisonResult) ogUrlTag.setAttribute("content", productionUrl);
     const ogImageTag = document.getElementById("ogImage");
     if (ogImageTag && !ogImageTag.getAttribute("content")) ogImageTag.setAttribute("content", socialImage);
     const twitterImageTag = document.getElementById("twitterImage");
@@ -3002,31 +3060,35 @@ document.addEventListener("DOMContentLoaded",function(){
 
 
 <script>
-function bxShareTools(title){
+function bxShareTools(title,message){
     const box=document.createElement("div");
     box.className="share-tools";
-    box.innerHTML='<button type="button" data-share-native>↗ Share</button><button type="button" data-share-whatsapp>WhatsApp</button><button type="button" data-share-x>𝕏</button><button type="button" data-share-facebook>Facebook</button><button type="button" data-share-copy>🔗 Copy Link</button>';
-    const url=location.href;
+    box.innerHTML='<button type="button" data-share-native><span class="share-icon native">↗</span>Share</button><button type="button" data-share-whatsapp><span class="share-icon whatsapp">W</span>WhatsApp</button><button type="button" data-share-facebook><span class="share-icon facebook">f</span>Facebook</button><button type="button" data-share-x><span class="share-icon x">𝕏</span>X</button><button type="button" data-share-telegram><span class="share-icon telegram">➤</span>Telegram</button><button type="button" data-share-copy><span class="share-icon copy">🔗</span><span data-copy-label>Copy Link</span></button>';
+    const currentUrl=new URL(location.href);
+    const url="https://boxofficex.in"+currentUrl.pathname+currentUrl.search;
+    const shareText=message+"\n\nVote here:\n"+url;
     box.querySelector("[data-share-native]").onclick=async()=>{
-        if(navigator.share){try{await navigator.share({title,url})}catch(e){}}
-        else if(navigator.clipboard){await navigator.clipboard.writeText(url)}
+        if(navigator.share){try{await navigator.share({title,text:message,url})}catch(e){}}
+        else if(navigator.clipboard){await navigator.clipboard.writeText(shareText)}
     };
-    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(title+" "+url),"_blank","noopener");
-    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(title)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-whatsapp]").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(shareText),"_blank","noopener");
     box.querySelector("[data-share-facebook]").onclick=()=>window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-x]").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(message)+"&url="+encodeURIComponent(url),"_blank","noopener");
+    box.querySelector("[data-share-telegram]").onclick=()=>window.open("https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(message),"_blank","noopener");
     box.querySelector("[data-share-copy]").onclick=async e=>{
-        try{await navigator.clipboard.writeText(url);e.currentTarget.textContent="✓ Copied"}
-        catch(_){e.currentTarget.textContent="Copy failed"}
+        const label=e.currentTarget.querySelector("[data-copy-label]");
+        try{await navigator.clipboard.writeText(shareText);label.textContent="Copied!";setTimeout(()=>label.textContent="Copy Link",1800)}
+        catch(_){label.textContent="Copy failed"}
     };
     return box;
 }
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
+function bxInitMovieFanShare(movie1Title,movie2Title){
     const el=document.getElementById("movieCompareShareTools");
-    if(el) el.appendChild(bxShareTools(document.title.replace(" | BoxOfficeX","")));
-});
+    if(!el)return;
+    const title=`${movie1Title} vs ${movie2Title} Fan Vote | BoxOfficeX`;
+    const message=`${movie1Title} vs ${movie2Title} — which movie is your favourite? Vote now on BoxOfficeX!`;
+    el.replaceChildren(bxShareTools(title,message));
+}
 </script>
 
 <script>
@@ -3650,7 +3712,11 @@ function renderMoreMovieComparisons(a,b,movies){
  const norm=v=>String(v??"").trim().toLowerCase();
  const same=(x,y)=>x&&y&&((x.id!=null&&y.id!=null&&String(x.id)===String(y.id))||norm(x.title)===norm(y.title));
  const year=m=>{const d=String(m?.release_date||"");return /^\d{4}/.test(d)?Number(d.slice(0,4)):0};
- const candidates=(movies||[]).filter(m=>m&&m.title&&!same(m,a)&&!same(m,b)).map((m,i)=>{
+ const candidates=(movies||[]).filter(m=>{
+   if(!m||!m.title||same(m,a)||same(m,b))return false;
+   const gross=Number(m.worldwide_collection_crore??m.worldwide_collection);
+   return Number.isFinite(gross)&&gross>=25;
+ }).map((m,i)=>{
    let score=0;
    const langs=[norm(a.language),norm(b.language)].filter(Boolean), inds=[norm(a.industry),norm(b.industry)].filter(Boolean);
    const genres=[norm(a.genre),norm(b.genre)].filter(Boolean);
@@ -3662,14 +3728,20 @@ function renderMoreMovieComparisons(a,b,movies){
    if(m.poster)score+=3;
    return {m,score,i};
  }).sort((x,y)=>(y.score-x.score)||(x.i-y.i)).map(x=>x.m);
- if(!candidates.length){grid.innerHTML='<div class="more-movie-empty">More movie comparisons will appear as more movies are added.</div>';return}
+ if(!candidates.length){grid.innerHTML='<div class="more-movie-empty">More eligible movie comparisons will appear as movies with at least ₹25 crore worldwide gross are added.</div>';return}
  const pairs=[],used=new Set();
  const add=(x,y)=>{if(!x||!y||same(x,y))return;const key=[String(x.id??norm(x.title)),String(y.id??norm(y.title))].sort().join("::");if(used.has(key))return;used.add(key);pairs.push([x,y])};
  for(let i=0;i<candidates.length&&pairs.length<6;i++)add(i%2===0?a:b,candidates[i]);
  for(const m of candidates){if(pairs.length>=6)break;add(a,m);if(pairs.length>=6)break;add(b,m)}
  const safe=v=>{const d=document.createElement("div");d.textContent=String(v??"");return d.innerHTML};
  const img=m=>(typeof poster==="function"?poster(m):boxOfficeXMoviePlaceholder(m));
- grid.innerHTML=pairs.slice(0,6).map(([x,y])=>`<a class="more-movie-card" href="/movie-compare.html?a=${encodeURIComponent(x.id)}&b=${encodeURIComponent(y.id)}" aria-label="Compare ${safe(x.title)} vs ${safe(y.title)}"><div class="more-movie-pair"><div class="more-movie-person"><img src="${safe(img(x))}" alt="${safe(x.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><span class="more-movie-name">${safe(x.title)}</span></div><div class="more-movie-vs">VS</div><div class="more-movie-person"><img src="${safe(img(y))}" alt="${safe(y.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><span class="more-movie-name">${safe(y.title)}</span></div></div><div class="more-movie-action">Compare now →</div></a>`).join("");
+ grid.innerHTML=pairs.slice(0,6).map(([x,y])=>{
+ const pair=[x,y].slice().sort((m1,m2)=>Number(m1.id)-Number(m2.id));
+ const href=(pair[0]?.slug&&pair[1]?.slug)
+   ? `/compare/movies/${pair[0].slug}-vs-${pair[1].slug}`
+   : `/movie-compare.html?a=${encodeURIComponent(pair[0].id)}&b=${encodeURIComponent(pair[1].id)}`;
+ return `<a class="more-movie-card" href="${href}" aria-label="Compare ${safe(x.title)} vs ${safe(y.title)}"><div class="more-movie-pair"><div class="more-movie-person"><img src="${safe(img(x))}" alt="${safe(x.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><span class="more-movie-name">${safe(x.title)}</span></div><div class="more-movie-vs">VS</div><div class="more-movie-person"><img src="${safe(img(y))}" alt="${safe(y.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><span class="more-movie-name">${safe(y.title)}</span></div></div><div class="more-movie-action">Compare now →</div></a>`;
+ }).join("");
 }
 </script>
 
