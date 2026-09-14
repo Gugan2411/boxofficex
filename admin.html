@@ -9964,6 +9964,15 @@ function modDate(value){
     const d=new Date(value);
     return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
 }
+function modTypeLabel(type){
+    const labels={
+        movie:"🎬 Movie",
+        article:"📰 Article",
+        hero_comparison:"⚔️ Hero Comparison",
+        movie_comparison:"🎞️ Movie Comparison"
+    };
+    return labels[type] || "💬 Comment";
+}
 async function modRequest(url, options={}){
     const response=await fetch(url,{credentials:"include",cache:"no-store",...options});
     let data={};
@@ -9976,45 +9985,111 @@ async function modRequest(url, options={}){
 async function loadCommentModeration(){
     const list=document.getElementById("commentModerationList");
     if(!list) return;
+
     const status=document.getElementById("commentModerationStatus")?.value || "all";
     list.innerHTML='<div class="table-loading">Loading comments...</div>';
+
     try{
         const data=await modRequest(`/admin/comments?status=${encodeURIComponent(status)}&limit=100`);
+
         document.getElementById("modCommentTotal").textContent=data.summary?.comments ?? 0;
         document.getElementById("modReportedTotal").textContent=data.summary?.reported ?? 0;
         document.getElementById("modHiddenTotal").textContent=data.summary?.hidden ?? 0;
+
         const comments=Array.isArray(data.comments)?data.comments:[];
-        if(!comments.length){list.innerHTML='<div class="table-loading">No comments found for this filter.</div>';return;}
+
+        if(!comments.length){
+            list.innerHTML='<div class="table-loading">No comments found for this filter.</div>';
+            return;
+        }
+
         list.innerHTML=comments.map(c=>{
             const reported=Number(c.report_count)||0;
+            const type=String(c.comment_type||"movie");
+            const typeLabel=modTypeLabel(type);
+            const sourceTitle=c.source_title || "Unknown page";
+            const sourceUrl=c.source_url || "#";
+
             return `<article class="comment-moderation-item ${reported?'reported':''} ${c.is_hidden?'hidden':''}">
                 <div class="comment-moderation-head">
-                    <div><div class="comment-moderation-name">${modEsc(c.display_name)}</div><div class="comment-moderation-meta">${modEsc(c.movie_title)} · Movie #${Number(c.movie_id)} · ${modEsc(modDate(c.created_at))}</div></div>
-                    <div class="comment-moderation-meta">Comment #${Number(c.id)}</div>
+                    <div>
+                        <div class="comment-moderation-name">${modEsc(c.display_name)}</div>
+                        <div class="comment-moderation-meta">
+                            ${modEsc(typeLabel)} · ${modEsc(sourceTitle)} · ${modEsc(modDate(c.created_at))}
+                        </div>
+                    </div>
+                    <div class="comment-moderation-meta">
+                        ${modEsc(typeLabel)} · Comment #${Number(c.id)}
+                    </div>
                 </div>
+
                 <div class="comment-moderation-text">${modEsc(c.comment_text)}</div>
+
                 <div class="comment-moderation-badges">
+                    <span class="comment-mod-badge">${modEsc(typeLabel)}</span>
                     <span class="comment-mod-badge">👍 ${Number(c.like_count)||0} likes</span>
                     <span class="comment-mod-badge ${reported?'report':''}">🚩 ${reported} reports</span>
-                    ${c.is_hidden?'<span class="comment-mod-badge hidden">Hidden</span>':'<span class="comment-mod-badge">Visible</span>'}
+                    ${c.is_hidden
+                        ? '<span class="comment-mod-badge hidden">Hidden</span>'
+                        : '<span class="comment-mod-badge">Visible</span>'}
                 </div>
+
                 <div class="comment-moderation-actions">
-                    <button type="button" class="comment-mod-btn ${c.is_hidden?'good':''}" onclick="toggleAdminCommentVisibility(${Number(c.id)})">${c.is_hidden?'👁 Unhide':'🙈 Hide'}</button>
-                    <button type="button" class="comment-mod-btn danger" onclick="deleteAdminComment(${Number(c.id)})">🗑 Delete</button>
-                    <a class="comment-mod-btn" href="/movie.html?id=${Number(c.movie_id)}" target="_blank" rel="noopener">🎬 Open Movie</a>
+                    <button
+                        type="button"
+                        class="comment-mod-btn ${c.is_hidden?'good':''}"
+                        onclick="toggleAdminCommentVisibility('${modEsc(type)}',${Number(c.id)})"
+                    >
+                        ${c.is_hidden?'👁 Unhide':'🙈 Hide'}
+                    </button>
+
+                    <button
+                        type="button"
+                        class="comment-mod-btn danger"
+                        onclick="deleteAdminComment('${modEsc(type)}',${Number(c.id)})"
+                    >
+                        🗑 Delete
+                    </button>
+
+                    <a
+                        class="comment-mod-btn"
+                        href="${modEsc(sourceUrl)}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        🔗 Open Source
+                    </a>
                 </div>
             </article>`;
         }).join("");
-    }catch(error){list.innerHTML=`<div class="table-loading">${modEsc(error.message)}</div>`;}
+
+    }catch(error){
+        list.innerHTML=`<div class="table-loading">${modEsc(error.message)}</div>`;
+    }
 }
-async function toggleAdminCommentVisibility(commentId){
-    try{await modRequest(`/admin/comments/${commentId}/visibility`,{method:"PUT"});await loadCommentModeration();}
-    catch(error){alert(error.message);}
+async function toggleAdminCommentVisibility(commentType,commentId){
+    try{
+        await modRequest(
+            `/admin/comments/${encodeURIComponent(commentType)}/${commentId}/visibility`,
+            {method:"PUT"}
+        );
+        await loadCommentModeration();
+    }catch(error){
+        alert(error.message);
+    }
 }
-async function deleteAdminComment(commentId){
+async function deleteAdminComment(commentType,commentId){
     if(!confirm("Permanently remove this comment from the public site?")) return;
-    try{await modRequest(`/admin/comments/${commentId}`,{method:"DELETE"});await loadCommentModeration();}
-    catch(error){alert(error.message);}
+
+    try{
+        await modRequest(
+            `/admin/comments/${encodeURIComponent(commentType)}/${commentId}`,
+            {method:"DELETE"}
+        );
+        await loadCommentModeration();
+    }catch(error){
+        alert(error.message);
+    }
 }
 </script>
 

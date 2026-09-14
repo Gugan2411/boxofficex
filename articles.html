@@ -2976,22 +2976,34 @@ function boxOfficeXArticleHash(value){let result=2166136261;for(const character 
 function boxOfficeXArticleXml(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;")}
 function boxOfficeXArticleLines(title){const words=String(title||"Latest Cinema Story").trim().toUpperCase().split(/\s+/).filter(Boolean),lines=[];let current="";words.forEach(word=>{const pieces=[];if(word.length>23){for(let i=0;i<word.length;i+=23)pieces.push(word.slice(i,i+23))}else pieces.push(word);pieces.forEach(piece=>{const next=current?current+" "+piece:piece;if(next.length>24&&current){lines.push(current);current=piece}else current=next})});if(current)lines.push(current);if(lines.length>3){const result=lines.slice(0,3);result[2]=result[2].slice(0,21)+"…";return result}return lines.length?lines:["LATEST CINEMA STORY"]}
 function boxOfficeXArticlePlaceholder(article){const item=article||{},title=String(item.title||"Latest Cinema Story"),category=String(item.category||"BOX OFFICE NEWS").toUpperCase(),h=boxOfficeXArticleHash(title),a=h%360,b=(a+55+((h>>>8)%75))%360,c=(a+155+((h>>>18)%70))%360,lines=boxOfficeXArticleLines(title),longest=Math.max(...lines.map(line=>line.length)),size=lines.length===3?42:longest<=14?60:49,gap=size+14,start=292-((lines.length-1)*gap/2),titleSvg=lines.map((line,index)=>`<text x="600" y="${start+index*gap}" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="${size}" font-weight="900">${boxOfficeXArticleXml(line)}</text>`).join("");const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${a} 70% 14%)"/><stop offset=".55" stop-color="hsl(${b} 66% 35%)"/><stop offset="1" stop-color="hsl(${c} 72% 18%)"/></linearGradient><radialGradient id="r" cx="85%" cy="5%" r="80%"><stop stop-color="hsl(${c} 90% 68%)" stop-opacity=".35"/><stop offset="1" stop-opacity="0"/></radialGradient><linearGradient id="glass"><stop stop-color="#fff" stop-opacity=".23"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient></defs><rect width="1200" height="750" fill="url(#g)"/><rect width="1200" height="750" fill="url(#r)"/><circle cx="1080" cy="95" r="250" fill="#fff" fill-opacity=".06"/><circle cx="85" cy="680" r="210" fill="#fff" fill-opacity=".05"/><rect x="70" y="62" width="1060" height="520" rx="54" fill="url(#glass)" stroke="#fff" stroke-opacity=".35" stroke-width="4"/><rect x="108" y="100" width="330" height="55" rx="27" fill="#fff" fill-opacity=".17"/><text x="273" y="136" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="20" font-weight="800" letter-spacing="2">${boxOfficeXArticleXml(category.slice(0,25))}</text>${titleSvg}<line x1="300" y1="468" x2="900" y2="468" stroke="hsl(${b} 90% 70%)" stroke-width="10" stroke-linecap="round"/><rect x="412" y="620" width="376" height="86" rx="27" fill="#fff" fill-opacity=".94"/><text x="600" y="673" text-anchor="middle" font-family="Arial,sans-serif" font-size="29" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400"> X</tspan></text><text x="600" y="696" text-anchor="middle" fill="#475467" font-family="Arial,sans-serif" font-size="11" font-weight="800" letter-spacing="2">CINEMA ARTICLE</text></svg>`;return"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)}
-const BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS=true;
+const BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS=false;
 let allArticles=[];
 
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 function date(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"" : d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
 function img(a){
-    const value = a && a.hero_image != null ? String(a.hero_image).trim() : "";
-    if(BOXOFFICEX_USE_ARTICLE_PLACEHOLDERS)return boxOfficeXArticlePlaceholder(a);
-    if(!value)return boxOfficeXArticlePlaceholder(a);
-    if(/^https?:\/\//i.test(value)) return value;
-    if(value.startsWith("/")) return value;
-    if(value.startsWith("article-images/")) return "/" + value;
+    const value=String(a.image_url||a.image||"").trim();
+
+    if(!value){
+        return boxOfficeXArticlePlaceholder(a);
+    }
+
+    if(/^https?:\/\//i.test(value)){
+        return value;
+    }
+
+    if(value.startsWith("/")){
+        return value;
+    }
+
+    if(value.startsWith("article-images/")){
+        return "/" + value;
+    }
+
     return "/article-images/" + encodeURIComponent(value);
 }
 function openArticle(a){window.location.href="/article/"+encodeURIComponent(a.slug)}
-function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({title:this.alt})">`}
+function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${esc(a.title)}" data-category="${esc(a.category||"BOX OFFICE NEWS")}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({title:this.alt,category:this.dataset.category||\'BOX OFFICE NEWS\'})">`}
 function meta(a){return `${esc(a.author||"BoxOfficeX")}${a.published_at?" • "+date(a.published_at):""}`}
 
 function heroMarkup(a){

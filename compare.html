@@ -3712,9 +3712,7 @@ function createMovieCountRow(
 
             <div
                 class="stat-value clickable-stat"
-                onclick="openAllActorMovies(
-                    ${actor1.id}
-                )"
+                onclick='openAllActorMovies(${JSON.stringify(actor1)})' 
             >
 
                 ${value1}
@@ -3731,9 +3729,7 @@ function createMovieCountRow(
 
             <div
                 class="stat-value clickable-stat"
-                onclick="openAllActorMovies(
-                    ${actor2.id}
-                )"
+                onclick='openAllActorMovies(${JSON.stringify(actor2)})' 
             >
 
                 ${value2}
@@ -3752,13 +3748,20 @@ function createMovieCountRow(
 // OPEN ALL ACTOR MOVIES
 // ==========================================
 
-function openAllActorMovies(
-    actorId
-) {
+function openAllActorMovies(actor) {
+
+    if (actor && actor.slug) {
+        window.location.href =
+            "/actor/" +
+            encodeURIComponent(actor.slug);
+        return;
+    }
+
+    const actorId = actor && actor.id ? actor.id : actor;
 
     window.location.href =
-        "actor.html?id=" +
-        actorId;
+        "/actor.html?id=" +
+        encodeURIComponent(actorId);
 
 }
 
@@ -3783,10 +3786,7 @@ function createVerdictRow(
 
             <div
                 class="stat-value clickable-stat"
-                onclick="openActorMovies(
-                    ${actor1.id},
-                    '${verdict}'
-                )"
+                onclick='openActorMovies(${actor1.id}, ${JSON.stringify(verdict)}, ${JSON.stringify(actor1.name || "")}, ${JSON.stringify(actor1.slug || "")})'
             >
 
                 ${value1}
@@ -3803,10 +3803,7 @@ function createVerdictRow(
 
             <div
                 class="stat-value clickable-stat"
-                onclick="openActorMovies(
-                    ${actor2.id},
-                    '${verdict}'
-                )"
+                onclick='openActorMovies(${actor2.id}, ${JSON.stringify(verdict)}, ${JSON.stringify(actor2.name || "")}, ${JSON.stringify(actor2.slug || "")})'
             >
 
                 ${value2}
@@ -3827,14 +3824,27 @@ function createVerdictRow(
 
 function openActorMovies(
     actorId,
-    verdict
+    verdict,
+    actorName = "",
+    actorSlug = ""
 ) {
 
+    const query = new URLSearchParams({
+        id: String(actorId),
+        verdict: String(verdict || "")
+    });
+
+    if (actorName) {
+        query.set("name", actorName);
+    }
+
+    if (actorSlug) {
+        query.set("slug", actorSlug);
+    }
+
     window.location.href =
-        "actor-movies.html?id=" +
-        actorId +
-        "&verdict=" +
-        encodeURIComponent(verdict);
+        "/actor-movies.html?" +
+        query.toString();
 
 }
 

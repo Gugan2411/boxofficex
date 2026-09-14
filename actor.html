@@ -3524,7 +3524,7 @@ html,body{scroll-padding-top:0!important}
     <div class="navbar">
 
         <a
-            href="index.html"
+            href="/index.html"
             class="logo"
             aria-label="BoxOfficeX Home"
         >
@@ -3547,14 +3547,14 @@ html,body{scroll-padding-top:0!important}
 
 
         <nav aria-label="Main navigation">
-        <a href="index.html">Home</a>
-        <a href="new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
-        <a href="movie-rankings.html">Movie Rankings</a>
-            <a href="rankings.html">Actor Rankings</a>
-        <a href="actors.html" class="active">Actors</a>
-        <a href="articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
-        <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
-        <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
+        <a href="/index.html">Home</a>
+        <a href="/new-movies.html" class="nav-item-with-badge">New Movies<span id="newMoviesBadge" class="nav-new-badge">NEW</span></a>
+        <a href="/movie-rankings.html">Movie Rankings</a>
+            <a href="/rankings.html">Actor Rankings</a>
+        <a href="/actors.html" class="active">Actors</a>
+        <a href="/articles.html" class="nav-item-with-badge">Articles<span id="articlesBadge" class="nav-new-badge">NEW</span></a>
+        <a href="/compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
+        <a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
     </nav>
 
     </div>
@@ -3813,11 +3813,11 @@ html,body{scroll-padding-top:0!important}
 </footer>
 
 <div class="mobile-bottom-nav" aria-label="Mobile navigation">
-    <a href="index.html"><span>🏠</span><span>Home</span></a>
-    <a href="new-movies.html" class="nav-item-with-badge"><span>🆕</span><span>New</span><span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span></a>
-    <a href="articles.html" class="nav-item-with-badge"><span>📰</span><span>Articles</span><span id="mobileArticlesBadge" class="nav-new-badge">NEW</span></a>
-    <a href="compare-select.html"><span>⚔️</span><span>Actors</span></a>
-    <a href="movie-compare-select.html"><span>🎬</span><span>Movies</span></a>
+    <a href="/index.html"><span>🏠</span><span>Home</span></a>
+    <a href="/new-movies.html" class="nav-item-with-badge"><span>🆕</span><span>New</span><span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span></a>
+    <a href="/articles.html" class="nav-item-with-badge"><span>📰</span><span>Articles</span><span id="mobileArticlesBadge" class="nav-new-badge">NEW</span></a>
+    <a href="/compare-select.html"><span>⚔️</span><span>Actors</span></a>
+    <a href="/movie-compare-select.html"><span>🎬</span><span>Movies</span></a>
 </div>
 
 <script>
@@ -3935,26 +3935,77 @@ if (BOXOFFICEX_USE_ACTOR_PLACEHOLDERS) {
     }
 }
 
-function boxOfficeXMoviePosterUrl(value, absolute = false) {
-    const poster = value == null ? "" : String(value).trim();
-    let url;
+function boxOfficeXPlaceholderXml(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;")}
 
-    if (!poster) {
-        url = "/posters/coming-soon.png";
-    } else if (/^https?:\/\//i.test(poster)) {
-        url = poster;
-    } else if (poster.startsWith("/")) {
-        url = poster;
-    } else if (poster.startsWith("posters/")) {
-        url = "/" + poster;
-    } else {
-        url = "/posters/" + encodeURIComponent(poster);
+function boxOfficeXMoviePlaceholder(movie){
+    const item=typeof movie==="object"&&movie?movie:{title:movie};
+    const title=String(item.title||"Movie").trim()||"Movie";
+    const source=title.toUpperCase();
+    const parts=[];
+    source.split(/\s+/).filter(Boolean).forEach(word=>{
+        if(word.length<=10)parts.push(word);
+        else for(let i=0;i<word.length;i+=10)parts.push(word.slice(i,i+10));
+    });
+    const lines=[];let current="";
+    parts.forEach(part=>{const next=current?current+" "+part:part;if(next.length>10&&current){lines.push(current);current=part}else current=next});
+    if(current)lines.push(current);if(!lines.length)lines.push("MOVIE");
+    if(lines.length>4){lines.length=4;lines[3]=lines[3].slice(0,9)+"…"}
+    const size=64;
+    const gap=76,start=390-((lines.length-1)*gap/2);
+    const titleSvg=lines.map((line,index)=>`<text x="300" y="${start+index*gap}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="${size}" font-weight="900" letter-spacing="1">${boxOfficeXPlaceholderXml(line)}</text>`).join("");
+    const year=(String(item.release_date||item.year||"").match(/\b(?:19|20)\d{2}\b/)||[])[0]||"";
+    const language=String(
+        item.language ||
+        item.movie_language ||
+        item.original_language ||
+        item.lang ||
+        ""
+    ).trim().toUpperCase();
+    const meta=[year,language].filter(Boolean).join("  •  ");
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="${boxOfficeXPlaceholderXml(title)} movie placeholder">
+      <defs>
+        <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset=".52" stop-color="#f4f2ed"/><stop offset="1" stop-color="#ebe9e4"/></linearGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .055"/></feComponentTransfer></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9b9b9b" stop-opacity=".25"/><stop offset="1" stop-color="#c8c8c8" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="600" height="900" fill="url(#paper)"/>
+      <rect width="600" height="900" filter="url(#grain)" opacity=".72"/>
+      <g opacity=".22" transform="rotate(24 45 230)"><rect x="-48" y="-55" width="90" height="520" rx="8" fill="url(#fade)"/><path d="M-32-35v480M26-35v480" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <g opacity=".18" transform="rotate(-18 570 720)"><rect x="550" y="505" width="92" height="470" rx="8" fill="url(#fade)"/><path d="M566 520v430M624 520v430" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <circle cx="64" cy="790" r="120" fill="none" stroke="#a8a8a8" stroke-width="24" opacity=".08"/>
+      ${titleSvg}
+      <line x1="115" y1="525" x2="485" y2="525" stroke="#ad1726" stroke-width="5"/>
+      ${meta?`<text x="300" y="575" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="500" letter-spacing="7">${boxOfficeXPlaceholderXml(meta)}</text>`:""}
+      <text x="300" y="846" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">BOXOFFICEX MOVIE PLACEHOLDER</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)
+}
+
+function setMovieFallback(image) {
+
+    if (
+        image.dataset.fallbackApplied === "true"
+    ) {
+        return;
     }
 
-    if (absolute && !/^https?:\/\//i.test(url)) {
-        return "https://boxoffice-x.com" + url;
-    }
-    return url;
+    image.dataset.fallbackApplied =
+        "true";
+
+    image.src = boxOfficeXMoviePlaceholder({
+        title: (image.alt || "Movie").replace(/\s+poster$/i, ""),
+        release_date: image.dataset.releaseDate || "",
+        language: image.dataset.language || ""
+    });
+}
+
+function boxOfficeXMoviePosterUrl(value, absolute = false, movieData = "Movie") {
+    const item =
+        typeof movieData === "object" && movieData
+            ? movieData
+            : { title: movieData || "Movie" };
+
+    return boxOfficeXMoviePlaceholder(item);
 }
 
 
@@ -4566,6 +4617,7 @@ let currentActorSlug =
         : null;
 
 let highestGrossingMovieId = null;
+let highestGrossingMovieUrl = null;
 
 
 async function resolveActorIdentity() {
@@ -4652,7 +4704,7 @@ async function initializeActorPage() {
     document.getElementById(
         "bio"
     ).innerHTML =
-        'Open the <a href="actors.html" style="color:#79adff;font-weight:700;">Actors page</a> and choose an actor to view movies, box-office collections and career statistics.';
+        'Open the <a href="/actors.html" style="color:#79adff;font-weight:700;">Actors page</a> and choose an actor to view movies, box-office collections and career statistics.';
 
     const actorPhoto =
         document.getElementById(
@@ -4872,10 +4924,12 @@ else {
 
                 <img
                     src="${
-                        boxOfficeXMoviePosterUrl(movie.poster)
+                        boxOfficeXMoviePosterUrl(movie.poster, false, movie)
                     }"
                     alt="${movie.title}"
-                    onerror="this.onerror=null;this.src='posters/coming-soon.png';"
+                    data-release-date="${movie.release_date || ""}"
+                    data-language="${movie.language || ""}"
+                    onerror="setMovieFallback(this)"
                 >
 
                 <div class="movie-details">
@@ -4972,7 +5026,8 @@ else {
 
         grid.innerHTML = `
 
-            <div class="overview-card">
+            <div class="overview-card overview-highlight-card" role="button" tabindex="0"
+                onclick="openAllMoviesSection()" onkeydown="handleAllMoviesKey(event)">
 
                 <div class="overview-label">
                     🎬 Total Movies
@@ -5165,6 +5220,9 @@ else {
             data.movies || [];
         if (movies.length > 0 && movies[0].id != null) {
             highestGrossingMovieId = movies[0].id;
+            highestGrossingMovieUrl =
+                movies[0].url ||
+                ("/movie.html?id=" + encodeURIComponent(movies[0].id));
         }
 
 
@@ -5195,10 +5253,11 @@ else {
 
                     <img
                         src="${
-                        boxOfficeXMoviePosterUrl(movie.poster)
+                        boxOfficeXMoviePosterUrl(movie.poster, false, movie)
                     }"
                         alt="${movie.title}"
                         loading="lazy"
+                        onerror="setMovieFallback(this)"
                     >
 
                     <div class="top-movie-title">
@@ -5268,24 +5327,72 @@ function handleHighestMovieKey(event) {
     }
 }
 
+function handleAllMoviesKey(event) {
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openAllMoviesSection();
+    }
+}
+
+function openAllMoviesSection() {
+    const movieList = document.getElementById("movieList");
+    if (movieList) {
+        movieList.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+
 async function openHighestGrossingMovie() {
+    if (highestGrossingMovieUrl) {
+        window.location.href = highestGrossingMovieUrl;
+        return;
+    }
+
     if (highestGrossingMovieId) {
-        window.location.href = "movie.html?id=" + encodeURIComponent(highestGrossingMovieId);
+        try {
+            const movieResponse = await fetch(
+                "/movies/" + encodeURIComponent(highestGrossingMovieId),
+                { cache: "no-store" }
+            );
+
+            if (movieResponse.ok) {
+                const movie = await movieResponse.json();
+                window.location.href =
+                    movie.url ||
+                    ("/movie.html?id=" + encodeURIComponent(highestGrossingMovieId));
+                return;
+            }
+        } catch (error) {
+            console.warn("Movie URL lookup failed:", error);
+        }
+
+        window.location.href =
+            "/movie.html?id=" + encodeURIComponent(highestGrossingMovieId);
         return;
     }
 
     try {
         const response = await fetch(
-            "/actors/" + actorId + "/top-movies"
+            "/actors/" + actorId + "/top-movies",
+            { cache: "no-store" }
         );
-        if (!response.ok) throw new Error("Unable to load highest-grossing movie");
+
+        if (!response.ok) {
+            throw new Error("Unable to load highest-grossing movie");
+        }
 
         const data = await response.json();
         const movies = data.movies || [];
 
         if (movies.length > 0 && movies[0].id != null) {
             highestGrossingMovieId = movies[0].id;
-            window.location.href = "movie.html?id=" + encodeURIComponent(highestGrossingMovieId);
+            highestGrossingMovieUrl =
+                movies[0].url ||
+                ("/movie.html?id=" + encodeURIComponent(movies[0].id));
+
+            window.location.href = highestGrossingMovieUrl;
             return;
         }
 
@@ -5476,10 +5583,13 @@ function openVerdict(verdict) {
 
                 <img
                     src="${
-                        boxOfficeXMoviePosterUrl(movie.poster)
+                        boxOfficeXMoviePosterUrl(movie.poster, false, movie)
                     }"
                     alt="${movie.title}"
+                    data-release-date="${movie.release_date || ""}"
+                    data-language="${movie.language || ""}"
                     loading="lazy"
+                        onerror="setMovieFallback(this)"
                 >
 
 

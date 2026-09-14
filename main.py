@@ -9617,8 +9617,9 @@ def post_movie_comment(movie_id: int, data: MovieCommentCreateData):
 # OWNER COMMENT MODERATION
 # ============================================================
 
+
 @app.get("/admin/comments", dependencies=[Depends(require_owner)])
-def admin_list_movie_comments(
+def admin_list_all_comments(
     status: Literal["all", "reported", "visible", "hidden"] = "all",
     limit: int = 100,
     offset: int = 0,
@@ -9626,119 +9627,296 @@ def admin_list_movie_comments(
     limit = max(1, min(limit, 250))
     offset = max(0, offset)
 
-    where = ["c.is_deleted = FALSE"]
-    if status == "reported":
-        where.append("EXISTS (SELECT 1 FROM movie_comment_reports rr WHERE rr.comment_id = c.id)")
-    elif status == "visible":
-        where.append("c.is_hidden = FALSE")
-    elif status == "hidden":
-        where.append("c.is_hidden = TRUE")
-
-    where_sql = " AND ".join(where)
-
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(f"""
+            cur.execute("""
+                WITH unified AS (
+
+                    SELECT
+                        'movie'::text AS comment_type,
+                        c.id AS comment_id,
+                        c.display_name,
+                        c.comment_text,
+                        c.is_hidden,
+                        c.created_at,
+                        COUNT(DISTINCT l.id)::bigint AS like_count,
+                        COUNT(DISTINCT r.id)::bigint AS report_count,
+                        m.id::bigint AS source_id,
+                        m.title::text AS source_title,
+                        ('/movie.html?id=' || m.id)::text AS source_url
+                    FROM movie_comments c
+                    JOIN movies m ON m.id = c.movie_id
+                    LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
+                    LEFT JOIN movie_comment_reports r ON r.comment_id = c.id
+                    WHERE c.is_deleted = FALSE
+                    GROUP BY c.id, m.id, m.title
+
+                    UNION ALL
+
+                    SELECT
+                        'article'::text,
+                        c.id,
+                        c.display_name,
+                        c.comment_text,
+                        c.is_hidden,
+                        c.created_at,
+                        COUNT(DISTINCT l.id)::bigint,
+                        COUNT(DISTINCT r.id)::bigint,
+                        a.id::bigint,
+                        a.title::text,
+                        ('/article/' || a.slug)::text
+                    FROM article_comments c
+                    JOIN articles a ON a.id = c.article_id
+                    LEFT JOIN article_comment_likes l ON l.comment_id = c.id
+                    LEFT JOIN article_comment_reports r ON r.comment_id = c.id
+                    WHERE c.is_deleted = FALSE
+                    GROUP BY c.id, a.id, a.title, a.slug
+
+                    UNION ALL
+
+                    SELECT
+                        'hero_comparison'::text,
+                        c.id,
+                        c.display_name,
+                        c.comment_text,
+                        c.is_hidden,
+                        c.created_at,
+                        COUNT(DISTINCT l.id)::bigint,
+                        COUNT(DISTINCT r.id)::bigint,
+                        c.actor1_id::bigint,
+                        (a1.name || ' vs ' || a2.name)::text,
+                        ('/compare.html?a1=' || c.actor1_id || '&a2=' || c.actor2_id)::text
+                    FROM hero_comparison_comments c
+                    JOIN actors a1 ON a1.id = c.actor1_id
+                    JOIN actors a2 ON a2.id = c.actor2_id
+                    LEFT JOIN hero_comparison_comment_likes l ON l.comment_id = c.id
+                    LEFT JOIN hero_comparison_comment_reports r ON r.comment_id = c.id
+                    WHERE c.is_deleted = FALSE
+                    GROUP BY c.id, a1.name, a2.name
+
+                    UNION ALL
+
+                    SELECT
+                        'movie_comparison'::text,
+                        c.id,
+                        c.display_name,
+                        c.comment_text,
+                        c.is_hidden,
+                        c.created_at,
+                        COUNT(DISTINCT l.id)::bigint,
+                        COUNT(DISTINCT r.id)::bigint,
+                        c.movie1_id::bigint,
+                        (m1.title || ' vs ' || m2.title)::text,
+                        ('/movie-compare.html?m1=' || c.movie1_id || '&m2=' || c.movie2_id)::text
+                    FROM movie_comparison_comments c
+                    JOIN movies m1 ON m1.id = c.movie1_id
+                    JOIN movies m2 ON m2.id = c.movie2_id
+                    LEFT JOIN movie_comparison_comment_likes l ON l.comment_id = c.id
+                    LEFT JOIN movie_comparison_comment_reports r ON r.comment_id = c.id
+                    WHERE c.is_deleted = FALSE
+                    GROUP BY c.id, m1.title, m2.title
+                )
                 SELECT
-                    c.id,
-                    c.movie_id,
-                    m.title,
-                    c.display_name,
-                    c.comment_text,
-                    c.is_hidden,
-                    c.created_at,
-                    COUNT(DISTINCT l.id) AS like_count,
-                    COUNT(DISTINCT r.id) AS report_count
-                FROM movie_comments c
-                JOIN movies m ON m.id = c.movie_id
-                LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
-                LEFT JOIN movie_comment_reports r ON r.comment_id = c.id
-                WHERE {where_sql}
-                GROUP BY c.id, c.movie_id, m.title
+                    comment_type,
+                    comment_id,
+                    display_name,
+                    comment_text,
+                    is_hidden,
+                    created_at,
+                    like_count,
+                    report_count,
+                    source_id,
+                    source_title,
+                    source_url
+                FROM unified
+                WHERE
+                    (%s = 'all')
+                    OR (%s = 'reported' AND report_count > 0)
+                    OR (%s = 'visible' AND is_hidden = FALSE)
+                    OR (%s = 'hidden' AND is_hidden = TRUE)
                 ORDER BY
-                    COUNT(DISTINCT r.id) DESC,
-                    c.created_at DESC
+                    report_count DESC,
+                    created_at DESC
                 LIMIT %s OFFSET %s
-            """, (limit, offset))
+            """, (status, status, status, status, limit, offset))
+
             rows = cur.fetchall()
 
-            cur.execute(f"""
-                SELECT COUNT(*)
-                FROM movie_comments c
-                WHERE {where_sql}
-            """)
-            total = cur.fetchone()[0]
-
             cur.execute("""
+                WITH unified AS (
+                    SELECT
+                        c.is_hidden,
+                        c.is_deleted,
+                        EXISTS (
+                            SELECT 1 FROM movie_comment_reports r
+                            WHERE r.comment_id = c.id
+                        ) AS reported
+                    FROM movie_comments c
+
+                    UNION ALL
+
+                    SELECT
+                        c.is_hidden,
+                        c.is_deleted,
+                        EXISTS (
+                            SELECT 1 FROM article_comment_reports r
+                            WHERE r.comment_id = c.id
+                        )
+                    FROM article_comments c
+
+                    UNION ALL
+
+                    SELECT
+                        c.is_hidden,
+                        c.is_deleted,
+                        EXISTS (
+                            SELECT 1 FROM hero_comparison_comment_reports r
+                            WHERE r.comment_id = c.id
+                        )
+                    FROM hero_comparison_comments c
+
+                    UNION ALL
+
+                    SELECT
+                        c.is_hidden,
+                        c.is_deleted,
+                        EXISTS (
+                            SELECT 1 FROM movie_comparison_comment_reports r
+                            WHERE r.comment_id = c.id
+                        )
+                    FROM movie_comparison_comments c
+                )
                 SELECT
                     COUNT(*) FILTER (WHERE is_deleted = FALSE),
                     COUNT(*) FILTER (WHERE is_deleted = FALSE AND is_hidden = TRUE),
-                    COUNT(DISTINCT r.comment_id)
-                FROM movie_comments c
-                LEFT JOIN movie_comment_reports r ON r.comment_id = c.id
+                    COUNT(*) FILTER (WHERE is_deleted = FALSE AND reported = TRUE)
+                FROM unified
             """)
             summary = cur.fetchone()
 
+    comments = [
+        {
+            "comment_type": row[0],
+            "id": row[1],
+            "display_name": row[2],
+            "comment_text": row[3],
+            "is_hidden": row[4],
+            "created_at": row[5].isoformat() if row[5] else None,
+            "like_count": int(row[6] or 0),
+            "report_count": int(row[7] or 0),
+            "source_id": row[8],
+            "source_title": row[9],
+            "source_url": row[10],
+        }
+        for row in rows
+    ]
+
     return {
-        "total": total,
+        "total": len(comments),
         "summary": {
-            "comments": summary[0] or 0,
-            "hidden": summary[1] or 0,
-            "reported": summary[2] or 0,
+            "comments": int(summary[0] or 0),
+            "hidden": int(summary[1] or 0),
+            "reported": int(summary[2] or 0),
         },
-        "comments": [
-            {
-                "id": row[0],
-                "movie_id": row[1],
-                "movie_title": row[2],
-                "display_name": row[3],
-                "comment_text": row[4],
-                "is_hidden": row[5],
-                "created_at": row[6].isoformat() if row[6] else None,
-                "like_count": row[7] or 0,
-                "report_count": row[8] or 0,
-            }
-            for row in rows
-        ],
+        "comments": comments,
     }
 
 
-@app.put("/admin/comments/{comment_id}/visibility", dependencies=[Depends(require_owner)])
-def admin_toggle_comment_visibility(comment_id: int):
+_ADMIN_COMMENT_TABLES = {
+    "movie": "movie_comments",
+    "article": "article_comments",
+    "hero_comparison": "hero_comparison_comments",
+    "movie_comparison": "movie_comparison_comments",
+}
+
+
+def _admin_comment_table(comment_type: str) -> str:
+    table = _ADMIN_COMMENT_TABLES.get(comment_type)
+    if not table:
+        raise HTTPException(status_code=400, detail="Invalid comment type")
+    return table
+
+
+@app.put(
+    "/admin/comments/{comment_type}/{comment_id}/visibility",
+    dependencies=[Depends(require_owner)]
+)
+def admin_toggle_any_comment_visibility(comment_type: str, comment_id: int):
+    table = _admin_comment_table(comment_type)
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("""
-                UPDATE movie_comments
-                SET is_hidden = NOT is_hidden, updated_at = NOW()
+            cur.execute(
+                f"""
+                UPDATE {table}
+                SET is_hidden = NOT is_hidden,
+                    updated_at = NOW()
                 WHERE id = %s
                   AND is_deleted = FALSE
                 RETURNING is_hidden
-            """, (comment_id,))
+                """,
+                (comment_id,)
+            )
             row = cur.fetchone()
+
             if not row:
                 raise HTTPException(status_code=404, detail="Comment not found")
+
             conn.commit()
 
-    return {"success": True, "comment_id": comment_id, "is_hidden": row[0]}
+    return {
+        "success": True,
+        "comment_type": comment_type,
+        "comment_id": comment_id,
+        "is_hidden": row[0],
+    }
+
+
+@app.delete(
+    "/admin/comments/{comment_type}/{comment_id}",
+    dependencies=[Depends(require_owner)]
+)
+def admin_delete_any_comment(comment_type: str, comment_id: int):
+    table = _admin_comment_table(comment_type)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                UPDATE {table}
+                SET is_deleted = TRUE,
+                    is_hidden = TRUE,
+                    updated_at = NOW()
+                WHERE id = %s
+                  AND is_deleted = FALSE
+                RETURNING id
+                """,
+                (comment_id,)
+            )
+            row = cur.fetchone()
+
+            if not row:
+                raise HTTPException(status_code=404, detail="Comment not found")
+
+            conn.commit()
+
+    return {
+        "success": True,
+        "deleted": True,
+        "comment_type": comment_type,
+        "comment_id": comment_id,
+    }
+
+
+# Backward-compatible movie-only moderation routes.
+@app.put("/admin/comments/{comment_id}/visibility", dependencies=[Depends(require_owner)])
+def admin_toggle_comment_visibility(comment_id: int):
+    return admin_toggle_any_comment_visibility("movie", comment_id)
 
 
 @app.delete("/admin/comments/{comment_id}", dependencies=[Depends(require_owner)])
 def admin_delete_movie_comment(comment_id: int):
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                UPDATE movie_comments
-                SET is_deleted = TRUE, is_hidden = TRUE, updated_at = NOW()
-                WHERE id = %s
-                  AND is_deleted = FALSE
-                RETURNING id
-            """, (comment_id,))
-            row = cur.fetchone()
-            if not row:
-                raise HTTPException(status_code=404, detail="Comment not found")
-            conn.commit()
-
-    return {"success": True, "deleted": True, "comment_id": comment_id}
+    return admin_delete_any_comment("movie", comment_id)
 
 
 @app.delete("/comments/{comment_id}")
