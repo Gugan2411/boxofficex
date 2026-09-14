@@ -7702,7 +7702,7 @@ async function loadTrendingArticles() {
 
             const openArticle = () => {
                 window.location.href =
-                    "article.html?slug=" + encodeURIComponent(article.slug || "");
+                    "/article/" + encodeURIComponent(article.slug || "");
             };
 
             card.addEventListener("click", openArticle);
@@ -8090,6 +8090,10 @@ function renderSearchStatus(message) {
 function createUnifiedSearchResult(item, type) {
     const result = document.createElement("div");
     result.className = "search-result";
+    result.dataset.resultType = type;
+    if (type === "article") {
+        result.dataset.articleSlug = String(item.slug || "").trim();
+    }
     result.setAttribute("role", "option");
     result.tabIndex = 0;
 
@@ -8121,7 +8125,11 @@ function createUnifiedSearchResult(item, type) {
             item.category,
             item.author
         ].filter(Boolean).join(" • ");
-        url = `article.html?slug=${encodeURIComponent(item.slug || "")}`;
+
+        const cleanSlug = String(item.slug || "").trim();
+        url = cleanSlug
+            ? `/article/${encodeURIComponent(cleanSlug)}`
+            : "/articles.html";
     }
 
     result.innerHTML = `
@@ -8134,7 +8142,19 @@ function createUnifiedSearchResult(item, type) {
     `;
 
     const openResult = () => {
-        window.location.href = url;
+        if (type === "article") {
+            const slug = String(item.slug || "").trim();
+            if (!slug) {
+                window.location.assign("/articles.html");
+                return;
+            }
+            window.location.assign(
+                "/article/" + encodeURIComponent(slug)
+            );
+            return;
+        }
+
+        window.location.assign(url);
     };
 
     result.addEventListener("click", openResult);
@@ -8147,6 +8167,23 @@ function createUnifiedSearchResult(item, type) {
 
     return result;
 }
+
+
+document.addEventListener("click", function(event) {
+    const result = event.target.closest(".search-result[data-result-type='article']");
+    if (!result) return;
+
+    const slug = String(result.dataset.articleSlug || "").trim();
+    if (!slug) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    window.location.assign(
+        "/article/" + encodeURIComponent(slug)
+    );
+}, true);
 
 function appendUnifiedSearchGroup(label, items, type) {
     if (!items.length) return;

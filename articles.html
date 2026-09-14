@@ -2861,6 +2861,14 @@ html,body{scroll-padding-top:0!important}
   .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
 }
 </style>
+
+<style id="bx-article-card-direct-link-fix">
+.hero-main,.side-card,.story-card,.trend-card{
+    text-decoration:none!important;
+    color:inherit!important;
+}
+</style>
+
 </head>
 <body>
 <div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html" class="active">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
@@ -2982,7 +2990,12 @@ let allArticles=[];
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 function date(v){if(!v)return"";const d=new Date(v);return isNaN(d)?"" : d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
 function img(a){
-    const value=String(a.image_url||a.image||"").trim();
+    const value=String(
+        a.hero_image ||
+        a.image_url ||
+        a.image ||
+        ""
+    ).trim();
 
     if(!value){
         return boxOfficeXArticlePlaceholder(a);
@@ -3007,23 +3020,21 @@ function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${e
 function meta(a){return `${esc(a.author||"BoxOfficeX")}${a.published_at?" • "+date(a.published_at):""}`}
 
 function heroMarkup(a){
-return `<div class="hero-main" data-slug="${esc(a.slug)}">
+return `<a class="hero-main" href="/article.html?slug=${encodeURIComponent(a.slug || "")}">
 ${imageTag(a)}
 <div class="hero-copy"><span class="badge">${esc(a.category||"News")}</span><h2>${esc(a.title)}</h2>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div>
-</div>`;
+</a>`;
 }
 function sideMarkup(a){
-return `<article class="side-card" data-slug="${esc(a.slug)}">${imageTag(a)}<div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${meta(a)}</div></div></article>`;
+return `<a class="side-card" href="/article.html?slug=${encodeURIComponent(a.slug || "")}">${imageTag(a)}<div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${meta(a)}</div></div></a>`;
 }
 function cardMarkup(a){
-return `<article class="story-card" data-slug="${esc(a.slug)}">${imageTag(a)}<div class="story-body"><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div></article>`;
+return `<a class="story-card" href="/article.html?slug=${encodeURIComponent(a.slug || "")}">${imageTag(a)}<div class="story-body"><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div></a>`;
 }
 function trendMarkup(a,i){
-return `<article class="trend-card" data-slug="${esc(a.slug)}"><div class="trend-num">${String(i+1).padStart(2,"0")}</div><div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${Number(a.views||0).toLocaleString("en-IN")} views</div></div></article>`;
+return `<a class="trend-card" href="/article.html?slug=${encodeURIComponent(a.slug || "")}"><div class="trend-num">${String(i+1).padStart(2,"0")}</div><div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${Number(a.views||0).toLocaleString("en-IN")} views</div></div></a>`;
 }
-function bindCards(){
-document.querySelectorAll("[data-slug]").forEach(el=>el.onclick=()=>window.location.href="/article/"+encodeURIComponent(el.dataset.slug));
-}
+function bindCards(){}
 function renderCategory(category){
 document.querySelectorAll(".category-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.category===category));
 const filtered=category==="All"?allArticles:allArticles.filter(a=>(a.category||"News")===category);
