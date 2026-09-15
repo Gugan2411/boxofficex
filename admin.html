@@ -1977,6 +1977,68 @@ body.admin-owner-ready .admin-feature-card.owner-only{
 @media(max-width:720px){
     .release-filter-grid{grid-template-columns:1fr}
 }
+
+/* =====================================================
+   BOXOFFICEX ADMIN MOBILE PORTAL
+===================================================== */
+.admin-mobile-menu-button{
+    display:none;width:42px;height:42px;padding:0;border:1px solid #344663;
+    border-radius:11px;background:#151d31;color:#fff;cursor:pointer;
+    align-items:center;justify-content:center;font-size:21px;line-height:1
+}
+@media(max-width:760px){
+    html{scroll-padding-top:76px}
+    body{overflow-x:hidden}
+    .admin-topbar{
+        display:grid;grid-template-columns:minmax(0,1fr) 42px;
+        align-items:center;padding:10px 12px;gap:8px
+    }
+    .admin-header-brand{width:auto!important;font-size:16px;overflow:hidden;text-overflow:ellipsis}
+    .admin-mobile-menu-button{display:inline-flex}
+    .admin-nav{
+        display:none;grid-column:1/-1;order:initial!important;width:100%;
+        max-height:58vh;overflow-y:auto!important;overflow-x:hidden!important;
+        padding:8px!important;border:1px solid #29334d;border-radius:13px;
+        background:#0d1422;flex-direction:column;align-items:stretch;gap:5px
+    }
+    .admin-nav.mobile-open{display:flex}
+    .admin-nav a{width:100%;min-height:44px;padding:11px 12px;font-size:12px;justify-content:flex-start;border-color:rgba(255,255,255,.055)}
+    .admin-account-actions{
+        display:none;grid-column:1/-1;width:100%!important;overflow:visible!important;
+        grid-template-columns:1fr 1fr;gap:7px;padding-top:2px
+    }
+    .admin-topbar.menu-open .admin-account-actions{display:grid}
+    .admin-user-chip{grid-column:1/-1;margin:0!important;text-align:center;overflow:hidden;text-overflow:ellipsis}
+    .admin-account-btn{min-height:42px}
+    .admin-header-actions{display:none!important}
+    .container{width:100%;max-width:none;margin:12px auto!important;padding:10px!important}
+    .admin-card,.dashboard,.new-movie-dashboard-card,.release-status-card,.comment-moderation-card,.owner-team-card{padding:15px!important;border-radius:15px}
+    .page-title{font-size:24px!important;line-height:1.2}.subtitle{margin-bottom:20px;font-size:13px}
+    .admin-portal-home{padding:16px!important;border-radius:16px}.admin-portal-title{font-size:23px}
+    .admin-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+    .movie-form-grid,.actor-form-grid,.owner-team-grid,.bulk-collection-grid{grid-template-columns:1fr!important}
+    .movie-form-grid .form-group,.actor-form-grid .form-group,.movie-form-grid .full-width,.actor-form-grid .full-width{grid-column:1!important}
+    .form-group{min-width:0;margin-bottom:16px}
+    input,select,textarea{max-width:100%;font-size:16px!important}
+    input[type="file"]{white-space:normal;overflow:hidden}
+    button,.submit-button,.refresh-button,.upload-image-button{min-height:42px;touch-action:manipulation}
+    .type-buttons,.owner-summary-grid,.release-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+    .movie-list-header,.actor-list-header,.dashboard-header,.release-status-head{align-items:stretch!important;flex-direction:column!important}
+    .movie-list-header .refresh-button,.actor-list-header .refresh-button,.dashboard-header .refresh-button,.release-status-head .refresh-button{width:100%}
+    .table-wrapper{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+    table,.movie-table,.actor-table,.owner-table,.activity-table{min-width:720px}
+    th,td{padding:10px 9px!important;font-size:11px!important;white-space:nowrap}
+    td button,td a{min-height:34px}
+    .modal,.account-modal{padding:8px!important;align-items:flex-start}
+    .modal-content,.account-modal-card{width:100%!important;max-width:none!important;margin:8px auto!important;padding:15px!important;max-height:calc(100vh - 16px);overflow-y:auto;border-radius:14px!important}
+    .modal-header{position:sticky;top:-15px;z-index:2;padding:4px 0 10px;background:#101725}
+    .comment-moderation-actions,.owner-action-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .comment-mod-btn,.owner-mini-btn{min-height:40px}
+}
+@media(max-width:390px){
+    .admin-feature-grid,.type-buttons,.owner-summary-grid,.release-summary-grid{grid-template-columns:1fr!important}
+    .admin-feature-card{min-height:108px}
+}
 </style>
 
 </head>
@@ -1991,7 +2053,9 @@ body.admin-owner-ready .admin-feature-card.owner-only{
         🎬 BOXOFFICE<span>X</span> ADMIN
     </div>
 
-    <nav class="admin-nav" aria-label="Admin navigation">
+    <button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
+
+    <nav class="admin-nav" id="adminMainNavigation" aria-label="Admin navigation">
         <a class="active" href="/admin.html">🏠 Admin Home</a>
         <a href="#movies">🎬 Movies</a>
         <a href="/admin-new-movies.html">🆕 New Movies</a>
@@ -10106,6 +10170,36 @@ async function deleteAdminComment(commentType,commentId){
         syncAdminPortalOwnerCards();
         setTimeout(syncAdminPortalOwnerCards, 300);
         setTimeout(syncAdminPortalOwnerCards, 1000);
+    });
+})();
+</script>
+
+<script id="bx-admin-mobile-menu-script">
+(function(){
+    const header=document.querySelector(".admin-topbar");
+    const button=document.getElementById("adminMobileMenuButton");
+    const navigation=document.getElementById("adminMainNavigation");
+    if(!header||!button||!navigation)return;
+
+    function setMenu(open){
+        navigation.classList.toggle("mobile-open",open);
+        header.classList.toggle("menu-open",open);
+        button.setAttribute("aria-expanded",open?"true":"false");
+        button.setAttribute("aria-label",open?"Close admin menu":"Open admin menu");
+        button.textContent=open?"✕":"☰";
+    }
+
+    button.addEventListener("click",function(){
+        setMenu(!navigation.classList.contains("mobile-open"));
+    });
+    navigation.addEventListener("click",function(event){
+        if(event.target.closest("a")&&window.innerWidth<=760)setMenu(false);
+    });
+    document.addEventListener("keydown",function(event){
+        if(event.key==="Escape")setMenu(false);
+    });
+    window.addEventListener("resize",function(){
+        if(window.innerWidth>760)setMenu(false);
     });
 })();
 </script>

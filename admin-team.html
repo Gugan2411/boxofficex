@@ -132,6 +132,25 @@ nav,.account{width:100%}
 .manage-table{min-width:1000px}
 @media(max-width:700px){.manage-grid{grid-template-columns:1fr}.manage-grid .full{grid-column:auto}}
 
+/* BOXOFFICEX ADMIN TEAM MOBILE PORTAL */
+.admin-mobile-menu-button{display:none;width:42px;height:42px;padding:0;border:1px solid #344663;border-radius:11px;background:#151d31;color:#fff;font-size:21px;line-height:1;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:760px){
+ html{scroll-padding-top:76px}body{overflow-x:hidden}
+ header .navbar{display:grid;grid-template-columns:minmax(0,1fr) 42px;align-items:center;width:100%;padding:9px 12px!important;gap:8px}
+ .logo{min-width:0;font-size:16px;overflow:hidden;text-overflow:ellipsis}.logo-icon{flex:0 0 auto}.admin-mobile-menu-button{display:inline-flex}
+ header nav{display:none;grid-column:1/-1;width:100%;max-height:55vh;padding:8px;overflow-y:auto;overflow-x:hidden;flex-direction:column;align-items:stretch;gap:5px;border:1px solid var(--border);border-radius:13px;background:#0d1422}
+ header nav.mobile-open{display:flex}header nav a{width:100%;min-height:44px;padding:11px 12px;display:flex;align-items:center;justify-content:flex-start;font-size:12px;border:1px solid rgba(255,255,255,.055)}
+ .account{display:none;grid-column:1/-1;width:100%!important;grid-template-columns:minmax(0,1fr) auto;gap:7px;overflow:visible!important}.navbar.menu-open .account{display:grid}.user-chip{min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis}.account button{min-height:42px}
+ main{width:100%;padding:18px 10px 48px}h1{font-size:28px}.intro{font-size:12px;line-height:1.55}
+ .card{margin-top:16px;padding:14px;border-radius:15px}.card h2{font-size:17px}
+ .filters,.manage-grid{grid-template-columns:1fr!important;gap:10px}.manage-grid .full{grid-column:1!important}input,select{max-width:100%;min-height:44px;font-size:16px}
+ .btn,.mini-btn{min-height:40px;touch-action:manipulation}.filters .btn{width:100%}.manage-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.manage-actions button{width:100%;min-width:0;padding:8px 5px;font-size:9px}
+ .summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}.stat{padding:12px}.team-grid{grid-template-columns:1fr!important}.team-card{min-height:62px;padding:13px}
+ .table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:5px;scrollbar-width:auto;scrollbar-color:#526a9d #0a101c}.table-wrap::-webkit-scrollbar{height:12px}.table-wrap::-webkit-scrollbar-thumb{background:#526a9d;border:3px solid #0a101c;border-radius:10px}
+ table{min-width:850px}.manage-table{min-width:980px}th,td{padding:10px 9px;font-size:10px;white-space:nowrap}td:first-child{white-space:normal;min-width:150px}
+}
+@media(max-width:390px){.summary,.manage-actions{grid-template-columns:1fr!important}}
+
 </style>
 </head>
 
@@ -140,7 +159,9 @@ nav,.account{width:100%}
 <div class="navbar">
 <a href="/admin.html" class="logo"><span class="logo-icon">🎬</span>BOXOFFICE<span>X</span></a>
 
-<nav>
+<button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
+
+<nav id="adminMainNavigation">
 <a href="/admin.html">🏠 Admin Home</a>
 <a href="/admin.html#movies">🎬 Movies</a>
 <a href="/admin-new-movies.html">🆕 New Movies</a>
@@ -490,6 +511,17 @@ document.getElementById("sessionBody").innerHTML=
 `<tr><td colspan="6" class="empty">${esc(e.message)}</td></tr>`;
 }
 });
+</script>
+<script id="bx-admin-team-mobile-menu-script">
+(function(){
+ const navbar=document.querySelector("header .navbar"),button=document.getElementById("adminMobileMenuButton"),navigation=document.getElementById("adminMainNavigation");
+ if(!navbar||!button||!navigation)return;
+ function setMenu(open){navigation.classList.toggle("mobile-open",open);navbar.classList.toggle("menu-open",open);button.setAttribute("aria-expanded",open?"true":"false");button.setAttribute("aria-label",open?"Close admin menu":"Open admin menu");button.textContent=open?"✕":"☰"}
+ button.addEventListener("click",()=>setMenu(!navigation.classList.contains("mobile-open")));
+ navigation.addEventListener("click",event=>{if(event.target.closest("a")&&innerWidth<=760)setMenu(false)});
+ document.addEventListener("keydown",event=>{if(event.key==="Escape")setMenu(false)});
+ window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
+})();
 </script>
 </body>
 </html>

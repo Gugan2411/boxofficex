@@ -1055,6 +1055,37 @@
 .bx-tier-standard,.bx-tier-rotation,.bx-tier-bronze{background:#16372a;color:#a7f3d0}
 @media(max-width:900px){.bx-package-grid,.bx-sponsor-package-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bx-rate-box{grid-template-columns:1fr}}
 
+/* BOXOFFICEX AD ADMIN MOBILE PORTAL */
+.admin-mobile-menu-button{display:none;width:42px;height:42px;padding:0;border:1px solid #344663;border-radius:11px;background:#151d31;color:#fff;font-size:21px;line-height:1;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:760px){
+ html{scroll-padding-top:76px}body{overflow-x:hidden}
+ .admin-topbar{display:grid;grid-template-columns:minmax(0,1fr) 42px;align-items:center;padding:9px 12px!important;gap:8px}
+ .brand{width:auto!important;min-width:0;font-size:16px!important;overflow:hidden;text-overflow:ellipsis}
+ .admin-mobile-menu-button{display:inline-flex}
+ .admin-nav{display:none;grid-column:1/-1;order:initial!important;width:100%;max-height:55vh;overflow-y:auto!important;overflow-x:hidden!important;padding:8px;border:1px solid var(--border);border-radius:13px;background:#0d1422;flex-direction:column;align-items:stretch;gap:5px}
+ .admin-nav.mobile-open{display:flex}.admin-nav a{width:100%;min-height:44px;padding:11px 12px;justify-content:flex-start;font-size:12px;border-color:rgba(255,255,255,.055)}
+ .account-area{display:none;grid-column:1/-1;width:100%!important;grid-template-columns:minmax(0,1fr) auto;gap:7px}.admin-topbar.menu-open .account-area{display:grid}.user-chip{min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis}.logout-btn{min-height:42px}
+ .container{width:100%!important;margin:16px auto 48px!important;padding:0 10px}
+ .hero{align-items:stretch;gap:12px}.hero h1{font-size:27px}.hero p{font-size:12px;line-height:1.55}
+ .panel{padding:14px!important;border-radius:15px}.panel-head{align-items:stretch!important;gap:10px}.panel-head h2{font-size:18px}
+ .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}.summary-card{padding:12px!important}
+ .form-grid,.toolbar,.master-search-row,.bx-rate-box{grid-template-columns:1fr!important}.form-group.full,.targeting-box{grid-column:1!important}
+ input,select,textarea{max-width:100%;font-size:16px!important}input[type="file"]{overflow:hidden}
+ button,.primary-btn,.secondary-btn,.danger-btn,.good-btn,.mini-btn{min-height:42px;touch-action:manipulation}
+ .form-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.form-actions>*{width:100%;min-width:0;padding:9px 6px;font-size:10px}
+ .ad-mode-grid,.placement-grid,.bx-package-grid,.bx-sponsor-package-grid,.preview-page-grid,.inventory-grid{grid-template-columns:1fr!important}
+ .placement-option,.ad-mode-option,.bx-package-card{min-height:48px;padding:11px!important}
+ .target-search-row,.draft-preview-head{display:flex;flex-direction:column;align-items:stretch!important}.target-search-row button,.draft-preview-head button{width:100%}
+ .master-tabs{display:flex;max-width:100%;overflow-x:auto;padding-bottom:5px}.master-tabs button{flex:0 0 auto}
+ .inventory-card{padding:14px}.inventory-card .inv-top{gap:7px}.inventory-card .inv-count{min-width:62px;font-size:17px}
+ .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}table{min-width:1050px}th,td{padding:10px!important;font-size:11px!important;white-space:nowrap}td .campaign-name{white-space:normal;min-width:180px}
+ .modal{padding:7px!important}.modal-card{width:100%!important;max-width:none!important;margin:7px auto!important;padding:14px!important;max-height:calc(100vh - 14px);overflow-y:auto;border-radius:14px!important}
+ .modal-head{position:sticky;top:-14px;z-index:3;padding:4px 0 10px;background:var(--panel)}
+ .preview-toolbar{align-items:stretch}.preview-device-toggle{display:grid;grid-template-columns:1fr 1fr}.preview-device-toggle button{width:100%}.preview-stage-shell{padding:7px}.preview-stage{min-width:0!important;width:100%!important}
+ .preview-meta{grid-template-columns:1fr!important}.media-preview{max-width:100%;height:auto;max-height:260px}
+}
+@media(max-width:390px){.summary-grid,.form-actions{grid-template-columns:1fr!important}}
+
 </style>
 </head>
 
@@ -1066,7 +1097,9 @@
         🎬 BOXOFFICE<span>X</span> ADMIN
     </div>
 
-    <nav class="admin-nav">
+    <button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
+
+    <nav class="admin-nav" id="adminMainNavigation">
         <a href="/admin.html">🏠 Admin Home</a>
         <a href="/admin-new-movies.html">🆕 New Movies</a>
         <a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
@@ -3998,6 +4031,26 @@ function bxPackageBadge(pkg){
   return `<span class="bx-tier bx-tier-${p}">${label}</span>`;
 }
 
+</script>
+
+<script id="bx-admin-advertisements-mobile-menu-script">
+(function(){
+ const header=document.querySelector(".admin-topbar");
+ const button=document.getElementById("adminMobileMenuButton");
+ const navigation=document.getElementById("adminMainNavigation");
+ if(!header||!button||!navigation)return;
+ function setMenu(open){
+  navigation.classList.toggle("mobile-open",open);
+  header.classList.toggle("menu-open",open);
+  button.setAttribute("aria-expanded",open?"true":"false");
+  button.setAttribute("aria-label",open?"Close admin menu":"Open admin menu");
+  button.textContent=open?"✕":"☰";
+ }
+ button.addEventListener("click",()=>setMenu(!navigation.classList.contains("mobile-open")));
+ navigation.addEventListener("click",event=>{if(event.target.closest("a")&&innerWidth<=760)setMenu(false)});
+ document.addEventListener("keydown",event=>{if(event.key==="Escape")setMenu(false)});
+ window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
+})();
 </script>
 
 </body>

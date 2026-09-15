@@ -45,13 +45,30 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}
 .empty{padding:24px;text-align:center;color:var(--muted)}.notice{margin-top:12px;color:#9fb1c7;font-size:10px;line-height:1.5}
 @media(max-width:1050px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.page{padding:16px 12px 32px}.hero{align-items:flex-start;flex-direction:column}.form-grid,.package-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.topbar-inner{padding:12px}}
+
+/* BOXOFFICEX OTT INVENTORY MOBILE PORTAL */
+.admin-mobile-menu-button{display:none;width:42px;height:42px;padding:0;border:1px solid #345477;border-radius:11px;background:#10243d;color:#fff;font-size:21px;line-height:1;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:760px){
+ html{scroll-padding-top:76px}body{overflow-x:hidden}
+ .topbar-inner{display:grid;grid-template-columns:minmax(0,1fr) 42px;align-items:center;width:100%;padding:9px 12px!important;gap:8px}
+ .brand{min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{font-size:9px!important}.admin-mobile-menu-button{display:inline-flex}
+ .actions{display:none;grid-column:1/-1;width:100%;padding:8px;border:1px solid var(--line);border-radius:13px;background:#081626;flex-direction:column;align-items:stretch;gap:6px}.actions.mobile-open{display:flex}.actions .btn{width:100%;min-height:44px;justify-content:flex-start;text-align:left}
+ .page{width:100%;padding:16px 10px 42px!important}.hero{align-items:stretch;gap:12px}.hero h1{font-size:25px}.hero p{font-size:12px;line-height:1.5}.hero .btn{width:100%;min-height:43px}
+ .grid{grid-template-columns:1fr!important;gap:14px}.card{width:100%;border-radius:15px}.card-head{padding:14px;align-items:flex-start}.card-body{padding:14px}
+ .form-grid,.package-grid{grid-template-columns:1fr!important}.field input,.field select{max-width:100%;min-height:44px;font-size:16px}.pkg{min-height:54px}
+ .check-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.check-row .btn{width:100%;min-width:0;min-height:42px;padding:8px 5px;font-size:11px}
+ .result-panel{padding:12px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px}.metric{min-width:0;padding:10px}.metric strong{font-size:18px;overflow-wrap:anywhere}
+ .table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;scrollbar-width:auto;scrollbar-color:#5276a2 #081626}.table-wrap::-webkit-scrollbar{height:12px}.table-wrap::-webkit-scrollbar-thumb{background:#5276a2;border:3px solid #081626;border-radius:10px}.bookings{min-width:720px}.bookings th,.bookings td{padding:9px;font-size:10px;white-space:nowrap}.bookings td:first-child{white-space:normal;min-width:170px}
+}
+@media(max-width:390px){.check-row,.metrics{grid-template-columns:1fr!important}}
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand"><span>BOXOFFICE</span> X <small style="font-size:12px;color:#9fb1c7">OTT INVENTORY</small></div>
-    <div class="actions">
+    <button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
+    <div class="actions" id="adminMainNavigation">
       <a class="btn btn-outline btn-small" href="/admin-ott-sponsorships.html">OTT Campaigns</a>
       <a class="btn btn-outline btn-small" href="/admin.html">Dashboard</a>
       <button class="btn btn-small" id="logoutBtn">Logout</button>
@@ -315,6 +332,17 @@ $('refreshBookingsBtn').onclick=loadBookings;
 $('logoutBtn').onclick=async()=>{try{await api('/admin/logout',{method:'POST'})}catch{}location.href='/admin-login.html'};
 
 (async()=>{await checkSession();setDates();syncCoverage();await loadBookings()})().catch(console.error);
+</script>
+<script id="bx-admin-ott-inventory-mobile-menu-script">
+(function(){
+ const button=document.getElementById("adminMobileMenuButton"),navigation=document.getElementById("adminMainNavigation");
+ if(!button||!navigation)return;
+ function setMenu(open){navigation.classList.toggle("mobile-open",open);button.setAttribute("aria-expanded",open?"true":"false");button.setAttribute("aria-label",open?"Close admin menu":"Open admin menu");button.textContent=open?"✕":"☰"}
+ button.addEventListener("click",()=>setMenu(!navigation.classList.contains("mobile-open")));
+ navigation.addEventListener("click",event=>{if(event.target.closest("a,button")&&innerWidth<=760)setMenu(false)});
+ document.addEventListener("keydown",event=>{if(event.key==="Escape")setMenu(false)});
+ window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
+})();
 </script>
 </body>
 </html>

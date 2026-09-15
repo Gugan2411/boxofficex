@@ -142,13 +142,37 @@
 .ott-package .desc{margin-top:6px;color:#9fb1c7;font-size:9px;line-height:1.4}
 @media(max-width:850px){.ott-package-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.ott-package-grid,.rate-row{grid-template-columns:1fr}}
+
+/* BOXOFFICEX OTT ADMIN MOBILE PORTAL */
+.admin-mobile-menu-button{display:none;width:42px;height:42px;padding:0;border:1px solid #345477;border-radius:11px;background:#10243d;color:#fff;font-size:21px;line-height:1;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:760px){
+ html{scroll-padding-top:76px}body{overflow-x:hidden}
+ .topbar-inner{display:grid;grid-template-columns:minmax(0,1fr) 42px;align-items:center;width:100%;padding:9px 12px!important;gap:8px}
+ .brand{min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.admin-mobile-menu-button{display:inline-flex}
+ .top-actions{display:none;grid-column:1/-1;width:100%;max-height:55vh;overflow-y:auto;padding:8px;border:1px solid var(--line);border-radius:13px;background:#081626;flex-direction:column;align-items:stretch;gap:6px}
+ .top-actions.mobile-open{display:flex}.top-actions .btn{width:100%;min-height:44px;justify-content:flex-start;text-align:left}
+ .page{width:100%;padding:16px 10px 42px!important}.hero{align-items:stretch;gap:12px}.hero h1{font-size:25px}.hero p{font-size:12px;line-height:1.5}.hero .btn{width:100%;min-height:43px}
+ .layout{grid-template-columns:1fr!important;gap:14px}.right-col{order:initial!important}.card{width:100%;border-radius:15px}.card-head{padding:14px;align-items:flex-start}.card-body{padding:14px}
+ .grid-2,.grid-3,.placements,.target-scope-row,.premium-presets,.ott-package-grid,.rate-row,.report-grid{grid-template-columns:1fr!important}
+ .field input,.field select,.field textarea{max-width:100%;min-height:44px;font-size:16px}.upload-row{grid-template-columns:1fr}.upload-row .btn{width:100%}
+ .premium-targeting{padding:13px}.premium-targeting-head{flex-direction:column}.premium-badge{align-self:flex-start}.premium-preset,.ott-package{min-height:auto}
+ .scope-card-head{align-items:flex-start;flex-direction:column}.scope-switch{width:100%;display:grid;grid-template-columns:1fr 1fr}.scope-switch button{min-height:38px}
+ .placements .place{min-height:60px}.ott-search-actions{align-items:stretch}.chips{gap:6px}.chip{max-width:100%;overflow-wrap:anywhere}
+ .form-actions,.campaign-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.form-actions .btn,.campaign-actions .btn{width:100%;min-width:0;min-height:42px;padding:8px 6px;font-size:11px}
+ .campaign{padding:12px}.campaign-top{align-items:flex-start}.campaign-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.metric{min-width:0}.metric strong{overflow-wrap:anywhere}
+ .preview-wrap{padding:10px}.preview-card{padding:12px;display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px}.preview-card img{width:64px;height:48px}.preview-cta{font-size:11px;padding:8px 9px}
+ .modal{padding:7px}.modal-box{width:100%;max-width:none;margin:7px auto;max-height:calc(100vh - 14px);overflow-y:auto;border-radius:14px}.modal-head{position:sticky;top:0;z-index:2;padding:13px;background:#0b1a2c}.modal-body{padding:13px}
+ .bottom-toast{bottom:10px;width:calc(100vw - 20px)}
+}
+@media(max-width:390px){.form-actions,.campaign-actions,.campaign-meta{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand"><span>BOXOFFICE</span> X <small style="font-size:12px;color:#9fb1c7">ADMIN</small></div>
-    <div class="top-actions">
+    <button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
+    <div class="top-actions" id="adminMainNavigation">
       <a class="btn btn-outline btn-small" href="/admin-ott-inventory.html">OTT Inventory</a>
       <a class="btn btn-outline btn-small" href="/admin-advertisements.html">Advertisements</a>
       <a class="btn btn-outline btn-small" href="/admin.html">Dashboard</a>
@@ -1136,6 +1160,17 @@ $('downloadReportCsvBtn').onclick=()=>downloadOttReport('csv');
 $('closeReportBtn').onclick=()=>$('reportModal').classList.remove('show');$('reportModal').onclick=e=>{if(e.target===$('reportModal'))$('reportModal').classList.remove('show')};$('refreshBtn').onclick=loadCampaigns;
 $('logoutBtn').onclick=async()=>{try{await api('/admin/logout',{method:'POST'});}catch{}location.href='/admin-login.html'};
 (async()=>{try{await checkSession();setDefaultDates();renderSelected();updateTargetScopeUI();updatePackageUI();await loadCampaigns()}catch(e){console.error(e)}})();
+</script>
+<script id="bx-admin-ott-mobile-menu-script">
+(function(){
+ const button=document.getElementById("adminMobileMenuButton"),navigation=document.getElementById("adminMainNavigation");
+ if(!button||!navigation)return;
+ function setMenu(open){navigation.classList.toggle("mobile-open",open);button.setAttribute("aria-expanded",open?"true":"false");button.setAttribute("aria-label",open?"Close admin menu":"Open admin menu");button.textContent=open?"✕":"☰"}
+ button.addEventListener("click",()=>setMenu(!navigation.classList.contains("mobile-open")));
+ navigation.addEventListener("click",event=>{if(event.target.closest("a,button")&&innerWidth<=760)setMenu(false)});
+ document.addEventListener("keydown",event=>{if(event.key==="Escape")setMenu(false)});
+ window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
+})();
 </script>
 </body>
 </html>

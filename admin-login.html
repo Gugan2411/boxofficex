@@ -46,12 +46,17 @@
 
         body {
             min-height: 100vh;
+            min-height: 100svh;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
-            padding: 20px;
+            padding:
+                max(20px, env(safe-area-inset-top))
+                max(20px, env(safe-area-inset-right))
+                max(20px, env(safe-area-inset-bottom))
+                max(20px, env(safe-area-inset-left));
 
             font-family:
                 Arial,
@@ -238,6 +243,10 @@
         input:focus {
             border-color:
                 rgba(77,141,255,0.70);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(77,141,255,0.12);
         }
 
 
@@ -259,6 +268,22 @@
             cursor: pointer;
 
             font-size: 18px;
+
+            width: 42px;
+            height: 42px;
+
+            border-radius: 9px;
+        }
+
+
+        .toggle-password:focus-visible,
+        .login-button:focus-visible,
+        .back-home:focus-visible {
+            outline:
+                3px solid
+                rgba(77,141,255,0.48);
+
+            outline-offset: 3px;
         }
 
 
@@ -282,6 +307,9 @@
             font-weight: 900;
 
             cursor: pointer;
+
+            min-height: 50px;
+            touch-action: manipulation;
         }
 
 
@@ -342,9 +370,13 @@
 
 
         .back-home {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
             margin-top: 18px;
+
+            min-height: 44px;
 
             text-align: center;
 
@@ -371,12 +403,78 @@
 
         @media (max-width: 500px) {
 
+            body {
+                align-items: center;
+
+                padding:
+                    max(12px, env(safe-area-inset-top))
+                    max(12px, env(safe-area-inset-right))
+                    max(12px, env(safe-area-inset-bottom))
+                    max(12px, env(safe-area-inset-left));
+            }
+
+            .brand {
+                gap: 8px;
+                margin-bottom: 16px;
+                font-size: 21px;
+            }
+
+            .brand-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 11px;
+            }
+
             .login-card {
-                padding: 23px;
+                padding: 22px 18px;
+                border-radius: 18px;
             }
 
             h1 {
-                font-size: 27px;
+                font-size: 25px;
+            }
+
+            .subtitle {
+                margin-bottom: 20px;
+                font-size: 13px;
+                line-height: 1.55;
+            }
+
+            .field-wrap {
+                margin-bottom: 14px;
+            }
+
+            input {
+                min-height: 50px;
+            }
+
+            .login-button {
+                margin-top: 18px;
+            }
+
+            .message {
+                line-height: 1.45;
+            }
+
+        }
+
+
+        @media (max-width: 360px) {
+
+            .login-card {
+                padding: 18px 15px;
+            }
+
+            .login-badge {
+                margin-bottom: 12px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .security-note {
+                margin-top: 14px;
             }
 
         }
