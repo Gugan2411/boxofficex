@@ -2635,15 +2635,17 @@ html,body{scroll-padding-top:0!important}
 
     function updateSeo(actorName, verdictName){
         const cleanActor = String(actorName || "Actor").trim();
-        const cleanVerdict = String(verdictName || "Movies").trim();
+        const cleanVerdict = verdictName ? String(verdictName).trim() : "";
 
-        const title = `${cleanActor} ${cleanVerdict} Movies, Box Office & Verdict | BoxOfficeX`;
-        const description = `Explore ${cleanActor}'s ${cleanVerdict} movies with release dates, worldwide box-office collections and verdict information on BoxOfficeX.`;
-        const canonical =
-            "https://boxoffice-x.com/actor-movies.html?id=" +
+        const title = cleanVerdict
+            ? `${cleanActor} ${cleanVerdict} Movies, Box Office & Verdict | BoxOfficeX`
+            : `${cleanActor} Movies, Box Office & Verdict | BoxOfficeX`;
+        const description = cleanVerdict
+            ? `Explore ${cleanActor}'s ${cleanVerdict} movies with release dates, worldwide box-office collections and verdict information on BoxOfficeX.`
+            : `Explore all ${cleanActor} movies with release dates, worldwide box-office collections and verdict information on BoxOfficeX.`;
+        const canonical = "https://boxoffice-x.com/actor-movies.html?id=" +
             encodeURIComponent(actorId) +
-            "&verdict=" +
-            encodeURIComponent(cleanVerdict);
+            (cleanVerdict ? "&verdict=" + encodeURIComponent(cleanVerdict) : "");
 
         document.title = title;
         document.getElementById("metaDescription").setAttribute("content", description);
@@ -2655,7 +2657,7 @@ html,body{scroll-padding-top:0!important}
         document.getElementById("twitterDescription").setAttribute("content", description);
     }
 
-    if (!actorId || !verdict){
+    if (!actorId){
         document.getElementById("pageTitle").textContent = "Actor Movies";
         document.getElementById("pageSubtitle").textContent = "Invalid movie request.";
         document.getElementById("movieGrid").innerHTML =
@@ -2676,22 +2678,25 @@ html,body{scroll-padding-top:0!important}
 
             if (!actor) throw new Error("Actor not found");
 
-            const moviesResponse = await fetch(
-                "/actors/" + encodeURIComponent(actorId) +
-                "/movies/verdict/" + encodeURIComponent(verdict),
-                {cache:"no-store"}
-            );
+            const moviesEndpoint = verdict
+                ? "/actors/" + encodeURIComponent(actorId) +
+                  "/movies/verdict/" + encodeURIComponent(verdict)
+                : "/actors/" + encodeURIComponent(actorId) + "/movies";
+
+            const moviesResponse = await fetch(moviesEndpoint, {cache:"no-store"});
 
             if (!moviesResponse.ok) throw new Error("Movies API error");
 
             const moviesData = await moviesResponse.json();
             const movies = moviesData.movies || [];
 
-            document.getElementById("pageTitle").textContent =
-                actor.name + " — " + verdict + " Movies";
+            document.getElementById("pageTitle").textContent = verdict
+                ? actor.name + " — " + verdict + " Movies"
+                : actor.name + " — All Movies";
 
-            document.getElementById("pageSubtitle").textContent =
-                movies.length + " " + verdict + " movie" + (movies.length === 1 ? "" : "s");
+            document.getElementById("pageSubtitle").textContent = verdict
+                ? movies.length + " " + verdict + " movie" + (movies.length === 1 ? "" : "s")
+                : movies.length + " movie" + (movies.length === 1 ? "" : "s");
 
             updateSeo(actor.name, verdict);
 
@@ -2699,8 +2704,9 @@ html,body{scroll-padding-top:0!important}
             grid.innerHTML = "";
 
             if (movies.length === 0){
-                grid.innerHTML =
-                    '<div class="empty">No ' + escapeHtml(verdict) + ' movies found.</div>';
+                grid.innerHTML = verdict
+                    ? '<div class="empty">No ' + escapeHtml(verdict) + ' movies found.</div>'
+                    : '<div class="empty">No movies found for this actor.</div>';
                 return;
             }
 

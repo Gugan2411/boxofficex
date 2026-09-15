@@ -2113,11 +2113,17 @@ footer,
 
 
 /* ARTICLE FAN ENGAGEMENT */
-.article-fan-zone,.article-fan-comments{width:min(100%,700px);margin:24px auto 0;padding:18px;border:1px solid #dfe5ee;border-radius:15px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.06);font-family:Arial,Helvetica,sans-serif}
+.article-fan-zone,.article-fan-comments{width:min(100%,700px);margin:24px auto 0;padding:18px;border:1px solid rgba(179,196,224,.62);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(239,245,255,.88));box-shadow:0 14px 38px rgba(30,64,175,.10);font-family:Arial,Helvetica,sans-serif;backdrop-filter:blur(14px)}
 .article-fan-zone h2,.article-fan-comments h2{font-size:18px;line-height:1.3;margin:0 0 12px;color:#111827}
-.article-fan-actions{display:flex;gap:9px;flex-wrap:wrap}
-.article-fan-btn,.article-comment-action{border:1px solid #dbe4f0;border-radius:10px;background:#f8fafc;color:#344054;padding:9px 12px;font-weight:800;cursor:pointer}
-.article-fan-btn.active{background:#eef4ff;border-color:#b9ceff;color:#2563eb}
+.article-fan-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.article-fan-btn,.article-comment-action{border:1px solid #dbe4f0;border-radius:12px;background:rgba(255,255,255,.85);color:#344054;padding:9px 12px;font-weight:800;cursor:pointer}
+.article-fan-btn{min-height:52px;font-size:14px;box-shadow:0 7px 18px rgba(15,23,42,.06);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.article-fan-btn:hover{transform:translateY(-1px);border-color:#9bb9f5;box-shadow:0 10px 22px rgba(37,99,235,.12)}
+.article-fan-btn span{margin-left:4px;font-size:13px}
+.article-fan-btn.active{background:linear-gradient(135deg,#eef4ff,#fff7dc);border-color:#8fb2ff;color:#1d4ed8}
+.article-share-boost{margin-top:15px;padding-top:14px;border-top:1px solid rgba(148,163,184,.28)}
+.article-share-boost h3{margin:0;color:#172033;font-size:14px}.article-share-boost p{margin:5px 0 11px!important;color:#667085!important;font-size:11px!important;line-height:1.5!important}
+.article-social-share{display:flex;gap:8px;flex-wrap:wrap}.article-social-btn{min-width:42px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid #d7e1ef;border-radius:10px;background:#fff;color:#24324a;text-decoration:none;font-size:11px;font-weight:900;cursor:pointer;padding:8px 10px}.article-social-btn:hover{border-color:#8fb2ff;background:#f5f8ff}.article-social-btn.whatsapp{color:#087d42}.article-social-btn.facebook{color:#1756a9}.article-social-btn.x-share{color:#111827}.article-social-btn.telegram{color:#167ca8}
 .article-comment-form{display:grid;gap:8px;margin-bottom:14px}
 .article-comment-form input,.article-comment-form textarea,.article-comment-sort{border:1px solid #dfe5ee;border-radius:10px;background:#fff;color:#111827;padding:10px;font:inherit}
 .article-comment-form textarea{min-height:85px;resize:vertical}.article-comment-submit{justify-self:start;border:0;border-radius:10px;background:#2563eb;color:#fff;padding:10px 14px;font-weight:900;cursor:pointer}
@@ -2125,7 +2131,7 @@ footer,
 .article-comment-item{padding:12px 0;border-top:1px solid #edf0f4}.article-comment-author{font-size:12px;font-weight:900}.article-comment-body{margin-top:5px;color:#344054;font-size:13px;line-height:1.55;overflow-wrap:anywhere}
 .article-comment-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.article-comment-action{padding:6px 8px;font-size:10px}
 .article-top-fan{display:none;margin:0 0 12px;padding:13px;border:1px solid #ead9a4;border-radius:12px;background:#fff9e8}.article-top-fan.show{display:block}.article-top-fan-label{color:#9a6700;font-size:10px;font-weight:900;text-transform:uppercase}.article-top-fan-author{margin-top:6px;font-size:12px;font-weight:900}.article-top-fan-body{margin-top:5px;font-size:13px;color:#344054}.article-fan-status{margin-top:8px;color:#667085;font-size:10px}
-@media(max-width:700px){.article-fan-zone,.article-fan-comments{padding:13px 10px}.article-fan-zone h2,.article-fan-comments h2{font-size:16px}}
+@media(max-width:700px){.article-fan-zone,.article-fan-comments{padding:15px 12px}.article-fan-zone h2,.article-fan-comments h2{font-size:16px}.article-fan-btn{min-height:50px;font-size:13px}.article-social-share{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.article-social-btn{min-width:0;padding:8px 5px}}
 
 
 .article-view-count{
@@ -4624,10 +4630,6 @@ async function renderArticle(article) {
                         <span class="article-view-count" id="articleViewCount">👁 0 Views</span>
                     </div>
 
-                    <div class="share-row">
-                        <button class="share-button" id="copyLink">🔗 Copy Link</button>
-                        <button class="share-button" id="shareArticle">↗ Share</button>
-                    </div>
                 </div>
 
                 <figure class="hero-wrap">
@@ -4660,6 +4662,18 @@ async function renderArticle(article) {
                         <div class="article-fan-actions">
                             <button type="button" class="article-fan-btn" id="articleLikeBtn">❤️ Like <span id="articleLikeCount">0</span></button>
                             <button type="button" class="article-fan-btn" id="articleHypeBtn">🔥 Hype <span id="articleHypeCount">0</span></button>
+                        </div>
+                        <div class="article-share-boost">
+                            <h3>📣 Share this story</h3>
+                            <p>Share this BoxOfficeX article with your friends and family and invite them to join the discussion.</p>
+                            <div class="article-social-share" aria-label="Share this article">
+                                <button type="button" class="article-social-btn whatsapp" data-article-share="whatsapp">WhatsApp</button>
+                                <button type="button" class="article-social-btn facebook" data-article-share="facebook">Facebook</button>
+                                <button type="button" class="article-social-btn x-share" data-article-share="x">X</button>
+                                <button type="button" class="article-social-btn telegram" data-article-share="telegram">Telegram</button>
+                                <button type="button" class="article-social-btn" data-article-share="native">↗ Share</button>
+                                <button type="button" class="article-social-btn" data-article-share="copy">🔗 Copy</button>
+                            </div>
                         </div>
                         <div class="article-fan-status" id="articleFanStatus"></div>
                     </section>
@@ -4958,12 +4972,54 @@ async function loadArticleComments(id){
   if(topBox&&top&&(Number(top.like_count)||0)>0){topBox.classList.add("show");topBox.innerHTML=`<div class="article-top-fan-label">🏆 Top Reader Comment</div><div class="article-top-fan-author">${esc(top.display_name)} • 👍 ${Number(top.like_count)||0}</div><div class="article-top-fan-body">${esc(top.comment_text)}</div>`}else if(topBox){topBox.classList.remove("show");topBox.innerHTML=""}
  }catch(e){box.innerHTML=`<div class="article-fan-status">${esc(e.message)}</div>`}
 }
+
+function articlePublicShareUrl(article){
+ const slug=String(article?.slug||"").trim();
+ return slug
+  ? `https://boxofficex.in/article/${encodeURIComponent(slug)}`
+  : "https://boxofficex.in/articles.html";
+}
+function articleFanMessage(message){
+ const status=document.getElementById("articleFanStatus");
+ if(!status)return;
+ status.textContent=message;
+ clearTimeout(articleFanMessage.timer);
+ articleFanMessage.timer=setTimeout(()=>{status.textContent=""},2200);
+}
+async function shareBoxOfficeXArticle(platform,article){
+ const url=articlePublicShareUrl(article);
+ const title=String(article?.title||"BoxOfficeX article").trim();
+ const text=`${title} — Read on BoxOfficeX`;
+ const targets={
+  whatsapp:`https://wa.me/?text=${encodeURIComponent(text+" "+url)}`,
+  facebook:`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+  x:`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+  telegram:`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+ };
+ if(targets[platform]){
+  window.open(targets[platform],"_blank","noopener,noreferrer,width=720,height=620");
+  articleFanMessage("Sharing opened — invite your friends to read and join in.");
+  return;
+ }
+ if(platform==="native"&&navigator.share){
+  try{await navigator.share({title,text,url});articleFanMessage("Thanks for sharing!")}catch(error){if(error?.name!=="AbortError")articleFanMessage("Sharing could not be opened.")}
+  return;
+ }
+ try{
+  await navigator.clipboard.writeText(url);
+  articleFanMessage("Article link copied!");
+ }catch(error){
+  articleFanMessage("Copy the article URL from your browser.");
+ }
+}
 document.addEventListener("click",async e=>{
  const a=window.currentBoxOfficeXArticle;if(!a?.id)return;
  const body={visitor_id:articleVisitorId()};
  try{
-  if(e.target.closest("#articleLikeBtn")){await articleJSON(`/articles/${a.id}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleEngagement(a.id)}
-  if(e.target.closest("#articleHypeBtn")){await articleJSON(`/articles/${a.id}/hype`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleEngagement(a.id)}
+  const shareButton=e.target.closest("[data-article-share]");
+  if(shareButton){return shareBoxOfficeXArticle(shareButton.dataset.articleShare,a)}
+  if(e.target.closest("#articleLikeBtn")){await articleJSON(`/articles/${a.id}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await loadArticleEngagement(a.id);articleFanMessage("Your like has been counted ❤️");return}
+  if(e.target.closest("#articleHypeBtn")){await articleJSON(`/articles/${a.id}/hype`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await loadArticleEngagement(a.id);articleFanMessage("You hyped this story! +1 🔥");return}
   const like=e.target.closest("[data-article-comment-like]");
   if(like){await articleJSON(`/article-comments/${like.dataset.articleCommentLike}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleComments(a.id)}
   const report=e.target.closest("[data-article-comment-report]");

@@ -3697,9 +3697,9 @@ function bxInitMovieFanShare(movie1Title,movie2Title){
 async function loadMoreMovieComparisons(a,b){
  const grid=document.getElementById("moreMovieComparisonsGrid");if(!grid)return;
  try{
-   const r=await fetch("/movies");
+   const r=await fetch("/movies/comparison-eligible",{cache:"no-store"});
    const data=await r.json();
-   if(!r.ok)throw new Error("Could not load movies");
+   if(!r.ok)throw new Error("Could not load eligible comparison movies");
    const movies=Array.isArray(data)?data:(Array.isArray(data.movies)?data.movies:[]);
    renderMoreMovieComparisons(a,b,movies);
  }catch(e){

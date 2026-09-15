@@ -5683,6 +5683,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             : null;
 
     let currentMovieReleaseDate = null;
+    let currentMovieWorldwideGross = null;
 
 
     async function resolveMovieIdentity() {
@@ -7190,8 +7191,23 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
         const subtitle=document.getElementById("bxMovieCompareSubtitle");
         if(!section || !grid)return;
 
+        // Movie comparisons are public only when both titles have a
+        // worldwide collection of at least ₹25 crore. Related Movies below
+        // remains unfiltered because those cards open normal movie pages.
+        if(!Number.isFinite(currentMovieWorldwideGross) || currentMovieWorldwideGross < 25){
+            grid.innerHTML="";
+            section.style.display="none";
+            return;
+        }
+
         const usable=(Array.isArray(movies)?movies:[])
-            .filter(movie=>movie && movie.id && String(movie.id)!==String(movieId))
+            .filter(movie=>
+                movie &&
+                movie.id &&
+                String(movie.id)!==String(movieId) &&
+                Number.isFinite(Number(movie.worldwide_collection_crore)) &&
+                Number(movie.worldwide_collection_crore) >= 25
+            )
             .slice(0,6);
 
         if(!usable.length){
@@ -7200,7 +7216,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
         }
 
         const currentTitle=(document.getElementById("movieTitle")?.textContent || "This movie").trim();
-        if(subtitle)subtitle.textContent=`See how ${currentTitle} performs against related movies.`;
+        if(subtitle)subtitle.textContent=`See how ${currentTitle} performs against comparison-ready movies.`;
 
         grid.innerHTML="";
         usable.forEach(movie=>{
@@ -7224,6 +7240,32 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
         section.style.display="";
     }
 
+    async function loadMovieComparisonInterlinks(){
+        const section=document.getElementById("bxMovieCompareInterlinks");
+        if(!section)return;
+
+        if(!Number.isFinite(currentMovieWorldwideGross) || currentMovieWorldwideGross < 25){
+            section.style.display="none";
+            return;
+        }
+
+        try{
+            const response=await fetch(
+                `${API_BASE}/movies/comparison-eligible`,
+                {cache:"no-store"}
+            );
+            if(!response.ok)throw new Error("Comparison movies API returned HTTP " + response.status);
+
+            const data=await response.json();
+            renderMovieComparisonInterlinks(
+                Array.isArray(data.movies) ? data.movies : []
+            );
+        }catch(error){
+            console.error("Movie comparison suggestions error:",error);
+            section.style.display="none";
+        }
+    }
+
     async function loadRelatedContent(){
         if(!movieId)return;
 
@@ -7245,8 +7287,6 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             const data=await response.json();
             const movies=Array.isArray(data.related_movies) ? data.related_movies : [];
             const articles=Array.isArray(data.related_articles) ? data.related_articles : [];
-
-            renderMovieComparisonInterlinks(movies);
 
             if(movies.length){
                 moviesGrid.innerHTML="";
@@ -7618,6 +7658,13 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                     )
                 );
 
+                currentMovieWorldwideGross =
+                    movie.worldwide_collection_crore === null ||
+                    movie.worldwide_collection_crore === undefined ||
+                    movie.worldwide_collection_crore === ""
+                        ? null
+                        : Number(movie.worldwide_collection_crore);
+
 
                 setText(
                     "overseas",
@@ -7674,6 +7721,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                 fetchCollectionBreakdown();
                 trackMovieView();
                 loadRelatedContent();
+                loadMovieComparisonInterlinks();
                 loadEngagement();
                 loadComments();
 

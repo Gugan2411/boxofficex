@@ -3749,19 +3749,23 @@ function createMovieCountRow(
 // ==========================================
 
 function openAllActorMovies(actor) {
-
-    if (actor && actor.slug) {
-        window.location.href =
-            "/actor/" +
-            encodeURIComponent(actor.slug);
-        return;
-    }
-
     const actorId = actor && actor.id ? actor.id : actor;
 
+    const query = new URLSearchParams({
+        id: String(actorId)
+    });
+
+    if (actor && actor.name) {
+        query.set("name", actor.name);
+    }
+
+    if (actor && actor.slug) {
+        query.set("slug", actor.slug);
+    }
+
     window.location.href =
-        "/actor.html?id=" +
-        encodeURIComponent(actorId);
+        "/actor-movies.html?" +
+        query.toString();
 
 }
 
