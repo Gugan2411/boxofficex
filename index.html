@@ -6098,6 +6098,234 @@ html,body{scroll-padding-top:0!important}
   .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
 }
 </style>
+<style>
+
+/* =========================================================
+   BOXOFFICEX V1 — FINAL AD DISPLAY SIZE SYSTEM
+   Homepage test build
+   ========================================================= */
+
+/* Empty inventory must never create blank space. */
+.bx-ad-empty,
+.bx-ad-slot:empty,
+.bx-incontent-ad:empty,
+#bxHomepageAd:empty,
+#bxInContentVideoAds:empty,
+#bxSponsoredLinkAd:empty,
+#bxTopBannerAd:empty {
+    display: none !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Shared media safety — no stretched client creative. */
+.bx-ad-media,
+.bx-ad-media img,
+.bx-ad-media video,
+.bx-incontent-ad img,
+.bx-incontent-ad video,
+#bxHomepageAd img,
+#bxHomepageAd video,
+#bxTopBannerAd img,
+#bxTopBannerAd video,
+#bxSponsoredLinkAd img,
+#bxSponsoredLinkAd video {
+    max-width: 100%;
+}
+
+/* 1. TOP BANNER
+   Desktop display box: up to 1200 x 180
+   Mobile display box: approximately full width x 100 */
+#bxTopBannerAd {
+    width: min(1200px, calc(100% - 32px)) !important;
+    height: 180px !important;
+    min-height: 0 !important;
+    max-height: 180px !important;
+    margin: 16px auto 22px !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+}
+#bxTopBannerAd > *,
+#bxTopBannerAd a,
+#bxTopBannerAd img,
+#bxTopBannerAd video {
+    width: 100% !important;
+    height: 100% !important;
+}
+#bxTopBannerAd img,
+#bxTopBannerAd video {
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* 2. IN-CONTENT DISPLAY ADS
+   Desktop: max 900 x 250
+   The actual content slots we add later will use this same class. */
+.bx-incontent-ad,
+#bxHomepageAd {
+    width: min(900px, calc(100% - 32px)) !important;
+    height: 250px !important;
+    min-height: 0 !important;
+    max-height: 250px !important;
+    margin: 28px auto !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+}
+.bx-incontent-ad > *,
+.bx-incontent-ad a,
+#bxHomepageAd > *,
+#bxHomepageAd a {
+    width: 100% !important;
+    height: 100% !important;
+}
+.bx-incontent-ad img,
+.bx-incontent-ad video,
+#bxHomepageAd img,
+#bxHomepageAd video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* 3. TOP / BOTTOM STICKY
+   Desktop: max 970 x 90 */
+.bx-top-sticky-ad,
+.bx-bottom-sticky-ad,
+[data-ad-slot="top_sticky"],
+[data-ad-slot="bottom_sticky"] {
+    width: min(970px, calc(100% - 24px)) !important;
+    height: 90px !important;
+    max-height: 90px !important;
+    overflow: hidden !important;
+}
+.bx-top-sticky-ad img,
+.bx-top-sticky-ad video,
+.bx-bottom-sticky-ad img,
+.bx-bottom-sticky-ad video,
+[data-ad-slot="top_sticky"] img,
+[data-ad-slot="top_sticky"] video,
+[data-ad-slot="bottom_sticky"] img,
+[data-ad-slot="bottom_sticky"] video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* 4. SMALL / FLOATING VIDEO — fixed 16:9 */
+.bx-small-video-ad,
+.bx-floating-video-ad,
+#bxInContentVideoAds .bx-video-ad {
+    width: 360px !important;
+    height: 203px !important;
+    max-width: calc(100vw - 28px) !important;
+    aspect-ratio: 16 / 9 !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+}
+.bx-small-video-ad video,
+.bx-floating-video-ad video,
+#bxInContentVideoAds .bx-video-ad video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* 5. FULL SCREEN
+   Overlay owns the viewport; creative itself is constrained. */
+.bx-fullscreen-ad,
+[data-ad-slot="fullscreen"] {
+    width: 100vw !important;
+    height: 100dvh !important;
+}
+.bx-fullscreen-ad .bx-ad-creative,
+[data-ad-slot="fullscreen"] .bx-ad-creative {
+    width: min(1100px, calc(100vw - 40px)) !important;
+    max-height: 80dvh !important;
+    margin: auto !important;
+}
+.bx-fullscreen-ad img,
+.bx-fullscreen-ad video,
+[data-ad-slot="fullscreen"] img,
+[data-ad-slot="fullscreen"] video {
+    max-width: 100% !important;
+    max-height: 80dvh !important;
+    object-fit: contain !important;
+}
+
+/* 6. SPONSORED LINKS
+   Premium content-style cards; larger than normal display ads. */
+#bxSponsoredLinkAd {
+    width: min(1100px, calc(100% - 32px)) !important;
+    margin: 32px auto !important;
+}
+#bxSponsoredLinkAd .bx-sponsored-card,
+#bxSponsoredLinkAd .sponsored-card {
+    width: 100% !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+}
+#bxSponsoredLinkAd .bx-sponsored-card img,
+#bxSponsoredLinkAd .sponsored-card img {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    max-height: 619px !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* Mobile final sizes */
+@media (max-width: 700px) {
+    #bxTopBannerAd {
+        width: calc(100% - 24px) !important;
+        height: 100px !important;
+        max-height: 100px !important;
+        margin: 12px auto 18px !important;
+        border-radius: 12px !important;
+    }
+
+    .bx-incontent-ad,
+    #bxHomepageAd {
+        width: calc(100% - 24px) !important;
+        height: 180px !important;
+        max-height: 180px !important;
+        margin: 22px auto !important;
+        border-radius: 13px !important;
+    }
+
+    .bx-top-sticky-ad,
+    .bx-bottom-sticky-ad,
+    [data-ad-slot="top_sticky"],
+    [data-ad-slot="bottom_sticky"] {
+        width: min(320px, calc(100% - 16px)) !important;
+        height: 60px !important;
+        max-height: 60px !important;
+    }
+
+    .bx-small-video-ad,
+    .bx-floating-video-ad,
+    #bxInContentVideoAds .bx-video-ad {
+        width: 280px !important;
+        height: 158px !important;
+        max-width: calc(100vw - 24px) !important;
+    }
+
+    .bx-fullscreen-ad .bx-ad-creative,
+    [data-ad-slot="fullscreen"] .bx-ad-creative {
+        width: calc(100vw - 24px) !important;
+        max-height: 80dvh !important;
+    }
+
+    #bxSponsoredLinkAd {
+        width: calc(100% - 24px) !important;
+        margin: 26px auto !important;
+    }
+}
+
+</style>
 </head>
 
 
