@@ -9486,6 +9486,38 @@ document.addEventListener("DOMContentLoaded",()=>{
 
     async function loadHomepageAds(){
         try{
+            // Clear any previously rendered campaign before loading the current live inventory.
+            // This guarantees that deleted, disabled, expired, or no-longer-targeted ads
+            // cannot remain visible in an existing ad container.
+            [
+                "bxTopBannerAd",
+                "bxHomepageAd",
+                "bxSmallVideoAd",
+                "bxTopStickyAd",
+                "bxBottomStickyAd",
+                "bxSponsoredLinkAd",
+                "bxInContentVideoAds"
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if(!el) return;
+
+                el.querySelectorAll("video").forEach(video => {
+                    try { video.pause(); } catch(e) {}
+                });
+
+                el.innerHTML = "";
+                el.style.display = "none";
+            });
+
+            document.body.classList.remove(
+                "bx-bottom-ad-visible",
+                "bx-top-ad-visible"
+            );
+
+            document.documentElement.style.removeProperty(
+                "--bx-top-sticky-space"
+            );
+
             const response = await fetch(
                 `/ads/active?placement=homepage&page=${encodeURIComponent(AD_PAGE)}`,
                 {cache:"no-store"}
@@ -9605,6 +9637,21 @@ document.addEventListener("DOMContentLoaded",()=>{
    close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")});
  }
  async function run(){
+   // Clear all previously rendered smart/in-content slots first.
+   // If a campaign was deleted, disabled, expired, or removed from this page,
+   // the old creative must disappear even when the new API response is empty.
+   for(let n=1;n<=BX_MAX;n++){
+      const slot=document.getElementById(`bxSmartAdSlot${n}`);
+      if(!slot) continue;
+
+      slot.querySelectorAll("video").forEach(video=>{
+         try{video.pause()}catch(e){}
+      });
+
+      slot.innerHTML="";
+      slot.style.display="none";
+   }
+
    const q=new URLSearchParams(location.search);
    if(q.get("bx_ad_preview")==="1"){
       try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Number(a.ad_slot||1),true);return}}catch(e){}
