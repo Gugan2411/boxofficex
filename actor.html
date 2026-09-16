@@ -3909,7 +3909,7 @@ function boxOfficeXActorImageUrl(value, absolute = false, actorName = "Actor") {
 
     if (!photo || /(?:coming[-_]?soon|default[-_]?actor|default)\.(?:png|jpe?g|webp|avif)(?:[?#].*)?$/i.test(photo)) {
         return absolute
-            ? "https://boxoffice-x.com/images/boxofficex-share.jpg"
+            ? "https://boxofficex.in/images/boxofficex-share.jpg"
             : boxOfficeXActorPlaceholder(actorName);
     } else if (/^https?:\/\//i.test(photo)) {
         url = photo;
@@ -3922,7 +3922,7 @@ function boxOfficeXActorImageUrl(value, absolute = false, actorName = "Actor") {
     }
 
     if (absolute && !/^https?:\/\//i.test(url)) {
-        return "https://boxoffice-x.com" + url;
+        return "https://boxofficex.in" + url;
     }
     return url;
 }
@@ -4010,6 +4010,45 @@ function boxOfficeXMoviePosterUrl(value, absolute = false, movieData = "Movie") 
 
 
 
+
+
+// ==========================================
+// CLEAN PUBLIC MOVIE URL HELPER
+// ==========================================
+
+function boxOfficeXSlugify(value) {
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function boxOfficeXMoviePublicUrl(movie) {
+    if (!movie || typeof movie !== "object") return "";
+
+    if (movie.url) return movie.url;
+
+    if (movie.slug) {
+        return "/movie/" + encodeURIComponent(movie.slug);
+    }
+
+    const titleSlug = boxOfficeXSlugify(movie.title || movie.name);
+    let year = "";
+
+    if (movie.release_date) {
+        const match = String(movie.release_date).match(/^(\d{4})/);
+        if (match) year = match[1];
+    }
+
+    if (titleSlug && year) {
+        return "/movie/" + encodeURIComponent(titleSlug + "-" + year);
+    }
+
+    return "";
+}
 
 
 // ==========================================
@@ -4136,9 +4175,17 @@ function performGlobalSearch(query) {
         `;
 
         result.onclick = function () {
+            const slug = String(actor.slug || actor.name || "")
+                .normalize("NFKD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
+
             window.location.href =
                 actor.url ||
-                ("/actor.html?id=" + encodeURIComponent(actor.id));
+                (slug ? "/actor/" + encodeURIComponent(slug) : "/actors.html");
         };
 
         globalSearchResults.appendChild(result);
@@ -4161,8 +4208,7 @@ function performGlobalSearch(query) {
 
         result.onclick = function () {
             window.location.href =
-                movie.url ||
-                ("/movie.html?id=" + encodeURIComponent(movie.id));
+                boxOfficeXMoviePublicUrl(movie);
         };
 
         globalSearchResults.appendChild(result);
@@ -4258,18 +4304,18 @@ function updateActorSEO(actor) {
         (
             currentActorSlug
                 ? "/actor/" + encodeURIComponent(currentActorSlug)
-                : "/actor.html?id=" + encodeURIComponent(actorId)
+                : "/"
         );
 
     const canonical =
-        "https://boxoffice-x.com" +
+        "https://boxofficex.in" +
         canonicalPath;
 
     if (actor.slug) {
         currentActorSlug = actor.slug;
     }
 
-    const photoUrl = "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const photoUrl = "https://boxofficex.in/images/boxofficex-share.jpg";
 
     document.title = title;
 
@@ -4447,6 +4493,44 @@ async function trackActorView() {
 
 
 
+async function bxOpenActorComparison(currentActor, otherActor) {
+    const firstId = Number(currentActor?.id);
+    const secondId = Number(otherActor?.id);
+
+    if (!Number.isFinite(firstId) || !Number.isFinite(secondId) || firstId === secondId) {
+        window.location.href = "/compare-select.html";
+        return;
+    }
+
+    const ids = [firstId, secondId].sort((a, b) => a - b);
+
+    try {
+        const response = await fetch(
+            "/compare/actors/" + encodeURIComponent(ids[0]) + "/" + encodeURIComponent(ids[1]),
+            { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+            throw new Error("Comparison API failed: " + response.status);
+        }
+
+        const data = await response.json();
+        const canonicalUrl =
+            data?.seo?.canonical_url ||
+            data?.canonical_url ||
+            null;
+
+        if (!canonicalUrl) {
+            throw new Error("Canonical comparison URL missing");
+        }
+
+        window.location.href = canonicalUrl;
+    } catch (error) {
+        console.error("Actor comparison navigation error:", error);
+        window.location.href = "/compare-select.html";
+    }
+}
+
 function renderActorComparisonInterlinks(currentActor, actors){
     const section=document.getElementById("bxActorCompareInterlinks");
     const grid=document.getElementById("bxActorCompareGrid");
@@ -4481,7 +4565,15 @@ function renderActorComparisonInterlinks(currentActor, actors){
     candidates.forEach(other=>{
         const link=document.createElement("a");
         link.className="bx-actor-compare-card";
-        link.href=`/compare.html?hero1=${encodeURIComponent(currentActor.id)}&hero2=${encodeURIComponent(other.id)}`;
+
+        // The backend owns the canonical pair order. Resolve by IDs so
+        // reverse-order cards never produce a 404 clean URL.
+        link.href = "/compare-select.html";
+        link.addEventListener("click", event => {
+            event.preventDefault();
+            bxOpenActorComparison(currentActor, other);
+        });
+
         link.setAttribute("aria-label",`Compare ${currentActor.name || "actor"} with ${other.name || "actor"}`);
 
         const image=boxOfficeXActorImageUrl(other.photo || "", false, other.name || "Actor");
@@ -4914,8 +5006,7 @@ else {
                 function () {
 
                     window.location.href =
-                        movie.url ||
-                        ("/movie.html?id=" + encodeURIComponent(movie.id));
+                        boxOfficeXMoviePublicUrl(movie);
 
                 };
 
@@ -5221,8 +5312,7 @@ else {
         if (movies.length > 0 && movies[0].id != null) {
             highestGrossingMovieId = movies[0].id;
             highestGrossingMovieUrl =
-                movies[0].url ||
-                ("/movie.html?id=" + encodeURIComponent(movies[0].id));
+                boxOfficeXMoviePublicUrl(movies[0]);
         }
 
 
@@ -5282,8 +5372,7 @@ else {
                     function () {
 
                         window.location.href =
-                            movie.url ||
-                            ("/movie.html?id=" + encodeURIComponent(movie.id));
+                            boxOfficeXMoviePublicUrl(movie);
 
                     };
 
@@ -5360,16 +5449,14 @@ async function openHighestGrossingMovie() {
             if (movieResponse.ok) {
                 const movie = await movieResponse.json();
                 window.location.href =
-                    movie.url ||
-                    ("/movie.html?id=" + encodeURIComponent(highestGrossingMovieId));
+                    boxOfficeXMoviePublicUrl(movie);
                 return;
             }
         } catch (error) {
             console.warn("Movie URL lookup failed:", error);
         }
 
-        window.location.href =
-            "/movie.html?id=" + encodeURIComponent(highestGrossingMovieId);
+        alert("Unable to resolve the clean URL for this movie.");
         return;
     }
 
@@ -5389,8 +5476,7 @@ async function openHighestGrossingMovie() {
         if (movies.length > 0 && movies[0].id != null) {
             highestGrossingMovieId = movies[0].id;
             highestGrossingMovieUrl =
-                movies[0].url ||
-                ("/movie.html?id=" + encodeURIComponent(movies[0].id));
+                boxOfficeXMoviePublicUrl(movies[0]);
 
             window.location.href = highestGrossingMovieUrl;
             return;
@@ -5622,8 +5708,7 @@ function openVerdict(verdict) {
                 function () {
 
                     window.location.href =
-                        movie.url ||
-                        ("/movie.html?id=" + encodeURIComponent(movie.id));
+                        boxOfficeXMoviePublicUrl(movie);
 
                 };
 
@@ -5815,6 +5900,10 @@ function getVerdictIcon(verdict) {
                 `;
 
                 const openArticle = () => {
+                    if (!article.slug) {
+                        console.error("Related article slug missing:", article);
+                        return;
+                    }
                     window.location.href =
                         "/article/" + encodeURIComponent(article.slug);
                 };

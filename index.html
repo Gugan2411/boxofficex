@@ -89,13 +89,13 @@
         content="Explore Indian movie box office collections, worldwide grosses, verdicts, latest releases, actor profiles, rankings and comparisons on BoxOfficeX."
     >
 
-    <meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="BoxOfficeX - Indian Movie Box Office, Collections & Rankings">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="BoxOfficeX - Indian Movie Box Office, Collections & Rankings">
 
     <script
@@ -6702,6 +6702,94 @@ let cachedMovies = [];
 
 let searchTimer = null;
 
+/* =========================================================
+   CLEAN PUBLIC SEO URL HELPERS
+   Keep numeric IDs for API calls only. Public navigation uses
+   human-readable movie / actor / article URLs.
+========================================================= */
+function bxSeoSlug(value) {
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "item";
+}
+
+function bxMoviePublicUrl(movie) {
+    if (!movie) return "/new-movies.html";
+
+    const cleanUrl = String(movie.url || "").trim();
+    if (cleanUrl.startsWith("/movie/") || cleanUrl.startsWith("movie/")) {
+        return cleanUrl.startsWith("/") ? cleanUrl : "/" + cleanUrl;
+    }
+
+    if (movie.slug) {
+        return "/movie/" + encodeURIComponent(String(movie.slug).trim());
+    }
+
+    const titleSlug = bxSeoSlug(movie.title || movie.name || "movie");
+    const date = String(movie.release_date || movie.releaseDate || "");
+    const yearMatch = date.match(/^(\d{4})/);
+    const suffix = yearMatch ? yearMatch[1] : String(movie.id || "").trim();
+    return "/movie/" + encodeURIComponent(suffix ? `${titleSlug}-${suffix}` : titleSlug);
+}
+
+function bxActorPublicUrl(actor) {
+    if (!actor) return "/actors.html";
+
+    const cleanUrl = String(actor.url || "").trim();
+    if (cleanUrl.startsWith("/actor/") || cleanUrl.startsWith("actor/")) {
+        return cleanUrl.startsWith("/") ? cleanUrl : "/" + cleanUrl;
+    }
+
+    if (actor.slug) {
+        return "/actor/" + encodeURIComponent(String(actor.slug).trim());
+    }
+
+    return "/actor/" + encodeURIComponent(bxSeoSlug(actor.name || actor.title || `actor-${actor.id || ""}`));
+}
+
+function bxFindMovieById(id) {
+    return cachedMovies.find(movie => String(movie.id) === String(id)) || null;
+}
+
+function bxFindActorById(id) {
+    return cachedActors.find(actor => String(actor.id) === String(id)) || null;
+}
+
+function bxNormalizePublicUrl(rawUrl, item = {}) {
+    const raw = String(rawUrl || "").trim();
+    if (!raw || raw === "#") return "#";
+
+    let match = raw.match(/(?:^|\/)movie\.html\?id=(\d+)/i);
+    if (match) {
+        const movie = bxFindMovieById(match[1]) || {
+            id: match[1],
+            title: item.title,
+            release_date: item.release_date
+        };
+        return bxMoviePublicUrl(movie);
+    }
+
+    match = raw.match(/(?:^|\/)actor\.html\?id=(\d+)/i);
+    if (match) {
+        const actor = bxFindActorById(match[1]) || {
+            id: match[1],
+            name: item.name || item.title
+        };
+        return bxActorPublicUrl(actor);
+    }
+
+    match = raw.match(/(?:^|\/)article\.html\?slug=([^&#]+)/i);
+    if (match) {
+        return "/article/" + encodeURIComponent(decodeURIComponent(match[1]));
+    }
+
+    return raw;
+}
+
 
 /* =========================================================
    LATEST RELEASES
@@ -6935,11 +7023,7 @@ async function loadLatestMovies() {
 
             const openMovie =
                 () => {
-                    window.location.href =
-                        "movie.html?id=" +
-                        encodeURIComponent(
-                            movie.id
-                        );
+                    window.location.href = bxMoviePublicUrl(movie);
                 };
 
             card.onclick =
@@ -7300,11 +7384,7 @@ async function loadActors() {
 
                 function openActor() {
 
-                    window.location.href =
-                        "actor.html?id=" +
-                        encodeURIComponent(
-                            actor.id
-                        );
+                    window.location.href = bxActorPublicUrl(actor);
 
                 }
 
@@ -7497,11 +7577,7 @@ async function loadMovies() {
 
                 function openMovie() {
 
-                    window.location.href =
-                        "movie.html?id=" +
-                        encodeURIComponent(
-                            movie.id
-                        );
+                    window.location.href = bxMoviePublicUrl(movie);
 
                 }
 
@@ -7628,8 +7704,7 @@ async function loadTrendingMovies() {
             `;
 
             const openMovie = () => {
-                window.location.href =
-                    "movie.html?id=" + encodeURIComponent(movie.id);
+                window.location.href = bxMoviePublicUrl(movie);
             };
 
             card.addEventListener("click", openMovie);
@@ -7781,7 +7856,7 @@ async function loadMostHypedMovies() {
                     <p>${escapeHTML(movie.language || movie.industry || "Cinema")}</p>
                     <p class="movie-collection">🔥 ${Number(movie.hype_count || 0).toLocaleString()} Hype</p>
                 </div>`;
-            const openMovie = () => { window.location.href = "movie.html?id=" + encodeURIComponent(movie.id); };
+            const openMovie = () => { window.location.href = bxMoviePublicUrl(movie); };
             card.addEventListener("click", openMovie);
             card.addEventListener("keydown", event => {
                 if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openMovie(); }
@@ -7820,7 +7895,7 @@ async function loadTrendingFanActivity(){
             }else if(item.type==="article"&&item.image){
                 visual=`<img class="fan-activity-thumb" src="${articleImage(item.image)}" alt="${escapeHTML(item.title||"Article")}" loading="lazy" onerror="this.style.display='none'">`;
             }
-            return `<article class="fan-activity-card" tabindex="0" role="link" data-fan-url="${escapeHTML(item.url||"#")}">
+            return `<article class="fan-activity-card" tabindex="0" role="link" data-fan-url="${escapeHTML(bxNormalizePublicUrl(item.url, item))}">
                 ${visual}
                 <div class="fan-activity-copy">
                     <div class="fan-activity-type">${escapeHTML(labels[item.type]||"Fan Activity")}</div>
@@ -8017,11 +8092,7 @@ async function loadTop10() {
 
                     function openMovie() {
 
-                        window.location.href =
-                            "movie.html?id=" +
-                            encodeURIComponent(
-                                movie.id
-                            );
+                        window.location.href = bxMoviePublicUrl(movie);
 
                     }
 
@@ -8134,13 +8205,13 @@ function createUnifiedSearchResult(item, type) {
             item.verdict,
             item.director ? `Dir. ${item.director}` : ""
         ].filter(Boolean).join(" • ");
-        url = `movie.html?id=${encodeURIComponent(item.id)}`;
+        url = bxMoviePublicUrl(item);
     }
     else if (type === "actor") {
         icon = "⭐";
         title = item.name || "Actor";
         meta = item.profession || "Actor";
-        url = `actor.html?id=${encodeURIComponent(item.id)}`;
+        url = bxActorPublicUrl(item);
     }
     else {
         icon = "📰";
@@ -8610,7 +8681,7 @@ async function loadUpcomingMovies(){
         const items=Array.isArray(d.movies)?d.movies:[];
         if(!items.length){grid.innerHTML='<div class="movie-empty">No upcoming movies added yet.</div>';return}
         grid.innerHTML=items.map(m=>`
-            <article class="movie-card" onclick="location.href='movie.html?id=${m.id}'" role="link" tabindex="0">
+            <article class="movie-card" onclick="location.href=bxMoviePublicUrl(${chr(123)}...m${chr(125)})" role="link" tabindex="0">
                 <img class="movie-poster" src="${movieImage(m)}" alt="${launchEsc(m.title)}" loading="lazy" onerror="setMovieFallback(this)">
                 <div class="movie-info"><h3>${launchEsc(m.title)}</h3><p>${launchEsc(m.language||"")} ${m.industry?`• ${launchEsc(m.industry)}`:""}</p>
                 <span class="upcoming-countdown">${m.days_until_release===1?"Tomorrow":`${m.days_until_release} Days Left`}</span></div>
@@ -8646,7 +8717,7 @@ async function loadPopularActorsData(){
         grid.innerHTML = actors.map(actor => `
             <article
                 class="actor-card"
-                onclick="location.href='actor.html?id=${actor.id}'"
+                onclick="location.href='${bxActorPublicUrl(actor)}'"
                 role="link"
                 tabindex="0"
             >
@@ -8693,7 +8764,7 @@ async function loadLatestUpdatesFeed(){
         const r=await fetch(`${API_BASE}/latest-updates?limit=8`,{cache:"no-store"}); const d=await r.json();
         if(!r.ok)throw new Error("Latest updates API "+r.status);
         const items=Array.isArray(d.updates)?d.updates:[];
-        el.innerHTML=items.length?items.map(x=>`<article class="update-card" onclick="location.href='${x.url}'"><div class="update-icon">${x.type==="article"?"📰":"🎬"}</div><div class="update-copy"><strong>${launchEsc(x.title)}</strong><small>${launchEsc(x.subtitle||"Latest update")}</small></div></article>`).join(""):'<div class="movie-empty">No updates yet.</div>';
+        el.innerHTML=items.length?items.map(x=>`<article class="update-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="update-icon">${x.type==="article"?"📰":"🎬"}</div><div class="update-copy"><strong>${launchEsc(x.title)}</strong><small>${launchEsc(x.subtitle||"Latest update")}</small></div></article>`).join(""):'<div class="movie-empty">No updates yet.</div>';
     }catch(e){console.error("Latest updates:",e);el.innerHTML='<div class="movie-empty">Updates unavailable.</div>'}
 }
 
@@ -8703,7 +8774,7 @@ async function loadFanLeaderboards(){
         const r=await fetch(`${API_BASE}/fan-leaderboards`,{cache:"no-store"}); const d=await r.json();
         if(!r.ok)throw new Error("Leaderboard API "+r.status);
         const items=(Array.isArray(d.leaders)?d.leaders:[]).filter(Boolean);
-        el.innerHTML=items.length?items.map(x=>`<article class="leader-card" onclick="location.href='${x.url}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count">${Number(x.count||0).toLocaleString("en-IN")} interactions</div></article>`).join(""):'<div class="movie-empty">No leaderboard data yet.</div>';
+        el.innerHTML=items.length?items.map(x=>`<article class="leader-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count">${Number(x.count||0).toLocaleString("en-IN")} interactions</div></article>`).join(""):'<div class="movie-empty">No leaderboard data yet.</div>';
     }catch(e){console.error("Fan leaderboards:",e);el.innerHTML='<div class="movie-empty">Leaderboards unavailable.</div>'}
 }
 

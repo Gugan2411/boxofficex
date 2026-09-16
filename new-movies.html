@@ -29,7 +29,7 @@
         New Movies - Latest Releases & Box Office Collections | BoxOfficeX
     </title>
 
-    <link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/new-movies.html">
+    <link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/new-movies.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BoxOfficeX">
@@ -43,10 +43,10 @@
         property="og:description"
         content="Explore new and recently released movies with box office collections, verdicts, language, genre, director and complete movie details on BoxOfficeX."
     >
-<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="New Movies - Latest Releases & Box Office Collections | BoxOfficeX">
 
-    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/new-movies.html">
+    <meta id="ogUrl" property="og:url" content="https://boxofficex.in/new-movies.html">
 
     <meta name="twitter:card" content="summary_large_image">
 
@@ -59,7 +59,7 @@
         name="twitter:description"
         content="Explore new and recently released movies with box office collections, verdicts, language, genre, director and complete movie details on BoxOfficeX."
     >
-<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="New Movies - Latest Releases & Box Office Collections | BoxOfficeX">
 
     <script
@@ -3225,7 +3225,7 @@ html,body{scroll-padding-top:0!important}
         <div class="bx-new-movie-comparisons-head">
             <div>
                 <h2 class="bx-new-movie-comparisons-title">⚔️ Compare Recent Movies</h2>
-                <p class="bx-new-movie-comparisons-sub">Explore box-office comparisons between movies currently featured on BoxOfficeX.</p>
+                <p class="bx-new-movie-comparisons-sub">Explore recent movies with at least ₹25 Cr worldwide box office, eligible for BoxOfficeX comparison.</p>
             </div>
             <a class="bx-new-movie-comparisons-all" href="/movie-compare-select.html">Choose movies →</a>
         </div>
@@ -3557,6 +3557,80 @@ searchInput.addEventListener(
 );
 
 
+
+function bxSearchSlug(value) {
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+async function bxOpenSearchResult(item, type) {
+    try {
+        if (type === "actor") {
+            if (item?.url && /^\/actor\//.test(String(item.url))) {
+                window.location.assign(String(item.url));
+                return;
+            }
+
+            if (item?.slug) {
+                window.location.assign("/actor/" + encodeURIComponent(item.slug));
+                return;
+            }
+
+            if (item?.id != null) {
+                const response = await fetch(
+                    "/actors/" + encodeURIComponent(item.id),
+                    { cache: "no-store" }
+                );
+                if (!response.ok) throw new Error("Actor lookup failed");
+                const data = await response.json();
+                if (data?.url) {
+                    window.location.assign(data.url);
+                    return;
+                }
+            }
+
+            const slug = bxSearchSlug(item?.name);
+            window.location.assign(slug ? "/actor/" + encodeURIComponent(slug) : "/actors.html");
+            return;
+        }
+
+        if (type === "movie") {
+            if (item?.url && /^\/movie\//.test(String(item.url))) {
+                window.location.assign(String(item.url));
+                return;
+            }
+
+            if (item?.slug) {
+                window.location.assign("/movie/" + encodeURIComponent(item.slug));
+                return;
+            }
+
+            if (item?.id != null) {
+                const response = await fetch(
+                    "/movies/" + encodeURIComponent(item.id),
+                    { cache: "no-store" }
+                );
+                if (!response.ok) throw new Error("Movie lookup failed");
+                const data = await response.json();
+                if (data?.url) {
+                    window.location.assign(data.url);
+                    return;
+                }
+            }
+
+            window.location.assign("/new-movies.html");
+        }
+    } catch (error) {
+        console.error("Search result navigation error:", error);
+        window.location.assign(type === "actor" ? "/actors.html" : "/new-movies.html");
+    }
+}
+
 function performSearch(query) {
 
     const actorMatches =
@@ -3636,11 +3710,9 @@ function performSearch(query) {
                 "search-result";
 
 
-            result.setAttribute(
-                "role",
-                "option"
-            );
-
+            result.setAttribute("role", "option");
+            result.tabIndex = 0;
+            result.style.cursor = "pointer";
 
             result.innerHTML = `
 
@@ -3670,18 +3742,14 @@ function performSearch(query) {
             `;
 
 
-            result.addEventListener(
-                "click",
-                function() {
-
-                    window.location.href =
-                        "actor.html?id=" +
-                        encodeURIComponent(
-                            actor.id
-                        );
-
+            const openActorResult = () => bxOpenSearchResult(actor, "actor");
+            result.addEventListener("click", openActorResult);
+            result.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openActorResult();
                 }
-            );
+            });
 
 
             searchResults.appendChild(
@@ -3705,11 +3773,9 @@ function performSearch(query) {
                 "search-result";
 
 
-            result.setAttribute(
-                "role",
-                "option"
-            );
-
+            result.setAttribute("role", "option");
+            result.tabIndex = 0;
+            result.style.cursor = "pointer";
 
             result.innerHTML = `
 
@@ -3739,18 +3805,14 @@ function performSearch(query) {
             `;
 
 
-            result.addEventListener(
-                "click",
-                function() {
-
-                    window.location.href =
-                        "movie.html?id=" +
-                        encodeURIComponent(
-                            movie.id
-                        );
-
+            const openMovieResult = () => bxOpenSearchResult(movie, "movie");
+            result.addEventListener("click", openMovieResult);
+            result.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openMovieResult();
                 }
-            );
+            });
 
 
             searchResults.appendChild(
@@ -3797,11 +3859,14 @@ document
             }
 
 
-            enterSearchMode();
+            const firstResult = searchResults.querySelector(".search-result[tabindex='0']");
+            if (firstResult) {
+                firstResult.click();
+                return;
+            }
 
-            performSearch(
-                query
-            );
+            enterSearchMode();
+            performSearch(query);
 
         }
     );
@@ -3856,6 +3921,62 @@ loadGlobalSearchData();
 
 
 /* ==========================================
+   CLEAN PUBLIC SEO URL HELPERS
+========================================== */
+function bxSeoSlug(value) {
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function bxActorUrl(actor) {
+    const slug = String(actor?.slug || bxSeoSlug(actor?.name)).trim();
+    return slug ? `/actor/${encodeURIComponent(slug)}` : "/actors.html";
+}
+
+function bxMovieSlug(movie) {
+    if (movie?.slug) return String(movie.slug).trim();
+
+    const titleSlug = bxSeoSlug(movie?.title || movie?.name);
+    const yearMatch = String(movie?.release_date || "").match(/^(\d{4})/);
+    const year = yearMatch ? yearMatch[1] : "";
+
+    // Mirrors the backend's public fallback: title-year when a year exists,
+    // otherwise title-ID.
+    if (titleSlug && year) return `${titleSlug}-${year}`;
+    if (titleSlug && movie?.id != null) return `${titleSlug}-${movie.id}`;
+    return titleSlug;
+}
+
+function bxMovieUrl(movie) {
+    const slug = bxMovieSlug(movie);
+    return slug ? `/movie/${encodeURIComponent(slug)}` : "/new-movies.html";
+}
+
+async function bxOpenMovieComparison(movieA, movieB) {
+    try {
+        const response = await fetch(
+            `/seo/resolve/movie-comparison-by-ids/${encodeURIComponent(movieA.id)}/${encodeURIComponent(movieB.id)}`
+        );
+
+        if (!response.ok) throw new Error("Comparison route could not be resolved");
+
+        const data = await response.json();
+
+        if (!data?.canonical_url) throw new Error("Canonical comparison URL missing");
+
+        window.location.href = data.canonical_url;
+    } catch (error) {
+        console.error("Movie comparison navigation error:", error);
+        window.location.href = "/movie-compare-select.html";
+    }
+}
+
+/* ==========================================
    NEW MOVIE SYSTEM
 ========================================== */
 
@@ -3900,9 +4021,7 @@ function createNewMovieCard(movie, sectionStatus) {
     card.className = "movie-card";
 
     card.onclick = function () {
-        window.location.href =
-            "movie.html?id=" +
-            encodeURIComponent(movie.id);
+        window.location.href = bxMovieUrl(movie);
     };
 
     const status =
@@ -3989,18 +4108,41 @@ function renderNewMovieComparisons(data){
     const grid=document.getElementById("bxNewMovieComparisonsGrid");
     if(!section || !grid || !data)return;
 
-    // Prefer released/running titles because their box-office comparison is useful now.
+    // BoxOfficeX comparison eligibility:
+    // Only released/running movies with a valid worldwide collection of ₹25 Cr or more.
+    // This keeps New Movies consistent with the main Movie Comparison system and
+    // prevents weak/missing box-office records from being sent to movie-compare.html.
     const pool=[
         ...(Array.isArray(data.running)?data.running:[]),
         ...(Array.isArray(data.recent)?data.recent:[])
     ];
+
     const unique=[];
     const seen=new Set();
+
     pool.forEach(m=>{
         if(!m || m.id===undefined || m.id===null)return;
+
+        const worldwideRaw =
+            m.worldwide_collection_crore ??
+            m.worldwide_collection ??
+            m.worldwide ??
+            null;
+
+        const worldwide = Number(
+            String(worldwideRaw ?? "")
+                .replace(/,/g,"")
+                .replace(/[^0-9.-]/g,"")
+        );
+
+        // Comparison pages require meaningful box-office data.
+        if(!Number.isFinite(worldwide) || worldwide < 25)return;
+
         const key=String(m.id);
         if(seen.has(key))return;
-        seen.add(key);unique.push(m);
+
+        seen.add(key);
+        unique.push(m);
     });
 
     const pairs=[];
@@ -4029,7 +4171,11 @@ function renderNewMovieComparisons(data){
     pairs.forEach(([a,b])=>{
         const card=document.createElement("a");
         card.className="bx-new-movie-comparison-card";
-        card.href=`/movie-compare.html?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`;
+        card.href="/movie-compare-select.html";
+        card.addEventListener("click", function(event){
+            event.preventDefault();
+            bxOpenMovieComparison(a, b);
+        });
         card.setAttribute("aria-label",`Compare ${a.title || "Movie"} and ${b.title || "Movie"}`);
         card.innerHTML=`
             <div class="bx-new-movie-side">
@@ -4343,7 +4489,7 @@ n.addEventListener("click",e=>{if(e.target.closest("a"))c()});document.addEventL
 
 <script>
 (function() {
-    const productionUrl = "https://boxoffice-x.com/new-movies.html";
+    const productionUrl = "https://boxofficex.in/new-movies.html";
     const canonicalTag = document.getElementById("canonicalUrl");
     if (canonicalTag) canonicalTag.href = productionUrl;
     const ogUrlTag = document.getElementById("ogUrl");
@@ -4876,6 +5022,51 @@ n.addEventListener("click",e=>{if(e.target.closest("a"))c()});document.addEventL
  .bx-smart-ad-slot{margin:18px auto;padding:0 10px}
  .bx-smart-ad-card img,.bx-smart-ad-card video{max-height:280px}
  .bx-sponsored-link-thumb{width:54px;height:54px;flex-basis:54px}
+}
+
+
+/* =========================================================
+   BOXOFFICEX CLEAN SEARCH MODE — NEW MOVIES
+   Keep only header + global search/results visible while searching.
+========================================================= */
+body.search-active .page > :not(.global-search),
+body.search-active > #bxTopBannerAd,
+body.search-active > #bxTopStickyAd,
+body.search-active > #bxBottomStickyAd,
+body.search-active > #bxSmallVideoAd,
+body.search-active > #bxFullscreenAd,
+body.search-active > #bxSponsoredLinkAd,
+body.search-active > footer,
+body.search-active > .mobile-bottom-nav {
+    display: none !important;
+}
+
+body.search-active .page {
+    min-height: calc(100vh - 68px) !important;
+    padding-top: 35px !important;
+}
+
+body.search-active .global-search {
+    display: block !important;
+    position: relative !important;
+    z-index: 200000 !important;
+    margin: 0 auto !important;
+}
+
+body.search-active #searchResults {
+    display: block !important;
+    z-index: 200001 !important;
+}
+
+@media (max-width: 700px) {
+    body.search-active {
+        padding-bottom: 0 !important;
+    }
+
+    body.search-active .page {
+        min-height: calc(100vh - 61px) !important;
+        padding: 25px 13px 20px !important;
+    }
 }
 </style>
 

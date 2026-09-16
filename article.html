@@ -4387,14 +4387,65 @@ return `<div class="boxoffice-block">
     <div class="bo-tracking-note">Preview/Premiere is included in Week 1 and Overall Gross without changing Day 1 numbering.</div>
 </div>
 <div class="bo-subtitle">Daily Collections</div>
-<div class="bo-swipe-hint">↔ Swipe to view status and area-wise collections</div>
+<div class="bo-swipe-hint bo-swipe-hint-daily" aria-hidden="true">
+        <span class="bo-swipe-hand">☝</span>
+        <span class="bo-swipe-copy">
+            <strong>SWIPE LEFT OR RIGHT</strong>
+            <small>to view status and area-wise collections</small>
+        </span>
+        <span class="bo-swipe-arrows"><b>‹‹</b><b>››</b></span>
+    </div>
 <div class="bo-detail-wrap"><table class="bo-detail-table bo-daily-mobile-stack"><thead><tr><th>Day</th><th>Date</th><th>Status</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${rows}</tbody></table></div>
-${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint">↔ Swipe to view weekly area-wise totals</div><div class="bo-detail-wrap"><table class="bo-detail-table bo-weekly-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>${
+${weeks.length?`<div class="bo-subtitle">Weekly Totals — Automatic</div><div class="bo-swipe-hint bo-swipe-hint-weekly" aria-hidden="true">
+        <span class="bo-swipe-hand">☝</span>
+        <span class="bo-swipe-copy">
+            <strong>SWIPE LEFT OR RIGHT</strong>
+            <small>to view weekly area-wise totals</small>
+        </span>
+        <span class="bo-swipe-arrows"><b>‹‹</b><b>››</b></span>
+    </div><div class="bo-detail-wrap"><table class="bo-detail-table bo-weekly-table"><thead><tr><th>Week</th><th>Days</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>India</th><th>Overseas</th><th>Worldwide</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>Week ${w.week}</td><td>${
 w.includesPreview
     ? (w.from!==null ? `Preview + Day ${w.from}–${w.to}` : `Preview / Premiere`)
     : `Day ${w.from}–${w.to}`
 }</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">Final Overall Gross — Preview + All Days</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
+}
+
+// =========================================================
+// CLEAN PUBLIC URL HELPERS
+// =========================================================
+function bxPublicSlug(value){
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function bxActorPublicUrl(actor){
+    const slug = String(actor?.slug || bxPublicSlug(actor?.name)).trim();
+    return slug ? `/actor/${encodeURIComponent(slug)}` : "/actors.html";
+}
+
+function bxMoviePublicSlug(movie){
+    if(movie?.slug) return String(movie.slug).trim();
+
+    const titleSlug = bxPublicSlug(movie?.title || movie?.name);
+    const year = String(movie?.release_date || "").match(/^(\d{4})/)?.[1] || "";
+    return titleSlug && year ? `${titleSlug}-${year}` : titleSlug;
+}
+
+function bxMoviePublicUrl(movie){
+    if(movie?.url && /^\/movie\//.test(String(movie.url))) return String(movie.url);
+    const slug = bxMoviePublicSlug(movie);
+    return slug ? `/movie/${encodeURIComponent(slug)}` : "/new-movies.html";
+}
+
+function bxArticlePublicUrl(article){
+    const slug = String(article?.slug || "").trim();
+    return slug ? `/article/${encodeURIComponent(slug)}` : "/articles.html";
 }
 
 async function renderMovieBlock(data) {
@@ -4406,7 +4457,7 @@ const photo=moviePosterUrl(movie);
 let collectionHTML="";
 if(cr.ok){const cd=await cr.json();const records=Array.isArray(cd.records)?cd.records:[];const grouped={};records.forEach(r=>{const date=r.date||r.collection_date;if(!date)return;if(!grouped[date])grouped[date]={date,tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};const st=(r.state||"").trim(),a=Number(r.collection_crore||0);if(st==="Tamil Nadu")grouped[date].tamil_nadu+=a;else if(st==="Kerala")grouped[date].kerala+=a;else if(st==="Karnataka")grouped[date].karnataka+=a;else if(["Telugu States","Andhra Pradesh","Telangana"].includes(st))grouped[date].telugu_states+=a;else if(st==="Rest of India")grouped[date].rest_of_india+=a;else if(st==="Overseas")grouped[date].overseas+=a});const days=Object.values(grouped).sort((a,b)=>String(a.date).localeCompare(String(b.date)));if(days.length)collectionHTML=renderBoxOffice({budget:movie.budget_crore,verdict:movie.verdict,days})}
 const release=movie.release_date?new Date(movie.release_date+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"}):"N/A";
-return `<div class="related-card" onclick="window.location.href='/movie.html?id=${movie.id}'"><img src="${photo}" alt="${esc(movie.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div><strong>${esc(movie.title)}</strong><small>Movie • ${esc(movie.language||"")}${movie.verdict?` • ${esc(movie.verdict)}`:""}</small><div class="movie-release-note">Release: ${esc(release)}</div></div></div>${collectionHTML}`;
+return `<div class="related-card" onclick="window.location.href='${bxMoviePublicUrl(movie)}'"><img src="${photo}" alt="${esc(movie.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div><strong>${esc(movie.title)}</strong><small>Movie • ${esc(movie.language||"")}${movie.verdict?` • ${esc(movie.verdict)}`:""}</small><div class="movie-release-note">Release: ${esc(release)}</div></div></div>${collectionHTML}`;
 }catch(error){console.error("Movie article block error:",error);return""}
 }
 
@@ -4422,7 +4473,7 @@ async function renderActorBlock(data) {
         const photo = actorPhotoUrl(actor);
 
         return `
-            <div class="related-card" onclick="window.location.href='/actor.html?id=${actor.id}'">
+            <div class="related-card" onclick="window.location.href='${bxActorPublicUrl(actor)}'">
                 <img
                     src="${photo}"
                     alt="${esc(actor.name)}"
@@ -4778,7 +4829,7 @@ async function loadArticleRelatedActors(article){
     actors.forEach(actor=>{
         const card=document.createElement("a");
         card.className="bx-related-actor-card";
-        card.href=`/actor.html?id=${encodeURIComponent(actor.id)}`;
+        card.href=bxActorPublicUrl(actor);
         card.innerHTML=`
             <img src="${bxArticleActorPhoto(actor)}"
                  alt="${bxRelatedEsc(actor.name || "Actor")}"
@@ -4804,7 +4855,11 @@ function renderArticleRelatedComparisons(movies,actors){
         const a=movies[0],b=movies[1];
         const link=document.createElement("a");
         link.className="bx-related-compare-btn";
-        link.href=`/movie-compare.html?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`;
+        const aSlug=bxMoviePublicSlug(a);
+        const bSlug=bxMoviePublicSlug(b);
+        link.href=(aSlug && bSlug)
+            ? `/compare/movies/${encodeURIComponent(aSlug)}-vs-${encodeURIComponent(bSlug)}`
+            : "/movie-compare-select.html";
         link.textContent=`🎬 ${a.title || "Movie"} vs ${b.title || "Movie"}`;
         actions.appendChild(link);
     }
@@ -4812,7 +4867,11 @@ function renderArticleRelatedComparisons(movies,actors){
         const a=actors[0],b=actors[1];
         const link=document.createElement("a");
         link.className="bx-related-compare-btn";
-        link.href=`/compare.html?hero1=${encodeURIComponent(a.id)}&hero2=${encodeURIComponent(b.id)}`;
+        const aSlug=String(a?.slug || bxPublicSlug(a?.name)).trim();
+        const bSlug=String(b?.slug || bxPublicSlug(b?.name)).trim();
+        link.href=(aSlug && bSlug)
+            ? `/compare/${encodeURIComponent(aSlug)}-vs-${encodeURIComponent(bSlug)}`
+            : "/compare-select.html";
         link.textContent=`⚔️ ${a.name || "Actor"} vs ${b.name || "Actor"}`;
         actions.appendChild(link);
     }
@@ -4857,7 +4916,7 @@ async function loadArticleRelatedContent(id){
                         <div class="bx-related-meta">${bxRelatedEsc(article.subtitle || "Read on BoxOfficeX")}</div>
                     </div>
                 `;
-                const open=()=>window.location.href=`/article.html?slug=${encodeURIComponent(article.slug || "")}`;
+                const open=()=>window.location.href=bxArticlePublicUrl(article);
                 card.addEventListener("click",open);
                 card.addEventListener("keydown",event=>{
                     if(event.key==="Enter" || event.key===" "){event.preventDefault();open();}
@@ -4892,7 +4951,7 @@ async function loadArticleRelatedContent(id){
                         </div>
                     </div>
                 `;
-                const open=()=>window.location.href=`movie.html?id=${encodeURIComponent(movie.id)}`;
+                const open=()=>window.location.href=bxMoviePublicUrl(movie);
                 card.addEventListener("click",open);
                 card.addEventListener("keydown",event=>{
                     if(event.key==="Enter" || event.key===" "){event.preventDefault();open();}
@@ -5869,6 +5928,198 @@ document.addEventListener("DOMContentLoaded", function () {
         display:block;
         margin-top:4px;
         white-space:normal;
+    }
+}
+
+
+
+/* =========================================================
+   BOXOFFICEX ARTICLE — MOBILE BOX OFFICE SWIPE CTA
+   Mobile only. Desktop box-office layout is unchanged.
+========================================================= */
+@media (max-width:700px){
+
+    .bo-swipe-hint{
+        position:relative !important;
+        width:100% !important;
+        min-height:58px !important;
+        margin:9px 0 11px !important;
+        padding:9px 12px !important;
+        display:grid !important;
+        grid-template-columns:34px minmax(0,1fr) auto !important;
+        align-items:center !important;
+        gap:9px !important;
+        overflow:hidden !important;
+        border:0 !important;
+        border-radius:13px !important;
+        background:linear-gradient(110deg,#1769ff 0%,#4659ef 48%,#a33df0 100%) !important;
+        color:#fff !important;
+        -webkit-text-fill-color:#fff !important;
+        box-shadow:0 8px 20px rgba(70,89,239,.24) !important;
+        text-align:left !important;
+        isolation:isolate;
+        animation:bxSwipeGlow 2.4s ease-in-out infinite !important;
+    }
+
+    .bo-swipe-hint::before{
+        content:"";
+        position:absolute;
+        top:-80%;
+        bottom:-80%;
+        left:-45%;
+        width:34%;
+        z-index:-1;
+        transform:rotate(18deg);
+        background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);
+        animation:bxSwipeShine 2.8s ease-in-out infinite;
+        pointer-events:none;
+    }
+
+    .bo-swipe-hand{
+        width:34px;
+        height:34px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:24px;
+        line-height:1;
+        filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));
+        animation:bxSwipeHand 1.35s ease-in-out infinite;
+    }
+
+    .bo-swipe-copy{
+        min-width:0;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        gap:1px;
+        color:#fff !important;
+        -webkit-text-fill-color:#fff !important;
+    }
+
+    .bo-swipe-copy strong{
+        display:block;
+        color:#fff !important;
+        -webkit-text-fill-color:#fff !important;
+        font-size:11px !important;
+        line-height:1.15 !important;
+        font-weight:1000 !important;
+        letter-spacing:.15px !important;
+        white-space:nowrap;
+    }
+
+    .bo-swipe-copy small{
+        display:block;
+        margin-top:2px;
+        color:rgba(255,255,255,.90) !important;
+        -webkit-text-fill-color:rgba(255,255,255,.90) !important;
+        font-size:8.5px !important;
+        line-height:1.2 !important;
+        font-weight:700 !important;
+        white-space:normal;
+    }
+
+    .bo-swipe-arrows{
+        display:flex;
+        align-items:center;
+        gap:5px;
+        padding-left:2px;
+        color:#fff !important;
+        -webkit-text-fill-color:#fff !important;
+        white-space:nowrap;
+    }
+
+    .bo-swipe-arrows b{
+        display:inline-block;
+        color:#fff !important;
+        -webkit-text-fill-color:#fff !important;
+        font-size:24px !important;
+        line-height:1 !important;
+        font-family:Arial,Helvetica,sans-serif;
+        font-weight:900;
+    }
+
+    .bo-swipe-arrows b:first-child{
+        animation:bxArrowLeft 1.15s ease-in-out infinite;
+    }
+
+    .bo-swipe-arrows b:last-child{
+        animation:bxArrowRight 1.15s ease-in-out infinite;
+    }
+
+    /* Reinforce that the table itself is draggable horizontally. */
+    .bo-detail-wrap{
+        cursor:grab;
+        touch-action:pan-x pan-y;
+        scrollbar-width:thin;
+        scrollbar-color:#94a3b8 #eef2f7;
+    }
+
+    .bo-detail-wrap:active{
+        cursor:grabbing;
+    }
+}
+
+@media (max-width:380px){
+    .bo-swipe-hint{
+        min-height:54px !important;
+        grid-template-columns:30px minmax(0,1fr) auto !important;
+        gap:7px !important;
+        padding:8px 9px !important;
+    }
+
+    .bo-swipe-hand{
+        width:30px;
+        height:30px;
+        font-size:21px;
+    }
+
+    .bo-swipe-copy strong{
+        font-size:9.5px !important;
+    }
+
+    .bo-swipe-copy small{
+        font-size:7.5px !important;
+    }
+
+    .bo-swipe-arrows b{
+        font-size:20px !important;
+    }
+}
+
+@keyframes bxSwipeHand{
+    0%,100%{transform:translateX(-2px) rotate(-8deg)}
+    50%{transform:translateX(5px) rotate(7deg)}
+}
+
+@keyframes bxArrowLeft{
+    0%,100%{transform:translateX(0);opacity:.55}
+    50%{transform:translateX(-5px);opacity:1}
+}
+
+@keyframes bxArrowRight{
+    0%,100%{transform:translateX(0);opacity:.55}
+    50%{transform:translateX(5px);opacity:1}
+}
+
+@keyframes bxSwipeGlow{
+    0%,100%{box-shadow:0 7px 18px rgba(70,89,239,.20)}
+    50%{box-shadow:0 10px 25px rgba(126,68,238,.34)}
+}
+
+@keyframes bxSwipeShine{
+    0%{left:-45%;opacity:0}
+    18%{opacity:1}
+    52%{left:115%;opacity:0}
+    100%{left:115%;opacity:0}
+}
+
+@media (prefers-reduced-motion:reduce){
+    .bo-swipe-hint,
+    .bo-swipe-hint::before,
+    .bo-swipe-hand,
+    .bo-swipe-arrows b{
+        animation:none !important;
     }
 }
 

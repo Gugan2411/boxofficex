@@ -9,20 +9,20 @@
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#ffffff">
 
-    <link id="canonicalLink" rel="canonical" href="https://boxoffice-x.com/actor-movies.html">
+    <link id="canonicalLink" rel="canonical" href="https://boxofficex.in/actor-movies.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BoxOfficeX">
     <meta id="ogTitle" property="og:title" content="Actor Movies by Verdict | BoxOfficeX">
     <meta id="ogDescription" property="og:description" content="Browse actor movies by verdict, release date and worldwide box-office collection on BoxOfficeX.">
-    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/actor-movies.html">
-    <meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta id="ogUrl" property="og:url" content="https://boxofficex.in/actor-movies.html">
+    <meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
     <meta property="og:image:alt" content="BoxOfficeX movie box-office collections and rankings">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta id="twitterTitle" name="twitter:title" content="Actor Movies by Verdict | BoxOfficeX">
     <meta id="twitterDescription" name="twitter:description" content="Browse actor movies by verdict, release date and worldwide box-office collection on BoxOfficeX.">
-    <meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
     <meta name="twitter:image:alt" content="BoxOfficeX movie box-office collections and rankings">
 
     <style>
@@ -2520,8 +2520,40 @@ html,body{scroll-padding-top:0!important}
 
 <script>
     const params = new URLSearchParams(window.location.search);
-    const actorId = params.get("actorId") || params.get("id");
+    let actorId = params.get("actorId") || params.get("id");
     const verdict = params.get("verdict");
+
+    const actorMoviesSlugMatch = window.location.pathname.match(
+        /^\/actor\/([^/?#]+)\/movies\/?$/i
+    );
+
+    let currentActorSlug = actorMoviesSlugMatch
+        ? decodeURIComponent(actorMoviesSlugMatch[1])
+        : (params.get("slug") || null);
+
+    async function resolveActorMoviesIdentity(){
+        if (actorId) return true;
+        if (!currentActorSlug) return false;
+
+        const response = await fetch(
+            "/seo/resolve/actor/" + encodeURIComponent(currentActorSlug),
+            { cache: "no-store" }
+        );
+
+        if (!response.ok){
+            throw new Error("Actor slug resolver returned HTTP " + response.status);
+        }
+
+        const resolved = await response.json();
+
+        if (!resolved || !resolved.id){
+            throw new Error("Actor slug could not be resolved.");
+        }
+
+        actorId = String(resolved.id);
+        currentActorSlug = resolved.slug || currentActorSlug;
+        return true;
+    }
 
     function escapeHtml(value){
         return String(value ?? "")
@@ -2643,9 +2675,18 @@ html,body{scroll-padding-top:0!important}
         const description = cleanVerdict
             ? `Explore ${cleanActor}'s ${cleanVerdict} movies with release dates, worldwide box-office collections and verdict information on BoxOfficeX.`
             : `Explore all ${cleanActor} movies with release dates, worldwide box-office collections and verdict information on BoxOfficeX.`;
-        const canonical = "https://boxoffice-x.com/actor-movies.html?id=" +
-            encodeURIComponent(actorId) +
-            (cleanVerdict ? "&verdict=" + encodeURIComponent(cleanVerdict) : "");
+        const actorSlug = currentActorSlug || String(actorName || "")
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+
+        const canonical = "https://boxofficex.in/actor/" +
+            encodeURIComponent(actorSlug) +
+            "/movies" +
+            (cleanVerdict ? "?verdict=" + encodeURIComponent(cleanVerdict) : "");
 
         document.title = title;
         document.getElementById("metaDescription").setAttribute("content", description);
@@ -2657,13 +2698,26 @@ html,body{scroll-padding-top:0!important}
         document.getElementById("twitterDescription").setAttribute("content", description);
     }
 
-    if (!actorId){
-        document.getElementById("pageTitle").textContent = "Actor Movies";
-        document.getElementById("pageSubtitle").textContent = "Invalid movie request.";
-        document.getElementById("movieGrid").innerHTML =
-            '<div class="error">Invalid movie request.</div>';
-    } else {
-        loadActorMovies();
+    async function initializeActorMoviesPage(){
+        try{
+            await resolveActorMoviesIdentity();
+
+            if (!actorId){
+                document.getElementById("pageTitle").textContent = "Actor Movies";
+                document.getElementById("pageSubtitle").textContent = "Select an actor to view movies.";
+                document.getElementById("movieGrid").innerHTML =
+                    '<div class="error">Actor could not be resolved.</div>';
+                return;
+            }
+
+            await loadActorMovies();
+        } catch(error){
+            console.error("Actor movies identity error:", error);
+            document.getElementById("pageTitle").textContent = "Actor Movies";
+            document.getElementById("pageSubtitle").textContent = "Actor not found.";
+            document.getElementById("movieGrid").innerHTML =
+                '<div class="error">Actor could not be resolved.</div>';
+        }
     }
 
     async function loadActorMovies(){
@@ -2747,8 +2801,37 @@ html,body{scroll-padding-top:0!important}
                     posterImage.src = moviePlaceholder(movie);
                 }, {once:true});
 
-                const openMovie = () => {
-                    window.location.href = "/movie.html?id=" + encodeURIComponent(movie.id);
+                const openMovie = async () => {
+                    const canonicalMovieUrl =
+                        movie && typeof movie.url === "string"
+                            ? movie.url.trim()
+                            : "";
+
+                    if (canonicalMovieUrl.startsWith("/movie/")) {
+                        window.location.href = canonicalMovieUrl;
+                        return;
+                    }
+
+                    if (movie && movie.slug) {
+                        window.location.href =
+                            "/movie/" + encodeURIComponent(String(movie.slug).trim());
+                        return;
+                    }
+
+                    // Resolve an old/cached API response through the backend.
+                    try {
+                        const response = await fetch(
+                            "/movies/" + encodeURIComponent(movie.id),
+                            { cache: "no-store" }
+                        );
+                        if (!response.ok) throw new Error("Movie lookup failed");
+                        const movieData = await response.json();
+                        if (!movieData?.url) throw new Error("Clean movie URL missing");
+                        window.location.href = movieData.url;
+                    } catch (error) {
+                        console.error("Movie navigation error:", error);
+                        window.location.href = "/new-movies.html";
+                    }
                 };
 
                 card.addEventListener("click", openMovie);
@@ -2875,6 +2958,9 @@ html,body{scroll-padding-top:0!important}
             window.location.href = "/actors.html";
         }
     }
+
+    initializeActorMoviesPage();
+
 </script>
 
 <script>

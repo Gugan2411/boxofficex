@@ -2677,7 +2677,7 @@ function updateComparisonSEO(a,b,comparisonCanonicalUrl=null){
                     .sort((x,y)=>Number(x.id)-Number(y.id))
                     .map(m=>m.slug)
                     .join("-vs-")}`
-                : `/movie-compare.html?a=${encodeURIComponent(a.id)}&b=${encodeURIComponent(b.id)}`
+                : "/movie-compare-select.html"
         );
 
     const canonical =
@@ -3739,7 +3739,7 @@ function renderMoreMovieComparisons(a,b,movies){
  const pair=[x,y].slice().sort((m1,m2)=>Number(m1.id)-Number(m2.id));
  const href=(pair[0]?.slug&&pair[1]?.slug)
    ? `/compare/movies/${pair[0].slug}-vs-${pair[1].slug}`
-   : `/movie-compare.html?a=${encodeURIComponent(pair[0].id)}&b=${encodeURIComponent(pair[1].id)}`;
+   : "/movie-compare-select.html";
  return `<a class="more-movie-card" href="${href}" aria-label="Compare ${safe(x.title)} vs ${safe(y.title)}"><div class="more-movie-pair"><div class="more-movie-person"><img src="${safe(img(x))}" alt="${safe(x.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><span class="more-movie-name">${safe(x.title)}</span></div><div class="more-movie-vs">VS</div><div class="more-movie-person"><img src="${safe(img(y))}" alt="${safe(y.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><span class="more-movie-name">${safe(y.title)}</span></div></div><div class="more-movie-action">Compare now →</div></a>`;
  }).join("");
 }

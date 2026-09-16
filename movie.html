@@ -4663,7 +4663,7 @@ html,body{scroll-padding-top:0!important}
 
 
         <a
-            href="index.html"
+            href="/index.html"
             class="logo"
         >
 
@@ -4678,27 +4678,27 @@ html,body{scroll-padding-top:0!important}
 
 
         <nav aria-label="Main navigation">
-            <a href="index.html">Home</a>
+            <a href="/index.html">Home</a>
 
-            <a href="new-movies.html" class="nav-item-with-badge">
+            <a href="/new-movies.html" class="nav-item-with-badge">
                 New Movies
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="movie-rankings.html">Movie Rankings</a>
-            <a href="rankings.html">Actor Rankings</a>
-            <a href="actors.html">Actors</a>
+            <a href="/movie-rankings.html">Movie Rankings</a>
+            <a href="/rankings.html">Actor Rankings</a>
+            <a href="/actors.html">Actors</a>
 
-            <a href="articles.html" class="nav-item-with-badge">
+            <a href="/articles.html" class="nav-item-with-badge">
                 Articles
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="compare-select.html" class="nav-compare">
+            <a href="/compare-select.html" class="nav-compare">
                 ⚔️ Actor Comparison
             </a>
 
-            <a href="movie-compare-select.html" class="nav-compare">
+            <a href="/movie-compare-select.html" class="nav-compare">
                 🎬 Movie Comparison
             </a>
         </nav>
@@ -5231,29 +5231,29 @@ html,body{scroll-padding-top:0!important}
 ===================================================== -->
 
 <div class="mobile-bottom-nav" aria-label="Mobile navigation">
-    <a href="index.html">
+    <a href="/index.html">
         <span>🏠</span>
         <span>Home</span>
     </a>
 
-    <a href="new-movies.html" class="nav-item-with-badge">
+    <a href="/new-movies.html" class="nav-item-with-badge">
         <span>🆕</span>
         <span>New</span>
         <span id="mobileNewMoviesBadge" class="nav-new-badge">NEW</span>
     </a>
 
-    <a href="articles.html" class="nav-item-with-badge">
+    <a href="/articles.html" class="nav-item-with-badge">
         <span>📰</span>
         <span>Articles</span>
         <span id="mobileArticlesBadge" class="nav-new-badge">NEW</span>
     </a>
 
-    <a href="compare-select.html">
+    <a href="/compare-select.html">
         <span>⚔️</span>
         <span>Actors</span>
     </a>
 
-    <a href="movie-compare-select.html">
+    <a href="/movie-compare-select.html">
         <span>🎬</span>
         <span>Movies</span>
     </a>
@@ -5330,7 +5330,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
     }
 
     if (absolute && !/^https?:\/\//i.test(url)) {
-        return "https://boxoffice-x.com" + url;
+        return "https://boxofficex.in" + url;
     }
 
     return url;
@@ -5518,9 +5518,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             result.addEventListener(
                 "click",
                 function() {
-                    window.location.href =
-                        actor.url ||
-                        ("/actor.html?id=" + encodeURIComponent(actor.id));
+                    window.location.href = bxActorPublicUrl(actor);
                 }
             );
 
@@ -5566,9 +5564,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             result.addEventListener(
                 "click",
                 function() {
-                    window.location.href =
-                        movie.url ||
-                        ("/movie.html?id=" + encodeURIComponent(movie.id));
+                    window.location.href = bxMoviePublicUrl(movie);
                 }
             );
 
@@ -5948,14 +5944,14 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                     </button>
 
                     <a
-                        href="new-movies.html"
+                        href="/new-movies.html"
                         class="select-movie-action"
                     >
                         🆕 New Movies
                     </a>
 
                     <a
-                        href="movie-rankings.html"
+                        href="/movie-rankings.html"
                         class="select-movie-action"
                     >
                         🏆 Rankings
@@ -7066,11 +7062,11 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             (
                 currentMovieSlug
                     ? "/movie/" + encodeURIComponent(currentMovieSlug)
-                    : "/movie.html?id=" + encodeURIComponent(movieId)
+                    : "/"
             );
 
         const canonical =
-            "https://boxoffice-x.com" +
+            "https://boxofficex.in" +
             canonicalPath;
 
         if (movie.slug) {
@@ -7185,6 +7181,79 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
     }
 
 
+    // =====================================================
+    // CLEAN PUBLIC URL HELPERS FOR RELATED CONTENT
+    // =====================================================
+    function bxPublicSlug(value){
+        return String(value || "")
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+    }
+
+    function bxMoviePublicSlug(movie){
+        if(movie?.slug) return String(movie.slug);
+
+        const titleSlug = bxPublicSlug(movie?.title || movie?.name);
+        const release = String(movie?.release_date || "");
+        const yearMatch = release.match(/^(\d{4})/);
+
+        return titleSlug && yearMatch
+            ? `${titleSlug}-${yearMatch[1]}`
+            : titleSlug;
+    }
+
+    function bxMoviePublicUrl(movie){
+        if(movie?.url && /^\/movie\//.test(String(movie.url))){
+            return String(movie.url);
+        }
+
+        const slug = bxMoviePublicSlug(movie);
+        return slug ? `/movie/${encodeURIComponent(slug)}` : "/new-movies.html";
+    }
+
+    function bxActorPublicUrl(actor){
+        if(actor?.url && /^\/actor\//.test(String(actor.url))){
+            return String(actor.url);
+        }
+
+        const slug = String(actor?.slug || bxPublicSlug(actor?.name || "")).trim();
+        return slug ? `/actor/${encodeURIComponent(slug)}` : "/actors.html";
+    }
+
+    function bxArticlePublicUrl(article){
+        const slug = String(article?.slug || "").trim();
+        return slug ? `/article/${encodeURIComponent(slug)}` : "/articles.html";
+    }
+
+    async function bxOpenMovieComparison(movie){
+        if(!movieId || !movie?.id){
+            window.location.href="/movie-compare-select.html";
+            return;
+        }
+
+        try{
+            const response=await fetch(
+                `/seo/resolve/movie-comparison-by-ids/${encodeURIComponent(movieId)}/${encodeURIComponent(movie.id)}`,
+                {cache:"no-store"}
+            );
+
+            if(!response.ok) throw new Error("Comparison route could not be resolved");
+
+            const data=await response.json();
+
+            if(!data?.canonical_url) throw new Error("Canonical comparison URL missing");
+
+            window.location.href=data.canonical_url;
+        }catch(error){
+            console.error("Movie comparison navigation error:",error);
+            window.location.href="/movie-compare-select.html";
+        }
+    }
+
     function renderMovieComparisonInterlinks(movies){
         const section=document.getElementById("bxMovieCompareInterlinks");
         const grid=document.getElementById("bxMovieCompareGrid");
@@ -7222,7 +7291,14 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
         usable.forEach(movie=>{
             const link=document.createElement("a");
             link.className="bx-movie-compare-card";
-            link.href=`/movie-compare.html?a=${encodeURIComponent(movieId)}&b=${encodeURIComponent(movie.id)}`;
+            const currentSlug = String(currentMovieSlug || "").trim();
+            const otherSlug = bxMoviePublicSlug(movie);
+
+            link.href="/movie-compare-select.html";
+            link.addEventListener("click",event=>{
+                event.preventDefault();
+                bxOpenMovieComparison(movie);
+            });
             link.setAttribute("aria-label",`Compare ${currentTitle} with ${movie.title || "movie"}`);
             link.innerHTML=`
                 <img src="${relatedMoviePoster(movie)}"
@@ -7316,7 +7392,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                         </div>
                     `;
 
-                    const open=()=>window.location.href=(movie.url || `/movie.html?id=${encodeURIComponent(movie.id)}`);
+                    const open=()=>window.location.href=bxMoviePublicUrl(movie);
                     card.addEventListener("click",open);
                     card.addEventListener("keydown",event=>{
                         if(event.key==="Enter" || event.key===" "){
@@ -7346,7 +7422,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                         </div>
                     `;
 
-                    const open=()=>window.location.href=`article.html?slug=${encodeURIComponent(article.slug || "")}`;
+                    const open=()=>window.location.href=bxArticlePublicUrl(article);
                     card.addEventListener("click",open);
                     card.addEventListener("keydown",event=>{
                         if(event.key==="Enter" || event.key===" "){

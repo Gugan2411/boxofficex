@@ -7,18 +7,18 @@
 <meta name="description" content="Read the latest Indian movie news, box-office reports, theatrical analysis, actor stories, rankings and entertainment articles on BoxOfficeX.">
 
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/articles.html">
+<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/articles.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BoxOfficeX">
 <meta property="og:title" content="Movie News & Box Office Articles | BoxOfficeX">
 <meta property="og:description" content="Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.">
-<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="Movie News & Box Office Articles | BoxOfficeX">
-<meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/articles.html">
+<meta id="ogUrl" property="og:url" content="https://boxofficex.in/articles.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Movie News & Box Office Articles | BoxOfficeX">
 <meta name="twitter:description" content="Latest Indian movie news, box-office reports, theatrical analysis and entertainment stories from BoxOfficeX.">
-<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Movie News & Box Office Articles | BoxOfficeX">
 <script id="articlesStructuredData" type="application/ld+json"></script>
 
@@ -2862,11 +2862,107 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+
+
 <style id="bx-article-card-direct-link-fix">
 .hero-main,.side-card,.story-card,.trend-card{
     text-decoration:none!important;
     color:inherit!important;
 }
+/* =========================================================
+   MOBILE SWIPE CTA — HIGH VISIBILITY
+========================================================= */
+
+@media (max-width:700px){
+
+    .mobile-swipe-hint{
+        width:max-content !important;
+        max-width:100% !important;
+
+        display:flex !important;
+        align-items:center !important;
+        gap:7px !important;
+
+        margin:12px 0 12px 2px !important;
+        padding:8px 13px !important;
+
+        border-radius:999px !important;
+
+        background:
+            linear-gradient(
+                135deg,
+                #2563eb 0%,
+                #6366f1 55%,
+                #7c3aed 100%
+            ) !important;
+
+        color:#fff !important;
+        -webkit-text-fill-color:#fff !important;
+
+        font-size:10px !important;
+        font-weight:900 !important;
+        letter-spacing:.15px !important;
+
+        box-shadow:
+            0 5px 16px rgba(37,99,235,.22) !important;
+
+        animation:
+            bxSwipePulse 2.2s ease-in-out infinite;
+    }
+
+    /* Animate final arrow */
+    .mobile-swipe-hint::after{
+        content:"→";
+        display:inline-block;
+
+        font-size:15px;
+        font-weight:900;
+
+        animation:
+            bxSwipeArrow 1.1s ease-in-out infinite;
+    }
+}
+
+
+/* Arrow moves toward swipe direction */
+@keyframes bxSwipeArrow{
+
+    0%,100%{
+        transform:translateX(0);
+    }
+
+    50%{
+        transform:translateX(5px);
+    }
+}
+
+
+/* Very subtle CTA pulse */
+@keyframes bxSwipePulse{
+
+    0%,100%{
+        transform:scale(1);
+        box-shadow:
+            0 5px 16px rgba(37,99,235,.20);
+    }
+
+    50%{
+        transform:scale(1.025);
+        box-shadow:
+            0 7px 20px rgba(99,102,241,.30);
+    }
+}
+
+
+/* Accessibility */
+@media (prefers-reduced-motion:reduce){
+
+    .mobile-swipe-hint,
+    .mobile-swipe-hint::after{
+        animation:none !important;
+    }
+}
+
 </style>
 
 </head>
@@ -3020,19 +3116,19 @@ function imageTag(a,cls=""){return `<img class="${cls}" src="${img(a)}" alt="${e
 function meta(a){return `${esc(a.author||"BoxOfficeX")}${a.published_at?" • "+date(a.published_at):""}`}
 
 function heroMarkup(a){
-return `<a class="hero-main" href="/article.html?slug=${encodeURIComponent(a.slug || "")}">
+return `<a class="hero-main" href="/article/${encodeURIComponent(a.slug || "")}">
 ${imageTag(a)}
 <div class="hero-copy"><span class="badge">${esc(a.category||"News")}</span><h2>${esc(a.title)}</h2>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div>
 </a>`;
 }
 function sideMarkup(a){
-return `<a class="side-card" href="/article.html?slug=${encodeURIComponent(a.slug || "")}">${imageTag(a)}<div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${meta(a)}</div></div></a>`;
+return `<a class="side-card" href="/article/${encodeURIComponent(a.slug || "")}">${imageTag(a)}<div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${meta(a)}</div></div></a>`;
 }
 function cardMarkup(a){
-return `<a class="story-card" href="/article.html?slug=${encodeURIComponent(a.slug || "")}">${imageTag(a)}<div class="story-body"><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div></a>`;
+return `<a class="story-card" href="/article/${encodeURIComponent(a.slug || "")}">${imageTag(a)}<div class="story-body"><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3>${a.subtitle?`<p>${esc(a.subtitle)}</p>`:""}<div class="meta">${meta(a)}</div></div></a>`;
 }
 function trendMarkup(a,i){
-return `<a class="trend-card" href="/article.html?slug=${encodeURIComponent(a.slug || "")}"><div class="trend-num">${String(i+1).padStart(2,"0")}</div><div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${Number(a.views||0).toLocaleString("en-IN")} views</div></div></a>`;
+return `<a class="trend-card" href="/article/${encodeURIComponent(a.slug || "")}"><div class="trend-num">${String(i+1).padStart(2,"0")}</div><div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(a.title)}</h3><div class="meta">${Number(a.views||0).toLocaleString("en-IN")} views</div></div></a>`;
 }
 function bindCards(){}
 function renderCategory(category){
@@ -3219,7 +3315,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
 (function() {
-    const productionUrl = "https://boxoffice-x.com/articles.html";
+    const productionUrl = "https://boxofficex.in/articles.html";
     const canonicalTag = document.getElementById("canonicalUrl");
     if (canonicalTag) canonicalTag.href = productionUrl;
     const ogUrlTag = document.getElementById("ogUrl");
@@ -3828,5 +3924,160 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
+
+
+<style id="bx-articles-mobile-hero-final-fix">
+/* =========================================================
+   BOXOFFICEX ARTICLES — MOBILE HERO FINAL FIX
+   Desktop/tablet (>700px) is untouched.
+========================================================= */
+@media (max-width:700px){
+  /* The desktop lead story must consume zero space on mobile. */
+  #content > .hero{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:18px 0 0!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+
+  #content > .hero > .hero-main{
+    display:none!important;
+    position:static!important;
+    width:0!important;
+    height:0!important;
+    min-height:0!important;
+    max-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    overflow:hidden!important;
+  }
+
+  /* Wrapper around the three featured cards. */
+  #content > .hero > div{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  #content > .hero .mobile-swipe-hint{
+    display:block!important;
+    margin:0 0 9px 2px!important;
+    padding:0!important;
+    color:#667085!important;
+    font-size:10px!important;
+    line-height:1.3!important;
+    font-weight:700!important;
+  }
+
+  #content > .hero .hero-side{
+    display:flex!important;
+    flex-direction:row!important;
+    grid-template-columns:none!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    height:auto!important;
+    min-height:0!important;
+    gap:10px!important;
+    margin:0!important;
+    padding:0 0 6px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scroll-snap-type:x mandatory!important;
+    scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  #content > .hero .hero-side::-webkit-scrollbar{display:none!important}
+
+  #content > .hero .hero-side .side-card{
+    flex:0 0 84%!important;
+    width:84%!important;
+    min-width:84%!important;
+    max-width:84%!important;
+    height:auto!important;
+    min-height:128px!important;
+    display:grid!important;
+    grid-template-columns:145px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:12px!important;
+    margin:0!important;
+    padding:10px!important;
+    border:1px solid #dfe5ee!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    box-shadow:0 6px 18px rgba(15,23,42,.06)!important;
+    scroll-snap-align:start!important;
+    overflow:hidden!important;
+  }
+
+  #content > .hero .hero-side .side-card img{
+    position:static!important;
+    display:block!important;
+    width:145px!important;
+    height:108px!important;
+    min-width:145px!important;
+    max-width:145px!important;
+    object-fit:cover!important;
+    border-radius:11px!important;
+    background:#eef2f7!important;
+  }
+
+  #content > .hero .hero-side .side-card > div{
+    width:auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  #content > .hero .hero-side .side-card h3{
+    margin-top:7px!important;
+    color:#111827!important;
+    font-size:14px!important;
+    line-height:1.25!important;
+    display:-webkit-box!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:3!important;
+    overflow:hidden!important;
+  }
+
+  #content > .hero .hero-side .side-card .meta{
+    margin-top:8px!important;
+    color:#667085!important;
+    font-size:9px!important;
+    line-height:1.3!important;
+  }
+
+  /* Pull Latest Stories directly under the featured rail. */
+  #content > .hero + .section-head{
+    margin-top:24px!important;
+  }
+}
+
+@media (max-width:420px){
+  #content > .hero .hero-side .side-card{
+    flex-basis:88%!important;
+    width:88%!important;
+    min-width:88%!important;
+    max-width:88%!important;
+    grid-template-columns:125px minmax(0,1fr)!important;
+  }
+  #content > .hero .hero-side .side-card img{
+    width:125px!important;
+    min-width:125px!important;
+    max-width:125px!important;
+    height:100px!important;
+  }
+  #content > .hero .hero-side .side-card h3{font-size:13px!important}
+}
+</style>
 </body>
 </html>

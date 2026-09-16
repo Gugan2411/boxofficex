@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Depends
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -12,6 +12,7 @@ import cloudinary.uploader
 from urllib.parse import urlparse
 import textwrap
 import unicodedata
+import math
 
 # ============================================================
 # CLOUDINARY CONFIGURATION
@@ -1624,7 +1625,7 @@ CORS_ORIGINS = [
     for origin in os.getenv(
         "BOXOFFICEX_CORS_ORIGINS",
         (
-            "https://boxoffice-x.com,"
+            "https://boxofficex.in,"
             "https://www.boxoffice-x.com"
             if IS_PRODUCTION
             else
@@ -2141,6 +2142,56 @@ def _unique_actor_slug_map(rows=None):
     }
 
 
+def public_movie_url(movie_id: int) -> str:
+    """Return the canonical clean public URL for a movie ID."""
+    slug = _unique_movie_slug_map().get(int(movie_id))
+    return f"/movie/{slug}" if slug else "/new-movies.html"
+
+
+def public_actor_url(actor_id: int) -> str:
+    """Return the canonical clean public URL for an actor ID."""
+    slug = _unique_actor_slug_map().get(int(actor_id))
+    return f"/actor/{slug}" if slug else "/actors.html"
+
+
+def public_actor_comparison_url(actor1_id: int, actor2_id: int) -> str:
+    """Return the single canonical clean Hero vs Hero URL."""
+    try:
+        ids = sorted([int(actor1_id), int(actor2_id)])
+        if ids[0] == ids[1]:
+            return "/compare-select.html"
+
+        slug_map = _unique_actor_slug_map()
+        first_slug = slug_map.get(ids[0])
+        second_slug = slug_map.get(ids[1])
+
+        if first_slug and second_slug:
+            return f"/compare/{first_slug}-vs-{second_slug}"
+    except Exception:
+        pass
+
+    return "/compare-select.html"
+
+
+def public_movie_comparison_url(movie1_id: int, movie2_id: int) -> str:
+    """Return the canonical clean Movie vs Movie URL using backend pair ordering."""
+    try:
+        first_id, second_id = _movie_comparison_pair(
+            int(movie1_id),
+            int(movie2_id)
+        )
+        slug_map = _unique_movie_slug_map()
+        first_slug = slug_map.get(first_id)
+        second_slug = slug_map.get(second_id)
+
+        if first_slug and second_slug:
+            return f"/compare/movies/{first_slug}-vs-{second_slug}"
+    except Exception:
+        pass
+
+    return "/movie-compare-select.html"
+
+
 def resolve_movie_slug(movie_slug: str):
     requested = (movie_slug or "").strip().lower()
     rows = _movie_slug_rows()
@@ -2187,21 +2238,55 @@ def home():
 # SEO FILES
 # ============================================================
 
+SITEMAP_SITE_URL = "https://boxofficex.in"
+
+_sitemap_cache = {}
+
+
+def _xml_response(xml):
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=86400"}
+    )
+
+
+def _sitemap_url_entry(path, changefreq=None, priority=None, lastmod=None):
+    loc = xml_escape(SITEMAP_SITE_URL + path)
+    parts = ["  <url>", f"    <loc>{loc}</loc>"]
+
+    if lastmod:
+        if hasattr(lastmod, "date"):
+            lastmod_value = lastmod.date().isoformat()
+        else:
+            lastmod_value = str(lastmod)[:10]
+        parts.append(f"    <lastmod>{xml_escape(lastmod_value)}</lastmod>")
+
+    if changefreq:
+        parts.append(f"    <changefreq>{changefreq}</changefreq>")
+    if priority:
+        parts.append(f"    <priority>{priority}</priority>")
+
+    parts.append("  </url>")
+    return "\n".join(parts)
+
+
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap_xml():
     """
-    Dynamic BoxOfficeX sitemap.
+    Lightweight launch sitemap containing:
+    - main public pages
+    - canonical movie pages
+    - canonical actor pages
+    - published article pages
 
-    Includes:
-    - Main public/static pages
-    - Every movie from PostgreSQL
-    - Every actor from PostgreSQL
-    - Published articles only
-
-    Draft/archived articles and admin/API pages are excluded.
+    Comparison pages remain fully available to users and crawlable through
+    internal links, but large all-pair comparison sitemap generation is
+    intentionally excluded to protect application resources.
     """
-
-    site_url = "https://boxoffice-x.com"
+    cached = _sitemap_cache.get("core")
+    if cached is not None:
+        return _xml_response(cached)
 
     static_pages = [
         ("/", "daily", "1.0"),
@@ -2220,25 +2305,14 @@ def sitemap_xml():
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
-            cur.execute("""
-                SELECT id, release_date
-                FROM movies
-                ORDER BY id
-            """)
+            cur.execute("SELECT id, release_date FROM movies ORDER BY id")
             movie_rows = cur.fetchall()
 
-            cur.execute("""
-                SELECT id
-                FROM actors
-                ORDER BY id
-            """)
+            cur.execute("SELECT id FROM actors ORDER BY id")
             actor_rows = cur.fetchall()
 
             cur.execute("""
-                SELECT
-                    slug,
-                    COALESCE(updated_at, published_at, created_at)
+                SELECT slug, COALESCE(updated_at, published_at, created_at)
                 FROM articles
                 WHERE status = 'published'
                   AND slug IS NOT NULL
@@ -2247,68 +2321,31 @@ def sitemap_xml():
             """)
             article_rows = cur.fetchall()
 
+    movie_slug_map = _unique_movie_slug_map()
+    actor_slug_map = _unique_actor_slug_map()
     urls = []
 
-    def add_url(path, changefreq=None, priority=None, lastmod=None):
-        loc = xml_escape(site_url + path)
-
-        parts = [
-            "  <url>",
-            f"    <loc>{loc}</loc>",
-        ]
-
-        if lastmod:
-            if hasattr(lastmod, "date"):
-                lastmod_value = lastmod.date().isoformat()
-            else:
-                lastmod_value = str(lastmod)[:10]
-
-            parts.append(
-                f"    <lastmod>{xml_escape(lastmod_value)}</lastmod>"
-            )
-
-        if changefreq:
-            parts.append(
-                f"    <changefreq>{changefreq}</changefreq>"
-            )
-
-        if priority:
-            parts.append(
-                f"    <priority>{priority}</priority>"
-            )
-
-        parts.append("  </url>")
-        urls.append("\n".join(parts))
-
     for path, changefreq, priority in static_pages:
-        add_url(
-            path,
-            changefreq=changefreq,
-            priority=priority
-        )
+        urls.append(_sitemap_url_entry(path, changefreq, priority))
 
     for movie_id, release_date in movie_rows:
-        add_url(
-            f"/movie.html?id={movie_id}",
-            changefreq="weekly",
-            priority="0.8",
-            lastmod=release_date
-        )
+        movie_slug = movie_slug_map.get(movie_id)
+        if movie_slug:
+            urls.append(_sitemap_url_entry(
+                f"/movie/{movie_slug}", "weekly", "0.8", release_date
+            ))
 
     for (actor_id,) in actor_rows:
-        add_url(
-            f"/actor.html?id={actor_id}",
-            changefreq="weekly",
-            priority="0.7"
-        )
+        actor_slug = actor_slug_map.get(actor_id)
+        if actor_slug:
+            urls.append(_sitemap_url_entry(
+                f"/actor/{actor_slug}", "weekly", "0.7"
+            ))
 
     for slug, last_modified in article_rows:
-        add_url(
-            f"/article/{slug}",
-            changefreq="monthly",
-            priority="0.8",
-            lastmod=last_modified
-        )
+        urls.append(_sitemap_url_entry(
+            f"/article/{slug}", "monthly", "0.8", last_modified
+        ))
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -2316,11 +2353,9 @@ def sitemap_xml():
         + "\n".join(urls)
         + '\n</urlset>\n'
     )
+    _sitemap_cache["core"] = xml
+    return _xml_response(xml)
 
-    return Response(
-        content=xml,
-        media_type="application/xml"
-    )
 
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
@@ -2354,9 +2389,17 @@ def boxofficex_placeholders_script():
     )
 
 
-@app.get("/movie.html")
-def movie_page():
-    return FileResponse(BASE_DIR / "movie.html")
+@app.get("/movie.html", include_in_schema=False)
+def movie_page(id: Optional[int] = None):
+    # Legacy public URL -> one canonical clean URL.
+    if id is None:
+        return RedirectResponse(url="/new-movies.html", status_code=301)
+
+    movie_url = public_movie_url(id)
+    if movie_url == "/new-movies.html":
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    return RedirectResponse(url=movie_url, status_code=301)
 
 
 @app.get("/movie-rankings.html")
@@ -2364,14 +2407,29 @@ def movie_rankings_page():
     return FileResponse(BASE_DIR / "movie-rankings.html")
 
 
-@app.get("/actor-movies.html")
-def actor_movies_page():
-    return FileResponse(BASE_DIR / "actor-movies.html")
+@app.get("/actor-movies.html", include_in_schema=False)
+def actor_movies_page(id: Optional[int] = None):
+    if id is None:
+        return RedirectResponse(url="/actors.html", status_code=301)
+
+    actor_url = public_actor_url(id)
+    if actor_url == "/actors.html":
+        raise HTTPException(status_code=404, detail="Actor not found")
+
+    return RedirectResponse(url=f"{actor_url}/movies", status_code=301)
 
 
-@app.get("/actor.html")
-def actor_page():
-    return FileResponse(BASE_DIR / "actor.html")
+@app.get("/actor.html", include_in_schema=False)
+def actor_page(id: Optional[int] = None):
+    # Legacy public URL -> one canonical clean URL.
+    if id is None:
+        return RedirectResponse(url="/actors.html", status_code=301)
+
+    actor_url = public_actor_url(id)
+    if actor_url == "/actors.html":
+        raise HTTPException(status_code=404, detail="Actor not found")
+
+    return RedirectResponse(url=actor_url, status_code=301)
 
 
 # Clean public SEO routes.
@@ -2382,6 +2440,19 @@ def movie_slug_page(movie_slug: str):
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
     return FileResponse(BASE_DIR / "movie.html")
+
+
+@app.get("/actor/{actor_slug}/movies", include_in_schema=False)
+def actor_movies_slug_page(actor_slug: str):
+    actor = resolve_actor_slug(actor_slug)
+
+    if not actor:
+        raise HTTPException(
+            status_code=404,
+            detail="Actor not found"
+        )
+
+    return FileResponse(BASE_DIR / "actor-movies.html")
 
 
 @app.get("/actor/{actor_slug}", include_in_schema=False)
@@ -2435,9 +2506,10 @@ def resolve_actor_comparison_slug(comparison_slug: str):
             continue
 
         canonical_ids = sorted([first_id, second_id])
-
-        if canonical_ids != [first_id, second_id]:
-            continue
+        canonical_first_id, canonical_second_id = canonical_ids
+        canonical_slug = (
+            f"{slug_map[canonical_first_id]}-vs-{slug_map[canonical_second_id]}"
+        )
 
         with get_connection() as conn:
             with conn.cursor() as cur:
@@ -2454,10 +2526,11 @@ def resolve_actor_comparison_slug(comparison_slug: str):
             return None
 
         return {
-            "actor1": actors[first_id],
-            "actor2": actors[second_id],
-            "canonical_slug": comparison_slug,
-            "canonical_url": f"/compare/{comparison_slug}"
+            "actor1": actors[canonical_first_id],
+            "actor2": actors[canonical_second_id],
+            "canonical_slug": canonical_slug,
+            "canonical_url": f"/compare/{canonical_slug}",
+            "is_canonical": comparison_slug == canonical_slug
         }
 
     return None
@@ -2468,6 +2541,8 @@ def actor_comparison_slug_page(comparison_slug: str):
     comparison = resolve_actor_comparison_slug(comparison_slug)
     if not comparison:
         raise HTTPException(status_code=404, detail="Actor comparison not found")
+    if not comparison.get("is_canonical", True):
+        return RedirectResponse(url=comparison["canonical_url"], status_code=301)
     return FileResponse(BASE_DIR / "compare.html")
 
 
@@ -2484,9 +2559,22 @@ def compare_select_page():
     return FileResponse(BASE_DIR / "compare-select.html")
 
 
-@app.get("/compare.html")
-def compare_page():
-    return FileResponse(BASE_DIR / "compare.html")
+@app.get("/compare.html", include_in_schema=False)
+def compare_page(
+    actor1: Optional[int] = None,
+    actor2: Optional[int] = None
+):
+    if actor1 is None or actor2 is None:
+        return RedirectResponse(url="/compare-select.html", status_code=301)
+
+    if actor1 == actor2:
+        raise HTTPException(status_code=400, detail="Choose two different actors")
+
+    canonical_url = public_actor_comparison_url(actor1, actor2)
+    if canonical_url == "/compare-select.html":
+        raise HTTPException(status_code=404, detail="Actor comparison not found")
+
+    return RedirectResponse(url=canonical_url, status_code=301)
 
 
 
@@ -2762,7 +2850,7 @@ def add_movie(movie: MovieCreate):
             "success": True,
             "message": "Movie added successfully",
             "movie_id": movie_id,
-            "movie_url": f"/movie.html?id={movie_id}"
+            "movie_url": public_movie_url(movie_id)
         }
 
     except Exception as e:
@@ -3036,7 +3124,7 @@ def upcoming_movies(limit: int = 10):
                 "industry": row[7],
                 "boxoffice_status": row[8],
                 "days_until_release": int(row[9]) if row[9] is not None else None,
-                "url": f"/movie.html?id={row[0]}",
+                "url": public_movie_url(row[0]),
             }
             for position, row in enumerate(rows, start=1)
         ]
@@ -3482,7 +3570,7 @@ def get_related_movie_content(movie_id: int, limit: int = 6):
                 "verdict": r[6],
                 "poster": safe_movie_poster(r[7]),
                 "relevance_score": int(r[8] or 0),
-                "url": f"/movie.html?id={r[0]}",
+                "url": public_movie_url(r[0]),
             }
             for r in movie_rows
         ],
@@ -3958,7 +4046,7 @@ def unified_search(q: str = "", limit: int = 8):
             "worldwide_collection_crore": float(row[7] or 0),
             "verdict": row[8],
             "poster": safe_movie_poster(row[9]),
-            "url": f"/movie.html?id={row[0]}",
+            "url": public_movie_url(row[0]),
         }
         for row in movie_rows
     ]
@@ -3971,7 +4059,7 @@ def unified_search(q: str = "", limit: int = 8):
             "profession": row[2],
             "photo": safe_actor_photo(row[3]),
             "bio": row[4],
-            "url": f"/actor.html?id={row[0]}",
+            "url": public_actor_url(row[0]),
         }
         for row in actor_rows
     ]
@@ -4097,7 +4185,7 @@ def popular_actors(limit: int = 10):
             "profession": row[2], "photo": safe_actor_photo(row[3]), "bio": row[4],
             "view_count": views, "comparison_likes": likes, "comparison_hype": hype,
             "comparison_votes": votes, "comparison_comments": comments,
-            "popularity_score": score, "url": f"/actor.html?id={row[0]}",
+            "popularity_score": score, "url": public_actor_url(row[0]),
         })
     return {"actors": actors, "ranking_basis": "hype_and_interaction"}
 
@@ -4214,9 +4302,16 @@ def get_actor_movies(actor_id: int):
 
             rows = cur.fetchall()
 
+    # Build the same canonical movie slugs used by /movie/{movie_slug}.
+    slug_map = _unique_movie_slug_map()
+
     movies = []
 
     for row in rows:
+        movie_slug = slug_map.get(
+            row[0],
+            movie_seo_slug(row[0], row[1], row[3])
+        )
 
         movies.append({
             "id": row[0],
@@ -4225,7 +4320,9 @@ def get_actor_movies(actor_id: int):
             "release_date": str(row[3]),
             "worldwide_collection_crore": float(row[4]) if row[4] is not None else None,
             "verdict": row[5],
-            "budget_crore": float(row[6]) if row[6] is not None else None
+            "budget_crore": float(row[6]) if row[6] is not None else None,
+            "slug": movie_slug,
+            "url": f"/movie/{movie_slug}"
         })
 
     return {
@@ -4264,9 +4361,16 @@ def get_actor_movies_by_verdict(
 
             rows = cur.fetchall()
 
+    # Verdict-filtered filmographies also return canonical public movie URLs.
+    slug_map = _unique_movie_slug_map()
+
     movies = []
 
     for row in rows:
+        movie_slug = slug_map.get(
+            row[0],
+            movie_seo_slug(row[0], row[1], row[3])
+        )
 
         movies.append({
             "id": row[0],
@@ -4274,7 +4378,9 @@ def get_actor_movies_by_verdict(
             "poster": safe_movie_poster(row[2]),
             "release_date": str(row[3]),
             "worldwide_collection_crore": float(row[4]) if row[4] is not None else None,
-            "verdict": row[5]
+            "verdict": row[5],
+            "slug": movie_slug,
+            "url": f"/movie/{movie_slug}"
         })
 
     return {
@@ -5939,13 +6045,50 @@ def admin_unlink_actor_movie(
 
 # ============================================================
 
-@app.get("/article.html")
-def article_page():
-    return FileResponse(BASE_DIR / "article.html")
+@app.get("/article.html", include_in_schema=False)
+def article_page(slug: Optional[str] = None):
+    if not slug:
+        return RedirectResponse(url="/articles.html", status_code=301)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT slug
+                FROM articles
+                WHERE slug = %s
+                  AND status = 'published'
+                LIMIT 1
+                """,
+                (slug,)
+            )
+            row = cur.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    return RedirectResponse(url=f"/article/{row[0]}", status_code=301)
 
 
 @app.get("/article/{slug}")
 def article_pretty_page(slug: str):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT 1
+                FROM articles
+                WHERE slug = %s
+                  AND status = 'published'
+                LIMIT 1
+                """,
+                (slug,)
+            )
+            exists = cur.fetchone()
+
+    if not exists:
+        raise HTTPException(status_code=404, detail="Article not found")
+
     return FileResponse(BASE_DIR / "article.html")
 
 
@@ -9159,10 +9302,10 @@ def resolve_movie_comparison_slug(comparison_slug: str):
             continue
 
         canonical_ids = sorted([first_id, second_id])
-
-        # Only one pair order is indexable.
-        if canonical_ids != [first_id, second_id]:
-            continue
+        canonical_first_id, canonical_second_id = canonical_ids
+        canonical_slug = (
+            f"{slug_map[canonical_first_id]}-vs-{slug_map[canonical_second_id]}"
+        )
 
         with get_connection() as conn:
             with conn.cursor() as cur:
@@ -9196,10 +9339,11 @@ def resolve_movie_comparison_slug(comparison_slug: str):
                 return None
 
         return {
-            "movie1": movies[first_id],
-            "movie2": movies[second_id],
-            "canonical_slug": comparison_slug,
-            "canonical_url": f"/compare/movies/{comparison_slug}"
+            "movie1": movies[canonical_first_id],
+            "movie2": movies[canonical_second_id],
+            "canonical_slug": canonical_slug,
+            "canonical_url": f"/compare/movies/{canonical_slug}",
+            "is_canonical": comparison_slug == canonical_slug
         }
 
     return None
@@ -9210,6 +9354,8 @@ def movie_comparison_slug_page(comparison_slug: str):
     comparison = resolve_movie_comparison_slug(comparison_slug)
     if not comparison:
         raise HTTPException(status_code=404, detail="Movie comparison not found")
+    if not comparison.get("is_canonical", True):
+        return RedirectResponse(url=comparison["canonical_url"], status_code=301)
     return FileResponse(BASE_DIR / "movie-compare.html")
 
 
@@ -9282,9 +9428,27 @@ def movie_compare_select_page():
     return FileResponse(BASE_DIR / "movie-compare-select.html")
 
 
-@app.get("/movie-compare.html")
-def movie_compare_page():
-    return FileResponse(BASE_DIR / "movie-compare.html")
+@app.get("/movie-compare.html", include_in_schema=False)
+def movie_compare_page(
+    movie1: Optional[int] = None,
+    movie2: Optional[int] = None
+):
+    if movie1 is None or movie2 is None:
+        return RedirectResponse(url="/movie-compare-select.html", status_code=301)
+
+    if movie1 == movie2:
+        raise HTTPException(status_code=400, detail="Choose two different movies")
+
+    canonical_url = public_movie_comparison_url(movie1, movie2)
+    if canonical_url == "/movie-compare-select.html":
+        raise HTTPException(status_code=404, detail="Movie comparison not found")
+
+    # Verify the clean comparison is actually eligible/indexable.
+    comparison_slug = canonical_url.removeprefix("/compare/movies/")
+    if not resolve_movie_comparison_slug(comparison_slug):
+        raise HTTPException(status_code=404, detail="Movie comparison not found")
+
+    return RedirectResponse(url=canonical_url, status_code=301)
 
 
 
@@ -9643,7 +9807,7 @@ def admin_list_all_comments(
                         COUNT(DISTINCT r.id)::bigint AS report_count,
                         m.id::bigint AS source_id,
                         m.title::text AS source_title,
-                        ('/movie.html?id=' || m.id)::text AS source_url
+                        '/new-movies.html'::text AS source_url
                     FROM movie_comments c
                     JOIN movies m ON m.id = c.movie_id
                     LEFT JOIN movie_comment_likes l ON l.comment_id = c.id
@@ -9685,7 +9849,7 @@ def admin_list_all_comments(
                         COUNT(DISTINCT r.id)::bigint,
                         c.actor1_id::bigint,
                         (a1.name || ' vs ' || a2.name)::text,
-                        ('/compare.html?a1=' || c.actor1_id || '&a2=' || c.actor2_id)::text
+                        '/compare-select.html'::text
                     FROM hero_comparison_comments c
                     JOIN actors a1 ON a1.id = c.actor1_id
                     JOIN actors a2 ON a2.id = c.actor2_id
@@ -9707,7 +9871,7 @@ def admin_list_all_comments(
                         COUNT(DISTINCT r.id)::bigint,
                         c.movie1_id::bigint,
                         (m1.title || ' vs ' || m2.title)::text,
-                        ('/movie-compare.html?m1=' || c.movie1_id || '&m2=' || c.movie2_id)::text
+                        '/movie-compare-select.html'::text
                     FROM movie_comparison_comments c
                     JOIN movies m1 ON m1.id = c.movie1_id
                     JOIN movies m2 ON m2.id = c.movie2_id
@@ -11012,7 +11176,7 @@ def get_related_article_content(article_id: int, limit: int = 6):
                 "worldwide_collection_crore": float(r[5] or 0),
                 "verdict": r[6],
                 "poster": safe_movie_poster(r[7]),
-                "url": f"/movie.html?id={r[0]}",
+                "url": public_movie_url(r[0]),
             }
             for r in movie_rows
         ],
@@ -11282,7 +11446,7 @@ def trending_fan_activity(limit: int = 8):
                         m.id::text AS item_id,
                         m.title AS title,
                         COALESCE(m.poster, '') AS image,
-                        ('movie.html?id=' || m.id::text) AS url,
+                        ''::text AS url,
                         COUNT(*)::bigint AS activity_count,
                         MAX(x.created_at) AS last_activity
                     FROM movies m
@@ -11302,7 +11466,7 @@ def trending_fan_activity(limit: int = 8):
                         a.id::text,
                         a.title,
                         COALESCE(a.hero_image, ''),
-                        ('article/' || a.slug),
+                        ('/article/' || a.slug),
                         COUNT(*)::bigint,
                         MAX(x.created_at)
                     FROM articles a
@@ -11322,7 +11486,7 @@ def trending_fan_activity(limit: int = 8):
                         (p.actor1_id::text || '-' || p.actor2_id::text),
                         (a1.name || ' vs ' || a2.name),
                         '',
-                        ('compare.html?a=' || p.actor1_id::text || '&b=' || p.actor2_id::text),
+                        ''::text,
                         COUNT(*)::bigint,
                         MAX(p.created_at)
                     FROM (
@@ -11343,7 +11507,7 @@ def trending_fan_activity(limit: int = 8):
                         (p.movie1_id::text || '-' || p.movie2_id::text),
                         (m1.title || ' vs ' || m2.title),
                         '',
-                        ('movie-compare.html?a=' || p.movie1_id::text || '&b=' || p.movie2_id::text),
+                        ''::text,
                         COUNT(*)::bigint,
                         MAX(p.created_at)
                     FROM (
@@ -11364,20 +11528,43 @@ def trending_fan_activity(limit: int = 8):
             """, (limit,))
             rows = cur.fetchall()
 
+    items = []
+
+    for row in rows:
+        item_type = row[0]
+        item_id = str(row[1])
+        url = row[4]
+
+        if item_type == "movie":
+            url = public_movie_url(int(item_id))
+
+        elif item_type == "hero_comparison":
+            try:
+                actor1_id, actor2_id = map(int, item_id.split("-", 1))
+                url = public_actor_comparison_url(actor1_id, actor2_id)
+            except (TypeError, ValueError):
+                url = "/compare-select.html"
+
+        elif item_type == "movie_comparison":
+            try:
+                movie1_id, movie2_id = map(int, item_id.split("-", 1))
+                url = public_movie_comparison_url(movie1_id, movie2_id)
+            except (TypeError, ValueError):
+                url = "/movie-compare-select.html"
+
+        items.append({
+            "type": item_type,
+            "id": row[1],
+            "title": row[2],
+            "image": row[3],
+            "url": url,
+            "activity_count": row[5],
+            "last_activity": row[6].isoformat() if row[6] else None,
+        })
+
     return {
         "period_days": 7,
-        "items": [
-            {
-                "type": row[0],
-                "id": row[1],
-                "title": row[2],
-                "image": row[3],
-                "url": row[4],
-                "activity_count": row[5],
-                "last_activity": row[6].isoformat() if row[6] else None,
-            }
-            for row in rows
-        ]
+        "items": items,
     }
 
 
@@ -11437,7 +11624,7 @@ def latest_updates(limit: int = 10):
                             CASE WHEN m.industry IS NOT NULL AND m.industry <> ''
                                  THEN ' • ' || m.industry ELSE '' END,
                         COALESCE(m.poster, ''),
-                        ('/movie.html?id=' || m.id::text),
+                        ''::text,
                         m.release_date::timestamp
                     FROM movies m
                     WHERE m.release_date IS NOT NULL
@@ -11456,7 +11643,11 @@ def latest_updates(limit: int = 10):
                 "title": r[2],
                 "subtitle": r[3],
                 "image": r[4],
-                "url": r[5],
+                "url": (
+                    public_movie_url(r[1])
+                    if r[0] == "movie"
+                    else r[5]
+                ),
                 "happened_at": r[6].isoformat() if r[6] else None,
             }
             for r in rows
@@ -11514,7 +11705,7 @@ def fan_leaderboards():
     def movie_item(row, label):
         return None if not row else {
             "label": label, "id": row[0], "title": row[1],
-            "count": int(row[2] or 0), "url": f"/movie.html?id={row[0]}"
+            "count": int(row[2] or 0), "url": public_movie_url(row[0])
         }
 
     return {
@@ -11525,7 +11716,7 @@ def fan_leaderboards():
             None if not actor else {
                 "label": "⭐ Most Viewed Actor",
                 "id": actor[0], "title": actor[1],
-                "count": int(actor[2] or 0), "url": f"/actor.html?id={actor[0]}"
+                "count": int(actor[2] or 0), "url": public_actor_url(actor[0])
             }
         ]
     }

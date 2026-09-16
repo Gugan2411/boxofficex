@@ -31,7 +31,7 @@
     Highest-Grossing Movies & Box Office Rankings | BoxOfficeX
 </title>
 
-<link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/movie-rankings.html">
+<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/movie-rankings.html">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BoxOfficeX">
@@ -47,10 +47,10 @@
     property="og:description"
     content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
 >
-<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="Highest-Grossing Movies & Box Office Rankings | BoxOfficeX">
 
-<meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/movie-rankings.html">
+<meta id="ogUrl" property="og:url" content="https://boxofficex.in/movie-rankings.html">
 
 <meta name="twitter:card" content="summary_large_image">
 
@@ -65,7 +65,7 @@
     name="twitter:description"
     content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
 >
-<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Highest-Grossing Movies & Box Office Rankings | BoxOfficeX">
 
 <script
@@ -3773,7 +3773,7 @@ html,body{scroll-padding-top:0!important}
         </button>
 
         <a
-            href="index.html"
+            href="/index.html"
             class="logo"
             aria-label="BoxOfficeX Home"
         >
@@ -3788,20 +3788,20 @@ html,body{scroll-padding-top:0!important}
 
 
         <nav aria-label="Main navigation">
-            <a href="index.html">Home</a>
-            <a href="new-movies.html" class="nav-item-with-badge">
+            <a href="/index.html">Home</a>
+            <a href="/new-movies.html" class="nav-item-with-badge">
                 New Movies
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
-            <a href="movie-rankings.html" class="active">Movie Rankings</a>
-            <a href="rankings.html">Actor Rankings</a>
-            <a href="actors.html">Actors</a>
-            <a href="articles.html" class="nav-item-with-badge">
+            <a href="/movie-rankings.html" class="active">Movie Rankings</a>
+            <a href="/rankings.html">Actor Rankings</a>
+            <a href="/actors.html">Actors</a>
+            <a href="/articles.html" class="nav-item-with-badge">
                 Articles
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
-            <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
-            <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
+            <a href="/compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
+            <a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
         </nav>
 
     </div>
@@ -3818,7 +3818,7 @@ html,body{scroll-padding-top:0!important}
 
 
 <a
-    href="index.html"
+    href="/index.html"
     class="back-button"
 >
     ← Back to Home
@@ -4083,6 +4083,39 @@ function boxOfficeXMoviePosterUrl(movie) {
 
 
 const API_BASE = "";
+
+
+function bxSeoSlug(value){
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function bxMoviePublicSlug(movie){
+    if(movie?.slug) return String(movie.slug).trim();
+
+    const titleSlug = bxSeoSlug(movie?.title || movie?.name);
+    const yearMatch = String(movie?.release_date || "").match(/^(\d{4})/);
+    const year = yearMatch ? yearMatch[1] : "";
+
+    if(titleSlug && year) return `${titleSlug}-${year}`;
+    if(titleSlug && movie?.id != null) return `${titleSlug}-${movie.id}`;
+    return titleSlug;
+}
+
+function bxMoviePublicUrl(movie){
+    if(movie?.url && /^\/movie\//.test(String(movie.url))){
+        return String(movie.url);
+    }
+    const slug = bxMoviePublicSlug(movie);
+    return slug ? `/movie/${encodeURIComponent(slug)}` : "/new-movies.html";
+}
+
+
 
 
 /* ==========================================
@@ -4440,10 +4473,7 @@ async function loadMovies(
                     function() {
 
                         window.location.href =
-                            "movie.html?id=" +
-                            encodeURIComponent(
-                                movie.id
-                            );
+                            bxMoviePublicUrl(movie);
 
                     }
                 );
@@ -4594,7 +4624,7 @@ document.addEventListener("DOMContentLoaded",function(){
 
 <script>
 (function() {
-    const productionUrl = "https://boxoffice-x.com/movie-rankings.html";
+    const productionUrl = "https://boxofficex.in/movie-rankings.html";
     const canonicalTag = document.getElementById("canonicalUrl");
     if (canonicalTag) canonicalTag.href = productionUrl;
     const ogUrlTag = document.getElementById("ogUrl");

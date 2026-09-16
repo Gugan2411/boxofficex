@@ -3287,38 +3287,38 @@ html,body{scroll-padding-top:0!important}
             <span></span>
         </button>
 
-        <a href="index.html" class="logo" aria-label="BoxOfficeX Home">
+        <a href="/index.html" class="logo" aria-label="BoxOfficeX Home">
             <span class="logo-icon">🎬</span>
             BOXOFFICE<span>X</span>
         </a>
 
         <nav aria-label="Main navigation">
-            <a href="index.html">Home</a>
+            <a href="/index.html">Home</a>
 
-            <a href="new-movies.html" class="nav-item-with-badge">
+            <a href="/new-movies.html" class="nav-item-with-badge">
                 New Movies
                 <span id="newMoviesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="movie-rankings.html">Movie Rankings</a>
-            <a href="rankings.html" class="active">Actor Rankings</a>
+            <a href="/movie-rankings.html">Movie Rankings</a>
+            <a href="/rankings.html" class="active">Actor Rankings</a>
 
-            <a href="actors.html">Actors</a>
+            <a href="/actors.html">Actors</a>
 
-            <a href="articles.html" class="nav-item-with-badge">
+            <a href="/articles.html" class="nav-item-with-badge">
                 Articles
                 <span id="articlesBadge" class="nav-new-badge">NEW</span>
             </a>
 
-            <a href="compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
-            <a href="movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
+            <a href="/compare-select.html" class="nav-compare">⚔️ Actor Comparison</a>
+            <a href="/movie-compare-select.html" class="nav-compare">🎬 Movie Comparison</a>
         </nav>
 
     </div>
 
     <nav class="mobile-primary-features" aria-label="Primary mobile features">
-        <a href="compare-select.html"><span>⚔️</span>Actor Comparison</a>
-        <a href="movie-compare-select.html"><span>🎬</span>Movie Comparison</a>
+        <a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a>
+        <a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a>
     </nav>
 
 </header>
@@ -3628,10 +3628,29 @@ function loadRankings(language) {
                 actorImage.src = boxOfficeXActorRankingPlaceholder(actor.name);
             }, { once: true });
 
-            div.onclick = function () {
+            div.onclick = async function () {
 
-                window.location.href =
-                    "actor.html?id=" + actor.id;
+                try {
+                    const response = await fetch(
+                        "/actors/" + encodeURIComponent(actor.id),
+                        { cache: "no-store" }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Actor route lookup failed");
+                    }
+
+                    const actorData = await response.json();
+
+                    if (!actorData?.url) {
+                        throw new Error("Actor clean URL missing");
+                    }
+
+                    window.location.href = actorData.url;
+                }
+                catch (error) {
+                    console.error("Actor ranking navigation error:", error);
+                }
 
             };
 

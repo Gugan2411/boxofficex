@@ -20,7 +20,7 @@
         content="index, follow"
     >
 
-    <link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/actors.html">
+    <link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/actors.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BoxOfficeX">
@@ -32,9 +32,9 @@
         property="og:description"
         content="Explore popular Indian actors across Tamil, Telugu, Hindi, Malayalam and Kannada cinema, with movies, box office collections, career highlights and verdicts on BoxOfficeX."
     >
-<meta property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="Indian Actors, Movies & Box Office Careers | BoxOfficeX">
-    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/actors.html">
+    <meta id="ogUrl" property="og:url" content="https://boxofficex.in/actors.html">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta
@@ -45,7 +45,7 @@
         name="twitter:description"
         content="Explore popular Indian actors across Tamil, Telugu, Hindi, Malayalam and Kannada cinema, with movies, box office collections, career highlights and verdicts on BoxOfficeX."
     >
-<meta name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+<meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Indian Actors, Movies & Box Office Careers | BoxOfficeX">
 
     <script id="actorsStructuredData" type="application/ld+json"></script>
@@ -1799,6 +1799,57 @@ body.bx-bottom-ad-visible{
     }
 }
 
+
+/* =========================================================
+   ACTORS SEARCH MODE — SAFE INDEX-STYLE FIX
+   CSS only: preserves all existing actors.html JavaScript.
+========================================================= */
+body.search-active #bxTopBannerAd,
+body.search-active main > h1,
+body.search-active main > #bxActorsPageAd,
+body.search-active main > #actorsGrid,
+body.search-active main > #bxPopularActorComparisons,
+body.search-active main > #bxInContentVideoAds,
+body.search-active footer,
+body.search-active .mobile-bottom-nav,
+body.search-active .bx-master-mobile-nav,
+body.search-active #bxTopStickyAd,
+body.search-active #bxBottomStickyAd,
+body.search-active #bxSmallVideoAd,
+body.search-active #bxFullscreenAd,
+body.search-active #bxSponsoredLinkAd {
+    display: none !important;
+}
+
+body.search-active main {
+    min-height: calc(100vh - 68px);
+    padding-top: 35px;
+}
+
+body.search-active .global-search {
+    position: relative;
+    z-index: 2001;
+}
+
+body.search-active #searchResults {
+    display: block;
+}
+
+@media (max-width: 700px) {
+    body.search-active {
+        padding-bottom: 0;
+    }
+
+    body.search-active main {
+        min-height: calc(100vh - 61px);
+        padding-top: 25px;
+    }
+
+    body.search-active .global-search {
+        max-width: 100%;
+    }
+}
+
 </style>
 
 
@@ -3256,7 +3307,24 @@ function renderPopularActorComparisons(actors){
     pairs.forEach(([a,b])=>{
         const card=document.createElement("a");
         card.className="bx-popular-comparison-card";
-        card.href=`/compare.html?hero1=${encodeURIComponent(a.name || "")}&hero2=${encodeURIComponent(b.name || "")}`;
+
+        // /actors may not include slug. Build the same actor slug format
+        // used by BoxOfficeX pretty actor/comparison routes from the names.
+        const actorSlug = (actor) => String(actor?.slug || actor?.name || "")
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+
+        const aSlug = actorSlug(a);
+        const bSlug = actorSlug(b);
+
+        card.href = (aSlug && bSlug)
+            ? `/compare/${encodeURIComponent(aSlug)}-vs-${encodeURIComponent(bSlug)}`
+            : "/compare-select.html";
+
         card.setAttribute("aria-label",`Compare ${a.name || "Actor"} and ${b.name || "Actor"}`);
         card.innerHTML=`
             <img src="${boxOfficeXActorImageUrl(a.photo, a.name)}" data-actor-name="${escapeSearchHTML(a.name || "Actor")}" alt="${escapeSearchHTML(a.name || "Actor")}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.dataset.actorName);">
@@ -3375,9 +3443,15 @@ function displayActors(actors) {
             `;
 
             card.onclick = function () {
-                window.location.href =
-                    "actor.html?id=" +
-                    encodeURIComponent(actor.id);
+                if (actor.url) {
+                    window.location.href = actor.url;
+                    return;
+                }
+
+                if (actor.slug) {
+                    window.location.href =
+                        "/actor/" + encodeURIComponent(actor.slug);
+                }
             };
 
             languageGrid.appendChild(card);
@@ -3494,6 +3568,80 @@ function exitSearchMode() {
 }
 
 
+
+function bxSearchSlug(value) {
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+async function bxOpenSearchResult(item, type) {
+    try {
+        if (type === "actor") {
+            if (item?.url && /^\/actor\//.test(String(item.url))) {
+                window.location.assign(String(item.url));
+                return;
+            }
+
+            if (item?.slug) {
+                window.location.assign("/actor/" + encodeURIComponent(item.slug));
+                return;
+            }
+
+            if (item?.id != null) {
+                const response = await fetch(
+                    "/actors/" + encodeURIComponent(item.id),
+                    { cache: "no-store" }
+                );
+                if (!response.ok) throw new Error("Actor lookup failed");
+                const data = await response.json();
+                if (data?.url) {
+                    window.location.assign(data.url);
+                    return;
+                }
+            }
+
+            const slug = bxSearchSlug(item?.name);
+            window.location.assign(slug ? "/actor/" + encodeURIComponent(slug) : "/actors.html");
+            return;
+        }
+
+        if (type === "movie") {
+            if (item?.url && /^\/movie\//.test(String(item.url))) {
+                window.location.assign(String(item.url));
+                return;
+            }
+
+            if (item?.slug) {
+                window.location.assign("/movie/" + encodeURIComponent(item.slug));
+                return;
+            }
+
+            if (item?.id != null) {
+                const response = await fetch(
+                    "/movies/" + encodeURIComponent(item.id),
+                    { cache: "no-store" }
+                );
+                if (!response.ok) throw new Error("Movie lookup failed");
+                const data = await response.json();
+                if (data?.url) {
+                    window.location.assign(data.url);
+                    return;
+                }
+            }
+
+            window.location.assign("/new-movies.html");
+        }
+    } catch (error) {
+        console.error("Search result navigation error:", error);
+        window.location.assign(type === "actor" ? "/actors.html" : "/new-movies.html");
+    }
+}
+
 function performGlobalSearch(query) {
 
     const actorMatches =
@@ -3547,10 +3695,9 @@ function performGlobalSearch(query) {
         result.className =
             "search-result";
 
-        result.setAttribute(
-            "role",
-            "option"
-        );
+        result.setAttribute("role", "option");
+        result.tabIndex = 0;
+        result.style.cursor = "pointer";
 
         result.innerHTML = `
             <div class="search-result-icon">
@@ -3572,12 +3719,14 @@ function performGlobalSearch(query) {
             </div>
         `;
 
-        result.onclick = function () {
-
-            window.location.href =
-                "actor.html?id=" +
-                encodeURIComponent(actor.id);
-        };
+        const openActorResult = () => bxOpenSearchResult(actor, "actor");
+        result.addEventListener("click", openActorResult);
+        result.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openActorResult();
+            }
+        });
 
         globalSearchResults.appendChild(
             result
@@ -3593,10 +3742,9 @@ function performGlobalSearch(query) {
         result.className =
             "search-result";
 
-        result.setAttribute(
-            "role",
-            "option"
-        );
+        result.setAttribute("role", "option");
+        result.tabIndex = 0;
+        result.style.cursor = "pointer";
 
         result.innerHTML = `
             <div class="search-result-icon">
@@ -3618,12 +3766,14 @@ function performGlobalSearch(query) {
             </div>
         `;
 
-        result.onclick = function () {
-
-            window.location.href =
-                "movie.html?id=" +
-                encodeURIComponent(movie.id);
-        };
+        const openMovieResult = () => bxOpenSearchResult(movie, "movie");
+        result.addEventListener("click", openMovieResult);
+        result.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openMovieResult();
+            }
+        });
 
         globalSearchResults.appendChild(
             result
@@ -3685,11 +3835,14 @@ document
                 return;
             }
 
-            enterSearchMode();
+            const firstResult = globalSearchResults.querySelector(".search-result[tabindex='0']");
+            if (firstResult) {
+                firstResult.click();
+                return;
+            }
 
-            performGlobalSearch(
-                query
-            );
+            enterSearchMode();
+            performGlobalSearch(query);
         }
     );
 
@@ -3783,7 +3936,7 @@ document.addEventListener("DOMContentLoaded",function(){
 
 <script>
 (function() {
-    const productionUrl = "https://boxoffice-x.com/actors.html";
+    const productionUrl = "https://boxofficex.in/actors.html";
     const canonicalTag = document.getElementById("canonicalUrl");
     if (canonicalTag) canonicalTag.href = productionUrl;
     const ogUrlTag = document.getElementById("ogUrl");

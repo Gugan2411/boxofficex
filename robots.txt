@@ -13,4 +13,4 @@ Disallow: /docs
 Disallow: /redoc
 Disallow: /openapi.json
 
-Sitemap: https://boxoffice-x.com/sitemap.xml
+Sitemap: https://boxofficex.in/sitemap.xml

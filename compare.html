@@ -17,20 +17,20 @@
 
     <meta name="robots" content="index, follow">
 
-    <link id="canonicalUrl" rel="canonical" href="https://boxoffice-x.com/compare.html">
+    <link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/compare.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BoxOfficeX">
     <meta id="ogTitle" property="og:title" content="Actor Box Office Comparison | BoxOfficeX">
     <meta id="ogDescription" property="og:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">
-    <meta id="ogUrl" property="og:url" content="https://boxoffice-x.com/compare.html">
-    <meta id="ogImage" property="og:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta id="ogUrl" property="og:url" content="https://boxofficex.in/compare.html">
+    <meta id="ogImage" property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="Actor Box Office Comparison | BoxOfficeX">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta id="twitterTitle" name="twitter:title" content="Actor Box Office Comparison | BoxOfficeX">
     <meta id="twitterDescription" name="twitter:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">
-    <meta id="twitterImage" name="twitter:image" content="https://boxoffice-x.com/images/boxofficex-share.jpg">
+    <meta id="twitterImage" name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Actor Box Office Comparison | BoxOfficeX">
 
     <script id="compareStructuredData" type="application/ld+json"></script>
@@ -1893,7 +1893,7 @@ font-size:9px;font-weight:800
 
 <header>
     <div class="navbar">
-        <a href="index.html" class="logo" aria-label="BoxOfficeX Home">
+        <a href="/index.html" class="logo" aria-label="BoxOfficeX Home">
             <span class="logo-icon">🎬</span>
             BOXOFFICE<span>X</span>
         </a>
@@ -2266,10 +2266,10 @@ function updateComparisonSEO(actor1, actor2, comparisonCanonicalUrl=null) {
 
     const canonical =
         comparisonCanonicalUrl
-            ? "https://boxoffice-x.com" + comparisonCanonicalUrl
+            ? "https://boxofficex.in" + comparisonCanonicalUrl
             : (
                 canonicalSlugs.length === 2
-                    ? "https://boxoffice-x.com/compare/" +
+                    ? "https://boxofficex.in/compare/" +
                       canonicalSlugs[0] + "-vs-" + canonicalSlugs[1]
                     : window.location.href
               );
@@ -2387,12 +2387,27 @@ function bxRelatedActorComparisonsHTML(actor1,actor2,actors){
     const links=pairs.map(([left,right])=>{
         const leftName=String(left?.name??"").trim();
         const rightName=String(right?.name??"").trim();
+        // Related actor data from /actors may not include slug.
+        // Build the same clean actor slug format from slug/name so every
+        // related card uses the public /compare/{slug}-vs-{slug} route.
+        const relatedActorSlug = (actor) => String(actor?.slug || actor?.name || "")
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+
         const pair=[left,right]
             .slice()
             .sort((x,y)=>Number(x?.id||0)-Number(y?.id||0));
-        const href=(pair[0]?.slug&&pair[1]?.slug)
-            ? `/compare/${pair[0].slug}-vs-${pair[1].slug}`
-            : `/compare.html?hero1=${encodeURIComponent(leftName)}&hero2=${encodeURIComponent(rightName)}`;
+
+        const leftSlug=relatedActorSlug(pair[0]);
+        const rightSlug=relatedActorSlug(pair[1]);
+
+        const href=(leftSlug&&rightSlug)
+            ? `/compare/${encodeURIComponent(leftSlug)}-vs-${encodeURIComponent(rightSlug)}`
+            : "/compare-select.html";
         const leftPhoto=bxRelatedComparisonEscape(bxRelatedActorPhoto(left));
         const rightPhoto=bxRelatedComparisonEscape(bxRelatedActorPhoto(right));
         return `
@@ -3749,24 +3764,29 @@ function createMovieCountRow(
 // ==========================================
 
 function openAllActorMovies(actor) {
+    if (actor && actor.slug) {
+        window.location.href =
+            "/actor/" + encodeURIComponent(actor.slug) + "/movies";
+        return;
+    }
+
+    // Compatibility fallback: resolve the actor ID before navigating.
     const actorId = actor && actor.id ? actor.id : actor;
 
-    const query = new URLSearchParams({
-        id: String(actorId)
-    });
-
-    if (actor && actor.name) {
-        query.set("name", actor.name);
-    }
-
-    if (actor && actor.slug) {
-        query.set("slug", actor.slug);
-    }
-
-    window.location.href =
-        "/actor-movies.html?" +
-        query.toString();
-
+    fetch("/actors/" + encodeURIComponent(actorId), { cache: "no-store" })
+        .then(response => {
+            if (!response.ok) throw new Error("Actor lookup failed");
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !data.slug) throw new Error("Actor slug missing");
+            window.location.href =
+                "/actor/" + encodeURIComponent(data.slug) + "/movies";
+        })
+        .catch(error => {
+            console.error("Actor movies navigation error:", error);
+            window.location.href = "/actors.html";
+        });
 }
 
 
@@ -3832,24 +3852,33 @@ function openActorMovies(
     actorName = "",
     actorSlug = ""
 ) {
-
-    const query = new URLSearchParams({
-        id: String(actorId),
-        verdict: String(verdict || "")
-    });
-
-    if (actorName) {
-        query.set("name", actorName);
-    }
+    const openCleanUrl = slug => {
+        let url = "/actor/" + encodeURIComponent(slug) + "/movies";
+        if (verdict) {
+            url += "?verdict=" + encodeURIComponent(verdict);
+        }
+        window.location.href = url;
+    };
 
     if (actorSlug) {
-        query.set("slug", actorSlug);
+        openCleanUrl(actorSlug);
+        return;
     }
 
-    window.location.href =
-        "/actor-movies.html?" +
-        query.toString();
-
+    // Compatibility fallback for API data without a slug.
+    fetch("/actors/" + encodeURIComponent(actorId), { cache: "no-store" })
+        .then(response => {
+            if (!response.ok) throw new Error("Actor lookup failed");
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !data.slug) throw new Error("Actor slug missing");
+            openCleanUrl(data.slug);
+        })
+        .catch(error => {
+            console.error("Verdict movies navigation error:", error);
+            window.location.href = "/actors.html";
+        });
 }
 
 
@@ -3954,14 +3983,28 @@ function createHighestGrossingCard(
 // OPEN MOVIE PAGE
 // ==========================================
 
-function openMovie(
-    movieId
-) {
+async function openMovie(movieId) {
+    try {
+        const response = await fetch(
+            "/movies/" + encodeURIComponent(movieId),
+            { cache: "no-store" }
+        );
 
-    window.location.href =
-        "movie.html?id=" +
-        movieId;
+        if (!response.ok) {
+            throw new Error("Movie lookup failed: " + response.status);
+        }
 
+        const movie = await response.json();
+
+        if (!movie?.url) {
+            throw new Error("Clean movie URL missing");
+        }
+
+        window.location.href = movie.url;
+    } catch (error) {
+        console.error("Movie navigation error:", error);
+        window.location.href = "/new-movies.html";
+    }
 }
 
 
@@ -4110,8 +4153,8 @@ document.addEventListener("DOMContentLoaded",function(){
 
 <script>
 (function() {
-    const productionUrl = "https://boxoffice-x.com/compare.html";
-    const socialImage = "https://boxoffice-x.com/images/boxofficex-share.jpg";
+    const productionUrl = "https://boxofficex.in/compare.html";
+    const socialImage = "https://boxofficex.in/images/boxofficex-share.jpg";
     const isActorComparisonResult =
         Boolean(
             new URLSearchParams(window.location.search).get("hero1") &&
