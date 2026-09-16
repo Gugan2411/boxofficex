@@ -977,6 +977,19 @@ function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block"
 const ARTICLE_FALLBACK="/posters/coming-soon.png";
 function mediaUrl(filename, fresh=false){
 if(!filename)return ARTICLE_FALLBACK;
+filename=String(filename).trim();
+if(!filename)return ARTICLE_FALLBACK;
+
+// New uploads are permanent Cloudinary/remote URLs.
+if(filename.startsWith("https://")||filename.startsWith("http://")){
+    if(fresh){
+        const separator=filename.includes("?")?"&":"?";
+        return filename+separator+"v="+Date.now();
+    }
+    return filename;
+}
+
+// Backward compatibility for existing locally referenced article images.
 const base="/article-images/"+encodeURIComponent(filename);
 return fresh?base+"?v="+Date.now():base;
 }
@@ -2011,10 +2024,55 @@ box.appendChild(card);
 }
 
 async function uploadImage(file){
-const fd=new FormData();fd.append("file",file);
-const r=await fetch("/admin/article-images/upload",{method:"POST",credentials:"include",body:fd});
-const d=await r.json();if(!r.ok){toast(d.detail||"Upload failed");return null}
-toast("Image uploaded");return d.filename;
+if(!file){toast("Please select an image");return null}
+
+const allowedTypes=["image/jpeg","image/png","image/webp"];
+if(!allowedTypes.includes(file.type)){
+    toast("Only JPG, PNG and WEBP images are allowed");
+    return null;
+}
+
+const maxBytes=8*1024*1024;
+if(file.size>maxBytes){
+    toast("Image must be 8 MB or smaller");
+    return null;
+}
+
+const fd=new FormData();
+fd.append("file",file);
+
+try{
+    toast("Uploading image...");
+    const r=await fetch("/admin/article-images/upload",{
+        method:"POST",
+        credentials:"include",
+        body:fd
+    });
+
+    let d={};
+    try{d=await r.json()}catch(_){d={}}
+
+    if(!r.ok){
+        let message="Image upload failed";
+        if(typeof d.detail==="string")message=d.detail;
+        else if(d.detail&&typeof d.detail==="object"&&d.detail.message)message=d.detail.message;
+        toast(message);
+        return null;
+    }
+
+    const uploadedUrl=d.url||d.filename||null;
+    if(!uploadedUrl){
+        toast("Server did not return an image URL");
+        return null;
+    }
+
+    toast("Image uploaded permanently");
+    return uploadedUrl;
+}catch(error){
+    console.error("ARTICLE IMAGE UPLOAD ERROR:",error);
+    toast("Image upload failed");
+    return null;
+}
 }
 async function loadArticles(){
 const r=await fetch("/admin/articles");

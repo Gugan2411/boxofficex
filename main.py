@@ -8996,42 +8996,31 @@ def admin_update_article_links(article_id: int, data: AdminArticleLink):
 async def admin_upload_article_image(
     file: UploadFile = File(...)
 ):
-    allowed_types = {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/webp": ".webp",
-    }
+    """Upload article hero/block/gallery images to permanent Cloudinary storage."""
+    result = await _upload_admin_image_to_cloudinary(
+        file=file,
+        folder="boxofficex/article-images",
+        default_stem="article-image",
+    )
 
-    if file.content_type not in allowed_types:
+    secure_url = result.get("url")
+    if not secure_url:
         raise HTTPException(
-            status_code=400,
-            detail="Only JPG, PNG and WEBP images are allowed"
+            status_code=502,
+            detail="Cloudinary did not return an article image URL",
         )
 
-    raw = await file.read()
-
-    # 10 MB upload ceiling
-    if len(raw) > 10 * 1024 * 1024:
-        raise HTTPException(
-            status_code=400,
-            detail="Image must be 10 MB or smaller"
-        )
-
-    extension = allowed_types[file.content_type]
-    original_stem = Path(file.filename or "article-image").stem
-    safe_stem = re.sub(r"[^a-zA-Z0-9_-]+", "-", original_stem).strip("-").lower()
-    if not safe_stem:
-        safe_stem = "article-image"
-
-    filename = f"{safe_stem}-{secrets.token_hex(4)}{extension}"
-    destination = ARTICLE_IMAGES_DIR / filename
-
-    destination.write_bytes(raw)
-
+    # Keep `filename` for compatibility with the existing article editor.
+    # For new uploads it intentionally contains the permanent HTTPS URL.
     return {
         "success": True,
-        "filename": filename,
-        "url": f"/article-images/{filename}",
+        "filename": secure_url,
+        "url": secure_url,
+        "public_id": result.get("public_id"),
+        "format": result.get("format"),
+        "width": result.get("width"),
+        "height": result.get("height"),
+        "bytes": result.get("bytes"),
     }
 
 
