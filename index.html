@@ -8681,7 +8681,7 @@ async function loadUpcomingMovies(){
         const items=Array.isArray(d.movies)?d.movies:[];
         if(!items.length){grid.innerHTML='<div class="movie-empty">No upcoming movies added yet.</div>';return}
         grid.innerHTML=items.map(m=>`
-            <article class="movie-card" onclick="location.href=bxMoviePublicUrl(${chr(123)}...m${chr(125)})" role="link" tabindex="0">
+            <article class="movie-card" onclick="location.href=bxMoviePublicUrl(m)" role="link" tabindex="0">
                 <img class="movie-poster" src="${movieImage(m)}" alt="${launchEsc(m.title)}" loading="lazy" onerror="setMovieFallback(this)">
                 <div class="movie-info"><h3>${launchEsc(m.title)}</h3><p>${launchEsc(m.language||"")} ${m.industry?`• ${launchEsc(m.industry)}`:""}</p>
                 <span class="upcoming-countdown">${m.days_until_release===1?"Tomorrow":`${m.days_until_release} Days Left`}</span></div>
