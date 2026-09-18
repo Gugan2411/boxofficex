@@ -12909,13 +12909,43 @@ def get_active_public_advertisements(
             if not page or not target:
                 continue
 
-            targets = [
+            # Normalize public pretty URLs to the page keys saved by Admin.
+            # Example:
+            #   browser: /article/jailer-2-600-crore-pre-release-business
+            #   admin target: /article.html (or article.html)
+            requested_page = str(page).strip()
+            requested_path = requested_page.split("?", 1)[0].rstrip("/") or "/"
+
+            page_aliases = {requested_page, requested_path}
+
+            if requested_path.startswith("/article/"):
+                page_aliases.update({
+                    "/article.html",
+                    "article.html",
+                    "article_detail",
+                })
+
+            # Accept both leading-slash and no-leading-slash forms.
+            page_aliases.update({
+                p[1:] if p.startswith("/") else "/" + p
+                for p in list(page_aliases)
+                if p and p != "/"
+            })
+
+            targets = {
                 item.strip()
                 for item in target.split(",")
                 if item.strip()
-            ]
+            }
 
-            if page not in targets:
+            normalized_targets = set(targets)
+            normalized_targets.update({
+                p[1:] if p.startswith("/") else "/" + p
+                for p in list(targets)
+                if p and p != "/"
+            })
+
+            if page_aliases.isdisjoint(normalized_targets):
                 continue
 
         if not _ad_matches_precise_target(ad, placement, actor_id, movie_id):
@@ -14445,9 +14475,9 @@ def admin_update_ott_sponsorship(sponsorship_id: int, data: OTTSponsorshipUpdate
             placements=final_placements,
             movie_ids=final_movie_ids,
             actor_ids=final_actor_ids,
-            start_date_value=final_start,
+            start_date_value=effective_start,
             start_time_value=data.start_time if data.start_time is not None else existing["start_time"],
-            end_date_value=final_end,
+            end_date_value=effective_end,
             end_time_value=data.end_time if data.end_time is not None else existing["end_time"],
             package_tier=final_package_tier,
             exclude_id=sponsorship_id,

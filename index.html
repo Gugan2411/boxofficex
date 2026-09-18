@@ -1,7 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+
+    <link rel="stylesheet" href="/boxofficex-ad-master.css">
 
     <meta charset="UTF-8">
 
@@ -6326,6 +6329,82 @@ html,body{scroll-padding-top:0!important}
 }
 
 </style>
+
+<style id="bx-v1-large-incontent-slots">
+/* BoxOfficeX V1 Large In-Content Ads — Slots 1, 2, 3 */
+.bx-smart-ad-slot{
+    width:100%;
+    max-width:728px;
+    height:auto;
+    margin:28px auto;
+    padding:0;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+    overflow:visible;
+}
+.bx-smart-ad-slot:empty{
+    display:none !important;
+    margin:0 !important;
+}
+.bx-smart-ad-slot .bx-smart-ad-label{
+    display:block;
+    margin:0 0 7px;
+    color:#7f8ba5;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.9px;
+    text-align:center;
+    text-transform:uppercase;
+}
+.bx-smart-ad-slot .bx-smart-ad-shell,
+.bx-smart-ad-slot .bx-smart-ad-link{
+    position:relative;
+    display:block;
+    width:728px;
+    max-width:100%;
+    height:410px;
+    margin:0 auto;
+    padding:0 !important;
+    overflow:hidden;
+    border:0 !important;
+    border-radius:14px;
+    background:#0b1020;
+    box-shadow:0 12px 30px rgba(0,0,0,.22);
+    cursor:pointer;
+}
+.bx-smart-ad-slot img,
+.bx-smart-ad-slot video{
+    display:block;
+    width:100% !important;
+    height:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    object-fit:cover !important;
+    object-position:center !important;
+}
+.bx-smart-ad-slot .bx-smart-ad-meta,
+.bx-smart-ad-slot .bx-smart-ad-close{
+    display:none !important;
+}
+@media (max-width:700px){
+    .bx-smart-ad-slot{
+        width:320px;
+        max-width:calc(100vw - 26px);
+        margin:22px auto;
+    }
+    .bx-smart-ad-slot .bx-smart-ad-shell,
+    .bx-smart-ad-slot .bx-smart-ad-link{
+        width:320px;
+        max-width:100%;
+        height:320px;
+        border-radius:12px;
+    }
+}
+</style>
+
 </head>
 
 
@@ -6618,6 +6697,8 @@ html,body{scroll-padding-top:0!important}
 
 </section>
 
+<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>
+
 
 
 <!-- UPCOMING MOVIES + RELEASE COUNTDOWN -->
@@ -6669,6 +6750,8 @@ html,body{scroll-padding-top:0!important}
         <div class="movie-empty">Loading trending articles...</div>
     </div>
 </section>
+
+<section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>
 
 
 <!-- ======================================================
@@ -6747,6 +6830,8 @@ html,body{scroll-padding-top:0!important}
     </div>
 
 </section>
+
+<section id="bxSmartAdSlot3" class="bx-smart-ad-slot" aria-label="Advertisement slot 3"></section>
 
 
 <!-- ======================================================
@@ -9248,7 +9333,7 @@ document.addEventListener("DOMContentLoaded",()=>{
                target="_blank"
                rel="sponsored noopener"
                data-ad-id="${Number(ad.id)}">
-                <video src="${escapeAd(url)}" muted autoplay playsinline controls></video>
+                <video src="${escapeAd(url)}" muted autoplay playsinline controls preload="metadata"></video>
             </a>
         `;
 
@@ -9301,13 +9386,14 @@ document.addEventListener("DOMContentLoaded",()=>{
                 <div class="bx-fullscreen-controls">
                     <span class="bx-fullscreen-countdown">Ad ${duration}s</span>
                     <button class="bx-fullscreen-skip" type="button" disabled>
-                        Skip in ${skipAfter}s
+                        Skip Ad ${skipAfter}s
                     </button>
                 </div>
             </div>
         `;
 
         root.style.display = "flex";
+        document.body.classList.add("bx-fullscreen-ad-open");
         document.body.style.overflow = "hidden";
         bindClicks(root);
 
@@ -9324,6 +9410,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             closed = true;
             clearInterval(timer);
             root.style.display = "none";
+            document.body.classList.remove("bx-fullscreen-ad-open");
             document.body.style.overflow = "";
             if(video) video.pause();
             adPost(ad.id, skipped ? "skip" : "complete");
@@ -9336,7 +9423,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             countdown.textContent = `Ad ${Math.max(remaining, 0)}s`;
 
             if(skipRemaining > 0){
-                skip.textContent = `Skip in ${skipRemaining}s`;
+                skip.textContent = `Skip Ad ${skipRemaining}s`;
             } else {
                 skip.disabled = false;
                 skip.textContent = "Skip Ad";
@@ -9362,49 +9449,63 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
 
     function showSponsoredLinks(ads){
-        const root = document.getElementById("bxSponsoredLinkAd");
-        if(!root) return 0;
+        const root=document.getElementById("bxSponsoredLinkAd");
+        if(!root)return 0;
 
-        const selected = weightedSample(
-            ads.filter(ad => ad.ad_type === "sponsored_link" && eligibleByFrequency(ad)),
+        const selected=weightedSample(
+            ads.filter(ad=>ad.ad_type==="sponsored_link"&&eligibleByFrequency(ad)),
             MAX_SPONSORED_LINKS
         );
 
-        if(!selected.length) return 0;
+        if(!selected.length){
+            root.innerHTML="";
+            root.style.display="none";
+            return 0;
+        }
 
         root.classList.add("bx-sponsored-link-grid");
-        root.innerHTML = selected.map(ad => {
-            const title = ad.campaign_name || ad.advertiser_name || "Sponsored Partner";
-            const subtitle = ad.business_category
-                ? `${ad.advertiser_name || "Sponsor"} • ${ad.business_category}`
-                : (ad.advertiser_name || "Sponsored Partner");
+        root.innerHTML=selected.map(ad=>{
+            const title=ad.campaign_name||ad.advertiser_name||"Sponsored Partner";
+            const advertiser=ad.advertiser_name||"Sponsored Partner";
+            const category=ad.business_category||"";
+            const description=category
+                ? `${category} • Discover more from ${advertiser}`
+                : `Discover more from ${advertiser}`;
+            const media=mediaUrl(ad);
 
-            return `
-                <a class="bx-sponsored-link-card"
-                   href="${escapeAd(ad.target_url)}"
-                   target="_blank"
-                   rel="sponsored noopener"
-                   data-ad-id="${Number(ad.id)}"
-                   aria-label="Open sponsored link: ${escapeAd(title)}">
-                    ${mediaUrl(ad) ? `<img class="bx-sponsored-link-thumb" src="${escapeAd(mediaUrl(ad))}" alt="${escapeAd(title)}">` : ""}
-                    <div class="bx-sponsored-link-copy">
-                        <div class="bx-sponsored-link-label">Sponsored</div>
-                        <h3 class="bx-sponsored-link-title">${escapeAd(title)}</h3>
-                        <div class="bx-sponsored-link-sub">${escapeAd(subtitle)}</div>
+            return `<a class="bx-sponsored-story-card"
+                href="${escapeAd(ad.target_url||"#")}"
+                target="_blank"
+                rel="sponsored noopener"
+                data-ad-id="${Number(ad.id)}"
+                aria-label="Open sponsored link: ${escapeAd(title)}">
+                <div class="bx-sponsored-story-media">
+                    ${media
+                        ? (String(ad.media_type||"").toLowerCase()==="video"
+                            ? `<video src="${escapeAd(media)}" autoplay muted loop playsinline preload="metadata"></video>`
+                            : `<img src="${escapeAd(media)}" alt="${escapeAd(title)}">`)
+                        : `<div class="bx-sponsored-story-placeholder">BX</div>`}
+                </div>
+                <div class="bx-sponsored-story-body">
+                    <h3>${escapeAd(title)}</h3>
+                    <p>${escapeAd(description)}</p>
+                    <div class="bx-sponsored-story-footer">
+                        <div class="bx-sponsored-story-brand">
+                            <strong>${escapeAd(advertiser)}</strong>
+                            <span>Sponsored</span>
+                        </div>
+                        <span class="bx-sponsored-story-cta">Visit Now</span>
                     </div>
-                    <span class="bx-sponsored-link-open" aria-hidden="true">↗</span>
-                </a>
-            `;
+                </div>
+            </a>`;
         }).join("");
 
-        root.style.display = "grid";
+        root.style.display="grid";
         bindClicks(root);
-
-        selected.forEach(ad => {
+        selected.forEach(ad=>{
             markFrequency(ad);
-            adPost(ad.id, "impression");
+            adPost(ad.id,"impression");
         });
-
         return selected.length;
     }
 
@@ -9486,37 +9587,28 @@ document.addEventListener("DOMContentLoaded",()=>{
 
     async function loadHomepageAds(){
         try{
-            // Clear any previously rendered campaign before loading the current live inventory.
-            // This guarantees that deleted, disabled, expired, or no-longer-targeted ads
-            // cannot remain visible in an existing ad container.
+            // BOXOFFICEX AD CLEANUP: remove stale/deleted/disabled/expired creatives first.
             [
-                "bxTopBannerAd",
-                "bxHomepageAd",
-                "bxSmallVideoAd",
-                "bxTopStickyAd",
                 "bxBottomStickyAd",
+                "bxFullscreenAd",
+                "bxHomepageAd",
+                "bxInContentVideoAds",
+                "bxSmallVideoAd",
                 "bxSponsoredLinkAd",
-                "bxInContentVideoAds"
+                "bxTopBannerAd",
+                "bxTopStickyAd"
             ].forEach(id => {
                 const el = document.getElementById(id);
                 if(!el) return;
-
                 el.querySelectorAll("video").forEach(video => {
                     try { video.pause(); } catch(e) {}
                 });
-
                 el.innerHTML = "";
                 el.style.display = "none";
             });
 
-            document.body.classList.remove(
-                "bx-bottom-ad-visible",
-                "bx-top-ad-visible"
-            );
-
-            document.documentElement.style.removeProperty(
-                "--bx-top-sticky-space"
-            );
+            document.body.classList.remove("bx-bottom-ad-visible", "bx-top-ad-visible");
+            document.documentElement.style.removeProperty("--bx-top-sticky-space");
 
             const response = await fetch(
                 `/ads/active?placement=homepage&page=${encodeURIComponent(AD_PAGE)}`,
@@ -9581,24 +9673,36 @@ document.addEventListener("DOMContentLoaded",()=>{
  .bx-smart-ad-card img,.bx-smart-ad-card video{max-height:280px}
  .bx-sponsored-link-thumb{width:54px;height:54px;flex-basis:54px}
 }
+/* BOXOFFICEX LOCKED PUBLIC AD SIZE STANDARD */
+:root{--bx-ad-top-banner-w:970px;--bx-ad-top-banner-h:250px;--bx-ad-sticky-w:970px;--bx-ad-sticky-h:90px;--bx-ad-content-w:728px;--bx-ad-content-h:90px;--bx-ad-content-video-h:410px;--bx-ad-floating-w:320px;--bx-ad-floating-h:180px;--bx-ad-sponsored-w:728px;--bx-ad-sponsored-h:90px}
+#bxTopBannerAd{width:min(100%,970px)!important;max-width:970px!important;margin-inline:auto!important}#bxTopBannerAd img,#bxTopBannerAd video{width:100%!important;height:auto!important;max-height:250px!important;object-fit:contain!important}
+#bxTopStickyAd,#bxBottomStickyAd{left:50%!important;right:auto!important;width:min(calc(100% - 20px),970px)!important;max-width:970px!important;transform:translateX(-50%)!important}#bxTopStickyAd img,#bxTopStickyAd video,#bxBottomStickyAd img,#bxBottomStickyAd video{width:100%!important;height:auto!important;max-height:90px!important;object-fit:contain!important}
+[id^="bxSmartAdSlot"],#bxHomepageAd,#bxNewMoviesAd,#bxMoviePageAd,#bxActorsPageAd,#bxActorPageAd,#bxActorMoviesAd,#bxArticleListAd,#bxArticleDetailAd,#bxRankingsAd,#bxActorRankingsAd,#bxActorCompareSelectAd,#bxActorCompareAd,#bxMovieCompareSelectAd,#bxMovieCompareAd{width:min(100%,728px)!important;max-width:728px!important;margin-inline:auto!important}
+[id^="bxSmartAdSlot"] img,#bxHomepageAd img,#bxNewMoviesAd img,#bxMoviePageAd img,#bxActorsPageAd img,#bxActorPageAd img,#bxActorMoviesAd img,#bxArticleListAd img,#bxArticleDetailAd img,#bxRankingsAd img,#bxActorRankingsAd img,#bxActorCompareSelectAd img,#bxActorCompareAd img,#bxMovieCompareSelectAd img,#bxMovieCompareAd img{width:100%!important;height:auto!important;max-height:90px!important;object-fit:contain!important}
+[id^="bxSmartAdSlot"] video,#bxInContentVideoAd video,#bxHomepageAd video,#bxNewMoviesAd video,#bxMoviePageAd video,#bxActorsPageAd video,#bxActorPageAd video,#bxActorMoviesAd video,#bxArticleListAd video,#bxArticleDetailAd video,#bxRankingsAd video,#bxActorRankingsAd video,#bxActorCompareSelectAd video,#bxActorCompareAd video,#bxMovieCompareSelectAd video,#bxMovieCompareAd video{width:100%!important;height:auto!important;max-height:410px!important;aspect-ratio:16/9!important;object-fit:contain!important}
+#bxSmallVideoAd{width:min(320px,calc(100% - 28px))!important;max-width:320px!important}#bxSmallVideoAd video,#bxSmallVideoAd img{width:100%!important;height:auto!important;aspect-ratio:16/9!important;max-height:180px!important;object-fit:contain!important}
+#bxSponsoredLinkAd{width:min(100%,728px)!important;max-width:728px!important;min-height:90px!important;margin-inline:auto!important}#bxSponsoredLinkAd img,#bxSponsoredLinkAd video{width:100%!important;height:auto!important;max-height:90px!important;object-fit:contain!important}
+#bxFullscreenAd img,#bxFullscreenAd video{object-fit:contain!important;max-width:min(100%,1080px)!important;max-height:min(100%,1920px)!important}
+@media(max-width:650px){#bxTopBannerAd{width:min(100%,320px)!important;max-width:320px!important}#bxTopBannerAd img,#bxTopBannerAd video{max-height:100px!important;aspect-ratio:320/100!important}#bxTopStickyAd,#bxBottomStickyAd{width:min(calc(100% - 16px),320px)!important;max-width:320px!important}#bxTopStickyAd img,#bxTopStickyAd video,#bxBottomStickyAd img,#bxBottomStickyAd video{max-height:50px!important;aspect-ratio:320/50!important}[id^="bxSmartAdSlot"],#bxHomepageAd,#bxNewMoviesAd,#bxMoviePageAd,#bxActorsPageAd,#bxActorPageAd,#bxActorMoviesAd,#bxArticleListAd,#bxArticleDetailAd,#bxRankingsAd,#bxActorRankingsAd,#bxActorCompareSelectAd,#bxActorCompareAd,#bxMovieCompareSelectAd,#bxMovieCompareAd,#bxSponsoredLinkAd{width:min(100%,320px)!important;max-width:320px!important}[id^="bxSmartAdSlot"] img,#bxHomepageAd img,#bxNewMoviesAd img,#bxMoviePageAd img,#bxActorsPageAd img,#bxActorPageAd img,#bxActorMoviesAd img,#bxArticleListAd img,#bxArticleDetailAd img,#bxRankingsAd img,#bxActorRankingsAd img,#bxActorCompareSelectAd img,#bxActorCompareAd img,#bxMovieCompareSelectAd img,#bxMovieCompareAd img,#bxSponsoredLinkAd img{max-height:100px!important;aspect-ratio:320/100!important}[id^="bxSmartAdSlot"] video,#bxInContentVideoAd video,#bxHomepageAd video,#bxNewMoviesAd video,#bxMoviePageAd video,#bxActorsPageAd video,#bxActorPageAd video,#bxActorMoviesAd video,#bxArticleListAd video,#bxArticleDetailAd video,#bxRankingsAd video,#bxActorRankingsAd video,#bxActorCompareSelectAd video,#bxActorCompareAd video,#bxMovieCompareSelectAd video,#bxMovieCompareAd video{max-height:180px!important;aspect-ratio:16/9!important}#bxSmallVideoAd{width:min(280px,calc(100% - 28px))!important;max-width:280px!important}#bxSmallVideoAd video,#bxSmallVideoAd img{max-height:158px!important}#bxSponsoredLinkAd{min-height:100px!important}}
+
 </style>
 
 <script>
 /* BoxOfficeX V2 page-aware in-content slots + page preview */
 (function(){
- const BX_PLACEMENT="homepage", BX_MAX=3, BX_ANCHORS=["upcoming-movies", "most-hyped", "latest-updates"];
+ const BX_PLACEMENT="homepage", BX_MAX=3, BX_ANCHORS=["latest-releases", "trending-articles", "rankings"];
  function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
  function weight(a){const n=Number(a&&a.traffic_weight);return Number.isFinite(n)&&n>0?n:1}
  function pick(list){if(!list.length)return null;let total=list.reduce((s,a)=>s+weight(a),0),r=Math.random()*total;for(const a of list){r-=weight(a);if(r<=0)return a}return list[list.length-1]}
  function freqOK(a){
    if(!a.frequency||a.frequency==="always")return true;
-   const k=`boxofficex_ad_${a.id}_${a.frequency}`;
+   const k=`boxofficex_ad_${Math.abs(Number(a.source_advertisement_id||a.id))}_${a.frequency}`;
    if(a.frequency==="once_session")return !sessionStorage.getItem(k);
    const raw=localStorage.getItem(k); if(!raw)return true;
    const h=a.frequency==="once_12h"?12:24; return Date.now()-Number(raw)>=h*3600000;
  }
- function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const k=`boxofficex_ad_${a.id}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
- function post(a,e){if(a.id)fetch(`/ads/${a.id}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
+ function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const k=`boxofficex_ad_${Math.abs(Number(a.source_advertisement_id||a.id))}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
+ function post(a,e){const id=Number(a.source_advertisement_id||a.id);if(id)fetch(`/ads/${Math.abs(id)}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
  function media(a){return matchMedia("(max-width:700px)").matches&&a.mobile_media_url?a.mobile_media_url:a.media_url}
  function makeSlot(n){
    let el=document.getElementById(`bxSmartAdSlot${n}`); if(el)return el;
@@ -9620,38 +9724,59 @@ document.addEventListener("DOMContentLoaded",()=>{
  function render(a,n,preview=false){
    const root=makeSlot(n); if(!root||!a||!media(a))return;
    const isVideo=a.media_type==="video";
+   const adTitle=a.campaign_name||a.advertiser_name||"Sponsored";
+   const adSub=a.business_category
+      ? `${a.advertiser_name||"Partner"} • ${a.business_category}`
+      : (a.advertiser_name||"Sponsored Partner");
    root.innerHTML=`<div class="bx-smart-label">${preview?"PREVIEW • ":""}Advertisement</div>
-   <div class="bx-smart-ad-card">
-    <div class="bx-smart-ad-head"><span>Sponsored • ${esc(a.advertiser_name||"Advertisement")}</span><button class="bx-smart-ad-close" type="button" aria-label="Close advertisement">×</button></div>
-    <a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener">
-      ${isVideo?`<video src="${esc(media(a))}" controls playsinline preload="metadata"></video>`:`<img src="${esc(media(a))}" alt="Sponsored advertisement">`}
-    </a></div>`;
+   <div class="bx-smart-ad-card ${isVideo?"bx-smart-video-card":""}">
+    <a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener" aria-label="Open sponsored advertisement: ${esc(adTitle)}">
+      ${isVideo
+        ? `<video src="${esc(media(a))}" autoplay muted loop playsinline preload="metadata"></video>
+           <div class="bx-smart-video-info" aria-hidden="true">
+             <div class="bx-smart-video-sponsored">Sponsored</div>
+             <div class="bx-smart-video-copy">
+               <strong>${esc(adTitle)}</strong>
+               <span>${esc(adSub)}</span>
+             </div>
+             <span class="bx-smart-video-cta">Learn More →</span>
+           </div>`
+        : `<img src="${esc(media(a))}" alt="Sponsored advertisement">`}
+    </a>${isVideo?`<button class="bx-smart-sound-btn" type="button" aria-label="Turn video sound on" aria-pressed="false">🔊 Sound</button>`:""}</div>`;
    root.style.display="block";
    const v=root.querySelector("video"), close=root.querySelector(".bx-smart-ad-close"), link=root.querySelector("a");
    let completed=false;
    if(!preview){
       link.addEventListener("click",()=>post(a,"click"));
+      if(isVideo){
+        const video=root.querySelector("video");
+        const soundBtn=root.querySelector(".bx-smart-sound-btn");
+        if(video && soundBtn){
+          soundBtn.addEventListener("click",(ev)=>{
+            ev.preventDefault();
+            ev.stopPropagation();
+            video.muted=!video.muted;
+            if(video.paused) video.play().catch(()=>{});
+            soundBtn.textContent=video.muted?"🔊 Sound":"🔇 Mute";
+            soundBtn.setAttribute("aria-label",video.muted?"Turn video sound on":"Mute video");
+            soundBtn.setAttribute("aria-pressed",video.muted?"false":"true");
+          });
+        }
+      }
       post(a,"impression"); mark(a);
       if(v)v.addEventListener("ended",()=>{completed=true;post(a,"complete")},{once:true});
    }
-   close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")});
+   if(close) if(close) close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")});
  }
  async function run(){
-   // Clear all previously rendered smart/in-content slots first.
-   // If a campaign was deleted, disabled, expired, or removed from this page,
-   // the old creative must disappear even when the new API response is empty.
+   // BOXOFFICEX SMART AD CLEANUP: empty every slot before fresh inventory is rendered.
    for(let n=1;n<=BX_MAX;n++){
       const slot=document.getElementById(`bxSmartAdSlot${n}`);
       if(!slot) continue;
-
-      slot.querySelectorAll("video").forEach(video=>{
-         try{video.pause()}catch(e){}
-      });
-
+      slot.querySelectorAll("video").forEach(video=>{ try{video.pause()}catch(e){} });
       slot.innerHTML="";
       slot.style.display="none";
    }
-
    const q=new URLSearchParams(location.search);
    if(q.get("bx_ad_preview")==="1"){
       try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Number(a.ad_slot||1),true);return}}catch(e){}
@@ -9670,5 +9795,1580 @@ document.addEventListener("DOMContentLoaded",()=>{
 })();
 </script>
 
+
+<style id="bx-ad-runtime-final-fix">
+/* BoxOfficeX final responsive ad rendering fix — must stay after legacy ad CSS. */
+#bxTopBannerAd,#bxHomepageAd,#bxSponsoredLinkAd,[id^="bxSmartAdSlot"]{box-sizing:border-box!important;height:auto!important;max-height:none!important;min-height:0!important;overflow:visible!important;padding-left:0!important;padding-right:0!important}
+#bxTopBannerAd{width:min(970px,calc(100% - 28px))!important;margin:14px auto 20px!important;border-radius:0!important}
+#bxTopBannerAd .bx-ad-label{margin:0 0 6px!important}
+#bxTopBannerAd .bx-ad-card{width:100%!important;aspect-ratio:970/250!important;border-radius:14px!important;overflow:hidden!important}
+#bxTopBannerAd .bx-ad-click{width:100%!important;height:100%!important}
+#bxTopBannerAd img,#bxTopBannerAd video{display:block!important;width:100%!important;height:100%!important;max-height:none!important;aspect-ratio:auto!important;object-fit:cover!important;object-position:center!important;background:#0b1020!important}
+
+#bxHomepageAd{width:min(728px,calc(100% - 28px))!important;margin:24px auto!important}
+#bxHomepageAd .bx-ad-card{width:100%!important;overflow:hidden!important;border-radius:14px!important}
+#bxHomepageAd img{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:728/90!important;object-fit:contain!important;background:#0b1020!important}
+#bxHomepageAd video{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:16/9!important;object-fit:contain!important;background:#0b1020!important}
+
+.bx-smart-ad-slot{width:min(728px,calc(100% - 28px))!important;max-width:728px!important;margin:24px auto!important;padding:0!important}
+.bx-smart-ad-card{width:100%!important;max-width:728px!important;margin:0 auto!important;background:#0c1322!important;border-color:rgba(255,255,255,.08)!important}
+.bx-smart-ad-head{color:#99a5bd!important;background:#0c1322!important}
+.bx-smart-ad-close{color:#c7d1e6!important}
+.bx-smart-ad-card img{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:728/90!important;object-fit:contain!important;background:#0b1020!important}
+.bx-smart-ad-card video{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:16/9!important;object-fit:contain!important;background:#0b1020!important}
+
+#bxTopStickyAd,#bxBottomStickyAd{width:min(970px,calc(100% - 20px))!important;height:auto!important;max-height:none!important;overflow:visible!important}
+#bxTopStickyAd .bx-sticky-shell,#bxBottomStickyAd .bx-sticky-shell{width:100%!important;aspect-ratio:970/90!important;overflow:hidden!important}
+#bxTopStickyAd .bx-sticky-shell a,#bxBottomStickyAd .bx-sticky-shell a{display:block!important;width:100%!important;height:100%!important}
+#bxTopStickyAd img,#bxTopStickyAd video,#bxBottomStickyAd img,#bxBottomStickyAd video{display:block!important;width:100%!important;height:100%!important;max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important;background:#0b1020!important}
+
+#bxSmallVideoAd{width:min(320px,calc(100vw - 28px))!important;height:auto!important;max-height:none!important}
+#bxSmallVideoAd .bx-small-video-shell,#bxSmallVideoAd>div{width:100%!important}
+#bxSmallVideoAd img,#bxSmallVideoAd video{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:16/9!important;object-fit:contain!important;background:#0b1020!important}
+
+#bxFullscreenAd img,#bxFullscreenAd video{width:auto!important;height:auto!important;max-width:min(1080px,calc(100vw - 24px))!important;max-height:calc(100dvh - 48px)!important;object-fit:contain!important}
+
+#bxSponsoredLinkAd{width:min(728px,calc(100% - 28px))!important;height:auto!important;min-height:0!important;max-height:none!important;margin:26px auto!important}
+#bxSponsoredLinkAd.bx-sponsored-link-grid{grid-template-columns:1fr!important}
+#bxSponsoredLinkAd .bx-sponsored-link-card{min-width:0!important;width:100%!important}
+#bxSponsoredLinkAd img,#bxSponsoredLinkAd video{height:auto!important;max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important}
+
+#bxTopBannerAd:empty,#bxHomepageAd:empty,#bxSponsoredLinkAd:empty,[id^="bxSmartAdSlot"]:empty{display:none!important;margin:0!important;padding:0!important;height:0!important}
+
+@media(max-width:650px){
+ #bxTopBannerAd{width:min(320px,calc(100% - 20px))!important;margin:10px auto 16px!important}
+ #bxTopBannerAd .bx-ad-card{aspect-ratio:320/100!important;border-radius:11px!important}
+ #bxHomepageAd,.bx-smart-ad-slot,#bxSponsoredLinkAd{width:min(320px,calc(100% - 20px))!important;margin:18px auto!important}
+ #bxHomepageAd img,.bx-smart-ad-card img{aspect-ratio:320/100!important}
+ #bxHomepageAd video,.bx-smart-ad-card video{aspect-ratio:16/9!important}
+ #bxTopStickyAd,#bxBottomStickyAd{width:min(320px,calc(100% - 16px))!important}
+ #bxTopStickyAd .bx-sticky-shell,#bxBottomStickyAd .bx-sticky-shell{aspect-ratio:320/50!important}
+ #bxSmallVideoAd{width:min(280px,calc(100vw - 20px))!important;right:10px!important;bottom:calc(74px + env(safe-area-inset-bottom))!important}
+ #bxSponsoredLinkAd .bx-sponsored-link-card{padding:10px!important;gap:10px!important}
+}
+</style>
+
+
+<style id="bx-ad-position-final-audit">
+/* BOXOFFICEX FINAL POSITION AUDIT — last rule wins. */
+/* Header banner stays in normal document flow directly below the header. */
+#bxTopBannerAd{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;z-index:1!important;}
+
+/* In-content inventory stays in normal flow and never overlays page content. */
+#bxHomepageAd,.bx-smart-ad-slot,#bxSponsoredLinkAd,#bxInContentVideoAds{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;z-index:1!important;}
+
+/* Sticky inventory is viewport inventory. */
+#bxTopStickyAd{position:fixed!important;left:50%!important;right:auto!important;top:76px!important;bottom:auto!important;transform:translateX(-50%)!important;z-index:1700!important;}
+#bxBottomStickyAd{position:fixed!important;left:50%!important;right:auto!important;top:auto!important;bottom:12px!important;transform:translateX(-50%)!important;z-index:1700!important;}
+
+/* Floating video remains in the lower-right corner on desktop. */
+#bxSmallVideoAd{position:fixed!important;left:auto!important;right:18px!important;top:auto!important;bottom:18px!important;z-index:1800!important;}
+
+/* Fullscreen is always viewport-bound and above every other ad. */
+#bxFullscreenAd{position:fixed!important;inset:0!important;z-index:9999!important;}
+
+/* Never reserve layout space for empty normal-flow inventory. */
+#bxTopBannerAd:empty,#bxHomepageAd:empty,#bxSponsoredLinkAd:empty,#bxInContentVideoAds:empty,.bx-smart-ad-slot:empty{display:none!important;margin:0!important;padding:0!important;height:0!important;min-height:0!important;}
+
+@media(max-width:700px){
+  /* Header is ~61px on mobile; leave a small visual gap below it. */
+  #bxTopStickyAd{top:68px!important;}
+
+  /* Mobile bottom navigation occupies ~68–70px. Keep viewport ads above it. */
+  #bxBottomStickyAd{bottom:calc(76px + env(safe-area-inset-bottom))!important;}
+  #bxSmallVideoAd{right:10px!important;bottom:calc(76px + env(safe-area-inset-bottom))!important;}
+
+  /* When a bottom sticky is visible, preserve enough document space for nav + ad. */
+  body.bx-bottom-ad-visible{padding-bottom:calc(140px + env(safe-area-inset-bottom))!important;}
+}
+</style>
+
+
+<style id="bx-v1-incontent-300x250-final">
+/* BoxOfficeX V1 In-Content Slots 1–3: Medium Rectangle */
+[id^="bxSmartAdSlot"].bx-smart-ad-slot{
+    width:300px !important;
+    max-width:calc(100% - 20px) !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:24px auto !important;
+    padding:0 !important;
+    display:none;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    overflow:visible !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-label{
+    display:block !important;
+    width:300px !important;
+    max-width:100% !important;
+    margin:0 auto 7px !important;
+    padding:0 !important;
+    color:#7f8ba5 !important;
+    background:transparent !important;
+    border:0 !important;
+    font-size:10px !important;
+    font-weight:700 !important;
+    line-height:1.2 !important;
+    letter-spacing:.8px !important;
+    text-align:center !important;
+    text-transform:uppercase !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card{
+    display:block !important;
+    position:relative !important;
+    width:300px !important;
+    max-width:100% !important;
+    height:250px !important;
+    min-height:250px !important;
+    max-height:250px !important;
+    margin:0 auto !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    border:0 !important;
+    border-radius:10px !important;
+    background:#0b1020 !important;
+    box-shadow:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-head,
+[id^="bxSmartAdSlot"] .bx-smart-ad-close{
+    display:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card > a{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    cursor:pointer !important;
+    text-decoration:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card img,
+[id^="bxSmartAdSlot"] .bx-smart-ad-card video{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    min-height:250px !important;
+    max-height:250px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    aspect-ratio:300/250 !important;
+    object-fit:cover !important;
+    object-position:center !important;
+    background:#0b1020 !important;
+    pointer-events:none !important;
+}
+[id^="bxSmartAdSlot"]:empty{
+    display:none !important;
+    width:0 !important;
+    height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+@media(max-width:700px){
+    [id^="bxSmartAdSlot"].bx-smart-ad-slot{
+        width:300px !important;
+        max-width:calc(100vw - 20px) !important;
+        margin:20px auto !important;
+    }
+    [id^="bxSmartAdSlot"] .bx-smart-ad-card{
+        width:300px !important;
+        height:250px !important;
+        min-height:250px !important;
+        max-height:250px !important;
+    }
+}
+</style>
+
+
+<style id="bx-home-v1-incontent-300x250">
+/* Homepage V1 — all available In-Content positions use one 300x250 standard. */
+[id^="bxSmartAdSlot"].bx-smart-ad-slot{
+    width:300px !important;
+    max-width:calc(100vw - 20px) !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:24px auto !important;
+    padding:0 !important;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    overflow:visible !important;
+}
+[id^="bxSmartAdSlot"].bx-smart-ad-slot:empty{
+    display:none !important;
+    margin:0 !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-label{
+    display:block !important;
+    width:300px !important;
+    max-width:100% !important;
+    margin:0 auto 6px !important;
+    padding:0 !important;
+    background:transparent !important;
+    border:0 !important;
+    color:#7f8ba5 !important;
+    font-size:10px !important;
+    font-weight:700 !important;
+    line-height:1.2 !important;
+    letter-spacing:.8px !important;
+    text-align:center !important;
+    text-transform:uppercase !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card{
+    display:block !important;
+    position:relative !important;
+    width:300px !important;
+    max-width:100% !important;
+    height:250px !important;
+    min-height:250px !important;
+    max-height:250px !important;
+    margin:0 auto !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:#0b1020 !important;
+    border:0 !important;
+    border-radius:10px !important;
+    box-shadow:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-head,
+[id^="bxSmartAdSlot"] .bx-smart-ad-close{
+    display:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card > a{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    text-decoration:none !important;
+    cursor:pointer !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card img,
+[id^="bxSmartAdSlot"] .bx-smart-ad-card video{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    min-height:250px !important;
+    max-height:250px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    aspect-ratio:300/250 !important;
+    object-fit:cover !important;
+    object-position:center !important;
+    background:#0b1020 !important;
+}
+@media(max-width:330px){
+    [id^="bxSmartAdSlot"].bx-smart-ad-slot,
+    [id^="bxSmartAdSlot"] .bx-smart-label,
+    [id^="bxSmartAdSlot"] .bx-smart-ad-card{
+        max-width:calc(100vw - 20px) !important;
+    }
+}
+</style>
+
+<style id="bx-fullscreen-mobile-viewport-fix">
+#bxFullscreenAd{position:fixed!important;inset:0!important;z-index:2147483000!important;width:100vw!important;height:100vh!important;height:100dvh!important;margin:0!important;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;background:rgba(0,0,0,.94)!important;box-sizing:border-box!important}
+#bxFullscreenAd .bx-fullscreen-inner{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:100%!important;max-width:1080px!important;max-height:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:#000!important;box-shadow:none!important}
+#bxFullscreenAd .bx-fullscreen-inner>a{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+#bxFullscreenAd .bx-fullscreen-media,#bxFullscreenAd .bx-fullscreen-inner img,#bxFullscreenAd .bx-fullscreen-inner video{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;object-fit:contain!important;object-position:center!important;background:#000!important}
+#bxFullscreenAd .bx-ad-sponsored{position:absolute!important;top:max(10px,env(safe-area-inset-top))!important;left:max(10px,env(safe-area-inset-left))!important;z-index:4!important;margin:0!important;padding:5px 8px!important;border-radius:999px!important;background:rgba(0,0,0,.68)!important;color:#fff!important;font-size:10px!important;line-height:1!important}
+#bxFullscreenAd .bx-fullscreen-controls{position:absolute!important;left:max(10px,env(safe-area-inset-left))!important;right:max(10px,env(safe-area-inset-right))!important;bottom:max(10px,env(safe-area-inset-bottom))!important;z-index:5!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0!important;padding:0!important;pointer-events:none!important}
+#bxFullscreenAd .bx-fullscreen-countdown,#bxFullscreenAd .bx-fullscreen-skip{min-height:38px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;padding:8px 12px!important;border-radius:999px!important;background:rgba(0,0,0,.78)!important;color:#fff!important;font-size:12px!important;font-weight:800!important;line-height:1!important}
+#bxFullscreenAd .bx-fullscreen-skip{border:1px solid rgba(255,255,255,.34)!important;cursor:pointer!important;pointer-events:auto!important}
+#bxFullscreenAd .bx-fullscreen-skip:disabled{cursor:default!important;opacity:.72!important}
+body.bx-fullscreen-ad-open{overflow:hidden!important;touch-action:none!important;overscroll-behavior:none!important}
+@media(max-width:700px){#bxFullscreenAd{width:100%!important;height:100vh!important;height:100dvh!important;padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important}#bxFullscreenAd .bx-fullscreen-inner{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border-radius:0!important}#bxFullscreenAd .bx-fullscreen-media,#bxFullscreenAd .bx-fullscreen-inner img,#bxFullscreenAd .bx-fullscreen-inner video{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}}
+</style>
+
+<style id="bx-fullscreen-320x480-lock">
+/* BoxOfficeX Full Screen creative — locked 320 × 480 */
+#bxFullscreenAd{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483000!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  display:none;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+  padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right))
+          max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;
+  overflow:hidden!important;
+  background:rgba(0,0,0,.94)!important;
+  box-sizing:border-box!important;
+}
+#bxFullscreenAd .bx-fullscreen-inner{
+  position:relative!important;
+  flex:0 0 auto!important;
+  width:320px!important;
+  height:480px!important;
+  max-width:calc(100vw - 16px)!important;
+  max-height:calc(100dvh - 16px)!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+  background:#000!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.45)!important;
+}
+#bxFullscreenAd .bx-fullscreen-inner>a{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+}
+#bxFullscreenAd .bx-fullscreen-media,
+#bxFullscreenAd .bx-fullscreen-inner img,
+#bxFullscreenAd .bx-fullscreen-inner video{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  background:#000!important;
+}
+#bxFullscreenAd .bx-ad-sponsored{
+  position:absolute!important;
+  top:8px!important;
+  left:8px!important;
+  z-index:4!important;
+}
+#bxFullscreenAd .bx-fullscreen-controls{
+  position:absolute!important;
+  left:8px!important;
+  right:8px!important;
+  bottom:8px!important;
+  z-index:5!important;
+}
+@media(max-width:335px),(max-height:495px){
+  #bxFullscreenAd .bx-fullscreen-inner{
+    width:min(320px,calc(100vw - 12px))!important;
+    height:auto!important;
+    aspect-ratio:2 / 3!important;
+    max-height:calc(100dvh - 12px)!important;
+  }
+}
+</style>
+
+
+<style id="bx-fullscreen-final-ui">
+/* Final BoxOfficeX fullscreen presentation */
+#bxFullscreenAd{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(170,42,20,.42),transparent 38%),
+    linear-gradient(145deg,#100d13 0%,#26100d 48%,#090b10 100%)!important;
+}
+#bxFullscreenAd .bx-fullscreen-inner{
+  overflow:visible!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#bxFullscreenAd .bx-fullscreen-inner>a{
+  overflow:hidden!important;
+  border-radius:12px!important;
+  background:#000!important;
+  box-shadow:0 16px 48px rgba(0,0,0,.5)!important;
+}
+#bxFullscreenAd .bx-fullscreen-controls{
+  top:10px!important;
+  right:10px!important;
+  bottom:auto!important;
+  left:auto!important;
+  width:auto!important;
+  display:block!important;
+  pointer-events:none!important;
+}
+#bxFullscreenAd .bx-fullscreen-countdown{
+  display:none!important;
+}
+#bxFullscreenAd .bx-fullscreen-skip{
+  min-height:38px!important;
+  padding:9px 14px!important;
+  border:1px solid rgba(255,255,255,.45)!important;
+  background:rgba(8,8,10,.72)!important;
+  color:#fff!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.3)!important;
+  pointer-events:auto!important;
+}
+#bxFullscreenAd .bx-ad-sponsored{
+  top:10px!important;
+  left:10px!important;
+  background:rgba(8,8,10,.64)!important;
+  color:#fff!important;
+}
+@media(max-width:700px){
+  #bxFullscreenAd{
+    padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))!important;
+  }
+  #bxFullscreenAd .bx-fullscreen-inner{
+    width:min(320px,calc(100vw - 20px))!important;
+    height:min(480px,calc(100dvh - 20px))!important;
+    aspect-ratio:2/3!important;
+  }
+  #bxFullscreenAd .bx-fullscreen-inner>a{
+    width:100%!important;
+    height:100%!important;
+  }
+  #bxFullscreenAd .bx-fullscreen-media,
+  #bxFullscreenAd .bx-fullscreen-inner img,
+  #bxFullscreenAd .bx-fullscreen-inner video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  #bxFullscreenAd .bx-fullscreen-controls{
+    top:8px!important;
+    right:8px!important;
+  }
+  #bxFullscreenAd .bx-ad-sponsored{
+    top:8px!important;
+    left:8px!important;
+  }
+}
+@media(max-width:330px),(max-height:500px){
+  #bxFullscreenAd .bx-fullscreen-inner{
+    width:auto!important;
+    height:min(480px,calc(100dvh - 16px))!important;
+    max-width:calc(100vw - 16px)!important;
+    aspect-ratio:2/3!important;
+  }
+}
+</style>
+
+
+<style id="bx-floating-video-v1-final">
+/* BoxOfficeX Small Floating Video — V1 */
+#bxSmallVideoAd{
+  position:fixed!important;
+  right:16px!important;
+  bottom:16px!important;
+  left:auto!important;
+  top:auto!important;
+  z-index:2147482000!important;
+  width:320px!important;
+  max-width:calc(100vw - 24px)!important;
+  height:auto!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+  background:#0f172a!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.32)!important;
+}
+#bxSmallVideoAd .bx-video-ad-head{
+  height:36px!important;
+  min-height:36px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  padding:0 8px 0 11px!important;
+  margin:0!important;
+  background:#0f172a!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  line-height:1!important;
+}
+#bxSmallVideoAd .bx-video-ad-close{
+  flex:0 0 28px!important;
+  width:28px!important;
+  height:28px!important;
+  min-width:28px!important;
+  min-height:28px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:#263247!important;
+  color:#fff!important;
+  font-size:18px!important;
+  line-height:1!important;
+  cursor:pointer!important;
+}
+#bxSmallVideoAd>a{
+  display:block!important;
+  width:320px!important;
+  max-width:100%!important;
+  height:180px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#0b1220!important;
+}
+#bxSmallVideoAd video,
+#bxSmallVideoAd img{
+  display:block!important;
+  width:100%!important;
+  height:180px!important;
+  max-width:100%!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  aspect-ratio:16/9!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  background:#0b1220!important;
+}
+@media(max-width:700px){
+  #bxSmallVideoAd{
+    right:10px!important;
+    bottom:78px!important;
+    width:280px!important;
+    max-width:calc(100vw - 20px)!important;
+    border-radius:11px!important;
+  }
+  #bxSmallVideoAd .bx-video-ad-head{
+    height:32px!important;
+    min-height:32px!important;
+    padding:0 6px 0 9px!important;
+    font-size:10px!important;
+  }
+  #bxSmallVideoAd .bx-video-ad-close{
+    width:26px!important;
+    height:26px!important;
+    min-width:26px!important;
+    min-height:26px!important;
+    flex-basis:26px!important;
+    font-size:17px!important;
+  }
+  #bxSmallVideoAd>a{
+    width:280px!important;
+    height:158px!important;
+  }
+  #bxSmallVideoAd video,
+  #bxSmallVideoAd img{
+    width:100%!important;
+    height:158px!important;
+    max-height:158px!important;
+    aspect-ratio:280/158!important;
+    object-fit:cover!important;
+  }
+}
+@media(max-width:300px){
+  #bxSmallVideoAd{
+    width:calc(100vw - 20px)!important;
+  }
+  #bxSmallVideoAd>a,
+  #bxSmallVideoAd video,
+  #bxSmallVideoAd img{
+    width:100%!important;
+    height:auto!important;
+    aspect-ratio:16/9!important;
+  }
+}
+</style>
+
+
+<style id="bx-floating-video-exact-size-duration-fix">
+#bxSmallVideoAd{
+  position:fixed!important;
+  right:16px!important;
+  bottom:16px!important;
+  left:auto!important;
+  top:auto!important;
+  width:320px!important;
+  height:180px!important;
+  max-width:calc(100vw - 24px)!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+  background:#0b1220!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.32)!important;
+}
+#bxSmallVideoAd>a{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:#0b1220!important;
+}
+#bxSmallVideoAd video,
+#bxSmallVideoAd img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  aspect-ratio:16/9!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  background:#0b1220!important;
+}
+#bxSmallVideoAd .bx-video-ad-head{
+  position:absolute!important;
+  z-index:5!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  height:34px!important;
+  min-height:34px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  padding:0 7px 0 10px!important;
+  margin:0!important;
+  background:linear-gradient(180deg,rgba(5,10,20,.90),rgba(5,10,20,.25))!important;
+  color:#fff!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  pointer-events:none!important;
+}
+#bxSmallVideoAd .bx-video-ad-close{
+  width:27px!important;
+  height:27px!important;
+  min-width:27px!important;
+  min-height:27px!important;
+  flex:0 0 27px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  border-radius:50%!important;
+  background:rgba(15,23,42,.82)!important;
+  color:#fff!important;
+  font-size:17px!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+@media(max-width:700px){
+  #bxSmallVideoAd{
+    right:10px!important;
+    bottom:78px!important;
+    width:280px!important;
+    height:158px!important;
+    max-width:calc(100vw - 20px)!important;
+  }
+}
+@media(max-width:299px){
+  #bxSmallVideoAd{
+    width:calc(100vw - 20px)!important;
+    height:auto!important;
+    aspect-ratio:280/158!important;
+  }
+}
+</style>
+
+
+<style id="bx-incontent-video-sponsored-link-v1-final">
+/* =========================================================
+   BOXOFFICEX — IN-CONTENT VIDEO DETAILS
+   Keeps the locked 300x250 inventory size.
+========================================================= */
+[id^="bxSmartAdSlot"] .bx-smart-video-card{
+    position:relative!important;
+    width:300px!important;
+    height:250px!important;
+    overflow:hidden!important;
+    background:#050811!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-card>a{
+    position:relative!important;
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    color:#fff!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-card video{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:250px!important;
+    max-height:250px!important;
+    object-fit:cover!important;
+    pointer-events:none!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-info{
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    z-index:3!important;
+    min-height:92px!important;
+    padding:28px 12px 11px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:5px 10px!important;
+    align-items:end!important;
+    background:linear-gradient(180deg,transparent 0%,rgba(3,6,12,.80) 30%,rgba(3,6,12,.97) 100%)!important;
+    pointer-events:none!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-sponsored{
+    position:absolute!important;
+    left:10px!important;
+    top:8px!important;
+    padding:4px 7px!important;
+    border-radius:999px!important;
+    background:rgba(0,0,0,.62)!important;
+    border:1px solid rgba(255,255,255,.18)!important;
+    color:#fff!important;
+    font-size:8px!important;
+    font-weight:800!important;
+    letter-spacing:.5px!important;
+    text-transform:uppercase!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-copy{
+    min-width:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:2px!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-copy strong{
+    overflow:hidden!important;
+    color:#fff!important;
+    font-size:13px!important;
+    line-height:1.2!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-copy span{
+    overflow:hidden!important;
+    color:#cbd5e1!important;
+    font-size:9px!important;
+    line-height:1.3!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-cta{
+    align-self:end!important;
+    padding:7px 9px!important;
+    border-radius:8px!important;
+    background:#ffcc33!important;
+    color:#10151f!important;
+    font-size:9px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+}
+
+/* =========================================================
+   BOXOFFICEX — PREMIUM SPONSORED LINK
+   Whole card is one clickable anchor.
+========================================================= */
+#bxSponsoredLinkAd{
+    width:min(728px,calc(100% - 28px))!important;
+    max-width:728px!important;
+    margin:26px auto!important;
+    padding:0!important;
+    gap:12px!important;
+    background:transparent!important;
+}
+#bxSponsoredLinkAd.bx-sponsored-link-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium{
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:220px minmax(0,1fr)!important;
+    width:100%!important;
+    min-height:142px!important;
+    padding:0!important;
+    gap:0!important;
+    overflow:hidden!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    border-radius:16px!important;
+    background:linear-gradient(135deg,#0a111f,#111a2d)!important;
+    color:#fff!important;
+    box-shadow:0 14px 34px rgba(0,0,0,.26)!important;
+    text-decoration:none!important;
+    cursor:pointer!important;
+    transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium:hover{
+    transform:translateY(-2px)!important;
+    border-color:rgba(255,204,51,.34)!important;
+    box-shadow:0 18px 42px rgba(0,0,0,.34)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media{
+    position:relative!important;
+    min-height:142px!important;
+    overflow:hidden!important;
+    background:linear-gradient(135deg,#18243b,#0b1020)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media img,
+#bxSponsoredLinkAd .bx-sponsored-link-media video{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:142px!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    object-fit:cover!important;
+    pointer-events:none!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-badge{
+    position:absolute!important;
+    top:10px!important;
+    left:10px!important;
+    z-index:2!important;
+    padding:5px 8px!important;
+    border-radius:999px!important;
+    background:rgba(5,8,15,.74)!important;
+    border:1px solid rgba(255,255,255,.18)!important;
+    color:#fff!important;
+    font-size:8px!important;
+    font-weight:900!important;
+    letter-spacing:.55px!important;
+    text-transform:uppercase!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-brand-mark{
+    position:absolute!important;
+    inset:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    color:rgba(255,204,51,.82)!important;
+    font-size:34px!important;
+    font-weight:1000!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-copy{
+    min-width:0!important;
+    padding:18px 18px 16px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-eyebrow{
+    margin-bottom:5px!important;
+    color:#ffcc33!important;
+    font-size:9px!important;
+    font-weight:900!important;
+    letter-spacing:.75px!important;
+    text-transform:uppercase!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-title{
+    margin:0 0 6px!important;
+    color:#fff!important;
+    font-size:18px!important;
+    line-height:1.22!important;
+    font-weight:900!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-sub{
+    margin:0 0 12px!important;
+    color:#aebbd2!important;
+    font-size:11px!important;
+    line-height:1.45!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-cta{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:6px!important;
+    padding:8px 11px!important;
+    border-radius:9px!important;
+    background:#ffcc33!important;
+    color:#10151f!important;
+    font-size:10px!important;
+    line-height:1!important;
+    font-weight:900!important;
+}
+#bxSponsoredLinkAd:empty{
+    display:none!important;
+    width:0!important;
+    height:0!important;
+    margin:0!important;
+    padding:0!important;
+}
+
+@media(max-width:700px){
+    #bxSponsoredLinkAd{
+        width:min(320px,calc(100vw - 20px))!important;
+        margin:20px auto!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium{
+        grid-template-columns:112px minmax(0,1fr)!important;
+        min-height:126px!important;
+        border-radius:13px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-media{
+        min-height:126px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-media img,
+    #bxSponsoredLinkAd .bx-sponsored-link-media video{
+        min-height:126px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-copy{
+        padding:12px 11px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-eyebrow{
+        margin-bottom:4px!important;
+        font-size:7px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-title{
+        margin-bottom:4px!important;
+        font-size:13px!important;
+        line-height:1.2!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-sub{
+        margin-bottom:8px!important;
+        font-size:8px!important;
+        line-height:1.35!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-cta{
+        padding:6px 8px!important;
+        border-radius:7px!important;
+        font-size:8px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-badge{
+        top:7px!important;
+        left:7px!important;
+        padding:4px 6px!important;
+        font-size:7px!important;
+    }
+}
+</style>
+
+
+<style id="bx-incontent-video-full-cover-fix">
+/* Force the In-Content VIDEO to occupy the complete locked 300x250 creative. */
+[id^="bxSmartAdSlot"] .bx-smart-ad-card.bx-smart-video-card{
+    position:relative!important;
+    width:300px!important;
+    height:250px!important;
+    min-width:300px!important;
+    min-height:250px!important;
+    max-width:300px!important;
+    max-height:250px!important;
+    padding:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+    border-radius:10px!important;
+    background:#000!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card.bx-smart-video-card > a{
+    position:absolute!important;
+    inset:0!important;
+    display:block!important;
+    width:300px!important;
+    height:250px!important;
+    min-width:300px!important;
+    min-height:250px!important;
+    max-width:300px!important;
+    max-height:250px!important;
+    padding:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+    background:#000!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card.bx-smart-video-card > a > video{
+    position:absolute!important;
+    inset:0!important;
+    display:block!important;
+    width:300px!important;
+    height:250px!important;
+    min-width:300px!important;
+    min-height:250px!important;
+    max-width:300px!important;
+    max-height:250px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    object-fit:cover!important;
+    object-position:center center!important;
+    background:#000!important;
+    pointer-events:none!important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-info{
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    z-index:5!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+}
+@media(max-width:320px){
+    [id^="bxSmartAdSlot"] .bx-smart-ad-card.bx-smart-video-card{
+        transform-origin:top center!important;
+    }
+}
+</style>
+
+
+<style id="bx-incontent-video-sound-details-final">
+[id^="bxSmartAdSlot"] .bx-smart-video-card{
+ position:relative!important;width:300px!important;height:250px!important;
+ min-width:300px!important;min-height:250px!important;max-width:300px!important;max-height:250px!important;
+ margin:0!important;padding:0!important;overflow:hidden!important;border-radius:10px!important;background:#000!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-card>a{
+ position:absolute!important;inset:0!important;display:block!important;width:300px!important;height:250px!important;
+ margin:0!important;padding:0!important;overflow:hidden!important;background:#000!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-card video{
+ position:absolute!important;inset:0!important;display:block!important;width:300px!important;height:250px!important;
+ min-width:300px!important;min-height:250px!important;max-width:300px!important;max-height:250px!important;
+ margin:0!important;padding:0!important;border:0!important;object-fit:cover!important;object-position:center!important;
+ background:#000!important;pointer-events:none!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-sponsored{
+ position:fixed!important; /* reset below via containing card coordinates */
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-card .bx-smart-video-sponsored{
+ position:absolute!important;top:9px!important;left:9px!important;bottom:auto!important;z-index:7!important;
+ margin:0!important;padding:5px 7px!important;border:1px solid rgba(255,255,255,.20)!important;
+ border-radius:999px!important;background:rgba(5,8,14,.72)!important;color:#fff!important;
+ font-size:8px!important;font-weight:900!important;line-height:1!important;letter-spacing:.45px!important;
+ text-transform:uppercase!important;pointer-events:none!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-sound-btn{
+ position:absolute!important;top:9px!important;right:9px!important;z-index:12!important;
+ min-height:28px!important;margin:0!important;padding:6px 9px!important;
+ border:1px solid rgba(255,255,255,.22)!important;border-radius:999px!important;
+ background:rgba(5,8,14,.78)!important;color:#fff!important;font-family:inherit!important;
+ font-size:9px!important;font-weight:900!important;line-height:1!important;cursor:pointer!important;
+ box-shadow:0 4px 14px rgba(0,0,0,.24)!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-info{
+ position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:6!important;
+ width:100%!important;min-height:58px!important;padding:22px 10px 9px!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;align-items:end!important;
+ box-sizing:border-box!important;background:linear-gradient(180deg,transparent 0%,rgba(3,6,12,.70) 42%,rgba(3,6,12,.94) 100%)!important;
+ pointer-events:none!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-copy{min-width:0!important;display:block!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-copy strong{
+ display:block!important;overflow:hidden!important;color:#fff!important;font-size:11px!important;font-weight:900!important;
+ line-height:1.25!important;white-space:nowrap!important;text-overflow:ellipsis!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-copy span{display:none!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-cta{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:27px!important;
+ padding:6px 8px!important;border-radius:8px!important;background:#ffcc33!important;color:#10151f!important;
+ font-size:8px!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important
+}
+</style>
+
+
+<style id="bx-sponsored-link-fixed-height-final">
+#bxSponsoredLinkAd{
+    width:min(728px,calc(100% - 28px))!important;
+    max-width:728px!important;
+    min-height:0!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium{
+    display:grid!important;
+    grid-template-columns:220px minmax(0,1fr)!important;
+    width:100%!important;
+    height:150px!important;
+    min-height:150px!important;
+    max-height:150px!important;
+    padding:0!important;
+    gap:0!important;
+    overflow:hidden!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media{
+    position:relative!important;
+    width:220px!important;
+    height:150px!important;
+    min-width:220px!important;
+    min-height:150px!important;
+    max-width:220px!important;
+    max-height:150px!important;
+    overflow:hidden!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media img,
+#bxSponsoredLinkAd .bx-sponsored-link-media video{
+    position:absolute!important;
+    inset:0!important;
+    display:block!important;
+    width:220px!important;
+    height:150px!important;
+    min-width:220px!important;
+    min-height:150px!important;
+    max-width:220px!important;
+    max-height:150px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    object-fit:cover!important;
+    object-position:center!important;
+    pointer-events:none!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-copy{
+    height:150px!important;
+    min-height:150px!important;
+    max-height:150px!important;
+    padding:15px 18px!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    justify-content:center!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-title{
+    display:-webkit-box!important;
+    overflow:hidden!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-sub{
+    display:block!important;
+    overflow:hidden!important;
+    max-width:100%!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+}
+#bxSponsoredLinkAd:empty{
+    display:none!important;
+    height:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+}
+@media(max-width:700px){
+    #bxSponsoredLinkAd{
+        width:min(320px,calc(100vw - 20px))!important;
+        max-width:320px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium{
+        grid-template-columns:112px minmax(0,1fr)!important;
+        height:126px!important;
+        min-height:126px!important;
+        max-height:126px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-media{
+        width:112px!important;
+        height:126px!important;
+        min-width:112px!important;
+        min-height:126px!important;
+        max-width:112px!important;
+        max-height:126px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-media img,
+    #bxSponsoredLinkAd .bx-sponsored-link-media video{
+        width:112px!important;
+        height:126px!important;
+        min-width:112px!important;
+        min-height:126px!important;
+        max-width:112px!important;
+        max-height:126px!important;
+        object-fit:cover!important;
+        object-position:center!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-link-copy{
+        height:126px!important;
+        min-height:126px!important;
+        max-height:126px!important;
+        padding:10px 11px!important;
+    }
+}
+</style>
+
+
+<style id="bx-sponsored-link-boxofficex-theme-final">
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium{
+    border:1px solid rgba(77,141,255,.22)!important;
+    background:
+        radial-gradient(circle at 100% 0%,rgba(77,141,255,.10),transparent 34%),
+        linear-gradient(135deg,#111c37 0%,#0d1529 100%)!important;
+    color:#fff!important;
+    box-shadow:0 12px 30px rgba(0,0,0,.22)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium:hover{
+    border-color:rgba(93,143,255,.42)!important;
+    box-shadow:0 15px 36px rgba(0,0,0,.30)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media{
+    background:linear-gradient(145deg,#17233d,#0b1222)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media::after{
+    content:""!important;
+    position:absolute!important;
+    inset:0!important;
+    z-index:1!important;
+    pointer-events:none!important;
+    background:linear-gradient(90deg,transparent 72%,rgba(13,21,41,.38) 100%)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-badge{
+    z-index:3!important;
+    background:rgba(6,9,18,.78)!important;
+    border:1px solid rgba(255,255,255,.16)!important;
+    color:#fff!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-copy{
+    background:transparent!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-eyebrow{
+    color:#79adff!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-title{
+    color:#fff!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-sub{
+    color:#99a5bd!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-cta{
+    background:linear-gradient(135deg,#ffcc33,#f1b800)!important;
+    color:#10151f!important;
+    box-shadow:0 6px 16px rgba(255,204,51,.14)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-brand-mark{
+    color:#ffcc33!important;
+}
+</style>
+
+
+<style id="bx-sponsored-link-white-theme-final">
+/* Sponsored Link — clean BoxOfficeX white theme */
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium{
+    border:1px solid #dbe3ef!important;
+    background:linear-gradient(135deg,#ffffff 0%,#f8faff 100%)!important;
+    color:#111827!important;
+    box-shadow:0 10px 28px rgba(15,23,42,.09)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-card.bx-sponsored-link-premium:hover{
+    border-color:#c9d5e8!important;
+    box-shadow:0 13px 32px rgba(15,23,42,.13)!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media{
+    background:#f1f5f9!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-media::after{
+    content:none!important;
+    display:none!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-copy{
+    background:transparent!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-eyebrow{
+    color:#c58a00!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-title{
+    color:#111827!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-sub{
+    color:#64748b!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-badge{
+    background:rgba(15,23,42,.78)!important;
+    border:1px solid rgba(255,255,255,.22)!important;
+    color:#fff!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-cta{
+    background:linear-gradient(135deg,#ffcc33,#f4b900)!important;
+    color:#10151f!important;
+    box-shadow:none!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-link-brand-mark{
+    color:#f4b900!important;
+}
+</style>
+
+
+<style id="bx-sponsored-link-mobile-overflow-fix">
+#bxSponsoredLinkAd .bx-sponsored-link-card{min-width:0!important;max-width:100%!important;overflow:hidden!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-copy{min-width:0!important;max-width:100%!important;overflow:hidden!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-eyebrow,#bxSponsoredLinkAd .bx-sponsored-link-title,#bxSponsoredLinkAd .bx-sponsored-link-sub{min-width:0!important;max-width:100%!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-title{overflow:hidden!important;overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;line-clamp:2!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-sub{display:block!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-cta{flex:0 0 auto!important;white-space:nowrap!important;}
+@media(max-width:700px){
+#bxSponsoredLinkAd .bx-sponsored-link-copy{min-width:0!important;width:auto!important;max-width:208px!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-title{font-size:13px!important;line-height:1.18!important;max-height:31px!important;margin:0 0 4px!important;}
+#bxSponsoredLinkAd .bx-sponsored-link-sub{max-width:100%!important;}
+}
+</style>
+<style id="bx-sponsored-story-16x9-final">
+/* BoxOfficeX Sponsored Link — native 16:9 story-card standard */
+#bxSponsoredLinkAd{
+    width:min(620px,calc(100% - 28px))!important;
+    max-width:620px!important;
+    min-height:0!important;
+    margin:24px auto!important;
+    padding:0!important;
+    gap:16px!important;
+    background:transparent!important;
+}
+#bxSponsoredLinkAd.bx-sponsored-link-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-card{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    border:1px solid #dfe3e8!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    color:#202124!important;
+    box-shadow:0 5px 18px rgba(15,23,42,.08)!important;
+    text-decoration:none!important;
+    cursor:pointer!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-media{
+    position:relative!important;
+    width:100%!important;
+    aspect-ratio:16/9!important;
+    overflow:hidden!important;
+    background:#eef2f7!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-media img,
+#bxSponsoredLinkAd .bx-sponsored-story-media video{
+    position:absolute!important;
+    inset:0!important;
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    object-fit:cover!important;
+    object-position:center!important;
+    pointer-events:none!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-placeholder{
+    position:absolute!important;
+    inset:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    background:linear-gradient(135deg,#eef3ff,#f8faff)!important;
+    color:#f4b900!important;
+    font-size:54px!important;
+    font-weight:1000!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-body{
+    padding:13px 14px 12px!important;
+    background:#fff!important;
+    min-width:0!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-body h3{
+    display:-webkit-box!important;
+    overflow:hidden!important;
+    overflow-wrap:anywhere!important;
+    word-break:break-word!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+    margin:0 0 5px!important;
+    color:#202124!important;
+    font-size:20px!important;
+    line-height:1.25!important;
+    font-weight:800!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-body p{
+    display:-webkit-box!important;
+    overflow:hidden!important;
+    overflow-wrap:anywhere!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+    margin:0 0 11px!important;
+    color:#5f6368!important;
+    font-size:14px!important;
+    line-height:1.42!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-footer{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+    min-width:0!important;
+    padding-top:9px!important;
+    border-top:1px solid #edf0f3!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-brand{
+    display:flex!important;
+    align-items:center!important;
+    gap:6px!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    color:#68707c!important;
+    font-size:11px!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-brand strong{
+    overflow:hidden!important;
+    color:#68707c!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-brand span{
+    flex-shrink:0!important;
+    color:#8a9099!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-brand span::before{
+    content:"|"!important;
+    margin-right:6px!important;
+    color:#c3c7cd!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-cta{
+    flex-shrink:0!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-height:34px!important;
+    padding:7px 15px!important;
+    border:1px solid #d8dde5!important;
+    border-radius:999px!important;
+    background:#fff!important;
+    color:#202124!important;
+    font-size:12px!important;
+    font-weight:800!important;
+}
+#bxSponsoredLinkAd .bx-sponsored-story-card:hover{
+    box-shadow:0 9px 26px rgba(15,23,42,.12)!important;
+}
+#bxSponsoredLinkAd:empty{
+    display:none!important;
+    height:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+}
+
+@media(max-width:700px){
+    #bxSponsoredLinkAd{
+        width:min(320px,calc(100vw - 20px))!important;
+        max-width:320px!important;
+        gap:13px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-card{
+        border-radius:10px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-body{
+        padding:9px 10px 9px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-body h3{
+        margin-bottom:3px!important;
+        font-size:17px!important;
+        line-height:1.22!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-body p{
+        margin-bottom:7px!important;
+        font-size:13px!important;
+        line-height:1.35!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-footer{
+        gap:8px!important;
+        padding-top:6px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-brand{
+        gap:4px!important;
+        font-size:9px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-brand span::before{
+        margin-right:4px!important;
+    }
+    #bxSponsoredLinkAd .bx-sponsored-story-cta{
+        min-height:28px!important;
+        padding:5px 12px!important;
+        font-size:10px!important;
+    }
+}
+</style>
+
+<style id="bx-sponsored-link-size-lock-final">
+/* Sponsor Link ONLY — exact confirmed BoxOfficeX master size */
+html body #bxSponsoredLinkAd{
+    width:380px!important;
+    max-width:calc(100vw - 32px)!important;
+    min-width:0!important;
+    margin:16px auto!important;
+    padding:0!important;
+    box-sizing:border-box!important;
+    grid-template-columns:1fr!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-card{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-media{
+    position:relative!important;
+    width:100%!important;
+    height:190px!important;
+    min-height:190px!important;
+    max-height:190px!important;
+    aspect-ratio:auto!important;
+    overflow:hidden!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-media img,
+html body #bxSponsoredLinkAd .bx-sponsored-story-media video{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-width:none!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    object-fit:cover!important;
+    object-position:center!important;
+    margin:0!important;
+    padding:0!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-body{
+    width:100%!important;
+    padding:9px 11px 8px!important;
+    box-sizing:border-box!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-body h3{
+    margin:0 0 3px!important;
+    font-size:15px!important;
+    line-height:1.22!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-body p{
+    margin:0 0 7px!important;
+    font-size:11px!important;
+    line-height:1.35!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-footer{
+    gap:8px!important;
+    padding-top:7px!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-brand{font-size:9px!important;}
+html body #bxSponsoredLinkAd .bx-sponsored-story-cta{
+    min-height:28px!important;
+    padding:5px 10px!important;
+    font-size:10px!important;
+}
+@media (min-width:701px) and (max-width:1000px){
+    html body #bxSponsoredLinkAd{width:360px!important;max-width:calc(100vw - 28px)!important;}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:180px!important;min-height:180px!important;max-height:180px!important;}
+}
+@media (max-width:700px){
+    html body #bxSponsoredLinkAd{width:320px!important;max-width:calc(100vw - 20px)!important;margin:12px auto!important;}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:160px!important;min-height:160px!important;max-height:160px!important;}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-body{padding:8px 9px 7px!important;}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-body h3{font-size:14px!important;}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-body p{font-size:10.5px!important;}
+}
+@media (max-width:340px){
+    html body #bxSponsoredLinkAd{width:calc(100vw - 16px)!important;max-width:none!important;}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:2/1!important;}
+}
+</style>
 </body>
 </html>

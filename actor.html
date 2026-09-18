@@ -3512,6 +3512,133 @@ html,body{scroll-padding-top:0!important}
   .bx-footer-links{gap:7px 14px!important}.bx-footer-links a{font-size:10px!important}
 }
 </style>
+
+<style>
+/* BOXOFFICEX APPROVED TOP BANNER FILL FIX */
+#bxTopBannerAd{width:min(100%,970px)!important;max-width:970px!important;margin-inline:auto!important;}
+#bxTopBannerAd img,#bxTopBannerAd video{display:block!important;width:100%!important;height:250px!important;max-height:250px!important;aspect-ratio:auto!important;object-fit:cover!important;object-position:center!important;background:#0b1020!important;}
+@media(max-width:650px){
+  #bxTopBannerAd{width:min(100%,320px)!important;max-width:320px!important;}
+  #bxTopBannerAd img,#bxTopBannerAd video{height:100px!important;max-height:100px!important;aspect-ratio:320/100!important;object-fit:cover!important;object-position:center!important;}
+}
+</style>
+
+<style id="bx-actor-top-banner-final-fix">
+/* BoxOfficeX Actor Profile — Top Banner only */
+#bxTopBannerAd{
+    width:min(100%,970px) !important;
+    max-width:970px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+    box-sizing:border-box !important;
+}
+#bxTopBannerAd .bx-ad-card{
+    width:100% !important;
+    max-width:970px !important;
+    margin:0 auto !important;
+}
+#bxTopBannerAd img,
+#bxTopBannerAd video,
+#bxTopBannerAd .bx-ad-banner-media{
+    display:block !important;
+    width:100% !important;
+    height:250px !important;
+    max-height:250px !important;
+    object-fit:cover !important;
+    object-position:center !important;
+}
+@media(max-width:700px){
+    #bxTopBannerAd{
+        width:min(100%,320px) !important;
+        max-width:320px !important;
+        padding-left:0 !important;
+        padding-right:0 !important;
+    }
+    #bxTopBannerAd .bx-ad-card{
+        width:100% !important;
+        max-width:320px !important;
+    }
+    #bxTopBannerAd img,
+    #bxTopBannerAd video,
+    #bxTopBannerAd .bx-ad-banner-media{
+        width:100% !important;
+        height:100px !important;
+        max-height:100px !important;
+        aspect-ratio:320/100 !important;
+        object-fit:cover !important;
+        object-position:center !important;
+    }
+}
+</style>
+
+
+<style id="bx-actor-movies-incontent-video-final">
+/* BoxOfficeX Actor Movies — locked 300x250 In-Content creative */
+[id^="bxSmartAdSlot"]{
+  width:300px !important;
+  max-width:calc(100vw - 20px) !important;
+  margin:22px auto !important;
+  padding:0 !important;
+  text-align:left !important;
+}
+[id^="bxSmartAdSlot"]:empty{display:none !important;margin:0 !important;padding:0 !important}
+[id^="bxSmartAdSlot"] .bx-smart-label{
+  display:block !important;
+  margin:0 0 5px !important;
+  color:#64748b !important;
+  font-size:8px !important;
+  font-weight:900 !important;
+  letter-spacing:.7px !important;
+  line-height:1.2 !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card{
+  position:relative !important;
+  width:300px !important;
+  height:250px !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  border:0 !important;
+  border-radius:10px !important;
+  background:#05070b !important;
+  box-shadow:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card>a{display:block !important;width:100% !important;height:100% !important}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card img,
+[id^="bxSmartAdSlot"] .bx-smart-ad-card video{
+  display:block !important;width:100% !important;height:100% !important;object-fit:cover !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-sponsored{
+  position:absolute !important;top:8px !important;left:8px !important;z-index:5 !important;
+  padding:4px 7px !important;border-radius:999px !important;background:rgba(0,0,0,.68) !important;
+  color:#fff !important;font-size:8px !important;font-weight:900 !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-sound-btn{
+  position:absolute !important;top:8px !important;right:8px !important;z-index:8 !important;
+  min-height:27px !important;padding:4px 8px !important;border:1px solid rgba(255,255,255,.22) !important;
+  border-radius:999px !important;background:rgba(0,0,0,.68) !important;color:#fff !important;
+  font-size:9px !important;font-weight:800 !important;cursor:pointer !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-info{
+  position:absolute !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:5 !important;
+  height:58px !important;padding:24px 9px 8px !important;display:flex !important;align-items:flex-end !important;
+  justify-content:space-between !important;gap:8px !important;color:#fff !important;
+  background:linear-gradient(to bottom,transparent,rgba(0,0,0,.86)) !important;pointer-events:none !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-info strong{
+  min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;
+  font-size:11px !important;line-height:1.2 !important;
+}
+[id^="bxSmartAdSlot"] .bx-smart-video-cta{
+  flex:0 0 auto !important;padding:4px 7px !important;border-radius:5px !important;
+  background:rgba(255,255,255,.94) !important;color:#111827 !important;font-size:8px !important;font-weight:900 !important;
+}
+@media(max-width:320px){
+  [id^="bxSmartAdSlot"] .bx-smart-ad-card{width:calc(100vw - 20px) !important;height:auto !important;aspect-ratio:6/5 !important}
+}
+</style>
+
 </head>
 
 
@@ -6224,6 +6351,7 @@ document.addEventListener("DOMContentLoaded",function(){
 
         root.querySelector(".bx-sticky-close").addEventListener("click", () => {
             root.style.display = "none";
+            document.body.classList.remove("bx-fullscreen-ad-open");
             if(elementId === "bxBottomStickyAd"){
                 document.body.classList.remove("bx-bottom-ad-visible");
             } else if(elementId === "bxTopStickyAd"){
@@ -6310,13 +6438,14 @@ document.addEventListener("DOMContentLoaded",function(){
                 <div class="bx-fullscreen-controls">
                     <span class="bx-fullscreen-countdown">Ad ${duration}s</span>
                     <button class="bx-fullscreen-skip" type="button" disabled>
-                        Skip in ${skipAfter}s
+                        Skip Ad ${skipAfter}s
                     </button>
                 </div>
             </div>
         `;
 
         root.style.display = "flex";
+        document.body.classList.add("bx-fullscreen-ad-open");
         document.body.style.overflow = "hidden";
         bindClicks(root);
 
@@ -6333,7 +6462,11 @@ document.addEventListener("DOMContentLoaded",function(){
             closed = true;
             clearInterval(timer);
             root.style.display = "none";
+            document.body.classList.remove("bx-fullscreen-ad-open");
             document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+            document.body.style.touchAction = "";
+            document.documentElement.style.touchAction = "";
             if(video) video.pause();
             adPost(ad.id, skipped ? "skip" : "complete");
         }
@@ -6345,7 +6478,7 @@ document.addEventListener("DOMContentLoaded",function(){
             countdown.textContent = `Ad ${Math.max(remaining, 0)}s`;
 
             if(skipRemaining > 0){
-                skip.textContent = `Skip in ${skipRemaining}s`;
+                skip.textContent = `Skip Ad ${skipRemaining}s`;
             } else {
                 skip.disabled = false;
                 skip.textContent = "Skip Ad";
@@ -6379,29 +6512,46 @@ document.addEventListener("DOMContentLoaded",function(){
             MAX_SPONSORED_LINKS
         );
 
-        if(!selected.length) return 0;
+        if(!selected.length){
+            root.innerHTML = "";
+            root.style.display = "none";
+            return 0;
+        }
 
         root.classList.add("bx-sponsored-link-grid");
         root.innerHTML = selected.map(ad => {
             const title = ad.campaign_name || ad.advertiser_name || "Sponsored Partner";
-            const subtitle = ad.business_category
-                ? `${ad.advertiser_name || "Sponsor"} • ${ad.business_category}`
-                : (ad.advertiser_name || "Sponsored Partner");
+            const advertiser = ad.advertiser_name || "Sponsored Partner";
+            const category = ad.business_category || "";
+            const description = category
+                ? `${category} • Discover more from ${advertiser}`
+                : `Discover more from ${advertiser}`;
+            const url = mediaUrl(ad);
+            const media = url
+                ? (String(ad.media_type || "").toLowerCase() === "video"
+                    ? `<video src="${escapeAd(url)}" autoplay muted loop playsinline preload="metadata"></video>`
+                    : `<img src="${escapeAd(url)}" alt="${escapeAd(title)}">`)
+                : `<div class="bx-sponsored-story-placeholder">BX</div>`;
 
             return `
-                <a class="bx-sponsored-link-card"
-                   href="${escapeAd(ad.target_url)}"
+                <a class="bx-sponsored-story-card"
+                   href="${escapeAd(ad.target_url || "#")}"
                    target="_blank"
                    rel="sponsored noopener"
                    data-ad-id="${Number(ad.id)}"
                    aria-label="Open sponsored link: ${escapeAd(title)}">
-                    ${mediaUrl(ad) ? `<img class="bx-sponsored-link-thumb" src="${escapeAd(mediaUrl(ad))}" alt="${escapeAd(title)}">` : ""}
-                    <div class="bx-sponsored-link-copy">
-                        <div class="bx-sponsored-link-label">Sponsored</div>
-                        <h3 class="bx-sponsored-link-title">${escapeAd(title)}</h3>
-                        <div class="bx-sponsored-link-sub">${escapeAd(subtitle)}</div>
+                    <div class="bx-sponsored-story-media">${media}</div>
+                    <div class="bx-sponsored-story-body">
+                        <h3>${escapeAd(title)}</h3>
+                        <p>${escapeAd(description)}</p>
+                        <div class="bx-sponsored-story-footer">
+                            <div class="bx-sponsored-story-brand">
+                                <strong>${escapeAd(advertiser)}</strong>
+                                <span>Sponsored</span>
+                            </div>
+                            <span class="bx-sponsored-story-cta">Visit Now</span>
+                        </div>
                     </div>
-                    <span class="bx-sponsored-link-open" aria-hidden="true">↗</span>
                 </a>
             `;
         }).join("");
@@ -6495,6 +6645,29 @@ document.addEventListener("DOMContentLoaded",function(){
 
     async function loadActorPageAds(){
         try{
+            // BOXOFFICEX AD CLEANUP: remove stale/deleted/disabled/expired creatives first.
+            [
+                "bxActorPageAd",
+                "bxBottomStickyAd",
+                "bxFullscreenAd",
+                "bxInContentVideoAds",
+                "bxSmallVideoAd",
+                "bxSponsoredLinkAd",
+                "bxTopBannerAd",
+                "bxTopStickyAd"
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if(!el) return;
+                el.querySelectorAll("video").forEach(video => {
+                    try { video.pause(); } catch(e) {}
+                });
+                el.innerHTML = "";
+                el.style.display = "none";
+            });
+
+            document.body.classList.remove("bx-bottom-ad-visible", "bx-top-ad-visible");
+            document.documentElement.style.removeProperty("--bx-top-sticky-space");
+
             const response = await fetch(
                 `/ads/active?placement=actor_detail&page=${encodeURIComponent(AD_PAGE)}`,
                 {cache:"no-store"}
@@ -6558,24 +6731,36 @@ document.addEventListener("DOMContentLoaded",function(){
  .bx-smart-ad-card img,.bx-smart-ad-card video{max-height:280px}
  .bx-sponsored-link-thumb{width:54px;height:54px;flex-basis:54px}
 }
+/* BOXOFFICEX LOCKED PUBLIC AD SIZE STANDARD */
+:root{--bx-ad-top-banner-w:970px;--bx-ad-top-banner-h:250px;--bx-ad-sticky-w:970px;--bx-ad-sticky-h:90px;--bx-ad-content-w:728px;--bx-ad-content-h:90px;--bx-ad-content-video-h:410px;--bx-ad-floating-w:320px;--bx-ad-floating-h:180px;--bx-ad-sponsored-w:728px;--bx-ad-sponsored-h:90px}
+#bxTopBannerAd{width:min(100%,970px)!important;max-width:970px!important;margin-inline:auto!important}#bxTopBannerAd img,#bxTopBannerAd video{display:block!important;width:100%!important;height:250px!important;max-height:250px!important;object-fit:cover!important;object-position:center!important}
+#bxTopStickyAd,#bxBottomStickyAd{left:50%!important;right:auto!important;width:min(calc(100% - 20px),970px)!important;max-width:970px!important;transform:translateX(-50%)!important}#bxTopStickyAd img,#bxTopStickyAd video,#bxBottomStickyAd img,#bxBottomStickyAd video{width:100%!important;height:auto!important;max-height:90px!important;object-fit:contain!important}
+[id^="bxSmartAdSlot"],#bxHomepageAd,#bxNewMoviesAd,#bxMoviePageAd,#bxActorsPageAd,#bxActorPageAd,#bxActorMoviesAd,#bxArticleListAd,#bxArticleDetailAd,#bxRankingsAd,#bxActorRankingsAd,#bxActorCompareSelectAd,#bxActorCompareAd,#bxMovieCompareSelectAd,#bxMovieCompareAd{width:min(100%,728px)!important;max-width:728px!important;margin-inline:auto!important}
+[id^="bxSmartAdSlot"] img,#bxHomepageAd img,#bxNewMoviesAd img,#bxMoviePageAd img,#bxActorsPageAd img,#bxActorPageAd img,#bxActorMoviesAd img,#bxArticleListAd img,#bxArticleDetailAd img,#bxRankingsAd img,#bxActorRankingsAd img,#bxActorCompareSelectAd img,#bxActorCompareAd img,#bxMovieCompareSelectAd img,#bxMovieCompareAd img{width:100%!important;height:auto!important;max-height:90px!important;object-fit:contain!important}
+[id^="bxSmartAdSlot"] video,#bxInContentVideoAd video,#bxHomepageAd video,#bxNewMoviesAd video,#bxMoviePageAd video,#bxActorsPageAd video,#bxActorPageAd video,#bxActorMoviesAd video,#bxArticleListAd video,#bxArticleDetailAd video,#bxRankingsAd video,#bxActorRankingsAd video,#bxActorCompareSelectAd video,#bxActorCompareAd video,#bxMovieCompareSelectAd video,#bxMovieCompareAd video{width:100%!important;height:auto!important;max-height:410px!important;aspect-ratio:16/9!important;object-fit:contain!important}
+#bxSmallVideoAd{width:min(320px,calc(100% - 28px))!important;max-width:320px!important}#bxSmallVideoAd video,#bxSmallVideoAd img{width:100%!important;height:auto!important;aspect-ratio:16/9!important;max-height:180px!important;object-fit:contain!important}
+#bxSponsoredLinkAd{width:min(100%,728px)!important;max-width:728px!important;min-height:90px!important;margin-inline:auto!important}#bxSponsoredLinkAd img,#bxSponsoredLinkAd video{width:100%!important;height:auto!important;max-height:90px!important;object-fit:contain!important}
+#bxFullscreenAd img,#bxFullscreenAd video{object-fit:contain!important;max-width:min(100%,1080px)!important;max-height:min(100%,1920px)!important}
+@media(max-width:650px){#bxTopBannerAd{width:min(100%,320px)!important;max-width:320px!important}#bxTopBannerAd img,#bxTopBannerAd video{height:100px!important;max-height:100px!important;aspect-ratio:320/100!important;object-fit:cover!important;object-position:center!important}#bxTopStickyAd,#bxBottomStickyAd{width:min(calc(100% - 16px),320px)!important;max-width:320px!important}#bxTopStickyAd img,#bxTopStickyAd video,#bxBottomStickyAd img,#bxBottomStickyAd video{max-height:50px!important;aspect-ratio:320/50!important}[id^="bxSmartAdSlot"],#bxHomepageAd,#bxNewMoviesAd,#bxMoviePageAd,#bxActorsPageAd,#bxActorPageAd,#bxActorMoviesAd,#bxArticleListAd,#bxArticleDetailAd,#bxRankingsAd,#bxActorRankingsAd,#bxActorCompareSelectAd,#bxActorCompareAd,#bxMovieCompareSelectAd,#bxMovieCompareAd,#bxSponsoredLinkAd{width:min(100%,320px)!important;max-width:320px!important}[id^="bxSmartAdSlot"] img,#bxHomepageAd img,#bxNewMoviesAd img,#bxMoviePageAd img,#bxActorsPageAd img,#bxActorPageAd img,#bxActorMoviesAd img,#bxArticleListAd img,#bxArticleDetailAd img,#bxRankingsAd img,#bxActorRankingsAd img,#bxActorCompareSelectAd img,#bxActorCompareAd img,#bxMovieCompareSelectAd img,#bxMovieCompareAd img,#bxSponsoredLinkAd img{max-height:100px!important;aspect-ratio:320/100!important}[id^="bxSmartAdSlot"] video,#bxInContentVideoAd video,#bxHomepageAd video,#bxNewMoviesAd video,#bxMoviePageAd video,#bxActorsPageAd video,#bxActorPageAd video,#bxActorMoviesAd video,#bxArticleListAd video,#bxArticleDetailAd video,#bxRankingsAd video,#bxActorRankingsAd video,#bxActorCompareSelectAd video,#bxActorCompareAd video,#bxMovieCompareSelectAd video,#bxMovieCompareAd video{max-height:180px!important;aspect-ratio:16/9!important}#bxSmallVideoAd{width:min(280px,calc(100% - 28px))!important;max-width:280px!important}#bxSmallVideoAd video,#bxSmallVideoAd img{max-height:158px!important}#bxSponsoredLinkAd{min-height:100px!important}}
+
 </style>
 
 <script>
 /* BoxOfficeX V2 page-aware in-content slots + page preview */
 (function(){
- const BX_PLACEMENT="actor_detail", BX_MAX=3, BX_ANCHORS=["overviewGrid", "topMovies", "movieList"];
+ const BX_PLACEMENT="actor_detail", BX_MAX=2, BX_ANCHORS=["overviewGrid", "relatedArticlesSection"];
  function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
  function weight(a){const n=Number(a&&a.traffic_weight);return Number.isFinite(n)&&n>0?n:1}
  function pick(list){if(!list.length)return null;let total=list.reduce((s,a)=>s+weight(a),0),r=Math.random()*total;for(const a of list){r-=weight(a);if(r<=0)return a}return list[list.length-1]}
  function freqOK(a){
    if(!a.frequency||a.frequency==="always")return true;
-   const k=`boxofficex_ad_${a.id}_${a.frequency}`;
+   const k=`boxofficex_ad_${Math.abs(Number(a.source_advertisement_id||a.id))}_${a.frequency}`;
    if(a.frequency==="once_session")return !sessionStorage.getItem(k);
    const raw=localStorage.getItem(k); if(!raw)return true;
    const h=a.frequency==="once_12h"?12:24; return Date.now()-Number(raw)>=h*3600000;
  }
- function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const k=`boxofficex_ad_${a.id}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
- function post(a,e){if(a.id)fetch(`/ads/${a.id}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
+ function mark(a){if(!a.id||!a.frequency||a.frequency==="always")return;const k=`boxofficex_ad_${Math.abs(Number(a.source_advertisement_id||a.id))}_${a.frequency}`;if(a.frequency==="once_session")sessionStorage.setItem(k,"1");else localStorage.setItem(k,String(Date.now()))}
+ function post(a,e){const id=Number(a.source_advertisement_id||a.id);if(id)fetch(`/ads/${Math.abs(id)}/${e}`,{method:"POST",keepalive:true}).catch(()=>{})}
  function media(a){return matchMedia("(max-width:700px)").matches&&a.mobile_media_url?a.mobile_media_url:a.media_url}
  function makeSlot(n){
    let el=document.getElementById(`bxSmartAdSlot${n}`); if(el)return el;
@@ -6595,25 +6780,62 @@ document.addEventListener("DOMContentLoaded",function(){
    return el;
  }
  function render(a,n,preview=false){
-   const root=makeSlot(n); if(!root||!a||!media(a))return;
-   const isVideo=a.media_type==="video";
-   root.innerHTML=`<div class="bx-smart-label">${preview?"PREVIEW • ":""}Advertisement</div>
-   <div class="bx-smart-ad-card">
-    <div class="bx-smart-ad-head"><span>Sponsored • ${esc(a.advertiser_name||"Advertisement")}</span><button class="bx-smart-ad-close" type="button" aria-label="Close advertisement">×</button></div>
-    <a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener">
-      ${isVideo?`<video src="${esc(media(a))}" controls playsinline preload="metadata"></video>`:`<img src="${esc(media(a))}" alt="Sponsored advertisement">`}
-    </a></div>`;
+   const root=document.getElementById(`bxSmartAdSlot${n}`),src=media(a);
+   if(!root||!a||!src)return false;
+   const video=String(a.media_type||"").toLowerCase()==="video";
+   const adTitle=a.campaign_name||a.advertiser_name||"Sponsored";
+   root.innerHTML=`<div class="bx-smart-label">${preview?"PREVIEW • ":""}ADVERTISEMENT</div>
+   <div class="bx-smart-ad-card ${video?"bx-smart-video-card":""}">
+     <a href="${esc(a.target_url||"#")}" target="_blank" rel="sponsored noopener" aria-label="Open sponsored advertisement: ${esc(adTitle)}">
+       ${video
+         ? `<video src="${esc(src)}" autoplay muted loop playsinline preload="metadata"></video>
+            <span class="bx-smart-video-sponsored">Sponsored</span>
+            <div class="bx-smart-video-info" aria-hidden="true">
+              <strong>${esc(adTitle)}</strong>
+              <span class="bx-smart-video-cta">Learn More →</span>
+            </div>`
+         : `<img src="${esc(src)}" alt="Advertisement">`}
+     </a>
+     ${video?`<button class="bx-smart-sound-btn" type="button" aria-label="Turn video sound on" aria-pressed="false">🔊 Sound</button>`:""}
+   </div>`;
    root.style.display="block";
-   const v=root.querySelector("video"), close=root.querySelector(".bx-smart-ad-close"), link=root.querySelector("a");
-   let completed=false;
-   if(!preview){
-      link.addEventListener("click",()=>post(a,"click"));
-      post(a,"impression"); mark(a);
-      if(v)v.addEventListener("ended",()=>{completed=true;post(a,"complete")},{once:true});
+
+   if(video){
+     const v=root.querySelector("video");
+     const soundBtn=root.querySelector(".bx-smart-sound-btn");
+     if(v&&soundBtn){
+       soundBtn.addEventListener("click",(ev)=>{
+         ev.preventDefault();
+         ev.stopPropagation();
+         v.muted=!v.muted;
+         if(v.paused)v.play().catch(()=>{});
+         soundBtn.textContent=v.muted?"🔊 Sound":"🔇 Mute";
+         soundBtn.setAttribute("aria-label",v.muted?"Turn video sound on":"Mute video");
+         soundBtn.setAttribute("aria-pressed",v.muted?"false":"true");
+       });
+     }
    }
-   close.addEventListener("click",()=>{if(v)v.pause();root.style.display="none";if(!preview&&!completed)post(a,"skip")});
- }
+
+   if(!preview){
+     root.querySelector("a")?.addEventListener("click",()=>post(a,"click"));
+     post(a,"impression");mark(a);
+     root.querySelector("video")?.addEventListener("ended",()=>post(a,"complete"),{once:true});
+   }
+   return true;
+}
  async function run(){
+   // Ensure Actor Movies smart in-content slots exist before cleanup/render.
+   for(let n=1;n<=BX_MAX;n++) makeSlot(n);
+
+   // BOXOFFICEX SMART AD CLEANUP: empty every slot before fresh inventory is rendered.
+   for(let n=1;n<=BX_MAX;n++){
+      const slot=document.getElementById(`bxSmartAdSlot${n}`);
+      if(!slot) continue;
+      slot.querySelectorAll("video").forEach(video=>{ try{video.pause()}catch(e){} });
+      slot.innerHTML="";
+      slot.style.display="none";
+   }
+
    const q=new URLSearchParams(location.search);
    if(q.get("bx_ad_preview")==="1"){
       try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Number(a.ad_slot||1),true);return}}catch(e){}
@@ -6633,6 +6855,123 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 <script id="bx-unified-mobile-nav-script">document.addEventListener("DOMContentLoaded",function(){const root=document.querySelector(".bx-master-mobile-header"),btn=root&&root.querySelector(".bx-master-mobile-toggle"),menu=root&&root.querySelector(".bx-master-mobile-menu");if(!btn||!menu)return;function close(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded","false")}btn.addEventListener("click",function(e){e.stopPropagation();const open=!menu.classList.contains("open");menu.classList.toggle("open",open);btn.classList.toggle("open",open);btn.setAttribute("aria-expanded",open?"true":"false")});menu.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(!root.contains(e.target))close()});window.addEventListener("resize",()=>{if(innerWidth>700)close()})});</script>
+
+<style id="bx-actor-v1-incontent-300x250">
+[id^="bxSmartAdSlot"].bx-smart-ad-slot{
+ width:300px!important;max-width:calc(100vw - 20px)!important;height:auto!important;min-height:0!important;
+ margin:24px auto!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important
+}
+[id^="bxSmartAdSlot"].bx-smart-ad-slot:empty{display:none!important;margin:0!important;padding:0!important}
+[id^="bxSmartAdSlot"] .bx-smart-label{
+ display:block!important;width:300px!important;max-width:100%!important;margin:0 auto 6px!important;padding:0!important;
+ color:#7f8ba5!important;background:transparent!important;border:0!important;font-size:10px!important;font-weight:700!important;
+ line-height:1.2!important;letter-spacing:.8px!important;text-align:center!important;text-transform:uppercase!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card{
+ display:block!important;width:300px!important;max-width:100%!important;height:250px!important;min-height:250px!important;max-height:250px!important;
+ margin:0 auto!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:10px!important;background:#eef2f7!important;box-shadow:none!important
+}
+[id^="bxSmartAdSlot"] .bx-smart-ad-head,[id^="bxSmartAdSlot"] .bx-smart-ad-close{display:none!important}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card>a{display:block!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important}
+[id^="bxSmartAdSlot"] .bx-smart-ad-card img,[id^="bxSmartAdSlot"] .bx-smart-ad-card video{
+ display:block!important;width:100%!important;height:250px!important;min-height:250px!important;max-height:250px!important;
+ margin:0!important;padding:0!important;border:0!important;aspect-ratio:300/250!important;object-fit:cover!important;object-position:center!important;pointer-events:none!important
+}
+</style>
+
+<style id="bx-fullscreen-approved-320x480">
+#bxFullscreenAd{position:fixed!important;inset:0!important;z-index:2147483000!important;width:100vw!important;height:100vh!important;height:100dvh!important;margin:0!important;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;box-sizing:border-box!important;background:radial-gradient(circle at 50% 38%,rgba(170,42,20,.42),transparent 38%),linear-gradient(145deg,#100d13 0%,#26100d 48%,#090b10 100%)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#bxFullscreenAd .bx-fullscreen-inner{position:relative!important;flex:0 0 auto!important;width:320px!important;height:480px!important;max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;margin:0!important;padding:0!important;border:0!important;border-radius:12px!important;overflow:hidden!important;background:#000!important;box-shadow:0 16px 48px rgba(0,0,0,.5)!important}
+#bxFullscreenAd .bx-fullscreen-inner>a{display:block!important;width:100%!important;height:100%!important;overflow:hidden!important;border-radius:12px!important;background:#000!important}
+#bxFullscreenAd .bx-fullscreen-media,#bxFullscreenAd .bx-fullscreen-inner img,#bxFullscreenAd .bx-fullscreen-inner video{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;object-fit:cover!important;object-position:center!important;background:#000!important}
+#bxFullscreenAd .bx-ad-sponsored{position:absolute!important;top:10px!important;left:10px!important;z-index:4!important;margin:0!important;padding:5px 8px!important;border-radius:999px!important;background:rgba(8,8,10,.64)!important;color:#fff!important;font-size:10px!important;line-height:1!important}
+#bxFullscreenAd .bx-fullscreen-controls{position:absolute!important;top:10px!important;right:10px!important;bottom:auto!important;left:auto!important;z-index:5!important;display:block!important;width:auto!important;margin:0!important;padding:0!important;pointer-events:none!important}
+#bxFullscreenAd .bx-fullscreen-countdown{display:none!important}
+#bxFullscreenAd .bx-fullscreen-skip{min-height:38px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;padding:9px 14px!important;border:1px solid rgba(255,255,255,.45)!important;border-radius:999px!important;background:rgba(8,8,10,.72)!important;color:#fff!important;font-size:12px!important;font-weight:800!important;line-height:1!important;box-shadow:0 5px 18px rgba(0,0,0,.3)!important;cursor:pointer!important;pointer-events:auto!important}
+#bxFullscreenAd .bx-fullscreen-skip:disabled{cursor:default!important;opacity:.72!important}
+body.bx-fullscreen-ad-open{overflow:hidden!important;touch-action:none!important;overscroll-behavior:none!important}
+@media(max-width:700px){#bxFullscreenAd{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))!important}#bxFullscreenAd .bx-fullscreen-inner{width:min(320px,calc(100vw - 20px))!important;height:min(480px,calc(100dvh - 20px))!important;aspect-ratio:2/3!important}#bxFullscreenAd .bx-fullscreen-controls{top:8px!important;right:8px!important}#bxFullscreenAd .bx-ad-sponsored{top:8px!important;left:8px!important}}
+@media(max-width:330px),(max-height:500px){#bxFullscreenAd .bx-fullscreen-inner{width:auto!important;height:min(480px,calc(100dvh - 16px))!important;max-width:calc(100vw - 16px)!important;aspect-ratio:2/3!important}}
+</style>
+
+<script id="bx-fullscreen-scroll-safety">
+(function(){
+  function bxRestorePageScroll(){
+    document.body.classList.remove("bx-fullscreen-ad-open");
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    document.body.style.touchAction = "";
+    document.documentElement.style.touchAction = "";
+  }
+  window.addEventListener("pageshow", function(e){
+    const root = document.getElementById("bxFullscreenAd");
+    if(!root || root.style.display === "none" || !root.innerHTML.trim()) bxRestorePageScroll();
+  });
+})();
+</script>
+
+
+<style id="bx-sponsored-link-size-lock-final">
+html body #bxSponsoredLinkAd{
+    width:380px!important;max-width:calc(100vw - 32px)!important;min-width:0!important;
+    min-height:0!important;margin:16px auto!important;padding:0!important;box-sizing:border-box!important;
+    grid-template-columns:1fr!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-card{
+    display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+    margin:0!important;overflow:hidden!important;box-sizing:border-box!important;text-decoration:none!important;
+    border:1px solid #e2e8f0!important;border-radius:14px!important;background:#fff!important;
+    box-shadow:0 8px 24px rgba(15,23,42,.08)!important;color:#111827!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-media{
+    position:relative!important;width:100%!important;height:190px!important;min-height:190px!important;
+    max-height:190px!important;aspect-ratio:auto!important;overflow:hidden!important;background:#e2e8f0!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-media img,
+html body #bxSponsoredLinkAd .bx-sponsored-story-media video{
+    position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+    min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+    aspect-ratio:auto!important;object-fit:cover!important;object-position:center!important;margin:0!important;padding:0!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-placeholder{
+    width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    font-size:34px!important;font-weight:1000!important;color:#2563eb!important;background:#eff6ff!important;
+}
+html body #bxSponsoredLinkAd .bx-sponsored-story-body{width:100%!important;padding:9px 11px 8px!important;box-sizing:border-box!important}
+html body #bxSponsoredLinkAd .bx-sponsored-story-body h3{margin:0 0 3px!important;color:#111827!important;font-size:15px!important;line-height:1.22!important}
+html body #bxSponsoredLinkAd .bx-sponsored-story-body p{margin:0 0 7px!important;color:#64748b!important;font-size:11px!important;line-height:1.35!important}
+html body #bxSponsoredLinkAd .bx-sponsored-story-footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding-top:7px!important;border-top:1px solid #eef2f7!important}
+html body #bxSponsoredLinkAd .bx-sponsored-story-brand{display:flex!important;align-items:center!important;gap:5px!important;color:#64748b!important;font-size:9px!important}
+html body #bxSponsoredLinkAd .bx-sponsored-story-brand strong{color:#334155!important}
+html body #bxSponsoredLinkAd .bx-sponsored-story-brand span::before{content:"•";margin-right:5px}
+html body #bxSponsoredLinkAd .bx-sponsored-story-cta{min-height:28px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:5px 10px!important;border-radius:8px!important;background:#2563eb!important;color:#fff!important;font-size:10px!important;font-weight:900!important}
+@media (min-width:701px) and (max-width:1000px){
+    html body #bxSponsoredLinkAd{width:360px!important;max-width:calc(100vw - 28px)!important}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:180px!important;min-height:180px!important;max-height:180px!important}
+}
+@media (max-width:700px){
+    html body #bxSponsoredLinkAd{width:320px!important;max-width:calc(100vw - 20px)!important;min-height:0!important;margin:12px auto!important}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:160px!important;min-height:160px!important;max-height:160px!important}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-body{padding:8px 9px 7px!important}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-body h3{font-size:14px!important}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-body p{font-size:10.5px!important}
+}
+@media (max-width:340px){
+    html body #bxSponsoredLinkAd{width:calc(100vw - 16px)!important;max-width:none!important}
+    html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:2/1!important}
+}
+</style>
+
+
+<style id="bx-actor-incontent-video-details-final">
+[id^="bxSmartAdSlot"] .bx-smart-ad-card{position:relative!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-card>a{position:absolute!important;inset:0!important;z-index:1!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-sponsored{position:absolute!important;top:9px!important;left:9px!important;z-index:3!important;padding:5px 8px!important;border-radius:999px!important;background:rgba(0,0,0,.66)!important;color:#fff!important;font:900 9px/1 Arial,sans-serif!important;pointer-events:none!important}
+[id^="bxSmartAdSlot"] .bx-smart-sound-btn{position:absolute!important;top:9px!important;right:9px!important;z-index:5!important;min-height:28px!important;padding:6px 9px!important;border:1px solid rgba(255,255,255,.32)!important;border-radius:999px!important;background:rgba(0,0,0,.68)!important;color:#fff!important;font:900 9px/1 Arial,sans-serif!important;cursor:pointer!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-info{position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:3!important;height:58px!important;display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:8px!important;padding:21px 10px 9px!important;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.82))!important;color:#fff!important;pointer-events:none!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-info strong{min-width:0!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;color:#fff!important;font:900 11px/1.15 Arial,sans-serif!important}
+[id^="bxSmartAdSlot"] .bx-smart-video-cta{flex:0 0 auto!important;padding:5px 7px!important;border-radius:6px!important;background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/1 Arial,sans-serif!important}
+</style>
 </body>
 
 </html>

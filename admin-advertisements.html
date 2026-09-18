@@ -1,1090 +1,1197 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advertisements | BoxOfficeX Admin</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-        :root {
-            --bg: #080b14;
-            --panel: #111827;
-            --panel-2: #151d31;
-            --panel-3: #101625;
-            --border: #29334d;
-            --text: #ffffff;
-            --muted: #aeb8ce;
-            --yellow: #ffcc33;
-            --blue: #8db5ff;
-            --green: #7de2bb;
-            --red: #ff9a9a;
-            --orange: #ffc46b;
-        }
+    :root {
+        --bg: #080b14;
+        --panel: #111827;
+        --panel-2: #151d31;
+        --panel-3: #101625;
+        --border: #29334d;
+        --text: #ffffff;
+        --muted: #aeb8ce;
+        --yellow: #ffcc33;
+        --blue: #8db5ff;
+        --green: #7de2bb;
+        --red: #ff9a9a;
+        --orange: #ffc46b;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+    body {
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+    }
 
-        button,
-        input,
-        select,
-        textarea {
-            font: inherit;
-        }
+    button,
+    input,
+    select,
+    textarea {
+        font: inherit;
+    }
 
-        a {
-            color: inherit;
-        }
+    a {
+        color: inherit;
+    }
 
-        .admin-topbar {
-            position: sticky;
-            top: 0;
-            z-index: 1200;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            width: 100%;
-            padding: 12px 24px;
-            background: rgba(10, 15, 28, 0.97);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(16px);
-        }
+    .admin-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        padding: 12px 24px;
+        background: rgba(10, 15, 28, 0.97);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(16px);
+    }
 
-        .brand {
-            flex: 0 0 auto;
-            white-space: nowrap;
-            font-size: 21px;
-            font-weight: 900;
-            letter-spacing: 1.4px;
-        }
+    .brand {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        font-size: 21px;
+        font-weight: 900;
+        letter-spacing: 1.4px;
+    }
 
-        .brand span {
-            color: var(--yellow);
-        }
+    .brand span {
+        color: var(--yellow);
+    }
 
-        .admin-nav {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            flex: 1 1 auto;
-            overflow-x: auto;
-        }
+    .admin-nav {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: 1 1 auto;
+        overflow-x: auto;
+    }
 
-        .admin-nav a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 38px;
-            padding: 9px 11px;
-            border: 1px solid transparent;
-            border-radius: 10px;
-            color: #c7d1e6;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
+    .admin-nav a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 9px 11px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        color: #c7d1e6;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
 
-        .admin-nav a:hover,
-        .admin-nav a.active {
-            background: #17233a;
-            border-color: #35507d;
-            color: var(--blue);
-        }
+    .admin-nav a:hover,
+    .admin-nav a.active {
+        background: #17233a;
+        border-color: #35507d;
+        color: var(--blue);
+    }
 
-        .account-area {
-            flex: 0 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .account-area {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .user-chip {
-            padding: 8px 10px;
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 9px;
-            background: #101725;
-            color: #aebbd4;
-            font-size: 10px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
+    .user-chip {
+        padding: 8px 10px;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 9px;
+        background: #101725;
+        color: #aebbd4;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
 
-        .logout-btn {
-            padding: 9px 11px;
-            border: 1px solid #703535;
-            border-radius: 9px;
-            background: #351919;
-            color: var(--red);
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 900;
-            white-space: nowrap;
-        }
+    .logout-btn {
+        padding: 9px 11px;
+        border: 1px solid #703535;
+        border-radius: 9px;
+        background: #351919;
+        color: var(--red);
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
 
-        .container {
-            width: min(1240px, calc(100% - 28px));
-            margin: 30px auto 60px;
-        }
+    .container {
+        width: min(1240px, calc(100% - 28px));
+        margin: 30px auto 60px;
+    }
 
-        .hero {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
+    .hero {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
 
-        .hero h1 {
-            font-size: clamp(28px, 4vw, 42px);
-            line-height: 1.05;
-        }
+    .hero h1 {
+        font-size: clamp(28px, 4vw, 42px);
+        line-height: 1.05;
+    }
 
-        .hero p {
-            margin-top: 10px;
-            max-width: 760px;
-            color: var(--muted);
-            line-height: 1.7;
-            font-size: 14px;
-        }
+    .hero p {
+        margin-top: 10px;
+        max-width: 760px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 14px;
+    }
 
-        .primary-btn,
-        .secondary-btn,
-        .danger-btn,
-        .good-btn {
-            border: 0;
-            border-radius: 10px;
-            padding: 11px 14px;
-            cursor: pointer;
-            font-weight: 900;
-        }
+    .primary-btn,
+    .secondary-btn,
+    .danger-btn,
+    .good-btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 11px 14px;
+        cursor: pointer;
+        font-weight: 900;
+    }
 
-        .primary-btn {
-            background: var(--yellow);
-            color: #080b14;
-        }
+    .primary-btn {
+        background: var(--yellow);
+        color: #080b14;
+    }
 
-        .secondary-btn {
-            border: 1px solid var(--border);
-            background: var(--panel-2);
-            color: white;
-        }
+    .secondary-btn {
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        color: white;
+    }
 
-        .danger-btn {
-            border: 1px solid #703535;
-            background: #351919;
-            color: var(--red);
-        }
+    .danger-btn {
+        border: 1px solid #703535;
+        background: #351919;
+        color: var(--red);
+    }
 
-        .good-btn {
-            border: 1px solid #2e6b4f;
-            background: #142c22;
-            color: var(--green);
-        }
+    .good-btn {
+        border: 1px solid #2e6b4f;
+        background: #142c22;
+        color: var(--green);
+    }
 
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
-        }
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
 
-        .summary-card {
-            padding: 16px;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            background: var(--panel);
-        }
+    .summary-card {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--panel);
+    }
 
-        .summary-card span {
-            display: block;
-            color: var(--muted);
-            font-size: 11px;
-            font-weight: 800;
-        }
+    .summary-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+    }
 
-        .summary-card strong {
-            display: block;
-            margin-top: 8px;
-            font-size: 24px;
-        }
+    .summary-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 24px;
+    }
 
-        .panel {
-            margin-bottom: 24px;
-            padding: 24px;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            background: var(--panel);
-        }
+    .panel {
+        margin-bottom: 24px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--panel);
+    }
 
-        .panel-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
 
-        .panel-head h2 {
-            font-size: 24px;
-        }
+    .panel-head h2 {
+        font-size: 24px;
+    }
 
-        .panel-head p {
-            margin-top: 7px;
-            color: var(--muted);
-            line-height: 1.6;
-            font-size: 13px;
-        }
+    .panel-head p {
+        margin-top: 7px;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+    }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 15px;
-        }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
 
-        .form-group {
-            min-width: 0;
-        }
+    .form-group {
+        min-width: 0;
+    }
 
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-size: 12px;
-            font-weight: 900;
-            color: #e8edf8;
-        }
+    label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #e8edf8;
+    }
 
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--panel-2);
-            color: white;
-            outline: none;
-        }
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--panel-2);
+        color: white;
+        outline: none;
+    }
 
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
+    textarea {
+        min-height: 90px;
+        resize: vertical;
+    }
 
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color: #526a9d;
-        }
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #526a9d;
+    }
 
-        .media-upload-box {
-            margin-top: 9px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: var(--panel-3);
-        }
+    .media-upload-box {
+        margin-top: 9px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel-3);
+    }
 
+    .media-upload-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+    }
+
+    .media-upload-row input[type="file"] {
+        padding: 9px;
+    }
+
+    .upload-btn {
+        min-height: 42px;
+        padding: 9px 13px;
+        border: 1px solid #526a9d;
+        border-radius: 9px;
+        background: #202b44;
+        color: #a9c6ff;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .upload-btn:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+    .upload-status {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .upload-status.ok {
+        color: var(--green);
+    }
+
+    .upload-status.bad {
+        color: var(--red);
+    }
+
+    .media-preview {
+        display: none;
+        max-width: 100%;
+        max-height: 260px;
+        margin-top: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #05070d;
+    }
+
+    @media (max-width: 650px) {
         .media-upload-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 9px;
-            align-items: center;
-        }
-
-        .media-upload-row input[type="file"] {
-            padding: 9px;
+            grid-template-columns: 1fr;
         }
 
         .upload-btn {
-            min-height: 42px;
-            padding: 9px 13px;
-            border: 1px solid #526a9d;
-            border-radius: 9px;
-            background: #202b44;
-            color: #a9c6ff;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 900;
-            white-space: nowrap;
+            width: 100%;
         }
+    }
 
-        .upload-btn:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-        }
+    .helper {
+        margin-top: 6px;
+        color: #8390aa;
+        font-size: 10px;
+        line-height: 1.5;
+    }
 
-        .upload-status {
-            margin-top: 8px;
-            color: var(--muted);
-            font-size: 10px;
-            line-height: 1.5;
-        }
+    input[type="time"] {
+        color-scheme: dark;
+    }
 
-        .upload-status.ok {
-            color: var(--green);
-        }
+    .switch-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--panel-2);
+    }
 
-        .upload-status.bad {
-            color: var(--red);
-        }
+    .switch-row input {
+        width: auto;
+    }
 
-        .media-preview {
-            display: none;
-            max-width: 100%;
-            max-height: 260px;
-            margin-top: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: #05070d;
-        }
+    .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
 
-        @media (max-width: 650px) {
-            .media-upload-row {
-                grid-template-columns: 1fr;
-            }
+    .message {
+        display: none;
+        margin-top: 14px;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 800;
+    }
 
-            .upload-btn {
-                width: 100%;
-            }
-        }
+    .message.ok {
+        display: block;
+        border: 1px solid #2e6b4f;
+        background: #142c22;
+        color: var(--green);
+    }
 
-        .helper {
-            margin-top: 6px;
-            color: #8390aa;
-            font-size: 10px;
-            line-height: 1.5;
-        }
+    .message.bad {
+        display: block;
+        border: 1px solid #703535;
+        background: #351919;
+        color: var(--red);
+    }
 
-        input[type="time"] {
-            color-scheme: dark;
-        }
+    .toolbar {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) 190px 190px auto;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
 
-        .switch-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 44px;
-            padding: 0 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--panel-2);
-        }
+    .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
 
-        .switch-row input {
-            width: auto;
-        }
+    table {
+        width: 100%;
+        min-width: 1120px;
+        border-collapse: collapse;
+    }
 
-        .form-actions {
-            display: flex;
+    th {
+        padding: 13px;
+        background: var(--panel-2);
+        color: var(--yellow);
+        text-align: left;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 13px;
+        border-top: 1px solid var(--border);
+        color: #dbe2f0;
+        font-size: 12px;
+        vertical-align: top;
+    }
+
+    tr:hover td {
+        background: #121b2d;
+    }
+
+    .campaign-name {
+        font-weight: 900;
+        color: white;
+    }
+
+    .muted {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.45;
+    }
+
+    .badge {
+        display: inline-flex;
+        padding: 5px 8px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .badge.active {
+        background: #142c22;
+        color: var(--green);
+    }
+
+    .badge.scheduled {
+        background: #18263c;
+        color: var(--blue);
+    }
+
+    .badge.paused {
+        background: #2b2510;
+        color: var(--yellow);
+    }
+
+    .badge.expired {
+        background: #351919;
+        color: var(--red);
+    }
+
+    .badge.draft {
+        background:#2b2510;
+        color:#ffdd70;
+    }
+
+    .badge.type {
+        background: #202b44;
+        color: #a9c6ff;
+    }
+
+    .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .mini-btn {
+        padding: 7px 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #202b44;
+        color: #dce5f5;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 900;
+    }
+
+    .mini-btn.good {
+        border-color: #2e6b4f;
+        background: #142c22;
+        color: var(--green);
+    }
+
+    .mini-btn.warn {
+        border-color: #745f2b;
+        background: #2b2510;
+        color: var(--yellow);
+    }
+
+    .mini-btn.danger {
+        border-color: #703535;
+        background: #351919;
+        color: var(--red);
+    }
+
+    .empty-state {
+        padding: 36px 20px;
+        text-align: center;
+        color: var(--muted);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 5000;
+        padding: 20px;
+        overflow-y: auto;
+        background: rgba(226,232,240,.90);
+    }
+
+    .modal-card {
+        width: min(820px, 100%);
+        margin: 4vh auto;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--panel);
+    }
+
+    .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .modal-close {
+        width: 35px;
+        height: 35px;
+        border: 0;
+        border-radius: 50%;
+        background: #29334d;
+        color: white;
+        cursor: pointer;
+        font-size: 20px;
+    }
+
+
+
+    /* ============================================================
+       CAMPAIGN PREVIEW
+       ============================================================ */
+    .preview-modal-card {
+        width: min(1040px, 100%);
+    }
+
+    .preview-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .preview-device-toggle {
+        display: flex;
+        gap: 8px;
+    }
+
+    .preview-device-toggle button.active {
+        border-color: #526a9d;
+        background: #243455;
+        color: #dbe8ff;
+    }
+
+    .preview-meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .preview-meta-item {
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--panel-3);
+    }
+
+    .preview-meta-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .preview-meta-item strong {
+        display: block;
+        margin-top: 5px;
+        color: white;
+        font-size: 12px;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+
+    .preview-stage-shell {
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #05070d;
+        overflow: auto;
+    }
+
+    .preview-stage {
+        position: relative;
+        width: min(100%, 920px);
+        min-height: 520px;
+        margin: 0 auto;
+        border: 1px solid #28334b;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #f5f6f8;
+        color: #111827;
+        box-shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+
+    .preview-stage.mobile {
+        width: 390px;
+        max-width: 100%;
+        min-height: 680px;
+    }
+
+    .preview-site-header {
+        min-height: 64px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: #0c1220;
+        color: white;
+    }
+
+    .preview-site-brand {
+        font-size: 18px;
+        font-weight: 1000;
+        letter-spacing: .8px;
+    }
+
+    .preview-site-brand span { color: #ffcc33; }
+
+    .preview-site-nav {
+        color: #b8c3d8;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .preview-page-content {
+        padding: 22px;
+    }
+
+    .preview-content-block {
+        height: 70px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #e4e7ec, #f1f3f6);
+    }
+
+    .preview-content-block.short { width: 65%; height: 22px; }
+    .preview-content-block.medium { height: 110px; }
+
+    .preview-ad-label {
+        display: inline-block;
+        margin-bottom: 7px;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .7px;
+        text-transform: uppercase;
+        color: #667085;
+    }
+
+    .preview-ad-card {
+        position: relative;
+        width: 100%;
+        border: 1px solid #d7dce5;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .preview-ad-card img,
+    .preview-ad-card video {
+        display: block;
+        width: 100%;
+        max-height: 310px;
+        object-fit: contain;
+        background: #05070d;
+    }
+
+    .preview-top-banner { margin: 12px 16px 0; }
+    .preview-in-content { margin: 20px 0; }
+
+    .preview-sticky {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        z-index: 10;
+        padding: 7px;
+        border: 1px solid #d7dce5;
+        border-radius: 10px;
+        background: rgba(255,255,255,.98);
+        box-shadow: 0 8px 25px rgba(0,0,0,.18);
+    }
+
+    .preview-sticky.top { top: 72px; }
+    .preview-sticky.bottom { bottom: 10px; }
+    .preview-sticky img, .preview-sticky video { width: 100%; max-height: 90px; object-fit: contain; display: block; }
+
+    .preview-floating-video {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        width: min(320px, calc(100% - 28px));
+        z-index: 12;
+        border: 1px solid #d7dce5;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #05070d;
+        box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    }
+
+    .preview-floating-video video, .preview-floating-video img { width: 100%; display: block; }
+
+    .preview-fullscreen {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(226,232,240,.90);
+    }
+
+    .preview-fullscreen-inner {
+        width: min(720px, 100%);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #111827;
+        color: white;
+        box-shadow: 0 22px 60px rgba(0,0,0,.45);
+    }
+
+    .preview-fullscreen-inner img,
+    .preview-fullscreen-inner video {
+        display: block;
+        width: 100%;
+        max-height: 420px;
+        object-fit: contain;
+        background: #05070d;
+    }
+
+    .preview-sponsored-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 15px;
+        border: 1px solid #dbe3ef;
+        border-radius: 12px;
+        background: linear-gradient(135deg,#ffffff 0%,#f7f9ff 58%,#fffaf0 100%);
+        box-shadow: 0 7px 20px rgba(15,23,42,.08);
+        color: #111827;
+    }
+
+    .preview-sponsored-link strong { display: block; font-size: 15px; }
+    .preview-sponsored-link small { display: block; margin-top: 4px; color: #667085; }
+    .preview-sponsored-link .cta { white-space: nowrap; font-weight: 900; color: #2563eb; font-size:18px; }
+
+    .preview-close-x {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(0,0,0,.70);
+        color: white;
+        font-weight: 900;
+    }
+
+    .preview-empty {
+        padding: 30px;
+        text-align: center;
+        color: #667085;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 700px) {
+        .preview-meta { grid-template-columns: 1fr; }
+        .preview-site-nav { display: none; }
+        .preview-stage-shell { padding: 10px; }
+    }
+
+    @media (max-width: 1050px) {
+        .admin-topbar {
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
         }
 
-        .message {
-            display: none;
-            margin-top: 14px;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 800;
+        .admin-nav {
+            order: 3;
+            width: 100%;
         }
 
-        .message.ok {
-            display: block;
-            border: 1px solid #2e6b4f;
-            background: #142c22;
-            color: var(--green);
-        }
-
-        .message.bad {
-            display: block;
-            border: 1px solid #703535;
-            background: #351919;
-            color: var(--red);
+        .summary-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
         .toolbar {
-            display: grid;
-            grid-template-columns: minmax(220px, 1fr) 190px 190px auto;
-            gap: 10px;
-            margin-bottom: 16px;
+            grid-template-columns: 1fr 1fr;
         }
+    }
 
-        .table-wrap {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            min-width: 1120px;
-            border-collapse: collapse;
-        }
-
-        th {
-            padding: 13px;
-            background: var(--panel-2);
-            color: var(--yellow);
-            text-align: left;
-            font-size: 11px;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 13px;
-            border-top: 1px solid var(--border);
-            color: #dbe2f0;
-            font-size: 12px;
-            vertical-align: top;
-        }
-
-        tr:hover td {
-            background: #121b2d;
-        }
-
-        .campaign-name {
-            font-weight: 900;
-            color: white;
-        }
-
-        .muted {
-            margin-top: 5px;
-            color: var(--muted);
-            font-size: 10px;
-            line-height: 1.45;
-        }
-
-        .badge {
-            display: inline-flex;
-            padding: 5px 8px;
-            border-radius: 999px;
-            font-size: 9px;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .badge.active {
-            background: #142c22;
-            color: var(--green);
-        }
-
-        .badge.scheduled {
-            background: #18263c;
-            color: var(--blue);
-        }
-
-        .badge.paused {
-            background: #2b2510;
-            color: var(--yellow);
-        }
-
-        .badge.expired {
-            background: #351919;
-            color: var(--red);
-        }
-
-        .badge.draft {
-            background:#2b2510;
-            color:#ffdd70;
-        }
-
-        .badge.type {
-            background: #202b44;
-            color: #a9c6ff;
-        }
-
-        .action-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .mini-btn {
-            padding: 7px 8px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: #202b44;
-            color: #dce5f5;
-            cursor: pointer;
-            font-size: 9px;
-            font-weight: 900;
-        }
-
-        .mini-btn.good {
-            border-color: #2e6b4f;
-            background: #142c22;
-            color: var(--green);
-        }
-
-        .mini-btn.warn {
-            border-color: #745f2b;
-            background: #2b2510;
-            color: var(--yellow);
-        }
-
-        .mini-btn.danger {
-            border-color: #703535;
-            background: #351919;
-            color: var(--red);
-        }
-
-        .empty-state {
-            padding: 36px 20px;
-            text-align: center;
-            color: var(--muted);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 5000;
-            padding: 20px;
-            overflow-y: auto;
-            background: rgba(226,232,240,.90);
-        }
-
-        .modal-card {
-            width: min(820px, 100%);
-            margin: 4vh auto;
-            padding: 24px;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            background: var(--panel);
-        }
-
-        .modal-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .modal-close {
-            width: 35px;
-            height: 35px;
-            border: 0;
-            border-radius: 50%;
-            background: #29334d;
-            color: white;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-
-
-        /* ============================================================
-           CAMPAIGN PREVIEW
-           ============================================================ */
-        .preview-modal-card {
-            width: min(1040px, 100%);
-        }
-
-        .preview-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .preview-device-toggle {
-            display: flex;
-            gap: 8px;
-        }
-
-        .preview-device-toggle button.active {
-            border-color: #526a9d;
-            background: #243455;
-            color: #dbe8ff;
-        }
-
-        .preview-meta {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .preview-meta-item {
+    @media (max-width: 650px) {
+        .admin-topbar {
             padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--panel-3);
         }
 
-        .preview-meta-item span {
-            display: block;
-            color: var(--muted);
-            font-size: 9px;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .preview-meta-item strong {
-            display: block;
-            margin-top: 5px;
-            color: white;
-            font-size: 12px;
-            line-height: 1.45;
-            word-break: break-word;
-        }
-
-        .preview-stage-shell {
-            padding: 18px;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: #05070d;
-            overflow: auto;
-        }
-
-        .preview-stage {
-            position: relative;
-            width: min(100%, 920px);
-            min-height: 520px;
-            margin: 0 auto;
-            border: 1px solid #28334b;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #f5f6f8;
-            color: #111827;
-            box-shadow: 0 18px 50px rgba(0,0,0,.28);
-        }
-
-        .preview-stage.mobile {
-            width: 390px;
-            max-width: 100%;
-            min-height: 680px;
-        }
-
-        .preview-site-header {
-            min-height: 64px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            background: #0c1220;
-            color: white;
-        }
-
-        .preview-site-brand {
+        .brand {
+            width: 100%;
             font-size: 18px;
-            font-weight: 1000;
-            letter-spacing: .8px;
         }
 
-        .preview-site-brand span { color: #ffcc33; }
-
-        .preview-site-nav {
-            color: #b8c3d8;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .preview-page-content {
-            padding: 22px;
-        }
-
-        .preview-content-block {
-            height: 70px;
-            margin-bottom: 14px;
-            border-radius: 12px;
-            background: linear-gradient(90deg, #e4e7ec, #f1f3f6);
-        }
-
-        .preview-content-block.short { width: 65%; height: 22px; }
-        .preview-content-block.medium { height: 110px; }
-
-        .preview-ad-label {
-            display: inline-block;
-            margin-bottom: 7px;
-            font-size: 9px;
-            font-weight: 900;
-            letter-spacing: .7px;
-            text-transform: uppercase;
-            color: #667085;
-        }
-
-        .preview-ad-card {
-            position: relative;
+        .account-area {
             width: 100%;
-            border: 1px solid #d7dce5;
-            border-radius: 12px;
-            overflow: hidden;
-            background: white;
         }
 
-        .preview-ad-card img,
-        .preview-ad-card video {
-            display: block;
+        .user-chip {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .container {
+            width: min(100% - 20px, 1240px);
+            margin-top: 20px;
+        }
+
+        .hero {
+            flex-direction: column;
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .panel {
+            padding: 17px;
+        }
+
+        .form-grid,
+        .toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group.full {
+            grid-column: auto;
+        }
+
+        .panel-head {
+            flex-direction: column;
+        }
+
+        .panel-head .secondary-btn {
             width: 100%;
-            max-height: 310px;
-            object-fit: contain;
-            background: #05070d;
         }
+    }
 
-        .preview-top-banner { margin: 12px 16px 0; }
-        .preview-in-content { margin: 20px 0; }
+    .ad-mode-grid {
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:12px;
+        margin-bottom:20px;
+    }
+    .ad-mode-card {
+        text-align:left;
+        padding:16px;
+        border:1px solid var(--border);
+        border-radius:14px;
+        background:var(--panel-2);
+        color:white;
+        cursor:pointer;
+    }
+    .ad-mode-card strong { display:block; font-size:15px; margin-bottom:6px; }
+    .ad-mode-card span { display:block; color:var(--muted); font-size:11px; line-height:1.5; }
+    .ad-mode-card.active {
+        border-color:#526a9d;
+        background:#182540;
+        box-shadow:0 0 0 1px rgba(141,181,255,.18) inset;
+    }
+    .locked-format {
+        min-height:44px;
+        display:flex;
+        align-items:center;
+        padding:0 12px;
+        border:1px solid #526a9d;
+        border-radius:10px;
+        background:#182540;
+        color:#dbe8ff;
+        font-weight:900;
+    }
+    .slot-note {
+        margin-top:7px;
+        color:#9fb0ca;
+        font-size:10px;
+        line-height:1.5;
+    }
+    @media (max-width:650px){ .ad-mode-grid { grid-template-columns:1fr; } }
 
-        .preview-sticky {
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            z-index: 10;
-            padding: 7px;
-            border: 1px solid #d7dce5;
-            border-radius: 10px;
-            background: rgba(255,255,255,.98);
-            box-shadow: 0 8px 25px rgba(0,0,0,.18);
-        }
+    .placement-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:6px; }
+    .placement-option { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel-2); font-size:11px; font-weight:800; cursor:pointer; }
+    .placement-option input { width:auto; }
+    @media (max-width:650px){ .placement-grid { grid-template-columns:1fr 1fr; } }
 
-        .preview-sticky.top { top: 72px; }
-        .preview-sticky.bottom { bottom: 10px; }
-        .preview-sticky img, .preview-sticky video { width: 100%; max-height: 90px; object-fit: contain; display: block; }
 
-        .preview-floating-video {
-            position: absolute;
-            right: 14px;
-            bottom: 14px;
-            width: min(320px, calc(100% - 28px));
-            z-index: 12;
-            border: 1px solid #d7dce5;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #05070d;
-            box-shadow: 0 12px 32px rgba(0,0,0,.28);
-        }
+    /* ===== BOXOFFICEX AD V2: targeting + master inventory ===== */
+    .master-panel { border-color:#35507d; background:radial-gradient(circle at top right,rgba(141,181,255,.12),transparent 32%),linear-gradient(180deg,#111827,#0b1120); box-shadow:0 18px 50px rgba(0,0,0,.22); }
+    .master-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px; }
+    .master-tabs button { padding:10px 13px; border:1px solid #31405f; border-radius:10px; background:#121b2d; color:#dce5f5; font-weight:900; cursor:pointer; transition:.18s ease; }
+    .master-tabs button:hover { transform:translateY(-1px); border-color:#526a9d; }
+    .master-tabs button.active { border-color:#6d91d3; background:linear-gradient(135deg,#20345b,#182540); color:#dbe8ff; box-shadow:0 0 0 1px rgba(141,181,255,.12) inset; }
+    .master-search-row { display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:10px; margin-bottom:14px; }
+    .inventory-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .inventory-card { position:relative; overflow:hidden; padding:17px; border:1px solid #2c3a58; border-radius:16px; background:linear-gradient(145deg,#151d31,#101625); box-shadow:0 10px 24px rgba(0,0,0,.18); }
+    .inventory-card::before { content:""; position:absolute; inset:0 auto 0 0; width:5px; background:#7de2bb; }
+    .inventory-card.open::before { background:#8db5ff; }
+    .inventory-card.near::before { background:#ffcc33; }
+    .inventory-card.full::before { background:#ff9a9a; }
+    .inventory-card .inv-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .inventory-card .inv-title { font-size:14px; font-weight:1000; color:#fff; }
+    .inventory-card .inv-sub { margin-top:4px; font-size:10px; color:#8fa0bd; }
+    .inventory-card .inv-count { min-width:72px; text-align:center; padding:8px 10px; border-radius:12px; background:#0b1120; border:1px solid #34425f; font-size:20px; font-weight:1000; }
+    .inventory-card.empty .inv-count { color:var(--green); }
+    .inventory-card.open .inv-count { color:var(--blue); }
+    .inventory-card.near .inv-count { color:var(--yellow); }
+    .inventory-card.full .inv-count { color:var(--red); }
+    .inv-status { display:inline-flex; margin-top:9px; padding:5px 8px; border-radius:999px; font-size:9px; font-weight:1000; letter-spacing:.4px; }
+    .inventory-card.empty .inv-status { background:#142c22; color:var(--green); }
+    .inventory-card.open .inv-status { background:#18263c; color:var(--blue); }
+    .inventory-card.near .inv-status { background:#2b2510; color:var(--yellow); }
+    .inventory-card.full .inv-status { background:#351919; color:var(--red); }
+    .capacity-bar { height:8px; margin:13px 0 9px; background:#29334d; border-radius:999px; overflow:hidden; }
+    .capacity-fill { height:100%; border-radius:inherit; background:var(--green); }
+    .inventory-card.open .capacity-fill { background:var(--blue); }
+    .inventory-card.near .capacity-fill { background:var(--yellow); }
+    .inventory-card.full .capacity-fill { background:var(--red); }
+    .inventory-card .campaign-mini { margin-top:8px; padding:8px 9px; border:1px solid rgba(255,255,255,.06); border-radius:9px; background:rgba(5,7,13,.28); font-size:10px; color:var(--muted); line-height:1.5; }
+    .targeting-box { grid-column:1/-1; padding:16px; border:1px solid #35507d; border-radius:14px; background:#0f1829; }
+    .target-choice-row { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
+    .target-choice { padding:9px 11px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); color:white; cursor:pointer; font-weight:800; }
+    .target-choice.active { border-color:#526a9d; background:#182540; color:var(--blue); }
+    .search-results { max-height:240px; overflow:auto; margin-top:8px; border:1px solid var(--border); border-radius:10px; background:#0b1120; }
+    .search-result-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); cursor:pointer; }
+    .search-result-item:last-child { border-bottom:0; }
+    .search-result-item:hover { background:#151f34; }
+    .selected-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
+    .selected-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid #35507d; border-radius:999px; background:#182540; color:#dbe8ff; font-size:10px; font-weight:900; }
+    .selected-chip button { border:0; background:transparent; color:var(--red); cursor:pointer; font-weight:1000; }
+    .movie-picker-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; }
+    .sponsor-note { padding:12px; border:1px solid #745f2b; border-radius:10px; background:#2b2510; color:#ffe29a; font-size:11px; line-height:1.55; }
 
-        .preview-floating-video video, .preview-floating-video img { width: 100%; display: block; }
+    .draft-preview-center { margin-top:18px; padding:18px; border:1px solid #35507d; border-radius:16px; background:linear-gradient(145deg,#0f1829,#0b1120); }
+    .draft-preview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
+    .draft-preview-head h3 { font-size:17px; }
+    .preview-page-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .preview-page-card { padding:12px; border:1px solid #2d3b58; border-radius:12px; background:#121b2d; }
+    .preview-page-card strong { display:block; font-size:11px; color:#fff; margin-bottom:8px; }
+    .preview-page-card button { width:100%; padding:8px; border:1px solid #3c527c; border-radius:8px; background:#1a2b49; color:#bcd1ff; font-size:10px; font-weight:900; cursor:pointer; }
+    .preview-page-card button:hover { background:#243a61; }
+    .draft-badge { display:inline-flex; padding:6px 9px; border-radius:999px; background:#2b2510; color:#ffdd70; font-size:9px; font-weight:1000; }
+    @media(max-width:950px){.preview-page-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(max-width:650px){.preview-page-grid{grid-template-columns:1fr;}}
 
-        .preview-fullscreen {
-            position: absolute;
-            inset: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 28px;
-            background: rgba(226,232,240,.90);
-        }
+    @media(max-width:900px){.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(max-width:650px){.inventory-grid{grid-template-columns:1fr}.master-search-row{grid-template-columns:1fr}}
 
-        .preview-fullscreen-inner {
-            width: min(720px, 100%);
-            border-radius: 14px;
-            overflow: hidden;
-            background: #111827;
-            color: white;
-            box-shadow: 0 22px 60px rgba(0,0,0,.45);
-        }
 
-        .preview-fullscreen-inner img,
-        .preview-fullscreen-inner video {
-            display: block;
-            width: 100%;
-            max-height: 420px;
-            object-fit: contain;
-            background: #05070d;
-        }
-
-        .preview-sponsored-link {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            padding: 15px;
-            border: 1px solid #dbe3ef;
-            border-radius: 12px;
-            background: linear-gradient(135deg,#ffffff 0%,#f7f9ff 58%,#fffaf0 100%);
-            box-shadow: 0 7px 20px rgba(15,23,42,.08);
-            color: #111827;
-        }
-
-        .preview-sponsored-link strong { display: block; font-size: 15px; }
-        .preview-sponsored-link small { display: block; margin-top: 4px; color: #667085; }
-        .preview-sponsored-link .cta { white-space: nowrap; font-weight: 900; color: #2563eb; font-size:18px; }
-
-        .preview-close-x {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 28px;
-            height: 28px;
-            border: 0;
-            border-radius: 50%;
-            background: rgba(0,0,0,.70);
-            color: white;
-            font-weight: 900;
-        }
-
-        .preview-empty {
-            padding: 30px;
-            text-align: center;
-            color: #667085;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 700px) {
-            .preview-meta { grid-template-columns: 1fr; }
-            .preview-site-nav { display: none; }
-            .preview-stage-shell { padding: 10px; }
-        }
-
-        @media (max-width: 1050px) {
-            .admin-topbar {
-                flex-wrap: wrap;
-            }
-
-            .admin-nav {
-                order: 3;
-                width: 100%;
-            }
-
-            .summary-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-
-            .toolbar {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 650px) {
-            .admin-topbar {
-                padding: 10px 12px;
-            }
-
-            .brand {
-                width: 100%;
-                font-size: 18px;
-            }
-
-            .account-area {
-                width: 100%;
-            }
-
-            .user-chip {
-                flex: 1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .container {
-                width: min(100% - 20px, 1240px);
-                margin-top: 20px;
-            }
-
-            .hero {
-                flex-direction: column;
-            }
-
-            .summary-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .panel {
-                padding: 17px;
-            }
-
-            .form-grid,
-            .toolbar {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group.full {
-                grid-column: auto;
-            }
-
-            .panel-head {
-                flex-direction: column;
-            }
-
-            .panel-head .secondary-btn {
-                width: 100%;
-            }
-        }
-
-        .ad-mode-grid {
-            display:grid;
-            grid-template-columns:repeat(3,minmax(0,1fr));
-            gap:12px;
-            margin-bottom:20px;
-        }
-        .ad-mode-card {
-            text-align:left;
-            padding:16px;
-            border:1px solid var(--border);
-            border-radius:14px;
-            background:var(--panel-2);
-            color:white;
-            cursor:pointer;
-        }
-        .ad-mode-card strong { display:block; font-size:15px; margin-bottom:6px; }
-        .ad-mode-card span { display:block; color:var(--muted); font-size:11px; line-height:1.5; }
-        .ad-mode-card.active {
-            border-color:#526a9d;
-            background:#182540;
-            box-shadow:0 0 0 1px rgba(141,181,255,.18) inset;
-        }
-        .locked-format {
-            min-height:44px;
-            display:flex;
-            align-items:center;
-            padding:0 12px;
-            border:1px solid #526a9d;
-            border-radius:10px;
-            background:#182540;
-            color:#dbe8ff;
-            font-weight:900;
-        }
-        .slot-note {
-            margin-top:7px;
-            color:#9fb0ca;
-            font-size:10px;
-            line-height:1.5;
-        }
-        @media (max-width:650px){ .ad-mode-grid { grid-template-columns:1fr; } }
-
-        .placement-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:6px; }
-        .placement-option { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel-2); font-size:11px; font-weight:800; cursor:pointer; }
-        .placement-option input { width:auto; }
-        @media (max-width:650px){ .placement-grid { grid-template-columns:1fr 1fr; } }
-    
-
-        /* ===== BOXOFFICEX AD V2: targeting + master inventory ===== */
-        .master-panel { border-color:#35507d; background:radial-gradient(circle at top right,rgba(141,181,255,.12),transparent 32%),linear-gradient(180deg,#111827,#0b1120); box-shadow:0 18px 50px rgba(0,0,0,.22); }
-        .master-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px; }
-        .master-tabs button { padding:10px 13px; border:1px solid #31405f; border-radius:10px; background:#121b2d; color:#dce5f5; font-weight:900; cursor:pointer; transition:.18s ease; }
-        .master-tabs button:hover { transform:translateY(-1px); border-color:#526a9d; }
-        .master-tabs button.active { border-color:#6d91d3; background:linear-gradient(135deg,#20345b,#182540); color:#dbe8ff; box-shadow:0 0 0 1px rgba(141,181,255,.12) inset; }
-        .master-search-row { display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:10px; margin-bottom:14px; }
-        .inventory-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-        .inventory-card { position:relative; overflow:hidden; padding:17px; border:1px solid #2c3a58; border-radius:16px; background:linear-gradient(145deg,#151d31,#101625); box-shadow:0 10px 24px rgba(0,0,0,.18); }
-        .inventory-card::before { content:""; position:absolute; inset:0 auto 0 0; width:5px; background:#7de2bb; }
-        .inventory-card.open::before { background:#8db5ff; }
-        .inventory-card.near::before { background:#ffcc33; }
-        .inventory-card.full::before { background:#ff9a9a; }
-        .inventory-card .inv-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-        .inventory-card .inv-title { font-size:14px; font-weight:1000; color:#fff; }
-        .inventory-card .inv-sub { margin-top:4px; font-size:10px; color:#8fa0bd; }
-        .inventory-card .inv-count { min-width:72px; text-align:center; padding:8px 10px; border-radius:12px; background:#0b1120; border:1px solid #34425f; font-size:20px; font-weight:1000; }
-        .inventory-card.empty .inv-count { color:var(--green); }
-        .inventory-card.open .inv-count { color:var(--blue); }
-        .inventory-card.near .inv-count { color:var(--yellow); }
-        .inventory-card.full .inv-count { color:var(--red); }
-        .inv-status { display:inline-flex; margin-top:9px; padding:5px 8px; border-radius:999px; font-size:9px; font-weight:1000; letter-spacing:.4px; }
-        .inventory-card.empty .inv-status { background:#142c22; color:var(--green); }
-        .inventory-card.open .inv-status { background:#18263c; color:var(--blue); }
-        .inventory-card.near .inv-status { background:#2b2510; color:var(--yellow); }
-        .inventory-card.full .inv-status { background:#351919; color:var(--red); }
-        .capacity-bar { height:8px; margin:13px 0 9px; background:#29334d; border-radius:999px; overflow:hidden; }
-        .capacity-fill { height:100%; border-radius:inherit; background:var(--green); }
-        .inventory-card.open .capacity-fill { background:var(--blue); }
-        .inventory-card.near .capacity-fill { background:var(--yellow); }
-        .inventory-card.full .capacity-fill { background:var(--red); }
-        .inventory-card .campaign-mini { margin-top:8px; padding:8px 9px; border:1px solid rgba(255,255,255,.06); border-radius:9px; background:rgba(5,7,13,.28); font-size:10px; color:var(--muted); line-height:1.5; }
-        .targeting-box { grid-column:1/-1; padding:16px; border:1px solid #35507d; border-radius:14px; background:#0f1829; }
-        .target-choice-row { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
-        .target-choice { padding:9px 11px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); color:white; cursor:pointer; font-weight:800; }
-        .target-choice.active { border-color:#526a9d; background:#182540; color:var(--blue); }
-        .search-results { max-height:240px; overflow:auto; margin-top:8px; border:1px solid var(--border); border-radius:10px; background:#0b1120; }
-        .search-result-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); cursor:pointer; }
-        .search-result-item:last-child { border-bottom:0; }
-        .search-result-item:hover { background:#151f34; }
-        .selected-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
-        .selected-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid #35507d; border-radius:999px; background:#182540; color:#dbe8ff; font-size:10px; font-weight:900; }
-        .selected-chip button { border:0; background:transparent; color:var(--red); cursor:pointer; font-weight:1000; }
-        .movie-picker-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; }
-        .sponsor-note { padding:12px; border:1px solid #745f2b; border-radius:10px; background:#2b2510; color:#ffe29a; font-size:11px; line-height:1.55; }
-
-        .draft-preview-center { margin-top:18px; padding:18px; border:1px solid #35507d; border-radius:16px; background:linear-gradient(145deg,#0f1829,#0b1120); }
-        .draft-preview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
-        .draft-preview-head h3 { font-size:17px; }
-        .preview-page-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-        .preview-page-card { padding:12px; border:1px solid #2d3b58; border-radius:12px; background:#121b2d; }
-        .preview-page-card strong { display:block; font-size:11px; color:#fff; margin-bottom:8px; }
-        .preview-page-card button { width:100%; padding:8px; border:1px solid #3c527c; border-radius:8px; background:#1a2b49; color:#bcd1ff; font-size:10px; font-weight:900; cursor:pointer; }
-        .preview-page-card button:hover { background:#243a61; }
-        .draft-badge { display:inline-flex; padding:6px 9px; border-radius:999px; background:#2b2510; color:#ffdd70; font-size:9px; font-weight:1000; }
-        @media(max-width:950px){.preview-page-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-        @media(max-width:650px){.preview-page-grid{grid-template-columns:1fr;}}
-
-        @media(max-width:900px){.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-        @media(max-width:650px){.inventory-grid{grid-template-columns:1fr}.master-search-row{grid-template-columns:1fr}}
-
-    
 /* ===== BoxOfficeX V6 commercial packages ===== */
-.bx-package-panel{margin-top:18px;padding:18px;border:1px solid #29334d;border-radius:16px;background:linear-gradient(180deg,#111827,#0d1423)}
+.bx-package-panel{margin-top:18px;padding:18px;border:1px solid #29334d;border-radius:16px;background(180deg,#111827,#0d1423)}
 .bx-package-title{font-weight:900;font-size:13px;letter-spacing:.5px;color:#ffcc33;margin-bottom:12px}
-.bx-package-grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px}
-.bx-package-card{position:relative;border:1px solid #29334d;background:#151d31;border-radius:14px;padding:14px;cursor:pointer;transition:.18s ease;min-height:96px}
-.bx-package-card:hover{transform:translateY(-2px);border-color:#8db5ff}
-.bx-package-card input{position:absolute;opacity:0;pointer-events:none}
+.bx-package-grid{display;grid-template-columns(5,minmax(120px,1fr));gap:10px}
+.bx-package-card{position;border:1px solid #29334d;background:#151d31;border-radius:14px;padding:14px;cursor;transition:.18s ease;min-height:96px}
+.bx-package-card{transform(-2px);border-color:#8db5ff}
+.bx-package-card input{position;opacity:0;pointer-events}
 .bx-package-card.selected{outline:2px solid #ffcc33;border-color:#ffcc33;background:#1b2438}
 .bx-package-card .pkg-name{font-weight:900;color:#fff;font-size:13px}
 .bx-package-card .pkg-note{font-size:11px;color:#aeb8ce;margin-top:6px;line-height:1.35}
 .bx-package-card.exclusive .pkg-name{color:#ffcc33}
-.bx-rate-box{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.bx-rate-box{display;grid-template-columns(3,1fr);gap:12px;margin-top:14px}
 .bx-rate-box .field{margin:0}
 .bx-rate-hint{font-size:11px;color:#aeb8ce;margin-top:8px}
-.bx-sponsor-package-grid{grid-template-columns:repeat(4,minmax(120px,1fr))}
-.bx-lock{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:#3a2d0b;color:#ffcc33;font-size:10px;font-weight:900}
-.bx-tier{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.3px}
+.bx-sponsor-package-grid{grid-template-columns(4,minmax(120px,1fr))}
+.bx-lock{display;align-items;gap:6px;padding:4px 8px;border-radius:999px;background:#3a2d0b;color:#ffcc33;font-size:10px;font-weight:900}
+.bx-tier{display;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.3px}
 .bx-tier-exclusive,.bx-tier-takeover{background:#3a2d0b;color:#ffcc33}
 .bx-tier-platinum,.bx-tier-diamond{background:#172554;color:#bfdbfe}
 .bx-tier-gold{background:#422006;color:#fde68a}
 .bx-tier-silver{background:#263244;color:#dbeafe}
 .bx-tier-standard,.bx-tier-rotation,.bx-tier-bronze{background:#16372a;color:#a7f3d0}
-@media(max-width:900px){.bx-package-grid,.bx-sponsor-package-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bx-rate-box{grid-template-columns:1fr}}
+@media(max-width:900px){.bx-package-grid,.bx-sponsor-package-grid{grid-template-columns(2,minmax(0,1fr))}.bx-rate-box{grid-template-columns:1fr}}
 
-/* BOXOFFICEX AD ADMIN MOBILE PORTAL */
-.admin-mobile-menu-button{display:none;width:42px;height:42px;padding:0;border:1px solid #344663;border-radius:11px;background:#151d31;color:#fff;font-size:21px;line-height:1;cursor:pointer;align-items:center;justify-content:center}
+/* BOXOFFICEX AD ADMIN MOBILE PORTAL /
+.admin-mobile-menu-button{display;width:42px;height:42px;padding:0;border:1px solid #344663;border-radius:11px;background:#151d31;color:#fff;font-size:21px;line-height:1;cursor;align-items;justify-content}
 @media(max-width:760px){
- html{scroll-padding-top:76px}body{overflow-x:hidden}
- .admin-topbar{display:grid;grid-template-columns:minmax(0,1fr) 42px;align-items:center;padding:9px 12px!important;gap:8px}
- .brand{width:auto!important;min-width:0;font-size:16px!important;overflow:hidden;text-overflow:ellipsis}
- .admin-mobile-menu-button{display:inline-flex}
- .admin-nav{display:none;grid-column:1/-1;order:initial!important;width:100%;max-height:55vh;overflow-y:auto!important;overflow-x:hidden!important;padding:8px;border:1px solid var(--border);border-radius:13px;background:#0d1422;flex-direction:column;align-items:stretch;gap:5px}
- .admin-nav.mobile-open{display:flex}.admin-nav a{width:100%;min-height:44px;padding:11px 12px;justify-content:flex-start;font-size:12px;border-color:rgba(255,255,255,.055)}
- .account-area{display:none;grid-column:1/-1;width:100%!important;grid-template-columns:minmax(0,1fr) auto;gap:7px}.admin-topbar.menu-open .account-area{display:grid}.user-chip{min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis}.logout-btn{min-height:42px}
- .container{width:100%!important;margin:16px auto 48px!important;padding:0 10px}
- .hero{align-items:stretch;gap:12px}.hero h1{font-size:27px}.hero p{font-size:12px;line-height:1.55}
- .panel{padding:14px!important;border-radius:15px}.panel-head{align-items:stretch!important;gap:10px}.panel-head h2{font-size:18px}
- .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}.summary-card{padding:12px!important}
- .form-grid,.toolbar,.master-search-row,.bx-rate-box{grid-template-columns:1fr!important}.form-group.full,.targeting-box{grid-column:1!important}
- input,select,textarea{max-width:100%;font-size:16px!important}input[type="file"]{overflow:hidden}
- button,.primary-btn,.secondary-btn,.danger-btn,.good-btn,.mini-btn{min-height:42px;touch-action:manipulation}
- .form-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.form-actions>*{width:100%;min-width:0;padding:9px 6px;font-size:10px}
- .ad-mode-grid,.placement-grid,.bx-package-grid,.bx-sponsor-package-grid,.preview-page-grid,.inventory-grid{grid-template-columns:1fr!important}
- .placement-option,.ad-mode-option,.bx-package-card{min-height:48px;padding:11px!important}
- .target-search-row,.draft-preview-head{display:flex;flex-direction:column;align-items:stretch!important}.target-search-row button,.draft-preview-head button{width:100%}
- .master-tabs{display:flex;max-width:100%;overflow-x:auto;padding-bottom:5px}.master-tabs button{flex:0 0 auto}
- .inventory-card{padding:14px}.inventory-card .inv-top{gap:7px}.inventory-card .inv-count{min-width:62px;font-size:17px}
- .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}table{min-width:1050px}th,td{padding:10px!important;font-size:11px!important;white-space:nowrap}td .campaign-name{white-space:normal;min-width:180px}
- .modal{padding:7px!important}.modal-card{width:100%!important;max-width:none!important;margin:7px auto!important;padding:14px!important;max-height:calc(100vh - 14px);overflow-y:auto;border-radius:14px!important}
- .modal-head{position:sticky;top:-14px;z-index:3;padding:4px 0 10px;background:var(--panel)}
- .preview-toolbar{align-items:stretch}.preview-device-toggle{display:grid;grid-template-columns:1fr 1fr}.preview-device-toggle button{width:100%}.preview-stage-shell{padding:7px}.preview-stage{min-width:0!important;width:100%!important}
- .preview-meta{grid-template-columns:1fr!important}.media-preview{max-width:100%;height:auto;max-height:260px}
+html{scroll-padding-top:76px}body{overflow-x}
+.admin-topbar{display;grid-template-columns(0,1fr) 42px;align-items;padding:9px 12px!important;gap:8px}
+.brand{width!important;min-width:0;font-size:16px!important;overflow;text-overflow}
+.admin-mobile-menu-button{display}
+.admin-nav{display;grid-column:1/-1;order!important;width:100%;max-height:55vh;overflow-y!important;overflow-x!important;padding:8px;border:1px solid var(--border);border-radius:13px;background:#0d1422;flex-direction;align-items;gap:5px}
+.admin-nav.mobile-open{display}.admin-nav a{width:100%;min-height:44px;padding:11px 12px;justify-content;font-size:12px;border-color(255,255,255,.055)}
+.account-area{display;grid-column:1/-1;width:100%!important;grid-template-columns(0,1fr) auto;gap:7px}.admin-topbar.menu-open .account-area{display}.user-chip{min-width:0;text-align;overflow;text-overflow}.logout-btn{min-height:42px}
+.container{width:100%!important;margin:16px auto 48px!important;padding:0 10px}
+.hero{align-items;gap:12px}.hero h1{font-size:27px}.hero p{font-size:12px;line-height:1.55}
+.panel{padding:14px!important;border-radius:15px}.panel-head{align-items!important;gap:10px}.panel-head h2{font-size:18px}
+.summary-grid{grid-template-columns(2,minmax(0,1fr))!important;gap:8px}.summary-card{padding:12px!important}
+.form-grid,.toolbar,.master-search-row,.bx-rate-box{grid-template-columns:1fr!important}.form-group.full,.targeting-box{grid-column:1!important}
+input,select,textarea{max-width:100%;font-size:16px!important}input[type="file"]{overflow}
+button,.primary-btn,.secondary-btn,.danger-btn,.good-btn,.mini-btn{min-height:42px;touch-action}
+.form-actions{display!important;grid-template-columns(2,minmax(0,1fr));gap:7px}.form-actions>{width:100%;min-width:0;padding:9px 6px;font-size:10px}
+.ad-mode-grid,.placement-grid,.bx-package-grid,.bx-sponsor-package-grid,.preview-page-grid,.inventory-grid{grid-template-columns:1fr!important}
+.placement-option,.ad-mode-option,.bx-package-card{min-height:48px;padding:11px!important}
+.target-search-row,.draft-preview-head{display;flex-direction;align-items!important}.target-search-row button,.draft-preview-head button{width:100%}
+.master-tabs{display;max-width:100%;overflow-x;padding-bottom:5px}.master-tabs button{flex:0 0 auto}
+.inventory-card{padding:14px}.inventory-card .inv-top{gap:7px}.inventory-card .inv-count{min-width:62px;font-size:17px}
+.table-wrap{max-width:100%;overflow-x;-webkit-overflow-scrolling;border-radius:12px}table{min-width:1050px}th,td{padding:10px!important;font-size:11px!important;white-space}td .campaign-name{white-space;min-width:180px}
+.modal{padding:7px!important}.modal-card{width:100%!important;max-width!important;margin:7px auto!important;padding:14px!important;max-height(100vh - 14px);overflow-y;border-radius:14px!important}
+.modal-head{position;top:-14px;z-index:3;padding:4px 0 10px;background(--panel)}
+.preview-toolbar{align-items}.preview-device-toggle{display;grid-template-columns:1fr 1fr}.preview-device-toggle button{width:100%}.preview-stage-shell{padding:7px}.preview-stage{min-width:0!important;width:100%!important}
+.preview-meta{grid-template-columns:1fr!important}.media-preview{max-width:100%;height;max-height:260px}
 }
 @media(max-width:390px){.summary-grid,.form-actions{grid-template-columns:1fr!important}}
+
+/* ============================================================
+BOXOFFICEX LOCKED AD CREATIVE SIZE STANDARD
+Desktop / Mobile inventory dimensions shown in Admin preview.
+============================================================ */
+{
+--bx-ad-top-banner-w:970px;
+--bx-ad-top-banner-h:250px;
+--bx-ad-sticky-w:970px;
+--bx-ad-sticky-h:90px;
+--bx-ad-content-w:728px;
+--bx-ad-content-h:90px;
+--bx-ad-video-w:728px;
+--bx-ad-video-h:410px;
+--bx-ad-floating-w:320px;
+--bx-ad-floating-h:180px;
+--bx-ad-sponsored-w:728px;
+--bx-ad-sponsored-h:90px;
+}
+.bx-size-guide{
+grid-column:1/-1;
+padding:14px 16px;
+border:1px solid #35507d;
+border-radius:13px;
+background:#0f1829;
+}
+.bx-size-guide-title{font-size:12px;font-weight:1000;color:#ffcc33}
+.bx-size-guide-text{margin-top:6px;color:#c8d5ea;font-size:11px;line-height:1.55}
+.bx-size-guide-grid{display;grid-template-columns(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.bx-size-pill{padding:9px 10px;border:1px solid #2d3b58;border-radius:10px;background:#121b2d;color:#dce5f5;font-size:10px;font-weight:800}
+.bx-size-pill strong{color:#fff}
+.preview-ad-card img,.preview-ad-card video{object-fit}
+.preview-top-banner .preview-ad-card{
+width(100%,var(--bx-ad-top-banner-w));
+aspect-ratio:970/250;
+margin-inline;
+}
+.preview-top-banner .preview-ad-card img,
+.preview-top-banner .preview-ad-card video{width:100%;height:100%;max-height;object-fit}
+.preview-in-content .preview-ad-card{
+width(100%,var(--bx-ad-content-w));
+aspect-ratio:728/90;
+margin-inline;
+}
+.preview-in-content .preview-ad-card img,
+.preview-in-content .preview-ad-card video{width:100%;height:100%;max-height;object-fit}
+.preview-sticky{
+left:50%;
+right;
+width(calc(100% - 20px),var(--bx-ad-sticky-w));
+transform(-50%);
+}
+.preview-sticky img,.preview-sticky video{
+width:100%;
+height;
+max-height(--bx-ad-sticky-h);
+aspect-ratio:970/90;
+object-fit;
+}
+.preview-floating-video{
+width(var(--bx-ad-floating-w),calc(100% - 28px));
+aspect-ratio:16/9;
+}
+.preview-floating-video video,.preview-floating-video img{
+width:100%;height:100%;object-fit;
+}
+.preview-sponsored-link{
+width(100%,var(--bx-ad-sponsored-w));
+min-height(--bx-ad-sponsored-h);
+margin-inline;
+}
+.preview-fullscreen-inner{
+width(420px,100%);
+aspect-ratio:9/16;
+}
+.preview-fullscreen-inner img,
+.preview-fullscreen-inner video{
+width:100%;height:100%;max-height;object-fit;
+}
+.preview-stage.mobile .preview-top-banner .preview-ad-card{
+width(100%,320px);
+aspect-ratio:320/100;
+}
+.preview-stage.mobile .preview-in-content .preview-ad-card{
+width(100%,320px);
+aspect-ratio:320/100;
+}
+.preview-stage.mobile .preview-sticky{
+width(calc(100% - 20px),320px);
+}
+.preview-stage.mobile .preview-sticky img,
+.preview-stage.mobile .preview-sticky video{
+aspect-ratio:320/50;
+max-height:50px;
+}
+.preview-stage.mobile .preview-floating-video{
+width(280px,calc(100% - 28px));
+aspect-ratio:16/9;
+}
+.preview-stage.mobile .preview-sponsored-link{
+width(100%,320px);
+min-height:100px;
+}
+@media(max-width:650px){
+.bx-size-guide-grid{grid-template-columns:1fr}
+}
 
 </style>
 </head>
@@ -1093,448 +1200,464 @@
 
 <header class="admin-topbar">
 
-    <div class="brand">
-        🎬 BOXOFFICE<span>X</span> ADMIN
-    </div>
+<div class="brand">
+    🎬 BOXOFFICE<span>X</span> ADMIN
+</div>
 
-    <button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
+<button type="button" class="admin-mobile-menu-button" id="adminMobileMenuButton" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminMainNavigation">☰</button>
 
-    <nav class="admin-nav" id="adminMainNavigation">
-        <a href="/admin.html">🏠 Admin Home</a>
-        <a href="/admin-new-movies.html">🆕 New Movies</a>
-        <a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
-        <a href="/admin-regional-boxoffice.html">📍 Regional</a>
-        <a href="/admin-articles.html">📰 Articles</a>
-        <a class="active" href="/admin-advertisements.html">📢 Advertisements</a>
-        <a href="/admin-team.html">👥 Admin Team</a>
-    </nav>
+<nav class="admin-nav" id="adminMainNavigation">
+    <a href="/admin.html">🏠 Admin Home</a>
+    <a href="/admin-new-movies.html">🆕 New Movies</a>
+    <a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
+    <a href="/admin-regional-boxoffice.html">📍 Regional</a>
+    <a href="/admin-articles.html">📰 Articles</a>
+    <a class="active" href="/admin-advertisements.html">📢 Advertisements</a>
+    <a href="/admin-team.html">👥 Admin Team</a>
+</nav>
 
-    <div class="account-area">
-        <div id="adminUserChip" class="user-chip">Checking Owner...</div>
-        <button class="logout-btn" onclick="logoutAdmin()">🚪 Logout</button>
-    </div>
+<div class="account-area">
+    <div id="adminUserChip" class="user-chip">Checking Owner...</div>
+    <button class="logout-btn" onclick="logoutAdmin()">🚪 Logout</button>
+</div>
 
 </header>
 
-
 <main class="container">
 
-    <section class="hero">
+<section class="hero">
+    <div>
+        <h1>📢 Advertisement Management</h1>
+        <p>
+            Create, schedule and manage BoxOfficeX direct advertising campaigns.
+            Campaign status is automatically determined from its active setting and start/end dates.
+        </p>
+    </div>
+
+    <button class="primary-btn" onclick="scrollToCreate()">
+        ➕ New Campaign
+    </button>
+</section>
+
+
+<section class="summary-grid">
+
+    <div class="summary-card">
+        <span>TOTAL CAMPAIGNS</span>
+        <strong id="sumTotal">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>ACTIVE</span>
+        <strong id="sumActive">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>SCHEDULED</span>
+        <strong id="sumScheduled">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>PAUSED</span>
+        <strong id="sumPaused">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>IMPRESSIONS</span>
+        <strong id="sumImpressions">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>CLICKS / CTR</span>
+        <strong id="sumClicks">0</strong>
+        <div class="muted" id="sumCtr">0.00% CTR</div>
+    </div>
+
+</section>
+
+
+
+<section class="panel master-panel" id="masterInventoryPanel">
+    <div class="panel-head">
         <div>
-            <h1>📢 Advertisement Management</h1>
-            <p>
-                Create, schedule and manage BoxOfficeX direct advertising campaigns.
-                Campaign status is automatically determined from its active setting and start/end dates.
-            </p>
+            <h2>🧭 Advertisement Master Inventory</h2>
+            <p>Verify effective active inventory before selling a campaign. Sitewide + page-type + exact actor/movie campaigns are counted together.</p>
         </div>
-
-        <button class="primary-btn" onclick="scrollToCreate()">
-            ➕ New Campaign
-        </button>
-    </section>
-
-
-    <section class="summary-grid">
-
-        <div class="summary-card">
-            <span>TOTAL CAMPAIGNS</span>
-            <strong id="sumTotal">0</strong>
+        <button class="secondary-btn" type="button" onclick="loadMasterInventory()">🔄 Refresh</button>
+    </div>
+    <div class="master-tabs" id="masterPageTabs"></div>
+    <div id="masterObjectSearch" style="display:none">
+        <div class="master-search-row">
+            <input id="masterSearchInput" type="search" placeholder="Search..." oninput="debouncedMasterSearch()">
+            <button type="button" class="secondary-btn" onclick="clearMasterObject()">Clear</button>
         </div>
+        <div id="masterSearchResults" class="search-results" style="display:none"></div>
+        <div id="masterSelectedObject" class="selected-chips"></div>
+    </div>
+    <div id="masterContext" class="muted" style="margin-bottom:12px"></div>
 
-        <div class="summary-card">
-            <span>ACTIVE</span>
-            <strong id="sumActive">0</strong>
-        </div>
-
-        <div class="summary-card">
-            <span>SCHEDULED</span>
-            <strong id="sumScheduled">0</strong>
-        </div>
-
-        <div class="summary-card">
-            <span>PAUSED</span>
-            <strong id="sumPaused">0</strong>
-        </div>
-
-        <div class="summary-card">
-            <span>IMPRESSIONS</span>
-            <strong id="sumImpressions">0</strong>
-        </div>
-
-        <div class="summary-card">
-            <span>CLICKS / CTR</span>
-            <strong id="sumClicks">0</strong>
-            <div class="muted" id="sumCtr">0.00% CTR</div>
-        </div>
-
-    </section>
-
-
-
-    <section class="panel master-panel" id="masterInventoryPanel">
-        <div class="panel-head">
-            <div>
-                <h2>🧭 Advertisement Master Inventory</h2>
-                <p>Verify effective active inventory before selling a campaign. Sitewide + page-type + exact actor/movie campaigns are counted together.</p>
-            </div>
-            <button class="secondary-btn" type="button" onclick="loadMasterInventory()">🔄 Refresh</button>
-        </div>
-        <div class="master-tabs" id="masterPageTabs"></div>
-        <div id="masterObjectSearch" style="display:none">
-            <div class="master-search-row">
-                <input id="masterSearchInput" type="search" placeholder="Search..." oninput="debouncedMasterSearch()">
-                <button type="button" class="secondary-btn" onclick="clearMasterObject()">Clear</button>
-            </div>
-            <div id="masterSearchResults" class="search-results" style="display:none"></div>
-            <div id="masterSelectedObject" class="selected-chips"></div>
-        </div>
-        <div id="masterContext" class="muted" style="margin-bottom:12px"></div>
 <div id="masterInventoryError" class="message bad" style="display:none;margin-bottom:12px"></div>
         <div id="inventoryGrid" class="inventory-grid"></div>
         <div id="sponsoredPoolMaster" class="sponsor-note" style="margin-top:14px">Sponsored Links: loading...</div>
     </section>
 
-    <section id="createCampaign" class="panel">
+<section id="createCampaign" class="panel">
 
-        <div class="panel-head">
-            <div>
-                <h2>➕ Create Advertisement</h2>
-                <p>
-                    Add the advertiser, creative, page placement and campaign schedule.
-                    Fixed public pricing is intentionally not required.
-                </p>
+    <div class="panel-head">
+        <div>
+            <h2>➕ Create Advertisement</h2>
+            <p>
+                Add the advertiser, creative, page placement and campaign schedule.
+                Fixed public pricing is intentionally not required.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="ad-mode-grid">
+        <button id="standardAdModeButton" type="button" class="ad-mode-card active" onclick="setCreateAdMode('standard')">
+            <strong>📢 Standard Ads</strong>
+            <span>Full Screen, Banner, Sticky, Floating Video, Sponsored Link and all existing/legacy ad formats.</span>
+        </button>
+        <button id="inContentAdModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('in_content')">
+            <strong>🧩 In-Content Ads</strong>
+            <span>Image or video placed inside BoxOfficeX content Slots 1–6. Each exact slot supports up to 5 rotating client campaigns.</span>
+        </button>
+        <button id="sponsoredLinkModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('sponsored_link')">
+            <strong>🔗 Sponsored Links</strong>
+            <span>Full-width clickable sponsor images. Unlimited active pool; up to 10 selected by weighted rotation per page.</span>
+        </button>
+    </div>
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>Advertiser / Company *</label>
+            <input id="advertiserName" type="text" placeholder="Example: XYZ Mobile">
+        </div>
+
+        <div class="form-group">
+            <label>Business Category</label>
+            <input id="businessCategory" type="text" placeholder="Example: Electronics">
+        </div>
+
+        <div class="form-group full">
+            <label>Campaign Name *</label>
+            <input id="campaignName" type="text" placeholder="Example: September Smartphone Launch">
+        </div>
+
+        <div id="standardAdTypeGroup" class="form-group">
+            <label>Advertisement Type *</label>
+            <select id="adType" onchange="syncDurationVisibility();syncCreativeSizeGuide()">
+                <option value="full_screen">Full Screen</option>
+                <option value="top_banner">Top Banner</option>
+                <option value="top_sticky">Top Sticky</option>
+                <option value="bottom_sticky">Bottom Sticky</option>
+                <option value="in_content_video">In-content Video (Legacy)</option>
+                <option value="homepage">Homepage Ad</option>
+                <option value="movie_page">Movie Page Ad</option>
+                <option value="actor_page">Actor Page Ad</option>
+                <option value="article">Article Ad</option>
+                <option value="small_video">Small Video Ad</option>
+                <option value="sponsored_movie">Sponsored Movie</option>
+                <option value="sponsored_article">Sponsored Article</option>
+                <option value="sponsored_link">Sponsored Link</option>
+                <option value="search_result">Search Result Ad</option>
+            </select>
+        </div>
+
+        <div id="inContentTypeGroup" class="form-group" style="display:none">
+            <label>Advertisement Type *</label>
+            <div class="locked-format">🧩 In-content Image / Video</div>
+        </div>
+
+        <div id="sponsoredLinkTypeGroup" class="form-group" style="display:none">
+            <label>Advertisement Type *</label>
+            <div class="locked-format">🔗 Full-width Clickable Sponsored Link</div>
+            <div class="slot-note">Entire image is clickable. Desktop and optional mobile creative are supported.</div>
+        </div>
+
+        <div class="form-group">
+            <label>Media Type *</label>
+            <select id="mediaType" onchange="syncDurationVisibility();syncCreativeSizeGuide()">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+            </select>
+        </div>
+
+        <div class="bx-size-guide" id="bxCreativeSizeGuide">
+            <div class="bx-size-guide-title">📐 BoxOfficeX Creative Size Standard</div>
+            <div class="bx-size-guide-text" id="bxCreativeSizeSummary">
+                Full Screen — Desktop & Mobile: 1080 × 1920 px (9:16). Creative is contained, never stretched or cropped.
+            </div>
+            <div class="bx-size-guide-grid">
+                <div class="bx-size-pill"><strong>Top Banner</strong><br>Desktop 970 × 250 · Mobile 320 × 100</div>
+                <div class="bx-size-pill"><strong>Top / Bottom Sticky</strong><br>Desktop 970 × 90 · Mobile 320 × 50</div>
+                <div class="bx-size-pill"><strong>In-Content Image / Sponsored Link</strong><br>Desktop 728 × 90 · Mobile 320 × 100</div>
+                <div class="bx-size-pill"><strong>In-Content Video</strong><br>Desktop 728 × 410 · Mobile 320 × 180 (16:9)</div>
+                <div class="bx-size-pill"><strong>Small / Floating Video</strong><br>Desktop 320 × 180 · Mobile 280 × 158 (16:9)</div>
+                <div class="bx-size-pill"><strong>Full Screen</strong><br>1080 × 1920 (9:16), responsive overlay</div>
             </div>
         </div>
 
+        <div class="form-group full">
+            <label>Desktop / Main Media *</label>
 
-        <div class="ad-mode-grid">
-            <button id="standardAdModeButton" type="button" class="ad-mode-card active" onclick="setCreateAdMode('standard')">
-                <strong>📢 Standard Ads</strong>
-                <span>Full Screen, Banner, Sticky, Floating Video, Sponsored Link and all existing/legacy ad formats.</span>
-            </button>
-            <button id="inContentAdModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('in_content')">
-                <strong>🧩 In-Content Ads</strong>
-                <span>Image or video placed inside BoxOfficeX content Slots 1–6. Each exact slot supports up to 5 rotating client campaigns.</span>
-            </button>
-            <button id="sponsoredLinkModeButton" type="button" class="ad-mode-card" onclick="setCreateAdMode('sponsored_link')">
-                <strong>🔗 Sponsored Links</strong>
-                <span>Full-width clickable sponsor images. Unlimited active pool; up to 10 selected by weighted rotation per page.</span>
-            </button>
+            <input
+                id="mediaUrl"
+                type="url"
+                placeholder="Uploaded Cloudinary URL appears here automatically"
+            >
+
+            <div class="media-upload-box">
+
+                <div class="media-upload-row">
+
+                    <input
+                        id="mainMediaFile"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                    >
+
+                    <button
+                        id="mainMediaUploadButton"
+                        type="button"
+                        class="upload-btn"
+                        onclick="uploadAdvertisementMedia('main')"
+                    >
+                        ⬆️ UPLOAD MEDIA
+                    </button>
+
+                </div>
+
+                <div id="mainMediaUploadStatus" class="upload-status">
+                    JPG, PNG, WEBP, MP4, WEBM or MOV. Maximum 50 MB.
+                </div>
+
+                <img id="mainMediaImagePreview" class="media-preview" alt="Advertisement preview">
+
+                <video
+                    id="mainMediaVideoPreview"
+                    class="media-preview"
+                    controls
+                    muted
+                    playsinline
+                ></video>
+
+            </div>
         </div>
 
-        <div class="form-grid">
+        <div class="form-group full">
+            <label>Mobile Media</label>
 
-            <div class="form-group">
-                <label>Advertiser / Company *</label>
-                <input id="advertiserName" type="text" placeholder="Example: XYZ Mobile">
+            <input
+                id="mobileMediaUrl"
+                type="url"
+                placeholder="Optional mobile creative URL"
+            >
+
+            <div class="media-upload-box">
+
+                <div class="media-upload-row">
+
+                    <input
+                        id="mobileMediaFile"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                    >
+
+                    <button
+                        id="mobileMediaUploadButton"
+                        type="button"
+                        class="upload-btn"
+                        onclick="uploadAdvertisementMedia('mobile')"
+                    >
+                        ⬆️ UPLOAD MOBILE MEDIA
+                    </button>
+
+                </div>
+
+                <div id="mobileMediaUploadStatus" class="upload-status">
+                    Optional separate creative for mobile visitors.
+                </div>
+
+                <img id="mobileMediaImagePreview" class="media-preview" alt="Mobile advertisement preview">
+
+                <video
+                    id="mobileMediaVideoPreview"
+                    class="media-preview"
+                    controls
+                    muted
+                    playsinline
+                ></video>
+
+            </div>
+        </div>
+
+        <div class="form-group full">
+            <label>Advertiser Target URL *</label>
+            <input id="targetUrl" type="url" placeholder="https://advertiser-site.com/...">
+        </div>
+
+        <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="createPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="create"> All 14 Advertising Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="create"> Homepage</label><label class="placement-option"><input type="checkbox" value="new_movies" data-placement-group="create"> New Movies</label><label class="placement-option"><input type="checkbox" value="movie_detail" data-placement-group="create"> Movie Detail</label><label class="placement-option"><input type="checkbox" value="actors_list" data-placement-group="create"> Actors List</label><label class="placement-option"><input type="checkbox" value="actor_detail" data-placement-group="create"> Actor Detail</label><label class="placement-option"><input type="checkbox" value="actor_movies" data-placement-group="create"> Actor Movies</label><label class="placement-option"><input type="checkbox" value="articles_list" data-placement-group="create"> Articles List</label><label class="placement-option"><input type="checkbox" value="article_detail" data-placement-group="create"> Article Detail</label><label class="placement-option"><input type="checkbox" value="movie_rankings" data-placement-group="create"> Movie Rankings</label><label class="placement-option"><input type="checkbox" value="actor_rankings" data-placement-group="create"> Actor Rankings</label><label class="placement-option"><input type="checkbox" value="actor_compare_select" data-placement-group="create"> Actor Compare Selection</label><label class="placement-option"><input type="checkbox" value="actor_compare_results" data-placement-group="create"> Actor Compare Results</label><label class="placement-option"><input type="checkbox" value="movie_compare_select" data-placement-group="create"> Movie Compare Selection</label><label class="placement-option"><input type="checkbox" value="movie_compare_results" data-placement-group="create"> Movie Compare Results</label></div><div class="helper">Select one or more exact public pages. Choose Sitewide to cover all 14 advertising-enabled pages.</div></div>
+
+        <div id="pageTargetGroup" class="form-group" style="display:none">
+            <label>Selected Page Target</label>
+            <input id="pageTarget" type="text" placeholder="/movie.html?id=123 or comma-separated targets">
+        </div>
+
+        <div id="adSlotGroup" class="form-group">
+            <label>In-content Slot</label>
+            <select id="adSlot">
+                <option value="1">Slot 1</option>
+                <option value="2">Slot 2</option>
+                <option value="3">Slot 3</option>
+                <option value="4">Slot 4</option>
+                <option value="5">Slot 5</option>
+                <option value="6">Slot 6</option>
+                <option value="0">All Available Slots (1 - 6)</option>
+            </select>
+            <div class="helper">Each page uses only the slots it supports. All Available Slots fills Slot 1 through Slot 6 wherever those positions exist.</div>
+        </div>
+
+
+        <div class="targeting-box" id="advancedTargetingBox">
+            <label>🎯 Precise Actor / Movie Targeting</label>
+            <div class="helper">Leave on General to target every item in the selected page type. Specific targeting can include multiple actors or multiple movies.</div>
+            <div class="target-choice-row">
+                <button type="button" class="target-choice active" data-target-mode="general" onclick="setTargetMode('general')">General / All</button>
+                <button type="button" class="target-choice" data-target-mode="actors" onclick="setTargetMode('actors')">Specific Actors</button>
+                <button type="button" class="target-choice" data-target-mode="movies" onclick="setTargetMode('movies')">Specific Movies</button>
             </div>
 
-            <div class="form-group">
-                <label>Business Category</label>
-                <input id="businessCategory" type="text" placeholder="Example: Electronics">
-            </div>
-
-            <div class="form-group full">
-                <label>Campaign Name *</label>
-                <input id="campaignName" type="text" placeholder="Example: September Smartphone Launch">
-            </div>
-
-            <div id="standardAdTypeGroup" class="form-group">
-                <label>Advertisement Type *</label>
-                <select id="adType" onchange="syncDurationVisibility()">
-                    <option value="full_screen">Full Screen</option>
-                    <option value="top_banner">Top Banner</option>
-                    <option value="top_sticky">Top Sticky</option>
-                    <option value="bottom_sticky">Bottom Sticky</option>
-                    <option value="in_content_video">In-content Video (Legacy)</option>
-                    <option value="homepage">Homepage Ad</option>
-                    <option value="movie_page">Movie Page Ad</option>
-                    <option value="actor_page">Actor Page Ad</option>
-                    <option value="article">Article Ad</option>
-                    <option value="small_video">Small Video Ad</option>
-                    <option value="sponsored_movie">Sponsored Movie</option>
-                    <option value="sponsored_article">Sponsored Article</option>
-                    <option value="sponsored_link">Sponsored Link</option>
-                    <option value="search_result">Search Result Ad</option>
-                </select>
-            </div>
-
-            <div id="inContentTypeGroup" class="form-group" style="display:none">
-                <label>Advertisement Type *</label>
-                <div class="locked-format">🧩 In-content Image / Video</div>
-            </div>
-
-            <div id="sponsoredLinkTypeGroup" class="form-group" style="display:none">
-                <label>Advertisement Type *</label>
-                <div class="locked-format">🔗 Full-width Clickable Sponsored Link</div>
-                <div class="slot-note">Entire image is clickable. Desktop and optional mobile creative are supported.</div>
-            </div>
-
-            <div class="form-group">
-                <label>Media Type *</label>
-                <select id="mediaType" onchange="syncDurationVisibility()">
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                </select>
-            </div>
-
-            <div class="form-group full">
-                <label>Desktop / Main Media *</label>
-
-                <input
-                    id="mediaUrl"
-                    type="url"
-                    placeholder="Uploaded Cloudinary URL appears here automatically"
-                >
-
-                <div class="media-upload-box">
-
-                    <div class="media-upload-row">
-
-                        <input
-                            id="mainMediaFile"
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
-                        >
-
-                        <button
-                            id="mainMediaUploadButton"
-                            type="button"
-                            class="upload-btn"
-                            onclick="uploadAdvertisementMedia('main')"
-                        >
-                            ⬆️ UPLOAD MEDIA
-                        </button>
-
-                    </div>
-
-                    <div id="mainMediaUploadStatus" class="upload-status">
-                        JPG, PNG, WEBP, MP4, WEBM or MOV. Maximum 50 MB.
-                    </div>
-
-                    <img id="mainMediaImagePreview" class="media-preview" alt="Advertisement preview">
-
-                    <video
-                        id="mainMediaVideoPreview"
-                        class="media-preview"
-                        controls
-                        muted
-                        playsinline
-                    ></video>
-
+            <div id="actorTargetPicker" style="display:none">
+                <label>Search and select actors</label>
+                <input id="actorTargetSearch" type="search" placeholder="Type Vijay, Rajinikanth, Ajith..." oninput="debouncedActorTargetSearch()">
+                <div id="actorTargetResults" class="search-results" style="display:none"></div>
+                <div id="selectedActorChips" class="selected-chips"></div>
+                <div class="switch-row" style="margin-top:10px">
+                    <input id="targetActorMovies" type="checkbox">
+                    <span>For Movie Detail campaigns: cover all movies of the selected actor(s)</span>
                 </div>
             </div>
 
-            <div class="form-group full">
-                <label>Mobile Media</label>
+            <div id="movieTargetPicker" style="display:none">
+                <label>Step 1 — Search actor</label>
+                <input id="movieActorSearch" type="search" placeholder="Search actor first..." oninput="debouncedMovieActorSearch()">
+                <div id="movieActorResults" class="search-results" style="display:none"></div>
+                <div id="selectedMovieActor" class="selected-chips"></div>
 
-                <input
-                    id="mobileMediaUrl"
-                    type="url"
-                    placeholder="Optional mobile creative URL"
-                >
-
-                <div class="media-upload-box">
-
-                    <div class="media-upload-row">
-
-                        <input
-                            id="mobileMediaFile"
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
-                        >
-
-                        <button
-                            id="mobileMediaUploadButton"
-                            type="button"
-                            class="upload-btn"
-                            onclick="uploadAdvertisementMedia('mobile')"
-                        >
-                            ⬆️ UPLOAD MOBILE MEDIA
-                        </button>
-
+                <div id="actorMoviePicker" style="display:none">
+                    <div class="movie-picker-head">
+                        <label style="margin:0">Step 2 — Select one or more movies</label>
+                        <button type="button" class="mini-btn" onclick="selectAllLoadedActorMovies()">SELECT ALL LOADED</button>
                     </div>
-
-                    <div id="mobileMediaUploadStatus" class="upload-status">
-                        Optional separate creative for mobile visitors.
-                    </div>
-
-                    <img id="mobileMediaImagePreview" class="media-preview" alt="Mobile advertisement preview">
-
-                    <video
-                        id="mobileMediaVideoPreview"
-                        class="media-preview"
-                        controls
-                        muted
-                        playsinline
-                    ></video>
-
+                    <input id="actorMovieSearch" type="search" placeholder="Search this actor's movies..." oninput="debouncedActorMovieSearch()">
+                    <div id="actorMovieResults" class="search-results"></div>
+                    <div id="selectedMovieChips" class="selected-chips"></div>
                 </div>
             </div>
+        </div>
 
-            <div class="form-group full">
-                <label>Advertiser Target URL *</label>
-                <input id="targetUrl" type="url" placeholder="https://advertiser-site.com/...">
+        <div id="movieRankingIndustryGroup" class="form-group" style="display:none">
+            <label>Movie Ranking Industry</label>
+            <select id="movieRankingIndustry">
+                <option value="*">All Movie Ranking Industries</option>
+                <option value="Global">Global</option>
+                <option value="Kollywood">Kollywood</option>
+                <option value="Tollywood">Tollywood</option>
+                <option value="Bollywood">Bollywood</option>
+                <option value="Sandalwood">Sandalwood</option>
+                <option value="Mollywood">Mollywood</option>
+                <option value="Hollywood">Hollywood</option>
+            </select>
+            <div class="helper">Only used when Movie Rankings is selected.</div>
+        </div>
+
+        <div id="actorRankingIndustryGroup" class="form-group" style="display:none">
+            <label>Actor Ranking Industry / Language</label>
+            <select id="actorRankingIndustry">
+                <option value="*">All Actor Ranking Industries</option>
+                <option value="Global">Global</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="English">English</option>
+            </select>
+            <div class="helper">Only used when Actor Rankings is selected.</div>
+        </div>
+
+        <div id="durationGroup" class="form-group">
+            <label>Duration (seconds)</label>
+            <input id="durationSeconds" type="number" min="1" max="60" placeholder="5">
+            <div class="helper">
+                Required for Full Screen / Small Video when media type is Video.
             </div>
+        </div>
 
-            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="createPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="create"> All 14 Advertising Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="create"> Homepage</label><label class="placement-option"><input type="checkbox" value="new_movies" data-placement-group="create"> New Movies</label><label class="placement-option"><input type="checkbox" value="movie_detail" data-placement-group="create"> Movie Detail</label><label class="placement-option"><input type="checkbox" value="actors_list" data-placement-group="create"> Actors List</label><label class="placement-option"><input type="checkbox" value="actor_detail" data-placement-group="create"> Actor Detail</label><label class="placement-option"><input type="checkbox" value="actor_movies" data-placement-group="create"> Actor Movies</label><label class="placement-option"><input type="checkbox" value="articles_list" data-placement-group="create"> Articles List</label><label class="placement-option"><input type="checkbox" value="article_detail" data-placement-group="create"> Article Detail</label><label class="placement-option"><input type="checkbox" value="movie_rankings" data-placement-group="create"> Movie Rankings</label><label class="placement-option"><input type="checkbox" value="actor_rankings" data-placement-group="create"> Actor Rankings</label><label class="placement-option"><input type="checkbox" value="actor_compare_select" data-placement-group="create"> Actor Compare Selection</label><label class="placement-option"><input type="checkbox" value="actor_compare_results" data-placement-group="create"> Actor Compare Results</label><label class="placement-option"><input type="checkbox" value="movie_compare_select" data-placement-group="create"> Movie Compare Selection</label><label class="placement-option"><input type="checkbox" value="movie_compare_results" data-placement-group="create"> Movie Compare Results</label></div><div class="helper">Select one or more exact public pages. Choose Sitewide to cover all 14 advertising-enabled pages.</div></div>
+        <div class="form-group">
+            <label>Frequency</label>
+            <select id="frequency">
+                <option value="once_24h">Once per 24 hours</option>
+                <option value="once_12h">Once per 12 hours</option>
+                <option value="once_session">Once per session</option>
+                <option value="always">Every eligible load</option>
+            </select>
+        </div>
 
-            <div id="pageTargetGroup" class="form-group" style="display:none">
-                <label>Selected Page Target</label>
-                <input id="pageTarget" type="text" placeholder="/movie.html?id=123 or comma-separated targets">
-            </div>
+        <div class="form-group">
+            <label>Start Date *</label>
+            <input id="startDate" type="date">
+        </div>
 
-            <div id="adSlotGroup" class="form-group">
-                <label>In-content Slot</label>
-                <select id="adSlot">
-                    <option value="1">Slot 1</option>
-                    <option value="2">Slot 2</option>
-                    <option value="3">Slot 3</option>
-                    <option value="4">Slot 4</option>
-                    <option value="5">Slot 5</option>
-                    <option value="6">Slot 6</option>
-                    <option value="0">All Available Slots (1 - 6)</option>
-                </select>
-                <div class="helper">Each page uses only the slots it supports. All Available Slots fills Slot 1 through Slot 6 wherever those positions exist.</div>
-            </div>
+        <div class="form-group">
+            <label>Start Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+            <input id="startTime" type="time">
+            <div class="helper">Leave empty to start automatically at 12:00 AM on the start date.</div>
+        </div>
 
+        <div class="form-group">
+            <label>End Date *</label>
+            <input id="endDate" type="date">
+        </div>
 
-            <div class="targeting-box" id="advancedTargetingBox">
-                <label>🎯 Precise Actor / Movie Targeting</label>
-                <div class="helper">Leave on General to target every item in the selected page type. Specific targeting can include multiple actors or multiple movies.</div>
-                <div class="target-choice-row">
-                    <button type="button" class="target-choice active" data-target-mode="general" onclick="setTargetMode('general')">General / All</button>
-                    <button type="button" class="target-choice" data-target-mode="actors" onclick="setTargetMode('actors')">Specific Actors</button>
-                    <button type="button" class="target-choice" data-target-mode="movies" onclick="setTargetMode('movies')">Specific Movies</button>
-                </div>
+        <div class="form-group">
+            <label>End Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+            <input id="endTime" type="time">
+            <div class="helper">Leave empty to run until 11:59 PM on the end date.</div>
+        </div>
 
-                <div id="actorTargetPicker" style="display:none">
-                    <label>Search and select actors</label>
-                    <input id="actorTargetSearch" type="search" placeholder="Type Vijay, Rajinikanth, Ajith..." oninput="debouncedActorTargetSearch()">
-                    <div id="actorTargetResults" class="search-results" style="display:none"></div>
-                    <div id="selectedActorChips" class="selected-chips"></div>
-                    <div class="switch-row" style="margin-top:10px">
-                        <input id="targetActorMovies" type="checkbox">
-                        <span>For Movie Detail campaigns: cover all movies of the selected actor(s)</span>
-                    </div>
-                </div>
+        <div class="form-group">
+            <label>Total Campaign Price (₹)</label>
+            <input id="totalAmount" type="number" min="0" step="0.01" placeholder="Example: 50000">
+        </div>
 
-                <div id="movieTargetPicker" style="display:none">
-                    <label>Step 1 — Search actor</label>
-                    <input id="movieActorSearch" type="search" placeholder="Search actor first..." oninput="debouncedMovieActorSearch()">
-                    <div id="movieActorResults" class="search-results" style="display:none"></div>
-                    <div id="selectedMovieActor" class="selected-chips"></div>
+        <div class="form-group">
+            <label>Amount Paid (₹)</label>
+            <input id="amountPaid" type="number" min="0" step="0.01" placeholder="Example: 20000">
+            <div class="helper">Pending balance and payment status are calculated automatically.</div>
+        </div>
 
-                    <div id="actorMoviePicker" style="display:none">
-                        <div class="movie-picker-head">
-                            <label style="margin:0">Step 2 — Select one or more movies</label>
-                            <button type="button" class="mini-btn" onclick="selectAllLoadedActorMovies()">SELECT ALL LOADED</button>
-                        </div>
-                        <input id="actorMovieSearch" type="search" placeholder="Search this actor's movies..." oninput="debouncedActorMovieSearch()">
-                        <div id="actorMovieResults" class="search-results"></div>
-                        <div id="selectedMovieChips" class="selected-chips"></div>
-                    </div>
-                </div>
-            </div>
+        <div class="form-group">
+            <label>Traffic Weight</label>
+            <input id="trafficWeight" type="number" min="0.01" max="1000" step="0.01" value="1">
+            <div class="helper">Relative campaign priority. Example: 60, 15, 10, 10, 5.</div>
+        </div>
 
-            <div id="movieRankingIndustryGroup" class="form-group" style="display:none">
-                <label>Movie Ranking Industry</label>
-                <select id="movieRankingIndustry">
-                    <option value="*">All Movie Ranking Industries</option>
-                    <option value="Global">Global</option>
-                    <option value="Kollywood">Kollywood</option>
-                    <option value="Tollywood">Tollywood</option>
-                    <option value="Bollywood">Bollywood</option>
-                    <option value="Sandalwood">Sandalwood</option>
-                    <option value="Mollywood">Mollywood</option>
-                    <option value="Hollywood">Hollywood</option>
-                </select>
-                <div class="helper">Only used when Movie Rankings is selected.</div>
-            </div>
+        <div class="form-group">
+            <label>Client Email</label>
+            <input id="clientEmail" type="email" placeholder="billing@client.com">
+        </div>
 
-            <div id="actorRankingIndustryGroup" class="form-group" style="display:none">
-                <label>Actor Ranking Industry / Language</label>
-                <select id="actorRankingIndustry">
-                    <option value="*">All Actor Ranking Industries</option>
-                    <option value="Global">Global</option>
-                    <option value="Tamil">Tamil</option>
-                    <option value="Telugu">Telugu</option>
-                    <option value="Hindi">Hindi</option>
-                    <option value="Kannada">Kannada</option>
-                    <option value="Malayalam">Malayalam</option>
-                    <option value="English">English</option>
-                </select>
-                <div class="helper">Only used when Actor Rankings is selected.</div>
-            </div>
+        <div class="form-group">
+            <label>Client Phone</label>
+            <input id="clientPhone" type="text" placeholder="+91 ...">
+        </div>
 
-            <div id="durationGroup" class="form-group">
-                <label>Duration (seconds)</label>
-                <input id="durationSeconds" type="number" min="1" max="60" placeholder="5">
-                <div class="helper">
-                    Required for Full Screen / Small Video when media type is Video.
-                </div>
-            </div>
+        
 
-            <div class="form-group">
-                <label>Frequency</label>
-                <select id="frequency">
-                    <option value="once_24h">Once per 24 hours</option>
-                    <option value="once_12h">Once per 12 hours</option>
-                    <option value="once_session">Once per session</option>
-                    <option value="always">Every eligible load</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Start Date *</label>
-                <input id="startDate" type="date">
-            </div>
-
-            <div class="form-group">
-                <label>Start Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
-                <input id="startTime" type="time">
-                <div class="helper">Leave empty to start automatically at 12:00 AM on the start date.</div>
-            </div>
-
-            <div class="form-group">
-                <label>End Date *</label>
-                <input id="endDate" type="date">
-            </div>
-
-            <div class="form-group">
-                <label>End Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
-                <input id="endTime" type="time">
-                <div class="helper">Leave empty to run until 11:59 PM on the end date.</div>
-            </div>
-
-            <div class="form-group">
-                <label>Total Campaign Price (₹)</label>
-                <input id="totalAmount" type="number" min="0" step="0.01" placeholder="Example: 50000">
-            </div>
-
-            <div class="form-group">
-                <label>Amount Paid (₹)</label>
-                <input id="amountPaid" type="number" min="0" step="0.01" placeholder="Example: 20000">
-                <div class="helper">Pending balance and payment status are calculated automatically.</div>
-            </div>
-
-            <div class="form-group">
-                <label>Traffic Weight</label>
-                <input id="trafficWeight" type="number" min="0.01" max="1000" step="0.01" value="1">
-                <div class="helper">Relative campaign priority. Example: 60, 15, 10, 10, 5.</div>
-            </div>
-
-            <div class="form-group">
-                <label>Client Email</label>
-                <input id="clientEmail" type="email" placeholder="billing@client.com">
-            </div>
-
-            <div class="form-group">
-                <label>Client Phone</label>
-                <input id="clientPhone" type="text" placeholder="+91 ...">
-            </div>
-
-            
 <div class="bx-package-panel" id="commercialPackagePanel">
   <div class="bx-package-title">CAMPAIGN PACKAGE & RATE</div>
 
@@ -1572,169 +1695,168 @@
                 <input id="billingAddress" type="text" placeholder="Client billing address">
             </div>
 
-            <div class="form-group">
-                <label>Invoice Base Number</label>
-                <input id="invoiceNumber" type="text" placeholder="Auto: BX-AD-000001">
-            </div>
-
-            <div class="form-group">
-                <label>Invoice Date</label>
-                <input id="invoiceDate" type="date">
-            </div>
-
-            <div class="form-group">
-                <label>Payment Due Date</label>
-                <input id="paymentDueDate" type="date">
-            </div>
-
-            <div class="form-group full">
-                <label>Billing / Package Notes</label>
-                <input id="billingNotes" type="text" placeholder="Example: Top Banner + Sponsored Links + 60 traffic weight">
-            </div>
-
-            <div class="form-group">
-                <label>Campaign Enabled</label>
-                <div class="switch-row">
-                    <input id="isActive" type="checkbox">
-                    <span>Activate automatically during campaign dates</span>
-                </div>
-            </div>
-
+        <div class="form-group">
+            <label>Invoice Base Number</label>
+            <input id="invoiceNumber" type="text" placeholder="Auto: BX-AD-000001">
         </div>
 
-
-        <div class="form-actions">
-
-            <button id="draftButton" class="secondary-btn" onclick="createAdvertisement(true)">
-                📝 SAVE DRAFT
-            </button>
-
-            <button id="createButton" class="primary-btn" onclick="createAdvertisement(false)">
-                🚀 CREATE / ACTIVATE CAMPAIGN
-            </button>
-
-            <button type="button" class="secondary-btn" onclick="openCampaignPreview()">
-                👁️ QUICK PREVIEW
-            </button>
-
-            <button id="previewOnPageButton" type="button" class="secondary-btn" onclick="previewOnTargetPage()">
-                🌐 PREVIEW SELECTED PAGE
-            </button>
-
-            <button class="secondary-btn" onclick="resetCreateForm()">
-                Clear
-            </button>
-
+        <div class="form-group">
+            <label>Invoice Date</label>
+            <input id="invoiceDate" type="date">
         </div>
 
-        <div id="createMessage" class="message"></div>
+        <div class="form-group">
+            <label>Payment Due Date</label>
+            <input id="paymentDueDate" type="date">
+        </div>
 
-        <div class="draft-preview-center">
-            <div class="draft-preview-head">
-                <div>
-                    <h3>🧪 Draft Real-Page Preview Center</h3>
-                    <div class="helper">Preview the current unsaved ad on any BoxOfficeX public page. This does not count impressions or clicks.</div>
-                </div>
-                <span class="draft-badge">PRIVATE PREVIEW</span>
+        <div class="form-group full">
+            <label>Billing / Package Notes</label>
+            <input id="billingNotes" type="text" placeholder="Example: Top Banner + Sponsored Links + 60 traffic weight">
+        </div>
+
+        <div class="form-group">
+            <label>Campaign Enabled</label>
+            <div class="switch-row">
+                <input id="isActive" type="checkbox">
+                <span>Activate automatically during campaign dates</span>
             </div>
-            <div id="previewPageGrid" class="preview-page-grid"></div>
         </div>
 
-    </section>
+    </div>
 
 
-    <section class="panel">
+    <div class="form-actions">
 
-        <div class="panel-head">
+        <button id="draftButton" class="secondary-btn" onclick="createAdvertisement(true)">
+            📝 SAVE DRAFT
+        </button>
+
+        <button id="createButton" class="primary-btn" onclick="createAdvertisement(false)">
+            🚀 CREATE / ACTIVATE CAMPAIGN
+        </button>
+
+        <button type="button" class="secondary-btn" onclick="openCampaignPreview()">
+            👁️ QUICK PREVIEW
+        </button>
+
+        <button id="previewOnPageButton" type="button" class="secondary-btn" onclick="previewOnTargetPage()">
+            🌐 PREVIEW SELECTED PAGE
+        </button>
+
+        <button class="secondary-btn" onclick="resetCreateForm()">
+            Clear
+        </button>
+
+    </div>
+
+    <div id="createMessage" class="message"></div>
+
+    <div class="draft-preview-center">
+        <div class="draft-preview-head">
             <div>
-                <h2>📋 Campaigns</h2>
-                <p>
-                    Search campaigns and manage Active, Scheduled, Paused or Expired advertisements.
-                </p>
+                <h3>🧪 Draft Real-Page Preview Center</h3>
+                <div class="helper">Preview the current unsaved ad on any BoxOfficeX public page. This does not count impressions or clicks.</div>
             </div>
+            <span class="draft-badge">PRIVATE PREVIEW</span>
+        </div>
+        <div id="previewPageGrid" class="preview-page-grid"></div>
+    </div>
 
-            <button class="secondary-btn" onclick="loadAdvertisements()">
-                🔄 Refresh
-            </button>
+</section>
+
+
+<section class="panel">
+
+    <div class="panel-head">
+        <div>
+            <h2>📋 Campaigns</h2>
+            <p>
+                Search campaigns and manage Active, Scheduled, Paused or Expired advertisements.
+            </p>
         </div>
 
-
-        <div class="toolbar">
-
-            <input
-                id="campaignSearch"
-                type="search"
-                placeholder="Search advertiser or campaign..."
-                oninput="renderCampaigns()"
-            >
-
-            <select id="statusFilter" onchange="renderCampaigns()">
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="paused">Paused</option>
-                <option value="expired">Expired</option>
-                <option value="draft">Draft</option>
-            </select>
-
-            <select id="typeFilter" onchange="renderCampaigns()">
-                <option value="">All Ad Types</option>
-                <option value="full_screen">Full Screen</option>
-                <option value="top_banner">Top Banner</option>
-                    <option value="top_sticky">Top Sticky</option>
-                    <option value="bottom_sticky">Bottom Sticky</option>
-                    <option value="in_content_video">In-content Video</option>
-                    <option value="in_content">In-content Image / Video</option>
-                <option value="homepage">Homepage</option>
-                <option value="movie_page">Movie Page</option>
-                <option value="actor_page">Actor Page</option>
-                <option value="article">Article</option>
-                <option value="small_video">Small Video</option>
-                <option value="sponsored_movie">Sponsored Movie</option>
-                <option value="sponsored_article">Sponsored Article</option>
-                <option value="sponsored_link">Sponsored Link</option>
-                <option value="search_result">Search Result</option>
-            </select>
-
-            <button class="secondary-btn" onclick="clearCampaignFilters()">
-                Clear Filters
-            </button>
-
-        </div>
+        <button class="secondary-btn" onclick="loadAdvertisements()">
+            🔄 Refresh
+        </button>
+    </div>
 
 
-        <div class="table-wrap">
+    <div class="toolbar">
 
-            <table>
+        <input
+            id="campaignSearch"
+            type="search"
+            placeholder="Search advertiser or campaign..."
+            oninput="renderCampaigns()"
+        >
 
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Campaign</th>
-                        <th>Type / Placement</th>
-                        <th>Dates</th>
-                        <th>Status</th>
-                        <th>Performance</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+        <select id="statusFilter" onchange="renderCampaigns()">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="paused">Paused</option>
+            <option value="expired">Expired</option>
+            <option value="draft">Draft</option>
+        </select>
 
-                <tbody id="campaignBody">
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">Loading campaigns...</div>
-                        </td>
-                    </tr>
-                </tbody>
+        <select id="typeFilter" onchange="renderCampaigns()">
+            <option value="">All Ad Types</option>
+            <option value="full_screen">Full Screen</option>
+            <option value="top_banner">Top Banner</option>
+                <option value="top_sticky">Top Sticky</option>
+                <option value="bottom_sticky">Bottom Sticky</option>
+                <option value="in_content_video">In-content Video</option>
+                <option value="in_content">In-content Image / Video</option>
+            <option value="homepage">Homepage</option>
+            <option value="movie_page">Movie Page</option>
+            <option value="actor_page">Actor Page</option>
+            <option value="article">Article</option>
+            <option value="small_video">Small Video</option>
+            <option value="sponsored_movie">Sponsored Movie</option>
+            <option value="sponsored_article">Sponsored Article</option>
+            <option value="sponsored_link">Sponsored Link</option>
+            <option value="search_result">Search Result</option>
+        </select>
 
-            </table>
+        <button class="secondary-btn" onclick="clearCampaignFilters()">
+            Clear Filters
+        </button>
 
-        </div>
+    </div>
 
-    </section>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Campaign</th>
+                    <th>Type / Placement</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                    <th>Performance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="campaignBody">
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">Loading campaigns...</div>
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 </main>
-
 
 
 
@@ -1748,295 +1870,295 @@
             <button class="modal-close" onclick="closeCampaignPreview()">×</button>
         </div>
 
-        <div class="preview-toolbar">
-            <div class="preview-device-toggle">
-                <button id="previewDesktopButton" type="button" class="mini-btn active" onclick="setPreviewDevice('desktop')">🖥️ Desktop</button>
-                <button id="previewMobileButton" type="button" class="mini-btn" onclick="setPreviewDevice('mobile')">📱 Mobile</button>
-            </div>
-            <div class="muted" id="previewUrlNote"></div>
+    <div class="preview-toolbar">
+        <div class="preview-device-toggle">
+            <button id="previewDesktopButton" type="button" class="mini-btn active" onclick="setPreviewDevice('desktop')">🖥️ Desktop</button>
+            <button id="previewMobileButton" type="button" class="mini-btn" onclick="setPreviewDevice('mobile')">📱 Mobile</button>
         </div>
-
-        <div class="preview-meta">
-            <div class="preview-meta-item"><span>Campaign</span><strong id="previewCampaignName">—</strong></div>
-            <div class="preview-meta-item"><span>Format</span><strong id="previewFormat">—</strong></div>
-            <div class="preview-meta-item"><span>Show On</span><strong id="previewPlacements">—</strong></div>
-        </div>
-
-        <div class="preview-stage-shell">
-            <div id="previewStage" class="preview-stage"></div>
-        </div>
+        <div class="muted" id="previewUrlNote"></div>
     </div>
+
+    <div class="preview-meta">
+        <div class="preview-meta-item"><span>Campaign</span><strong id="previewCampaignName">—</strong></div>
+        <div class="preview-meta-item"><span>Format</span><strong id="previewFormat">—</strong></div>
+        <div class="preview-meta-item"><span>Show On</span><strong id="previewPlacements">—</strong></div>
+    </div>
+
+    <div class="preview-stage-shell">
+        <div id="previewStage" class="preview-stage"></div>
+    </div>
+</div>
+
 </div>
 
 <div id="editModal" class="modal">
 
-    <div class="modal-card">
+<div class="modal-card">
 
-        <div class="modal-head">
-            <h2>✏️ Edit Advertisement</h2>
-            <button class="modal-close" onclick="closeEditModal()">×</button>
+    <div class="modal-head">
+        <h2>✏️ Edit Advertisement</h2>
+        <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+
+    <input id="editId" type="hidden">
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>Advertiser / Company *</label>
+            <input id="editAdvertiserName" type="text">
         </div>
 
-        <input id="editId" type="hidden">
-
-        <div class="form-grid">
-
-            <div class="form-group">
-                <label>Advertiser / Company *</label>
-                <input id="editAdvertiserName" type="text">
-            </div>
-
-            <div class="form-group">
-                <label>Business Category</label>
-                <input id="editBusinessCategory" type="text">
-            </div>
-
-            <div class="form-group full">
-                <label>Campaign Name *</label>
-                <input id="editCampaignName" type="text">
-            </div>
-
-            <div class="form-group">
-                <label>Advertisement Type *</label>
-                <select id="editAdType" onchange="syncEditAdControls()">
-                    <option value="full_screen">Full Screen</option>
-                    <option value="top_banner">Top Banner</option>
-                    <option value="top_sticky">Top Sticky</option>
-                    <option value="bottom_sticky">Bottom Sticky</option>
-                    <option value="in_content_video">In-content Video (Legacy)</option>
-                    <option value="in_content">In-content Image / Video</option>
-                    <option value="homepage">Homepage Ad</option>
-                    <option value="movie_page">Movie Page Ad</option>
-                    <option value="actor_page">Actor Page Ad</option>
-                    <option value="article">Article Ad</option>
-                    <option value="small_video">Small Video Ad</option>
-                    <option value="sponsored_movie">Sponsored Movie</option>
-                    <option value="sponsored_article">Sponsored Article</option>
-                    <option value="sponsored_link">Sponsored Link</option>
-                    <option value="search_result">Search Result Ad</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Media Type *</label>
-                <select id="editMediaType">
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                </select>
-            </div>
-
-            <div class="form-group full">
-                <label>Main Media *</label>
-
-                <input id="editMediaUrl" type="url">
-
-                <div class="media-upload-box">
-
-                    <div class="media-upload-row">
-
-                        <input
-                            id="editMainMediaFile"
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
-                        >
-
-                        <button
-                            id="editMainMediaUploadButton"
-                            type="button"
-                            class="upload-btn"
-                            onclick="uploadAdvertisementMedia('edit-main')"
-                        >
-                            ⬆️ REPLACE MEDIA
-                        </button>
-
-                    </div>
-
-                    <div id="editMainMediaUploadStatus" class="upload-status">
-                        Uploading a new file replaces the URL above.
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="form-group full">
-                <label>Mobile Media</label>
-
-                <input id="editMobileMediaUrl" type="url">
-
-                <div class="media-upload-box">
-
-                    <div class="media-upload-row">
-
-                        <input
-                            id="editMobileMediaFile"
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
-                        >
-
-                        <button
-                            id="editMobileMediaUploadButton"
-                            type="button"
-                            class="upload-btn"
-                            onclick="uploadAdvertisementMedia('edit-mobile')"
-                        >
-                            ⬆️ REPLACE MOBILE MEDIA
-                        </button>
-
-                    </div>
-
-                    <div id="editMobileMediaUploadStatus" class="upload-status">
-                        Optional mobile-specific replacement.
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="form-group full">
-                <label>Target URL *</label>
-                <input id="editTargetUrl" type="url">
-            </div>
-
-            <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="editPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="edit"> All 14 Advertising Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="edit"> Homepage</label><label class="placement-option"><input type="checkbox" value="new_movies" data-placement-group="edit"> New Movies</label><label class="placement-option"><input type="checkbox" value="movie_detail" data-placement-group="edit"> Movie Detail</label><label class="placement-option"><input type="checkbox" value="actors_list" data-placement-group="edit"> Actors List</label><label class="placement-option"><input type="checkbox" value="actor_detail" data-placement-group="edit"> Actor Detail</label><label class="placement-option"><input type="checkbox" value="actor_movies" data-placement-group="edit"> Actor Movies</label><label class="placement-option"><input type="checkbox" value="articles_list" data-placement-group="edit"> Articles List</label><label class="placement-option"><input type="checkbox" value="article_detail" data-placement-group="edit"> Article Detail</label><label class="placement-option"><input type="checkbox" value="movie_rankings" data-placement-group="edit"> Movie Rankings</label><label class="placement-option"><input type="checkbox" value="actor_rankings" data-placement-group="edit"> Actor Rankings</label><label class="placement-option"><input type="checkbox" value="actor_compare_select" data-placement-group="edit"> Actor Compare Selection</label><label class="placement-option"><input type="checkbox" value="actor_compare_results" data-placement-group="edit"> Actor Compare Results</label><label class="placement-option"><input type="checkbox" value="movie_compare_select" data-placement-group="edit"> Movie Compare Selection</label><label class="placement-option"><input type="checkbox" value="movie_compare_results" data-placement-group="edit"> Movie Compare Results</label></div></div>
-
-            <div class="form-group">
-                <label>Page Target</label>
-                <input id="editPageTarget" type="text">
-            </div>
-
-            <div id="editAdSlotGroup" class="form-group">
-                <label>In-content Slot</label>
-                <select id="editAdSlot">
-                    <option value="1">Slot 1</option>
-                    <option value="2">Slot 2</option>
-                    <option value="3">Slot 3</option>
-                    <option value="4">Slot 4</option>
-                    <option value="5">Slot 5</option>
-                    <option value="6">Slot 6</option>
-                    <option value="0">All Available Slots (1 - 6)</option>
-                </select>
-                <div class="helper">Supports Slot 1–6 or All Available Slots for In-content Image / Video.</div>
-            </div>
-
-            <div id="editMovieRankingIndustryGroup" class="form-group" style="display:none">
-                <label>Movie Ranking Industry</label>
-                <select id="editMovieRankingIndustry">
-                    <option value="*">All Movie Ranking Industries</option>
-                    <option value="Global">Global</option><option value="Kollywood">Kollywood</option><option value="Tollywood">Tollywood</option><option value="Bollywood">Bollywood</option><option value="Sandalwood">Sandalwood</option><option value="Mollywood">Mollywood</option><option value="Hollywood">Hollywood</option>
-                </select>
-            </div>
-
-            <div id="editActorRankingIndustryGroup" class="form-group" style="display:none">
-                <label>Actor Ranking Industry / Language</label>
-                <select id="editActorRankingIndustry">
-                    <option value="*">All Actor Ranking Industries</option>
-                    <option value="Global">Global</option><option value="Tamil">Tamil</option><option value="Telugu">Telugu</option><option value="Hindi">Hindi</option><option value="Kannada">Kannada</option><option value="Malayalam">Malayalam</option><option value="English">English</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Duration Seconds</label>
-                <input id="editDurationSeconds" type="number" min="1" max="60">
-            </div>
-
-            <div class="form-group">
-                <label>Frequency</label>
-                <select id="editFrequency">
-                    <option value="once_24h">Once per 24 hours</option>
-                    <option value="once_12h">Once per 12 hours</option>
-                    <option value="once_session">Once per session</option>
-                    <option value="always">Every eligible load</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Start Date *</label>
-                <input id="editStartDate" type="date">
-            </div>
-
-            <div class="form-group">
-                <label>Start Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
-                <input id="editStartTime" type="time">
-                <div class="helper">Empty = 12:00 AM on the start date.</div>
-            </div>
-
-            <div class="form-group">
-                <label>End Date *</label>
-                <input id="editEndDate" type="date">
-            </div>
-
-            <div class="form-group">
-                <label>End Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
-                <input id="editEndTime" type="time">
-                <div class="helper">Empty = 11:59 PM on the end date.</div>
-            </div>
-
-            <div class="form-group">
-                <label>Total Campaign Price (₹)</label>
-                <input id="editTotalAmount" type="number" min="0" step="0.01">
-            </div>
-            <div class="form-group">
-                <label>Amount Paid (₹)</label>
-                <input id="editAmountPaid" type="number" min="0" step="0.01">
-            </div>
-            <div class="form-group">
-                <label>Traffic Weight</label>
-                <input id="editTrafficWeight" type="number" min="0.01" max="1000" step="0.01">
-            </div>
-            <div class="form-group">
-                <label>Client Email</label>
-                <input id="editClientEmail" type="email">
-            </div>
-            <div class="form-group">
-                <label>Client Phone</label>
-                <input id="editClientPhone" type="text">
-            </div>
-            <div class="form-group full">
-                <label>Billing Address</label>
-                <input id="editBillingAddress" type="text">
-            </div>
-            <div class="form-group">
-                <label>Invoice Base Number</label>
-                <input id="editInvoiceNumber" type="text">
-            </div>
-            <div class="form-group">
-                <label>Invoice Date</label>
-                <input id="editInvoiceDate" type="date">
-            </div>
-            <div class="form-group">
-                <label>Payment Due Date</label>
-                <input id="editPaymentDueDate" type="date">
-            </div>
-            <div class="form-group full">
-                <label>Billing / Package Notes</label>
-                <input id="editBillingNotes" type="text">
-            </div>
-
-            <div class="form-group">
-                <label>Campaign Enabled</label>
-                <div class="switch-row">
-                    <input id="editIsActive" type="checkbox">
-                    <span>Enabled</span>
-                </div>
-            </div>
-
+        <div class="form-group">
+            <label>Business Category</label>
+            <input id="editBusinessCategory" type="text">
         </div>
 
-        <div class="form-actions">
-            <button class="primary-btn" onclick="saveAdvertisementEdit()">
-                💾 SAVE CHANGES
-            </button>
-
-            <button class="secondary-btn" onclick="closeEditModal()">
-                Cancel
-            </button>
+        <div class="form-group full">
+            <label>Campaign Name *</label>
+            <input id="editCampaignName" type="text">
         </div>
 
-        <div id="editMessage" class="message"></div>
+        <div class="form-group">
+            <label>Advertisement Type *</label>
+            <select id="editAdType" onchange="syncEditAdControls()">
+                <option value="full_screen">Full Screen</option>
+                <option value="top_banner">Top Banner</option>
+                <option value="top_sticky">Top Sticky</option>
+                <option value="bottom_sticky">Bottom Sticky</option>
+                <option value="in_content_video">In-content Video (Legacy)</option>
+                <option value="in_content">In-content Image / Video</option>
+                <option value="homepage">Homepage Ad</option>
+                <option value="movie_page">Movie Page Ad</option>
+                <option value="actor_page">Actor Page Ad</option>
+                <option value="article">Article Ad</option>
+                <option value="small_video">Small Video Ad</option>
+                <option value="sponsored_movie">Sponsored Movie</option>
+                <option value="sponsored_article">Sponsored Article</option>
+                <option value="sponsored_link">Sponsored Link</option>
+                <option value="search_result">Search Result Ad</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Media Type *</label>
+            <select id="editMediaType">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+            </select>
+        </div>
+
+        <div class="form-group full">
+            <label>Main Media *</label>
+
+            <input id="editMediaUrl" type="url">
+
+            <div class="media-upload-box">
+
+                <div class="media-upload-row">
+
+                    <input
+                        id="editMainMediaFile"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                    >
+
+                    <button
+                        id="editMainMediaUploadButton"
+                        type="button"
+                        class="upload-btn"
+                        onclick="uploadAdvertisementMedia('edit-main')"
+                    >
+                        ⬆️ REPLACE MEDIA
+                    </button>
+
+                </div>
+
+                <div id="editMainMediaUploadStatus" class="upload-status">
+                    Uploading a new file replaces the URL above.
+                </div>
+
+            </div>
+        </div>
+
+        <div class="form-group full">
+            <label>Mobile Media</label>
+
+            <input id="editMobileMediaUrl" type="url">
+
+            <div class="media-upload-box">
+
+                <div class="media-upload-row">
+
+                    <input
+                        id="editMobileMediaFile"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                    >
+
+                    <button
+                        id="editMobileMediaUploadButton"
+                        type="button"
+                        class="upload-btn"
+                        onclick="uploadAdvertisementMedia('edit-mobile')"
+                    >
+                        ⬆️ REPLACE MOBILE MEDIA
+                    </button>
+
+                </div>
+
+                <div id="editMobileMediaUploadStatus" class="upload-status">
+                    Optional mobile-specific replacement.
+                </div>
+
+            </div>
+        </div>
+
+        <div class="form-group full">
+            <label>Target URL *</label>
+            <input id="editTargetUrl" type="url">
+        </div>
+
+        <div class="form-group full"><label>Show On Pages *</label><div class="placement-grid" id="editPlacementGrid"><label class="placement-option"><input type="checkbox" value="sitewide" data-placement-group="edit"> All 14 Advertising Pages / Sitewide</label><label class="placement-option"><input type="checkbox" value="homepage" data-placement-group="edit"> Homepage</label><label class="placement-option"><input type="checkbox" value="new_movies" data-placement-group="edit"> New Movies</label><label class="placement-option"><input type="checkbox" value="movie_detail" data-placement-group="edit"> Movie Detail</label><label class="placement-option"><input type="checkbox" value="actors_list" data-placement-group="edit"> Actors List</label><label class="placement-option"><input type="checkbox" value="actor_detail" data-placement-group="edit"> Actor Detail</label><label class="placement-option"><input type="checkbox" value="actor_movies" data-placement-group="edit"> Actor Movies</label><label class="placement-option"><input type="checkbox" value="articles_list" data-placement-group="edit"> Articles List</label><label class="placement-option"><input type="checkbox" value="article_detail" data-placement-group="edit"> Article Detail</label><label class="placement-option"><input type="checkbox" value="movie_rankings" data-placement-group="edit"> Movie Rankings</label><label class="placement-option"><input type="checkbox" value="actor_rankings" data-placement-group="edit"> Actor Rankings</label><label class="placement-option"><input type="checkbox" value="actor_compare_select" data-placement-group="edit"> Actor Compare Selection</label><label class="placement-option"><input type="checkbox" value="actor_compare_results" data-placement-group="edit"> Actor Compare Results</label><label class="placement-option"><input type="checkbox" value="movie_compare_select" data-placement-group="edit"> Movie Compare Selection</label><label class="placement-option"><input type="checkbox" value="movie_compare_results" data-placement-group="edit"> Movie Compare Results</label></div></div>
+
+        <div class="form-group">
+            <label>Page Target</label>
+            <input id="editPageTarget" type="text">
+        </div>
+
+        <div id="editAdSlotGroup" class="form-group">
+            <label>In-content Slot</label>
+            <select id="editAdSlot">
+                <option value="1">Slot 1</option>
+                <option value="2">Slot 2</option>
+                <option value="3">Slot 3</option>
+                <option value="4">Slot 4</option>
+                <option value="5">Slot 5</option>
+                <option value="6">Slot 6</option>
+                <option value="0">All Available Slots (1 - 6)</option>
+            </select>
+            <div class="helper">Supports Slot 1–6 or All Available Slots for In-content Image / Video.</div>
+        </div>
+
+        <div id="editMovieRankingIndustryGroup" class="form-group" style="display:none">
+            <label>Movie Ranking Industry</label>
+            <select id="editMovieRankingIndustry">
+                <option value="*">All Movie Ranking Industries</option>
+                <option value="Global">Global</option><option value="Kollywood">Kollywood</option><option value="Tollywood">Tollywood</option><option value="Bollywood">Bollywood</option><option value="Sandalwood">Sandalwood</option><option value="Mollywood">Mollywood</option><option value="Hollywood">Hollywood</option>
+            </select>
+        </div>
+
+        <div id="editActorRankingIndustryGroup" class="form-group" style="display:none">
+            <label>Actor Ranking Industry / Language</label>
+            <select id="editActorRankingIndustry">
+                <option value="*">All Actor Ranking Industries</option>
+                <option value="Global">Global</option><option value="Tamil">Tamil</option><option value="Telugu">Telugu</option><option value="Hindi">Hindi</option><option value="Kannada">Kannada</option><option value="Malayalam">Malayalam</option><option value="English">English</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Duration Seconds</label>
+            <input id="editDurationSeconds" type="number" min="1" max="60">
+        </div>
+
+        <div class="form-group">
+            <label>Frequency</label>
+            <select id="editFrequency">
+                <option value="once_24h">Once per 24 hours</option>
+                <option value="once_12h">Once per 12 hours</option>
+                <option value="once_session">Once per session</option>
+                <option value="always">Every eligible load</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Start Date *</label>
+            <input id="editStartDate" type="date">
+        </div>
+
+        <div class="form-group">
+            <label>Start Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+            <input id="editStartTime" type="time">
+            <div class="helper">Empty = 12:00 AM on the start date.</div>
+        </div>
+
+        <div class="form-group">
+            <label>End Date *</label>
+            <input id="editEndDate" type="date">
+        </div>
+
+        <div class="form-group">
+            <label>End Time <span style="color:var(--muted);font-weight:700;">(Optional)</span></label>
+            <input id="editEndTime" type="time">
+            <div class="helper">Empty = 11:59 PM on the end date.</div>
+        </div>
+
+        <div class="form-group">
+            <label>Total Campaign Price (₹)</label>
+            <input id="editTotalAmount" type="number" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Amount Paid (₹)</label>
+            <input id="editAmountPaid" type="number" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Traffic Weight</label>
+            <input id="editTrafficWeight" type="number" min="0.01" max="1000" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Client Email</label>
+            <input id="editClientEmail" type="email">
+        </div>
+        <div class="form-group">
+            <label>Client Phone</label>
+            <input id="editClientPhone" type="text">
+        </div>
+        <div class="form-group full">
+            <label>Billing Address</label>
+            <input id="editBillingAddress" type="text">
+        </div>
+        <div class="form-group">
+            <label>Invoice Base Number</label>
+            <input id="editInvoiceNumber" type="text">
+        </div>
+        <div class="form-group">
+            <label>Invoice Date</label>
+            <input id="editInvoiceDate" type="date">
+        </div>
+        <div class="form-group">
+            <label>Payment Due Date</label>
+            <input id="editPaymentDueDate" type="date">
+        </div>
+        <div class="form-group full">
+            <label>Billing / Package Notes</label>
+            <input id="editBillingNotes" type="text">
+        </div>
+
+        <div class="form-group">
+            <label>Campaign Enabled</label>
+            <div class="switch-row">
+                <input id="editIsActive" type="checkbox">
+                <span>Enabled</span>
+            </div>
+        </div>
 
     </div>
 
+    <div class="form-actions">
+        <button class="primary-btn" onclick="saveAdvertisementEdit()">
+            💾 SAVE CHANGES
+        </button>
+
+        <button class="secondary-btn" onclick="closeEditModal()">
+            Cancel
+        </button>
+    </div>
+
+    <div id="editMessage" class="message"></div>
+
 </div>
 
+</div>
 
 <script>
     let allAdvertisements = [];
@@ -2102,8 +2224,7 @@
             }
         });
 
-        let data = {
-      ...bxPackagePayload(),};
+        let data = {};
 
         try {
             data = await response.json();
@@ -2226,7 +2347,9 @@
             ? "🚀 CREATE IN-CONTENT CAMPAIGN"
             : createAdMode === "sponsored_link" ? "🔗 CREATE SPONSORED LINK" : "💾 CREATE STANDARD CAMPAIGN";
         syncDurationVisibility();
-        syncRankingIndustryControls("create");        if (typeof bxRefreshPackageMode === "function") bxRefreshPackageMode();
+        syncCreativeSizeGuide();
+        syncRankingIndustryControls("create");
+        if (typeof bxRefreshPackageMode === "function") bxRefreshPackageMode();
     }
 
     function currentCreateAdType() {
@@ -3110,9 +3233,7 @@
                 true
             );
 
-            wirePlacementGroups("create");
-        wirePlacementGroups("edit");
-        resetCreateForm();
+            resetCreateForm();
 
             showMessage(
                 "createMessage",
@@ -3133,7 +3254,15 @@
         } finally {
 
             button.disabled = false;
-            button.textContent = saveAsDraft ? "📝 SAVE DRAFT" : "🚀 CREATE / ACTIVATE CAMPAIGN";
+            if (saveAsDraft) {
+                button.textContent = "📝 SAVE DRAFT";
+            } else {
+                button.textContent = createAdMode === "in_content"
+                    ? "🚀 CREATE IN-CONTENT CAMPAIGN"
+                    : createAdMode === "sponsored_link"
+                        ? "🔗 CREATE SPONSORED LINK"
+                        : "💾 CREATE STANDARD CAMPAIGN";
+            }
 
         }
 
@@ -3698,11 +3827,13 @@
             return;
         }
 
+        wirePlacementGroups("create");
+        wirePlacementGroups("edit");
         syncDurationVisibility();
         syncPageTargetVisibility();
 
-        await setCreateAdMode("standard");
-    loadAdvertisements();
+        setCreateAdMode("standard");
+        loadAdvertisements();
 
     }
 
@@ -4051,6 +4182,60 @@ function bxPackageBadge(pkg){
  document.addEventListener("keydown",event=>{if(event.key==="Escape")setMenu(false)});
  window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
 })();
+
+function syncCreativeSizeGuide(){
+    const summary = document.getElementById("bxCreativeSizeSummary");
+    if(!summary) return;
+
+    const mode =
+        (document.getElementById("inContentAdModeButton")?.classList.contains("active")) ? "in_content" :
+        (document.getElementById("sponsoredLinkModeButton")?.classList.contains("active")) ? "sponsored_link" :
+        "standard";
+
+    const type = document.getElementById("adType")?.value || "full_screen";
+    const media = document.getElementById("mediaType")?.value || "image";
+
+    let message = "";
+
+    if(mode === "in_content"){
+        message = media === "video"
+            ? "In-Content Video — Desktop: 728 × 410 px · Mobile: 320 × 180 px (16:9)."
+            : "In-Content Image — Desktop: 728 × 90 px · Mobile: 320 × 100 px.";
+    }else if(mode === "sponsored_link"){
+        message = "Sponsored Link — Desktop: 728 × 90 px · Mobile: 320 × 100 px. Entire creative remains clickable.";
+    }else{
+        const sizes = {
+            full_screen: "Full Screen — Desktop & Mobile: 1080 × 1920 px (9:16 responsive overlay).",
+            top_banner: "Top Banner — Desktop: 970 × 250 px · Mobile: 320 × 100 px.",
+            top_sticky: "Top Sticky — Desktop: 970 × 90 px · Mobile: 320 × 50 px.",
+            bottom_sticky: "Bottom Sticky — Desktop: 970 × 90 px · Mobile: 320 × 50 px.",
+            small_video: "Small / Floating Video — Desktop: 320 × 180 px · Mobile: 280 × 158 px (16:9).",
+            sponsored_link: "Sponsored Link — Desktop: 728 × 90 px · Mobile: 320 × 100 px.",
+            in_content_video: "Legacy In-Content Video — Desktop: 728 × 410 px · Mobile: 320 × 180 px (16:9).",
+            homepage: "Legacy Homepage Ad — use the current public placement dimensions; migrate new campaigns to Top Banner or In-Content.",
+            movie_page: "Legacy Movie Page Ad — use In-Content for new campaigns: Desktop 728 × 90 · Mobile 320 × 100.",
+            actor_page: "Legacy Actor Page Ad — use In-Content for new campaigns: Desktop 728 × 90 · Mobile 320 × 100.",
+            article: "Legacy Article Ad — use In-Content for new campaigns: Desktop 728 × 90 · Mobile 320 × 100.",
+            sponsored_movie: "Sponsored Movie — legacy format; creative size depends on the existing sponsored-card renderer.",
+            sponsored_article: "Sponsored Article — legacy format; creative size depends on the existing sponsored-card renderer.",
+            search_result: "Search Result Ad — legacy format; creative size depends on the existing search-result renderer."
+        };
+        message = sizes[type] || "Use the BoxOfficeX locked creative dimensions shown below.";
+    }
+
+    summary.textContent = message + " Creative uses object-fit: contain, so it is not stretched or cropped.";
+}
+
+// Keep the size guide synchronized when switching between Standard,
+// In-Content and Sponsored Link campaign modes without rewriting the
+// existing mode logic.
+document.addEventListener("click", function(event){
+    if(event.target.closest("#standardAdModeButton,#inContentAdModeButton,#sponsoredLinkModeButton")){
+        setTimeout(syncCreativeSizeGuide, 0);
+    }
+});
+document.addEventListener("DOMContentLoaded", syncCreativeSizeGuide);
+
 </script>
 
 </body>
