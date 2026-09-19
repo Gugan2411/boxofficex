@@ -1,15 +1,6 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6L5KLCWTEG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-6L5KLCWTEG');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -828,18 +819,9 @@ html,body{scroll-padding-top:0!important}
 </head>
 
 <body>
-<div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">ðŸŽ¬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>âš”ï¸</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>ðŸŽ¬</span>Movie Comparison</a></nav></div>
+<div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
 
 <header class="navbar">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6L5KLCWTEG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-6L5KLCWTEG');
-</script>
 
     <div class="logo">
         BoxOffice<span>X</span>
@@ -864,7 +846,7 @@ html,body{scroll-padding-top:0!important}
     <section class="movie-header">
 
         <div class="movie-poster">
-            ðŸŽ¬
+            🎬
         </div>
 
         <div class="movie-info">
@@ -896,24 +878,24 @@ html,body{scroll-padding-top:0!important}
 
     <section class="cast">
 
-        <h2>â­ Cast</h2>
+        <h2>⭐ Cast</h2>
 
         <div class="cast-grid">
 
             <div class="cast-card">
-                <div class="person">ðŸ‘¤</div>
+                <div class="person">👤</div>
                 <h3>Ram Charan</h3>
                 <p>Alluri Sitarama Raju</p>
             </div>
 
             <div class="cast-card">
-                <div class="person">ðŸ‘¤</div>
+                <div class="person">👤</div>
                 <h3>Jr NTR</h3>
                 <p>Komaram Bheem</p>
             </div>
 
             <div class="cast-card">
-                <div class="person">ðŸ‘¤</div>
+                <div class="person">👤</div>
                 <h3>Alia Bhatt</h3>
                 <p>Sita</p>
             </div>
@@ -927,8 +909,8 @@ html,body{scroll-padding-top:0!important}
 
 <footer class="bx-standard-footer">
   <div class="bx-footer-inner">
-    <div class="bx-footer-brand">ðŸŽ¬ BOXOFFICE<span>X</span></div>
-    <p class="bx-footer-copy">Â© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
+    <div class="bx-footer-brand">🎬 BOXOFFICE<span>X</span></div>
+    <p class="bx-footer-copy">© 2026 BoxOfficeX. Movie box office, rankings, comparisons and entertainment information.</p>
     <nav class="bx-footer-links" aria-label="Footer navigation">
       <a href="/about.html">About</a>
       <a href="/contact.html">Contact</a>
@@ -952,16 +934,16 @@ async function loadMovie() {
         document.getElementById("movieGenre").textContent = movie.genre;
 
         document.getElementById("movieBudget").textContent =
-            "â‚¹" + movie.budget_crore + " Cr";
+            "₹" + movie.budget_crore + " Cr";
 
         document.getElementById("movieIndia").textContent =
-            "â‚¹" + movie.india_collection_crore + " Cr";
+            "₹" + movie.india_collection_crore + " Cr";
 
         document.getElementById("movieOverseas").textContent =
-            "â‚¹" + movie.overseas_collection_crore + " Cr";
+            "₹" + movie.overseas_collection_crore + " Cr";
 
         document.getElementById("movieWorldwide").textContent =
-            "â‚¹" + movie.worldwide_collection_crore + " Cr";
+            "₹" + movie.worldwide_collection_crore + " Cr";
 
         document.getElementById("movieVerdict").textContent = movie.verdict;
         document.getElementById("movieDirector").textContent = movie.director;
