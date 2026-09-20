@@ -4719,10 +4719,11 @@ async function renderBlock(block) {
 async function renderArticle(article) {
     setSEO(article);
 
-    const blockHTML = [];
-    for (const block of (article.blocks || [])) {
-        blockHTML.push(await renderBlock(block));
-    }
+    // PERFORMANCE: render independent article blocks in parallel instead of
+    // waiting for movie/actor API-backed blocks one by one.
+    const blockHTML = await Promise.all(
+        (article.blocks || []).map(block => renderBlock(block))
+    );
 
     // Three deterministic In-Content positions inside the rendered article body.
     if (blockHTML.length) {
@@ -4829,11 +4830,20 @@ async function renderArticle(article) {
     if (typeof window.BoxOfficeXLoadArticleInContentAds === "function") {
         window.BoxOfficeXLoadArticleInContentAds();
     }
-            loadArticleRelatedContent(window.currentBoxOfficeXArticle?.id);
-    if (!new URLSearchParams(window.location.search).has("admin_preview") && article.id) {
-        trackArticleView(article.id);
-    loadArticleEngagement(article.id);
-        loadArticleComments(article.id);
+    // PERFORMANCE: article title/body paint first. Reader-zone, related-content
+    // and tracking requests are non-critical and start only after the browser is idle.
+    const runNonCriticalArticleTasks = () => {
+        loadArticleRelatedContent(window.currentBoxOfficeXArticle?.id);
+        if (!new URLSearchParams(window.location.search).has("admin_preview") && article.id) {
+            trackArticleView(article.id);
+            loadArticleEngagement(article.id);
+            loadArticleComments(article.id);
+        }
+    };
+    if ("requestIdleCallback" in window) {
+        requestIdleCallback(runNonCriticalArticleTasks, { timeout: 1800 });
+    } else {
+        setTimeout(runNonCriticalArticleTasks, 900);
     }
 
     const savedReaderName = localStorage.getItem("boxofficex_comment_name");
@@ -5249,7 +5259,12 @@ if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),..
 if(ar.ok){const d=await ar.json(),now=Date.now(),seven=7*86400000;const fresh=(d.articles||[]).some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}
 }catch(error){console.warn("Site NEW badge check failed:",error)}
 }
-updateSiteNewBadges();
+// PERFORMANCE: NEW badges are navigation decoration, not critical content.
+if ("requestIdleCallback" in window) {
+    requestIdleCallback(updateSiteNewBadges, { timeout: 3000 });
+} else {
+    setTimeout(updateSiteNewBadges, 1800);
+}
 
 </script>
 
@@ -5906,9 +5921,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if(document.readyState === "loading"){
-        document.addEventListener("DOMContentLoaded", loadArticleDetailAds);
+        document.addEventListener("DOMContentLoaded", () => {
+            if ("requestIdleCallback" in window) {
+                requestIdleCallback(loadArticleDetailAds, { timeout: 2500 });
+            } else {
+                setTimeout(loadArticleDetailAds, 1400);
+            }
+        });
     }else{
-        loadArticleDetailAds();
+        // PERFORMANCE: let the article heading/content render before ad discovery.
+        if ("requestIdleCallback" in window) {
+            requestIdleCallback(loadArticleDetailAds, { timeout: 2500 });
+        } else {
+            setTimeout(loadArticleDetailAds, 1400);
+        }
     }
 
 })();
@@ -6400,7 +6426,10 @@ document.addEventListener("DOMContentLoaded", function () {
  window.BoxOfficeXLoadArticleInContentAds=run;
 
  // If article finished before this script was parsed, render immediately.
- if(slot(1)||slot(2)||slot(3))run();
+ if(slot(1)||slot(2)||slot(3)){
+   if("requestIdleCallback" in window) requestIdleCallback(run,{timeout:2600});
+   else setTimeout(run,1500);
+ }
 })();
 </script>
 
