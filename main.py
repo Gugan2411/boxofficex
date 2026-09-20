@@ -2275,15 +2275,16 @@ def _sitemap_url_entry(path, changefreq=None, priority=None, lastmod=None):
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap_xml():
     """
-    Lightweight launch sitemap containing:
+    BoxOfficeX sitemap containing:
     - main public pages
     - canonical movie pages
     - canonical actor pages
     - published article pages
+    - a controlled set of canonical actor comparison pages
+    - a controlled set of canonical movie comparison pages
 
-    Comparison pages remain fully available to users and crawlable through
-    internal links, but large all-pair comparison sitemap generation is
-    intentionally excluded to protect application resources.
+    Comparison URLs are intentionally capped so the sitemap does not explode
+    into every possible pair. Only one canonical ID-ordered URL is emitted.
     """
     cached = _sitemap_cache.get("core")
     if cached is not None:
@@ -2322,6 +2323,47 @@ def sitemap_xml():
             """)
             article_rows = cur.fetchall()
 
+            # Controlled actor-comparison pool.
+            # Only actors with reasonably complete BoxOfficeX data qualify:
+            # - at least 10 linked movies
+            # - at least 5 linked movies with worldwide collection data
+            # Limit to 25 actors initially = at most 300 canonical pairs.
+            cur.execute("""
+                SELECT
+                    a.id,
+                    COUNT(DISTINCT am.movie_id) AS movie_count,
+                    COUNT(DISTINCT am.movie_id) FILTER (
+                        WHERE m.worldwide_collection_crore IS NOT NULL
+                    ) AS worldwide_movie_count
+                FROM actors a
+                JOIN actor_movies am ON am.actor_id = a.id
+                JOIN movies m ON m.id = am.movie_id
+                GROUP BY a.id
+                HAVING COUNT(DISTINCT am.movie_id) >= 10
+                   AND COUNT(DISTINCT am.movie_id) FILTER (
+                        WHERE m.worldwide_collection_crore IS NOT NULL
+                   ) >= 5
+                ORDER BY
+                    worldwide_movie_count DESC,
+                    movie_count DESC,
+                    a.id ASC
+                LIMIT 25
+            """)
+            comparison_actor_rows = cur.fetchall()
+
+            # Controlled movie-comparison pool using the same public rule as
+            # the comparison page: worldwide collection must be >= ₹25 crore.
+            # 40 movies = at most 780 canonical pairs.
+            cur.execute("""
+                SELECT id
+                FROM movies
+                WHERE worldwide_collection_crore IS NOT NULL
+                  AND worldwide_collection_crore >= 25
+                ORDER BY worldwide_collection_crore DESC, id ASC
+                LIMIT 40
+            """)
+            comparison_movie_rows = cur.fetchall()
+
     movie_slug_map = _unique_movie_slug_map()
     actor_slug_map = _unique_actor_slug_map()
     urls = []
@@ -2347,6 +2389,44 @@ def sitemap_xml():
         urls.append(_sitemap_url_entry(
             f"/article/{slug}", "monthly", "0.8", last_modified
         ))
+
+    # Canonical actor comparisons. IDs are sorted so A-vs-B and B-vs-A
+    # can never both enter the sitemap.
+    comparison_actor_ids = sorted({row[0] for row in comparison_actor_rows})
+    for index, first_id in enumerate(comparison_actor_ids):
+        first_slug = actor_slug_map.get(first_id)
+        if not first_slug:
+            continue
+
+        for second_id in comparison_actor_ids[index + 1:]:
+            second_slug = actor_slug_map.get(second_id)
+            if not second_slug:
+                continue
+
+            urls.append(_sitemap_url_entry(
+                f"/compare/{first_slug}-vs-{second_slug}",
+                "weekly",
+                "0.6"
+            ))
+
+    # Canonical movie comparisons. The pool already enforces the ₹25 crore
+    # eligibility rule; ID ordering matches the backend canonical URL logic.
+    comparison_movie_ids = sorted({row[0] for row in comparison_movie_rows})
+    for index, first_id in enumerate(comparison_movie_ids):
+        first_slug = movie_slug_map.get(first_id)
+        if not first_slug:
+            continue
+
+        for second_id in comparison_movie_ids[index + 1:]:
+            second_slug = movie_slug_map.get(second_id)
+            if not second_slug:
+                continue
+
+            urls.append(_sitemap_url_entry(
+                f"/compare/movies/{first_slug}-vs-{second_slug}",
+                "weekly",
+                "0.6"
+            ))
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
