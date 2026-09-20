@@ -2259,9 +2259,9 @@ function poster(m){
     return "/posters/" + encodeURIComponent(value);
 }
 function absolutePoster(m){
-    if(BOXOFFICEX_USE_MOVIE_PLACEHOLDERS)return window.location.origin+"/images/boxofficex-share.jpg";
+    if(BOXOFFICEX_USE_MOVIE_PLACEHOLDERS)return "https://boxofficex.in/images/boxofficex-share.jpg";
     const url = poster(m);
-    return /^https?:\/\//i.test(url) ? url : window.location.origin + url;
+    return /^https?:\/\//i.test(url) ? url : "https://boxofficex.in" + url;
 }
 function money(v){return v===null||v===undefined?"N/A":"₹"+Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})+" Cr"}
 function text(v){return v===null||v===undefined||v===""?"N/A":esc(String(v))}
@@ -2701,7 +2701,7 @@ function updateComparisonSEO(a,b,comparisonCanonicalUrl=null){
         );
 
     const canonical =
-        window.location.origin +
+        "https://boxofficex.in" +
         canonicalPath;
 
     const imageA = absolutePoster(a);
@@ -2729,7 +2729,7 @@ function updateComparisonSEO(a,b,comparisonCanonicalUrl=null){
         "isPartOf": {
             "@type": "WebSite",
             "name": "BoxOfficeX",
-            "url": window.location.origin + "/"
+            "url": "https://boxofficex.in/"
         },
         "about": [
             {

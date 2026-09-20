@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Depends
-from fastapi.responses import FileResponse, Response, RedirectResponse
+from fastapi.responses import FileResponse, Response, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -35,6 +35,7 @@ import re
 import psycopg
 from pydantic import BaseModel
 from xml.sax.saxutils import escape as xml_escape
+from html import escape as html_escape
 
 
 # ============================================================
@@ -2539,11 +2540,111 @@ def resolve_actor_comparison_slug(comparison_slug: str):
 @app.get("/compare/{comparison_slug}", include_in_schema=False)
 def actor_comparison_slug_page(comparison_slug: str):
     comparison = resolve_actor_comparison_slug(comparison_slug)
+
     if not comparison:
-        raise HTTPException(status_code=404, detail="Actor comparison not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Actor comparison not found"
+        )
+
+    # Keep only one public URL for each actor pair.
     if not comparison.get("is_canonical", True):
-        return RedirectResponse(url=comparison["canonical_url"], status_code=301)
-    return FileResponse(BASE_DIR / "compare.html")
+        return RedirectResponse(
+            url=comparison["canonical_url"],
+            status_code=301
+        )
+
+    actor1_name = str(comparison["actor1"]["name"]).strip()
+    actor2_name = str(comparison["actor2"]["name"]).strip()
+
+    canonical_url = (
+        f"https://boxofficex.in{comparison['canonical_url']}"
+    )
+
+    title = (
+        f"{actor1_name} vs {actor2_name} "
+        f"Box Office Comparison | BoxOfficeX"
+    )
+
+    description = (
+        f"Compare {actor1_name} vs {actor2_name} by total movies, "
+        f"worldwide box office collections, averages, blockbusters, "
+        f"hits, flops and highest-grossing films on BoxOfficeX."
+    )
+
+    # Escape dynamic text before inserting it into HTML attributes/tags.
+    safe_title = html_escape(title, quote=True)
+    safe_description = html_escape(description, quote=True)
+    safe_canonical_url = html_escape(canonical_url, quote=True)
+
+    html_path = BASE_DIR / "compare.html"
+
+    try:
+        page_html = html_path.read_text(encoding="utf-8")
+    except OSError:
+        raise HTTPException(
+            status_code=500,
+            detail="Comparison page template could not be loaded"
+        )
+
+    # Inject the final SEO metadata into the original server response.
+    # Client-side JavaScript may update the same elements later, but
+    # Google receives the correct title/description/canonical immediately.
+    page_html = page_html.replace(
+        "<title>Actor Box Office Comparison | BoxOfficeX</title>",
+        f"<title>{safe_title}</title>",
+        1
+    )
+
+    page_html = page_html.replace(
+        'content="Compare actors by movies, worldwide box office collections, averages, blockbusters, hits, flops and highest-grossing films on BoxOfficeX."',
+        f'content="{safe_description}"',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/compare.html">',
+        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical_url}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="ogTitle" property="og:title" content="Actor Box Office Comparison | BoxOfficeX">',
+        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="ogDescription" property="og:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">',
+        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="ogUrl" property="og:url" content="https://boxofficex.in/compare.html">',
+        f'<meta id="ogUrl" property="og:url" content="{safe_canonical_url}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="twitterTitle" name="twitter:title" content="Actor Box Office Comparison | BoxOfficeX">',
+        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="twitterDescription" name="twitter:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">',
+        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
+        1
+    )
+
+    return HTMLResponse(
+        content=page_html,
+        status_code=200,
+        headers={
+            "Cache-Control": "public, max-age=300"
+        }
+    )
 
 
 @app.get("/seo/resolve/actor-comparison/{comparison_slug}", include_in_schema=False)
@@ -9341,11 +9442,108 @@ def resolve_movie_comparison_slug(comparison_slug: str):
 @app.get("/compare/movies/{comparison_slug}", include_in_schema=False)
 def movie_comparison_slug_page(comparison_slug: str):
     comparison = resolve_movie_comparison_slug(comparison_slug)
+
     if not comparison:
-        raise HTTPException(status_code=404, detail="Movie comparison not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Movie comparison not found"
+        )
+
+    # Keep only one public URL for each movie pair.
     if not comparison.get("is_canonical", True):
-        return RedirectResponse(url=comparison["canonical_url"], status_code=301)
-    return FileResponse(BASE_DIR / "movie-compare.html")
+        return RedirectResponse(
+            url=comparison["canonical_url"],
+            status_code=301
+        )
+
+    movie1_title = str(comparison["movie1"]["title"]).strip()
+    movie2_title = str(comparison["movie2"]["title"]).strip()
+
+    canonical_url = (
+        f"https://boxofficex.in{comparison['canonical_url']}"
+    )
+
+    title = (
+        f"{movie1_title} vs {movie2_title} "
+        f"Box Office Comparison | BoxOfficeX"
+    )
+
+    description = (
+        f"Compare {movie1_title} vs {movie2_title} box office: "
+        f"budget, India gross, overseas gross, worldwide collection "
+        f"and verdict on BoxOfficeX."
+    )
+
+    safe_title = html_escape(title, quote=True)
+    safe_description = html_escape(description, quote=True)
+    safe_canonical_url = html_escape(canonical_url, quote=True)
+
+    html_path = BASE_DIR / "movie-compare.html"
+
+    try:
+        page_html = html_path.read_text(encoding="utf-8")
+    except OSError:
+        raise HTTPException(
+            status_code=500,
+            detail="Movie comparison page template could not be loaded"
+        )
+
+    # Inject final SEO metadata before the HTML is sent to Google.
+    page_html = page_html.replace(
+        "<title>Movie Box Office Comparison | BoxOfficeX</title>",
+        f"<title>{safe_title}</title>",
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="metaDescription" name="description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">',
+        f'<meta id="metaDescription" name="description" content="{safe_description}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/movie-compare.html">',
+        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical_url}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="ogTitle" property="og:title" content="Movie Box Office Comparison | BoxOfficeX">',
+        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="ogDescription" property="og:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">',
+        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="ogUrl" property="og:url" content="https://boxofficex.in/movie-compare.html">',
+        f'<meta id="ogUrl" property="og:url" content="{safe_canonical_url}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="twitterTitle" name="twitter:title" content="Movie Box Office Comparison | BoxOfficeX">',
+        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
+        1
+    )
+
+    page_html = page_html.replace(
+        '<meta id="twitterDescription" name="twitter:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">',
+        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
+        1
+    )
+
+    return HTMLResponse(
+        content=page_html,
+        status_code=200,
+        headers={
+            "Cache-Control": "public, max-age=300"
+        }
+    )
 
 
 @app.get("/seo/resolve/movie-comparison/{comparison_slug}", include_in_schema=False)
