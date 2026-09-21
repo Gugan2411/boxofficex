@@ -6251,13 +6251,33 @@ def article_page(slug: Optional[str] = None):
     return RedirectResponse(url=f"/article/{row[0]}", status_code=301)
 
 
-@app.get("/article/{slug}")
+@app.get("/article/{slug}", response_class=HTMLResponse)
 def article_pretty_page(slug: str):
+    """
+    Serve the existing article.html UI, but inject critical SEO metadata
+    server-side before the HTML is returned.
+
+    This gives crawlers the final title, description, canonical, Open Graph,
+    Twitter and Article structured data in the initial HTTP response instead
+    of requiring JavaScript to create/update those values after page load.
+    """
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT 1
+                SELECT
+                    id,
+                    title,
+                    slug,
+                    subtitle,
+                    category,
+                    author,
+                    hero_image,
+                    meta_title,
+                    meta_description,
+                    published_at,
+                    created_at,
+                    updated_at
                 FROM articles
                 WHERE slug = %s
                   AND status = 'published'
@@ -6265,12 +6285,234 @@ def article_pretty_page(slug: str):
                 """,
                 (slug,)
             )
-            exists = cur.fetchone()
+            article = cur.fetchone()
 
-    if not exists:
+    if not article:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    return FileResponse(BASE_DIR / "article.html")
+    (
+        article_id,
+        title,
+        article_slug,
+        subtitle,
+        category,
+        author,
+        hero_image,
+        meta_title,
+        meta_description,
+        published_at,
+        created_at,
+        updated_at,
+    ) = article
+
+    article_file = BASE_DIR / "article.html"
+
+    if not article_file.is_file():
+        raise HTTPException(status_code=500, detail="article.html not found")
+
+    html = article_file.read_text(encoding="utf-8")
+
+    canonical_url = f"https://boxofficex.in/article/{article_slug}"
+
+    seo_title = (meta_title or title or "BoxOfficeX").strip()
+    if "boxofficex" not in seo_title.lower():
+        seo_title = f"{seo_title} | BoxOfficeX"
+
+    seo_description = (
+        meta_description
+        or subtitle
+        or "Read the latest movie, box office and entertainment stories on BoxOfficeX."
+    ).strip()
+
+    article_author = (author or "BoxOfficeX").strip()
+    article_category = (category or "Movies & Box Office").strip()
+
+    def _absolute_article_image(value):
+        value = str(value or "").strip()
+
+        if not value:
+            return "https://boxofficex.in/images/boxofficex-og.png"
+
+        if value.startswith(("https://", "http://")):
+            return value
+
+        if value.startswith("/"):
+            return f"https://boxofficex.in{value}"
+
+        # Article hero images are normally stored under /article-images/.
+        return f"https://boxofficex.in/article-images/{value}"
+
+    seo_image = _absolute_article_image(hero_image)
+
+    published_value = published_at or created_at
+    modified_value = updated_at or published_value
+
+    published_iso = (
+        published_value.isoformat()
+        if published_value and hasattr(published_value, "isoformat")
+        else ""
+    )
+    modified_iso = (
+        modified_value.isoformat()
+        if modified_value and hasattr(modified_value, "isoformat")
+        else published_iso
+    )
+
+    safe_title = html_escape(seo_title, quote=True)
+    safe_description = html_escape(seo_description, quote=True)
+    safe_canonical = html_escape(canonical_url, quote=True)
+    safe_image = html_escape(seo_image, quote=True)
+    safe_author = html_escape(article_author, quote=True)
+    safe_category = html_escape(article_category, quote=True)
+    safe_published = html_escape(published_iso, quote=True)
+    safe_modified = html_escape(modified_iso, quote=True)
+
+    # Replace the default static SEO placeholders already present in article.html.
+    html = html.replace(
+        '<title id="pageTitle">Article | BoxOfficeX</title>',
+        f'<title id="pageTitle">{safe_title}</title>',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="metaDescription" name="description" content="Read the latest movie, box office and entertainment stories on BoxOfficeX.">',
+        f'<meta id="metaDescription" name="description" content="{safe_description}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta name="robots" content="index, follow">',
+        '<meta name="robots" content="index, follow, max-image-preview:large">',
+        1,
+    )
+
+    html = html.replace(
+        '<link id="canonicalUrl" rel="canonical" href="">',
+        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="ogTitle" property="og:title" content="BoxOfficeX Article">',
+        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="ogDescription" property="og:description" content="">',
+        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="ogImage" property="og:image" content="">',
+        f'<meta id="ogImage" property="og:image" content="{safe_image}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="ogUrl" property="og:url" content="">',
+        f'<meta id="ogUrl" property="og:url" content="{safe_canonical}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="twitterTitle" name="twitter:title" content="BoxOfficeX Article">',
+        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="twitterDescription" name="twitter:description" content="Read the latest movie and box-office stories on BoxOfficeX.">',
+        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="twitterImage" name="twitter:image" content="">',
+        f'<meta id="twitterImage" name="twitter:image" content="{safe_image}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="articleAuthorMeta" name="author" content="BoxOfficeX">',
+        f'<meta id="articleAuthorMeta" name="author" content="{safe_author}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="articlePublishedMeta" property="article:published_time" content="">',
+        f'<meta id="articlePublishedMeta" property="article:published_time" content="{safe_published}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="articleModifiedMeta" property="article:modified_time" content="">',
+        f'<meta id="articleModifiedMeta" property="article:modified_time" content="{safe_modified}">',
+        1,
+    )
+
+    html = html.replace(
+        '<meta id="articleSectionMeta" property="article:section" content="Movies & Box Office">',
+        f'<meta id="articleSectionMeta" property="article:section" content="{safe_category}">',
+        1,
+    )
+
+    # Server-render Article JSON-LD as well. The existing front-end JavaScript
+    # may refresh this with the same article data after load; that is fine.
+    structured_data = {
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": title or seo_title,
+        "description": seo_description,
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": canonical_url,
+        },
+        "url": canonical_url,
+        "image": [seo_image] if seo_image else [],
+        "author": {
+            "@type": "Organization",
+            "name": article_author,
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "BoxOfficeX",
+            "url": "https://boxofficex.in",
+        },
+        "articleSection": article_category,
+    }
+
+    if published_iso:
+        structured_data["datePublished"] = published_iso
+
+    if modified_iso:
+        structured_data["dateModified"] = modified_iso
+
+    structured_json = json.dumps(
+        structured_data,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).replace("</", "<\\/")
+
+    html = html.replace(
+        '<script id="articleStructuredData" type="application/ld+json"></script>',
+        (
+            '<script id="articleStructuredData" type="application/ld+json">'
+            f'{structured_json}'
+            '</script>'
+        ),
+        1,
+    )
+
+    return HTMLResponse(
+        content=html,
+        status_code=200,
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "Link": f'<{canonical_url}>; rel="canonical"',
+        },
+    )
 
 
 # BOXOFFICEX ARTICLES API
@@ -6322,12 +6564,7 @@ def trending_articles(limit: int = 10):
                         a.hero_image,
                         a.published_at,
 
-                        (
-                            SELECT COUNT(*)
-                            FROM article_views v
-                            WHERE v.article_id = a.id
-                              AND v.viewed_at >= NOW() - INTERVAL '7 days'
-                        )::bigint AS view_count,
+                        COALESCE(a.views, 0)::bigint AS view_count,
 
                         (
                             SELECT COUNT(*)
@@ -11599,13 +11836,11 @@ def _track_unique_view(table_name: str, id_column: str, item_id: int, visitor_id
     allowed = {
         ("movie_views", "movie_id", "movies"),
         ("actor_views", "actor_id", "actors"),
-        ("article_views", "article_id", "articles"),
     }
 
     target_table = {
         ("movie_views", "movie_id"): "movies",
         ("actor_views", "actor_id"): "actors",
-        ("article_views", "article_id"): "articles",
     }.get((table_name, id_column))
 
     if not target_table or (table_name, id_column, target_table) not in allowed:
@@ -11646,7 +11881,6 @@ def _get_view_count(table_name: str, id_column: str, item_id: int):
     allowed = {
         ("movie_views", "movie_id"),
         ("actor_views", "actor_id"),
-        ("article_views", "article_id"),
     }
 
     if (table_name, id_column) not in allowed:
@@ -11687,13 +11921,58 @@ def get_actor_views(actor_id: int):
 
 @app.post("/articles/{article_id}/view")
 def track_article_view(article_id: int, data: ViewTrackData):
-    result = _track_unique_view("article_views", "article_id", article_id, data.visitor_id)
-    return {"article_id": article_id, **result}
+    # Articles already store their public view total in articles.views.
+    # Do not depend on a separate article_views table.
+    _clean_visitor_id(data.visitor_id)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE articles
+                SET views = COALESCE(views, 0) + 1
+                WHERE id = %s
+                  AND status = 'published'
+                RETURNING views
+                """,
+                (article_id,)
+            )
+            row = cur.fetchone()
+
+            if not row:
+                raise HTTPException(status_code=404, detail="Article not found")
+
+        conn.commit()
+
+    return {
+        "article_id": article_id,
+        "counted": True,
+        "views": int(row[0] or 0),
+    }
 
 
 @app.get("/articles/{article_id}/views")
 def get_article_views(article_id: int):
-    return {"article_id": article_id, **_get_view_count("article_views", "article_id", article_id)}
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT COALESCE(views, 0)
+                FROM articles
+                WHERE id = %s
+                  AND status = 'published'
+                """,
+                (article_id,)
+            )
+            row = cur.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    return {
+        "article_id": article_id,
+        "views": int(row[0] or 0),
+    }
 
 
 # ============================================================
