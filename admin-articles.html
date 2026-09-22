@@ -712,6 +712,63 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 }
 @media(max-width:390px){.actions,.block-add,.article-format-tools,.dm-actions{grid-template-columns:1fr}.reuse-actions{grid-template-columns:1fr}.gallery-preview{grid-template-columns:1fr}}
 
+
+/* =====================================================
+   ARTICLE TABLE BLOCK
+===================================================== */
+.article-table-editor{
+    display:grid;
+    gap:10px;
+}
+.article-table-editor textarea{
+    min-height:170px;
+    font-family:Consolas,Monaco,monospace;
+    line-height:1.5;
+}
+.article-table-note{
+    padding:9px 10px;
+    border:1px dashed rgba(77,141,255,.25);
+    border-radius:9px;
+    background:rgba(77,141,255,.05);
+    color:#8aa8df;
+    font-size:10px;
+    line-height:1.5;
+}
+.article-table-preview-wrap{
+    width:100%;
+    overflow-x:auto;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:11px;
+    background:#0a101c;
+}
+.article-table-preview{
+    width:100%;
+    min-width:620px;
+    border-collapse:collapse;
+}
+.article-table-preview th,
+.article-table-preview td{
+    padding:9px 10px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    border-right:1px solid rgba(255,255,255,.05);
+    text-align:left;
+    font-size:10px;
+    white-space:nowrap;
+}
+.article-table-preview th{
+    background:#111a2b;
+    color:#ffcc33;
+    font-weight:900;
+}
+.article-table-preview td{color:#dce5f5}
+.article-table-preview tr:last-child td{border-bottom:0}
+.article-table-preview th:last-child,
+.article-table-preview td:last-child{border-right:0}
+@media(max-width:650px){
+    .article-table-editor textarea{min-height:210px}
+    .article-table-preview{min-width:560px}
+}
+
 </style>
 </head>
 <body>
@@ -876,6 +933,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button data-add="image">Image</button>
 <button data-add="quote">Quote</button>
 <button data-add="boxoffice">Box Office</button>
+<button data-add="table">Table</button>
 <button data-add="gallery">Gallery</button>
 <button data-add="movie">Movie</button>
 <button data-add="actor">Actor</button>
@@ -1262,6 +1320,10 @@ movie_id:selectedMovieLinkIds.length===1 ? Number(selectedMovieLinkIds[0]) : nul
 budget:null,
 verdict:"",
 days:[makeBoxOfficeDay(1)]
+};
+if(type==="table")base.extra_data={
+headers:[],
+rows:[]
 };
 if(type==="gallery")base.extra_data={images:[]};
 if(type==="movie")base.extra_data={movie_id:null};
@@ -1819,6 +1881,42 @@ textarea.setSelectionRange(selectionStart,selectionEnd);
 textarea.dispatchEvent(new Event("input",{bubbles:true}));
 }
 
+
+function normalizeArticleTableExtra(extra){
+extra=extra&&typeof extra==="object"?extra:{};
+const headers=Array.isArray(extra.headers)?extra.headers.map(x=>String(x??"").trim()):[];
+const rows=Array.isArray(extra.rows)
+    ? extra.rows
+        .filter(row=>Array.isArray(row))
+        .map(row=>row.map(x=>String(x??"").trim()))
+    : [];
+return {headers,rows};
+}
+
+function articleTablePreviewHTML(extra){
+const t=normalizeArticleTableExtra(extra);
+if(!t.headers.length && !t.rows.length){
+return `<div class="article-table-note">Table preview will appear here after you enter headers or rows.</div>`;
+}
+const columnCount=Math.max(
+    t.headers.length,
+    ...t.rows.map(row=>row.length),
+    1
+);
+const headers=Array.from({length:columnCount},(_,i)=>t.headers[i]||`Column ${i+1}`);
+const rows=t.rows.map(row=>{
+    const cells=Array.from({length:columnCount},(_,i)=>row[i]||"");
+    return `<tr>${cells.map(cell=>`<td>${articleContentEsc(cell)}</td>`).join("")}</tr>`;
+}).join("");
+return `
+<div class="article-table-preview-wrap">
+<table class="article-table-preview">
+<thead><tr>${headers.map(h=>`<th>${articleContentEsc(h)}</th>`).join("")}</tr></thead>
+<tbody>${rows||`<tr><td colspan="${columnCount}" style="color:#77839a">No rows yet</td></tr>`}</tbody>
+</table>
+</div>`;
+}
+
 function renderBlocks(){
 const box=$("blocks");box.innerHTML="";
 blocks.forEach((b,i)=>{
@@ -1842,6 +1940,33 @@ body=`<div class="block-row"><div><label>Image filename</label><input data-field
 if(b.block_type==="boxoffice"){
 b.extra_data=normalizeBoxOfficeExtra(b.extra_data);
 body=renderBoxOfficeBlock(b.extra_data);
+}
+if(b.block_type==="table"){
+b.extra_data=normalizeArticleTableExtra(b.extra_data);
+const tableHeaders=b.extra_data.headers.join(" | ");
+const tableRows=b.extra_data.rows.map(row=>row.join(" | ")).join("\n");
+body=`
+<div class="article-table-editor">
+    <div>
+        <label>Table Headers</label>
+        <input
+            data-table-headers
+            value="${articleContentEsc(tableHeaders)}"
+            placeholder="City | Day 1 Gross | Including Block Seats | Shows"
+        >
+    </div>
+    <div>
+        <label>Table Rows</label>
+        <textarea
+            data-table-rows
+            placeholder="Hyderabad | ₹79.29 Lakh | ₹1.66 Cr | 175&#10;Bengaluru | ₹6.73 Lakh | ₹33.58 Lakh | 52"
+        >${articleContentEsc(tableRows)}</textarea>
+    </div>
+    <div class="article-table-note">
+        Separate columns with | and put each row on a new line. The public article renderer can use the saved headers and rows from extra_data.
+    </div>
+    <div data-table-preview>${articleTablePreviewHTML(b.extra_data)}</div>
+</div>`;
 }
 if(b.block_type==="gallery"){
 body=`<label>Gallery images</label><textarea data-extra="images">${Array.isArray(b.extra_data?.images)?b.extra_data.images.join(", "):""}</textarea><div style="margin-top:8px"><input type="file" data-gallery-upload multiple accept="image/jpeg,image/png,image/webp"></div><div class="note">Select multiple images to upload them together. You can still edit filenames manually.</div>${galleryPreviewHTML(b.extra_data?.images||[])}`;
@@ -1874,6 +1999,34 @@ if(k==="images")v=v.split(",").map(x=>x.trim()).filter(Boolean);
 if(["india","overseas","worldwide","movie_id","actor_id"].includes(k))v=v===""?null:Number(v);
 updateExtra(i,k,v);
 });
+
+
+const tableHeadersInput=card.querySelector("[data-table-headers]");
+const tableRowsInput=card.querySelector("[data-table-rows]");
+const tablePreview=card.querySelector("[data-table-preview]");
+
+function syncArticleTableBlock(){
+if(b.block_type!=="table")return;
+b.extra_data=b.extra_data||{};
+b.extra_data.headers=(tableHeadersInput?.value||"")
+    .split("|")
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+b.extra_data.rows=(tableRowsInput?.value||"")
+    .split(/\r?\n/)
+    .map(line=>line.trim())
+    .filter(Boolean)
+    .map(line=>line.split("|").map(x=>x.trim()))
+    .filter(row=>row.some(cell=>cell!==""));
+
+if(tablePreview){
+    tablePreview.innerHTML=articleTablePreviewHTML(b.extra_data);
+}
+}
+
+if(tableHeadersInput)tableHeadersInput.oninput=syncArticleTableBlock;
+if(tableRowsInput)tableRowsInput.oninput=syncArticleTableBlock;
 
 if(b.block_type==="boxoffice"){
 bindBoxOfficeMovieSearch(card,b);

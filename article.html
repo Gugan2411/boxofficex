@@ -2792,6 +2792,129 @@ line-height:1.75;
     .bo-status{font-size:7px;padding:4px 7px}
 }
 
+
+/* =========================================================
+   ARTICLE CONTENT TABLE BLOCK
+   Used by admin block_type = "table"
+========================================================= */
+.article-table-block{
+    width:100%;
+    margin:30px 0;
+}
+.article-table-scroll{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+    border:1px solid #dfe5ee;
+    border-radius:14px;
+    background:#fff;
+    box-shadow:0 8px 24px rgba(15,23,42,.05);
+}
+.article-data-table{
+    width:100%;
+    min-width:620px;
+    border-collapse:separate;
+    border-spacing:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
+.article-data-table th,
+.article-data-table td{
+    padding:13px 14px;
+    border-right:1px solid #e8edf4;
+    border-bottom:1px solid #e8edf4;
+    text-align:left;
+    vertical-align:middle;
+    white-space:nowrap;
+    font-size:13px;
+    line-height:1.45;
+}
+.article-data-table th{
+    background:#f3f6fb;
+    color:#344054;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.2px;
+}
+.article-data-table td{
+    color:#344054;
+    background:#fff;
+    font-weight:600;
+}
+.article-data-table tbody tr:nth-child(even) td{
+    background:#fafbfc;
+}
+.article-data-table th:last-child,
+.article-data-table td:last-child{
+    border-right:0;
+}
+.article-data-table tbody tr:last-child td{
+    border-bottom:0;
+}
+.article-data-table tbody tr:hover td{
+    background:#f6f9ff;
+}
+.article-table-swipe-hint{
+    display:none;
+}
+
+@media(max-width:700px){
+    .article-table-block{
+        margin:25px 0;
+    }
+    .article-table-swipe-hint{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        margin:0 0 8px;
+        padding:7px 9px;
+        border:1px solid #d8e5ff;
+        border-radius:9px;
+        background:#f2f6ff;
+        color:#2563eb;
+        font-family:Arial,Helvetica,sans-serif;
+        font-size:10px;
+        font-weight:800;
+        line-height:1.35;
+        text-align:center;
+    }
+    .article-table-scroll{
+        border-radius:12px;
+    }
+    .article-data-table{
+        min-width:600px;
+    }
+    .article-data-table th,
+    .article-data-table td{
+        padding:11px 12px;
+        font-size:11px;
+    }
+    .article-data-table th{
+        font-size:10px;
+    }
+    .article-data-table th:first-child,
+    .article-data-table td:first-child{
+        position:sticky;
+        left:0;
+        z-index:2;
+        box-shadow:7px 0 12px rgba(15,23,42,.07);
+    }
+    .article-data-table th:first-child{
+        z-index:3;
+        background:#f3f6fb;
+    }
+    .article-data-table td:first-child{
+        background:#fff;
+        font-weight:800;
+    }
+    .article-data-table tbody tr:nth-child(even) td:first-child{
+        background:#fafbfc;
+    }
+}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4671,6 +4794,66 @@ async function renderBlock(block) {
 
     if (type === "boxoffice") {
         return renderBoxOffice(data);
+    }
+
+    if (type === "table") {
+        const headers = Array.isArray(data.headers)
+            ? data.headers.map(value => String(value ?? "").trim())
+            : [];
+
+        const rows = Array.isArray(data.rows)
+            ? data.rows
+                .filter(row => Array.isArray(row))
+                .map(row => row.map(value => String(value ?? "").trim()))
+            : [];
+
+        if (!headers.length && !rows.length) return "";
+
+        const columnCount = Math.max(
+            headers.length,
+            ...rows.map(row => row.length),
+            1
+        );
+
+        const normalizedHeaders = Array.from(
+            {length: columnCount},
+            (_, index) => headers[index] || ""
+        );
+
+        const normalizedRows = rows.map(row =>
+            Array.from(
+                {length: columnCount},
+                (_, index) => row[index] || ""
+            )
+        );
+
+        return `
+            <div class="article-table-block">
+                <div class="article-table-swipe-hint">↔ Swipe to view all columns</div>
+                <div class="article-table-scroll" role="region" aria-label="Article data table" tabindex="0">
+                    <table class="article-data-table">
+                        ${normalizedHeaders.some(Boolean) ? `
+                            <thead>
+                                <tr>
+                                    ${normalizedHeaders.map(header =>
+                                        `<th scope="col">${renderInlineArticleFormatting(header)}</th>`
+                                    ).join("")}
+                                </tr>
+                            </thead>
+                        ` : ""}
+                        <tbody>
+                            ${normalizedRows.map(row => `
+                                <tr>
+                                    ${row.map(cell =>
+                                        `<td>${renderInlineArticleFormatting(cell)}</td>`
+                                    ).join("")}
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
     }
 
     if (type === "gallery") {
