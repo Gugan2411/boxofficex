@@ -2010,8 +2010,7 @@ if(b.block_type!=="table")return;
 b.extra_data=b.extra_data||{};
 b.extra_data.headers=(tableHeadersInput?.value||"")
     .split("|")
-    .map(x=>x.trim())
-    .filter(Boolean);
+    .map(x=>x.trim());
 
 b.extra_data.rows=(tableRowsInput?.value||"")
     .split(/\r?\n/)
@@ -2228,12 +2227,51 @@ try{
 }
 }
 async function loadArticles(){
-const r=await fetch("/admin/articles");
-if(r.status===401){location.href="/admin-login.html";return}
-const d=await r.json();
-articles=d.articles||[];
-$("countLabel").textContent=articles.length+" total";
-renderArticleList();
+try{
+    const r=await fetch("/admin/articles",{
+        credentials:"include",
+        cache:"no-store"
+    });
+
+    if(r.status===401){
+        location.href="/admin-login.html";
+        return;
+    }
+
+    let d={};
+    try{
+        d=await r.json();
+    }catch(e){
+        throw new Error("Articles API returned an invalid response ("+r.status+")");
+    }
+
+    if(!r.ok){
+        throw new Error(d.detail||("Unable to load articles ("+r.status+")"));
+    }
+
+    articles=Array.isArray(d.articles)?d.articles:[];
+
+    const count=$("countLabel");
+    if(count)count.textContent=articles.length+" total";
+
+    renderArticleList();
+}catch(error){
+    console.error("LOAD ARTICLES ERROR:",error);
+
+    const list=$("articleList");
+    if(list){
+        list.innerHTML="";
+        const row=document.createElement("div");
+        row.className="article-item";
+        row.style.cursor="default";
+        row.innerHTML=`<strong>Unable to load articles</strong><small>${lookupEsc(error.message||"Unknown error")}</small>`;
+        list.appendChild(row);
+    }
+
+    const count=$("countLabel");
+    if(count)count.textContent="Load failed";
+    toast(error.message||"Unable to load articles");
+}
 }
 
 function articleIsFutureDraft(a){
@@ -2361,8 +2399,24 @@ try{
 }catch(e){
     console.warn("Automatic box office status refresh failed:",e);
 }
-const r=await fetch("/admin/articles/"+id);const d=await r.json();if(!r.ok){toast(d.detail||"Unable to load");return}
-const a=d.article;currentArticleId=a.id;currentStatus=a.status;blocks=a.blocks||[];
+const r=await fetch("/admin/articles/"+id,{
+    credentials:"include",
+    cache:"no-store"
+});
+let d={};
+try{d=await r.json()}catch(e){}
+if(!r.ok){
+    toast(d.detail||("Unable to load article ("+r.status+")"));
+    return;
+}
+const a=d.article;
+if(!a){
+    toast("Article data is missing");
+    return;
+}
+currentArticleId=a.id;
+currentStatus=a.status;
+blocks=Array.isArray(a.blocks)?a.blocks:[];
 $("editorTitle").textContent="Edit Article #"+a.id;
 $("title").value=a.title||"";$("slug").value=a.slug||"";$("subtitle").value=a.subtitle||"";$("category").value=a.category||"News";$("author").value=a.author||"BoxOfficeX";$("heroImage").value=a.hero_image||"";$("heroCaption").value=a.hero_caption||"";$("heroCredit").value=a.hero_credit||"";$("metaTitle").value=a.meta_title||"";$("metaDescription").value=a.meta_description||"";
 setSelectedLinks(a.movie_ids||[],a.actor_ids||[]);
@@ -2459,10 +2513,15 @@ const currentResponse=await fetch("/admin/articles/"+currentArticleId,{
 credentials:"include",
 cache:"no-store"
 });
-const current=await currentResponse.json();
+let current={};
+try{current=await currentResponse.json()}catch(e){}
 
 if(!currentResponse.ok){
 throw new Error(current.detail||("Unable to read article ("+currentResponse.status+")"));
+}
+
+if(!current.article){
+throw new Error("Unable to read the current article blocks");
 }
 
 for(const old of (current.article?.blocks||[])){

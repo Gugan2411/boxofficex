@@ -6880,7 +6880,7 @@ def validate_article_status(value: str) -> str:
 def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
-        "boxoffice", "movie", "actor", "video"
+        "boxoffice", "movie", "actor", "video", "table",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
