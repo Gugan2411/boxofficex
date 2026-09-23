@@ -4436,13 +4436,41 @@ function actorPhotoUrl(actor) {
     return "/actor-images/" + encodeURIComponent(value);
 }
 
+function toGoogleISO(value) {
+    if (!value) return "";
+
+    let raw = String(value).trim();
+
+    // BoxOfficeX article timestamps are stored as UTC.
+    // PostgreSQL TIMESTAMP WITHOUT TIME ZONE may arrive without Z/offset,
+    // so explicitly mark timezone-less values as UTC for Google.
+    const hasTimezone =
+        /Z$/i.test(raw) ||
+        /[+-]\d{2}:?\d{2}$/.test(raw);
+
+    if (!hasTimezone) {
+        raw += "Z";
+    }
+
+    const date = new Date(raw);
+
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+
+    return date.toISOString();
+}
+
 function setSEO(article) {
     const isAdminPreview = new URLSearchParams(window.location.search).has("admin_preview");
     const baseTitle = article.meta_title || article.title || "Article";
     const title = /BoxOfficeX/i.test(baseTitle) ? baseTitle : `${baseTitle} | BoxOfficeX`;
     const description = article.meta_description || article.subtitle || `Read ${article.title || "this movie story"} on BoxOfficeX.`;
 
-    const publicCanonical = article.slug
+    
+    const publishedISO = toGoogleISO(article.published_at);
+    const modifiedISO = toGoogleISO(article.updated_at || article.published_at);
+const publicCanonical = article.slug
         ? `${window.location.origin}/article/${encodeURIComponent(article.slug)}`
         : window.location.origin + window.location.pathname;
 
@@ -4468,8 +4496,8 @@ function setSEO(article) {
     document.getElementById("twitterDescription")?.setAttribute("content", description);
     document.getElementById("twitterImage")?.setAttribute("content", hero);
     document.getElementById("articleAuthorMeta")?.setAttribute("content", article.author || "BoxOfficeX");
-    document.getElementById("articlePublishedMeta")?.setAttribute("content", article.published_at || "");
-    document.getElementById("articleModifiedMeta")?.setAttribute("content", article.updated_at || article.published_at || "");
+    document.getElementById("articlePublishedMeta")?.setAttribute("content", publishedISO);
+    document.getElementById("articleModifiedMeta")?.setAttribute("content", modifiedISO);
     document.getElementById("articleSectionMeta")?.setAttribute("content", article.category || "Movies & Box Office");
 
     const structured = {
@@ -4478,8 +4506,8 @@ function setSEO(article) {
         "headline": article.title || title,
         "description": description,
         "image": [hero],
-        "datePublished": article.published_at || undefined,
-        "dateModified": article.updated_at || article.published_at || undefined,
+        "datePublished": publishedISO || undefined,
+        "dateModified": modifiedISO || publishedISO || undefined,
         "articleSection": article.category || "Movies & Box Office",
         "author": {
             "@type": "Organization",
@@ -4488,7 +4516,11 @@ function setSEO(article) {
         "publisher": {
             "@type": "Organization",
             "name": "BoxOfficeX",
-            "url": window.location.origin
+            "url": window.location.origin,
+            "logo": {
+            "@type": "ImageObject",
+            "url": `${window.location.origin}/images/boxofficex-publisher-logo.png`
+            }
         },
         "mainEntityOfPage": {
             "@type": "WebPage",

@@ -7500,7 +7500,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
                         meta_title = %s,
                         meta_description = %s,
                         published_at = %s,
-                        updated_at = CURRENT_TIMESTAMP
+                        updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                     WHERE id = %s
                 """, (
                     data.title.strip(),
@@ -7757,9 +7757,12 @@ def admin_set_article_status(
                     UPDATE articles
                     SET
                         status = 'published',
-                        published_at = COALESCE(published_at, CURRENT_TIMESTAMP),
+                        published_at = COALESCE(
+                            published_at,
+                            (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                        ),
                         is_future_draft = FALSE,
-                        updated_at = CURRENT_TIMESTAMP
+                        updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                     WHERE id = %s
                     RETURNING id, status, published_at
                 """, (article_id,))
@@ -7768,7 +7771,7 @@ def admin_set_article_status(
                     UPDATE articles
                     SET
                         status = %s,
-                        updated_at = CURRENT_TIMESTAMP
+                        updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                     WHERE id = %s
                     RETURNING id, status, published_at
                 """, (data.status, article_id))
@@ -9390,6 +9393,15 @@ def admin_add_article_block(article_id: int, data: AdminArticleBlock):
                     psycopg.types.json.Jsonb(data.extra_data or {}),
                 ))
                 block_id = cur.fetchone()[0]
+
+                # A block is part of the public article body, so adding one
+                # is a meaningful article modification. Keep published_at
+                # unchanged and refresh only updated_at.
+                cur.execute("""
+                    UPDATE articles
+                    SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                    WHERE id = %s
+                """, (article_id,))
             except psycopg.errors.UniqueViolation:
                 raise HTTPException(
                     status_code=409,
@@ -9438,6 +9450,22 @@ def admin_update_article_block(block_id: int, data: AdminArticleBlock):
             if cur.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Article block not found")
 
+            # Find the parent article after a successful block update and
+            # refresh its modification timestamp.
+            cur.execute("""
+                SELECT article_id
+                FROM article_blocks
+                WHERE id = %s
+            """, (block_id,))
+            article_row = cur.fetchone()
+
+            if article_row:
+                cur.execute("""
+                    UPDATE articles
+                    SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                    WHERE id = %s
+                """, (article_row[0],))
+
         conn.commit()
 
     return {"success": True, "block_id": block_id}
@@ -9447,13 +9475,29 @@ def admin_update_article_block(block_id: int, data: AdminArticleBlock):
 def admin_delete_article_block(block_id: int):
     with get_connection() as conn:
         with conn.cursor() as cur:
+            # Capture the parent before deleting the block.
+            cur.execute("""
+                SELECT article_id
+                FROM article_blocks
+                WHERE id = %s
+            """, (block_id,))
+            article_row = cur.fetchone()
+
+            if not article_row:
+                raise HTTPException(status_code=404, detail="Article block not found")
+
+            article_id = article_row[0]
+
             cur.execute("""
                 DELETE FROM article_blocks
                 WHERE id = %s
             """, (block_id,))
 
-            if cur.rowcount == 0:
-                raise HTTPException(status_code=404, detail="Article block not found")
+            cur.execute("""
+                UPDATE articles
+                SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                WHERE id = %s
+            """, (article_id,))
 
         conn.commit()
 
@@ -9541,8 +9585,11 @@ def admin_publish_article(article_id: int):
                 UPDATE articles
                 SET
                     status='published',
-                    published_at=COALESCE(published_at,CURRENT_TIMESTAMP),
-                    updated_at=CURRENT_TIMESTAMP
+                    published_at=COALESCE(
+                        published_at,
+                        (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                    ),
+                    updated_at=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                 WHERE id=%s
             """, (article_id,))
 
@@ -9560,7 +9607,7 @@ def admin_unpublish_article(article_id: int):
         with conn.cursor() as cur:
             cur.execute("""
                 UPDATE articles
-                SET status='draft', updated_at=CURRENT_TIMESTAMP
+                SET status='draft', updated_at=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                 WHERE id=%s
             """, (article_id,))
 
