@@ -2895,23 +2895,73 @@ line-height:1.75;
     .article-data-table th{
         font-size:10px;
     }
-    .article-data-table th:first-child,
-    .article-data-table td:first-child{
+
+    /* 3+ column tables keep the existing horizontal swipe system */
+    .article-data-table:not(.two-column-table) th:first-child,
+    .article-data-table:not(.two-column-table) td:first-child{
         position:sticky;
         left:0;
         z-index:2;
         box-shadow:7px 0 12px rgba(15,23,42,.07);
     }
-    .article-data-table th:first-child{
+    .article-data-table:not(.two-column-table) th:first-child{
         z-index:3;
         background:#f3f6fb;
     }
-    .article-data-table td:first-child{
+    .article-data-table:not(.two-column-table) td:first-child{
         background:#fff;
         font-weight:800;
     }
-    .article-data-table tbody tr:nth-child(even) td:first-child{
+    .article-data-table:not(.two-column-table) tbody tr:nth-child(even) td:first-child{
         background:#fafbfc;
+    }
+
+    /* Two-column article tables fit completely inside the phone screen */
+    .article-table-block.two-column-table-block .article-table-swipe-hint{
+        display:none !important;
+    }
+
+    .article-table-block.two-column-table-block .article-table-scroll{
+        overflow-x:hidden;
+    }
+
+    .article-data-table.two-column-table{
+        width:100% !important;
+        min-width:0 !important;
+        table-layout:fixed;
+    }
+
+    .article-data-table.two-column-table th,
+    .article-data-table.two-column-table td{
+        position:static !important;
+        white-space:normal !important;
+        overflow-wrap:anywhere;
+        word-break:normal;
+        box-shadow:none !important;
+        padding:12px 10px;
+        font-size:11px;
+        line-height:1.45;
+        vertical-align:middle;
+    }
+
+    .article-data-table.two-column-table th{
+        font-size:10px;
+    }
+
+    .article-data-table.two-column-table th:first-child,
+    .article-data-table.two-column-table td:first-child{
+        width:60%;
+        text-align:left;
+    }
+
+    .article-data-table.two-column-table th:nth-child(2),
+    .article-data-table.two-column-table td:nth-child(2){
+        width:40%;
+        text-align:right;
+    }
+
+    .article-data-table.two-column-table td:first-child{
+        font-weight:800;
     }
 }
 
@@ -4827,11 +4877,13 @@ async function renderBlock(block) {
             )
         );
 
+        const isTwoColumnTable = columnCount === 2;
+
         return `
-            <div class="article-table-block">
-                <div class="article-table-swipe-hint">↔ Swipe to view all columns</div>
+            <div class="article-table-block ${isTwoColumnTable ? "two-column-table-block" : ""}">
+                ${isTwoColumnTable ? "" : `<div class="article-table-swipe-hint">↔ Swipe to view all columns</div>`}
                 <div class="article-table-scroll" role="region" aria-label="Article data table" tabindex="0">
-                    <table class="article-data-table">
+                    <table class="article-data-table ${isTwoColumnTable ? "two-column-table" : ""}">
                         ${normalizedHeaders.some(Boolean) ? `
                             <thead>
                                 <tr>
