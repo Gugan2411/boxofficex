@@ -6810,7 +6810,7 @@ def get_actor_articles(actor_id: int):
 
 def _public_article_boxoffice_extra(extra):
     """
-    Return Box Office extra_data with time-derived LIVE -> ESTIMATED_FINAL
+    Return Box Office extra_data with time-derived ADVANCE -> LIVE -> ESTIMATED_FINAL
     applied in memory. Does not publish FINAL and does not sync movie.html.
     """
     if not isinstance(extra, dict):
@@ -7544,7 +7544,7 @@ class AdminTrackingKeyData(BaseModel):
 class AdminTrackingUpdateData(BaseModel):
     movie_id: int
     day_number: int
-    status: Literal["LIVE", "ESTIMATED_FINAL", "FINAL_REVIEW", "FINAL"]
+    status: Literal["ADVANCE", "LIVE", "ESTIMATED_FINAL", "FINAL_REVIEW", "FINAL"]
     india_collection: Optional[float] = None
     overseas_collection: Optional[float] = None
     worldwide_collection: Optional[float] = None
@@ -7563,27 +7563,35 @@ def _boxoffice_tracking_status_for_day(
     current_status: str,
 ) -> str:
     """
-    Automatic status rule:
-      LIVE -> ESTIMATED_FINAL at 06:00 IST on the calendar day
-      after that collection date.
+    Automatic status rules (Asia/Kolkata):
+      ADVANCE -> LIVE at 06:00 IST on the collection date.
+      LIVE -> ESTIMATED_FINAL at 06:00 IST on the next calendar day.
 
-    FINAL_REVIEW and FINAL are never changed automatically.
+    ESTIMATED_FINAL, FINAL_REVIEW and FINAL are never changed automatically.
     """
     status = str(current_status or "LIVE").upper()
 
-    if status != "LIVE":
+    if status not in {"ADVANCE", "LIVE"}:
         return status
 
     ist = ZoneInfo("Asia/Kolkata")
     now_ist = datetime.now(ist)
 
-    rollover_at = datetime.combine(
-        collection_date + timedelta(days=1),
+    tracking_start = datetime.combine(
+        collection_date,
         time(hour=6, minute=0),
         tzinfo=ist,
     )
+    tracking_end = tracking_start + timedelta(days=1)
 
-    if now_ist >= rollover_at:
+    if status == "ADVANCE":
+        if now_ist < tracking_start:
+            return "ADVANCE"
+        if now_ist < tracking_end:
+            return "LIVE"
+        return "ESTIMATED_FINAL"
+
+    if now_ist >= tracking_end:
         return "ESTIMATED_FINAL"
 
     return "LIVE"
@@ -7591,8 +7599,8 @@ def _boxoffice_tracking_status_for_day(
 
 def refresh_article_boxoffice_tracking_statuses(article_id: Optional[int] = None):
     """
-    Persist automatic LIVE -> ESTIMATED_FINAL rollovers inside article
-    Box Office blocks and the central movie_boxoffice_tracking table.
+    Persist automatic ADVANCE -> LIVE -> ESTIMATED_FINAL transitions inside
+    article Box Office blocks and the central movie_boxoffice_tracking table.
 
     This intentionally never finalizes or syncs a movie collection.
     FINAL remains an explicit editor action.
@@ -7642,8 +7650,8 @@ def refresh_article_boxoffice_tracking_statuses(article_id: Optional[int] = None
                     if not isinstance(item, dict):
                         continue
 
-                    # Preview/Premiere uses its own optional date, but follows
-                    # the same LIVE -> ESTIMATED_FINAL rollover rule.
+                    # Preview/Premiere uses its own optional date and follows
+                    # the same time-derived status transitions.
                     raw_date = item.get("date")
                     if not raw_date:
                         continue
@@ -7675,15 +7683,26 @@ def refresh_article_boxoffice_tracking_statuses(article_id: Optional[int] = None
                             day_number = None
 
                         if day_number and day_number >= 1:
+                            # Keep the central tracking row synchronized with
+                            # the same 6 AM IST lifecycle used by the article block.
                             cur.execute("""
                                 UPDATE movie_boxoffice_tracking
-                                SET status = 'ESTIMATED_FINAL'
+                                SET status = CASE
+                                    WHEN status = 'ADVANCE'
+                                         AND tracking_start IS NOT NULL
+                                         AND tracking_start <= CURRENT_TIMESTAMP
+                                         AND (tracking_end IS NULL OR tracking_end > CURRENT_TIMESTAMP)
+                                        THEN 'LIVE'
+                                    WHEN status IN ('ADVANCE', 'LIVE')
+                                         AND tracking_end IS NOT NULL
+                                         AND tracking_end <= CURRENT_TIMESTAMP
+                                        THEN 'ESTIMATED_FINAL'
+                                    ELSE status
+                                END
                                 WHERE movie_id = %s
                                   AND day_number = %s
-                                  AND status = 'LIVE'
+                                  AND status IN ('ADVANCE', 'LIVE')
                                   AND final_locked = FALSE
-                                  AND tracking_end IS NOT NULL
-                                  AND tracking_end <= CURRENT_TIMESTAMP
                             """, (movie_id, day_number))
 
                 if block_changed:
@@ -7718,7 +7737,7 @@ def admin_refresh_article_boxoffice_statuses(article_id: int):
 
 
 class AdminTrackingStatusData(BaseModel):
-    status: Literal["LIVE", "ESTIMATED_FINAL", "FINAL_REVIEW"]
+    status: Literal["ADVANCE", "LIVE", "ESTIMATED_FINAL", "FINAL_REVIEW"]
 
 
 class AdminFinalizeArticleDayData(BaseModel):
@@ -7842,6 +7861,12 @@ def admin_get_or_create_boxoffice_tracking(
             )
             tracking_end = tracking_start + timedelta(days=1)
 
+            initial_status = (
+                "ADVANCE"
+                if datetime.now(ist) < tracking_start
+                else "LIVE"
+            )
+
             cur.execute("""
                 INSERT INTO movie_boxoffice_tracking (
                     movie_id,
@@ -7851,7 +7876,7 @@ def admin_get_or_create_boxoffice_tracking(
                     tracking_end,
                     final_locked
                 )
-                VALUES (%s, %s, 'LIVE', %s, %s, FALSE)
+                VALUES (%s, %s, %s, %s, %s, FALSE)
                 ON CONFLICT (movie_id, day_number)
                 DO UPDATE SET
                     tracking_start = COALESCE(
@@ -7882,6 +7907,7 @@ def admin_get_or_create_boxoffice_tracking(
             """, (
                 data.movie_id,
                 data.day_number,
+                initial_status,
                 tracking_start,
                 tracking_end,
             ))

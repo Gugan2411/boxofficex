@@ -2739,6 +2739,18 @@ line-height:1.75;
     border-radius:50%;
     background:currentColor;
 }
+.bo-status-advance{
+    color:#d97706;
+    background:#fffbeb;
+    border-color:#fcd34d;
+}
+.bo-status-advance::before{
+    animation:boAdvancePulse 1.35s ease-in-out infinite;
+}
+@keyframes boAdvancePulse{
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(217,119,6,.24)}
+    50%{opacity:.45;box-shadow:0 0 0 4px rgba(217,119,6,0)}
+}
 .bo-status-live{
     color:#dc2626;
     background:#fff1f2;
@@ -4051,6 +4063,9 @@ html,body{scroll-padding-top:0!important}
 
 <style id="boxofficex-boxoffice-contrast-fix">
 /* BoxOfficeX Box Office Collection Report — stronger public status/number hierarchy */
+.bo-status-advance{color:#b45309!important;background:#fffbeb!important;border-color:#fbbf24!important}
+.bo-status-advance::before{background:#f59e0b!important;animation:boAdvancePulseGold 1.35s ease-in-out infinite!important}
+@keyframes boAdvancePulseGold{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(245,158,11,.28)}50%{opacity:.45;box-shadow:0 0 0 4px rgba(245,158,11,0)}}
 .bo-status-live{color:#15803d!important;background:#f0fdf4!important;border-color:#86efac!important}
 .bo-status-live::before{background:#16a34a!important;animation:boLivePulseGreen 1.35s ease-in-out infinite!important}
 .bo-status-estimated-final{color:#a16207!important;background:#fffbeb!important;border-color:#fcd34d!important}
@@ -4547,6 +4562,7 @@ const fmt=v=>{if(!v)return"N/A";const d=new Date(v+"T00:00:00");return Number.is
 
 const statusInfo=status=>{
     const s=String(status||"LIVE").toUpperCase();
+    if(s==="ADVANCE")return{label:"ADVANCE",cls:"bo-status-advance",help:"Advance booking is currently being tracked"};
     if(s==="LIVE")return{label:"LIVE",cls:"bo-status-live",help:"Collections are currently being tracked"};
     if(s==="ESTIMATED_FINAL")return{label:"ESTIMATED FINAL",cls:"bo-status-estimated-final",help:"Tracking ended; final figure is awaiting confirmation"};
     if(s==="FINAL_REVIEW")return{label:"FINAL REVIEW",cls:"bo-status-final-review",help:"Collection is being reviewed before confirmation"};
@@ -4562,6 +4578,7 @@ const previews=rawDays
     .filter(d=>String(d?.type||"REGULAR").toUpperCase()==="PREVIEW");
 
 const displayDays=[...previews,...regularDays];
+const hasAdvance=regularDays.some(d=>String(d?.status||"").toUpperCase()==="ADVANCE");
 
 const total={tamil_nadu:0,kerala:0,karnataka:0,telugu_states:0,rest_of_india:0,overseas:0};
 
@@ -4639,9 +4656,12 @@ const rows=displayDays.map((d,i)=>{
         ? esc(d?.label||"Preview / Premiere")
         : `Day ${Number.isFinite(dayNumber)&&dayNumber>0?dayNumber:(regularDays.indexOf(d)+1)}`;
     const s=statusInfo(d?.status);
+    const shownDayLabel=!isPreview && String(d?.status||"").toUpperCase()==="ADVANCE"
+        ? `${dayLabel} — Advance`
+        : dayLabel;
     return `<tr>
         <td>
-            <span class="bo-day-label ${isPreview?"bo-preview-label":""}">${dayLabel}</span>
+            <span class="bo-day-label ${isPreview?"bo-preview-label":""}">${shownDayLabel}</span>
             <span class="bo-mobile-day-date">${esc(fmt(d.date))}</span>
         </td>
         <td>${esc(fmt(d.date))}</td>
@@ -4660,7 +4680,7 @@ const rows=displayDays.map((d,i)=>{
 return `<div class="boxoffice-block">
 <div class="bo-tracking-head">
     <div class="boxoffice-title">Box Office Collection Report</div>
-    <div class="bo-tracking-note">Preview/Premiere is included in Week 1 and Overall Gross without changing Day 1 numbering.</div>
+    <div class="bo-tracking-note">Preview/Premiere and current Advance Booking figures are included automatically in Week 1 and Overall Gross without changing Day 1 numbering.</div>
 </div>
 <div class="bo-subtitle">Daily Collections</div>
 <div class="bo-swipe-hint bo-swipe-hint-daily" aria-hidden="true">
@@ -4684,7 +4704,7 @@ w.includesPreview
     ? (w.from!==null ? `Preview + Day ${w.from}–${w.to}` : `Preview / Premiere`)
     : `Day ${w.from}–${w.to}`
 }</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
-<div class="bo-subtitle">Final Overall Gross — Preview + All Days</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
+<div class="bo-subtitle">${hasAdvance?"Current Overall Gross — Preview + Advance + All Days":"Final Overall Gross — Preview + All Days"}</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(total.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(total.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(total.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(total.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(total.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(total.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(total.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(total.worldwide)}</strong></div></div></div>`;
 }
 
 // =========================================================

@@ -445,6 +445,7 @@ border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer
    BOX OFFICE DAY STATUS — INTEGRATED
 ===================================================== */
 .bo-day-status select{background:#111a2b;font-weight:900}
+.bo-day-status-advance select{color:#d8c3ff}
 .bo-day-status-live select{color:#ff7a85}
 .bo-day-status-estimated select{color:#ffcc33}
 .bo-day-status-review select{color:#9fc0ff}
@@ -1433,22 +1434,28 @@ return extra;
 
 function boxOfficeStatusByISTDate(dateValue,currentStatus){
 const status=String(currentStatus||"LIVE").toUpperCase();
-if(status!=="LIVE" || !dateValue)return status;
+if(!dateValue)return status;
 
 /*
+BoxOfficeX tracking day: 06:00 IST -> next day 06:00 IST.
 06:00 IST = 00:30 UTC.
-Build the next-day rollover moment explicitly so browser timezone
-does not change BoxOfficeX tracking behavior.
+ADVANCE automatically becomes LIVE at the tracking-day start.
+LIVE automatically becomes ESTIMATED_FINAL at the next 06:00 IST.
+Manual FINAL_REVIEW and FINAL statuses are never changed automatically.
 */
+if(!["ADVANCE","LIVE"].includes(status))return status;
+
 const parts=String(dateValue).split("-").map(Number);
 if(parts.length!==3 || parts.some(x=>!Number.isFinite(x)))return status;
 
 const [y,m,d]=parts;
+const startUTC=Date.UTC(y,m-1,d,0,30,0,0);
 const rolloverUTC=Date.UTC(y,m-1,d+1,0,30,0,0);
+const now=Date.now();
 
-return Date.now()>=rolloverUTC
-    ?"ESTIMATED_FINAL"
-    :"LIVE";
+if(now<startUTC)return "ADVANCE";
+if(now>=rolloverUTC)return "ESTIMATED_FINAL";
+return "LIVE";
 }
 
 function applyAutomaticTrackingStatuses(extra){
@@ -1573,6 +1580,7 @@ const statusClass=
 status==="FINAL"?"bo-day-status-final":
 status==="ESTIMATED_FINAL"?"bo-day-status-estimated":
 status==="FINAL_REVIEW"?"bo-day-status-review":
+status==="ADVANCE"?"bo-day-status-advance":
 "bo-day-status-live";
 
 return `
@@ -1602,6 +1610,7 @@ return `
     <div class="bo-day-status ${statusClass}">
         <label>Status</label>
         <select data-bo-index="${index}" data-bo-field="status">
+            <option value="ADVANCE" ${status==="ADVANCE"?"selected":""}>ADVANCE</option>
             <option value="LIVE" ${status==="LIVE"?"selected":""}>LIVE</option>
             <option value="ESTIMATED_FINAL" ${status==="ESTIMATED_FINAL"?"selected":""}>ESTIMATED FINAL</option>
             <option value="FINAL_REVIEW" ${status==="FINAL_REVIEW"?"selected":""}>FINAL REVIEW</option>
