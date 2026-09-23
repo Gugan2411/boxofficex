@@ -2532,104 +2532,47 @@ async function saveBlocks(){
 if(!currentArticleId)return;
 
 /*
-SAFE BLOCK SAVE
----------------
-Never delete every block during a normal Save.
-
-Rules:
-1. Existing blocks (id present) are updated with PUT.
-2. New blocks (no id) are created with POST.
-3. A database block is deleted only when the editor's explicit
-   Remove button placed its id in deletedBlockIds.
-4. Existing blocks are first moved to temporary high block_order values.
-   This avoids the UNIQUE(article_id, block_order) constraint when blocks
-   are reordered (for example moving block 10 above block 9).
+FAST + SAFE BLOCK SAVE
+----------------------
+One HTTP request sends the complete editor state to the backend.
+The backend performs the sync atomically in one PostgreSQL transaction.
+It preserves existing IDs, creates only new blocks, and deletes only IDs
+that were explicitly removed with the editor's Remove button.
 */
 
-const existingBlocks=blocks.filter(b=>Number.isInteger(Number(b.id)) && Number(b.id)>0);
-const newBlocks=blocks.filter(b=>!Number.isInteger(Number(b.id)) || Number(b.id)<=0);
+const payload={
+    blocks:blocks.map((b,i)=>({
+        id:(Number.isInteger(Number(b.id)) && Number(b.id)>0)?Number(b.id):null,
+        block_order:i+1,
+        block_type:b.block_type,
+        content:b.content||null,
+        image:b.image||null,
+        image_caption:b.image_caption||null,
+        image_credit:b.image_credit||null,
+        extra_data:b.extra_data||{}
+    })),
+    deleted_block_ids:[...new Set(deletedBlockIds.map(Number).filter(id=>Number.isInteger(id)&&id>0))]
+};
 
-async function readJsonSafe(response){
-    try{return await response.json()}catch(_){return {}}
-}
+const r=await fetch(`/admin/articles/${currentArticleId}/blocks/sync`,{
+    method:"PUT",
+    credentials:"include",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+});
 
-async function putBlock(block,order){
-    const r=await fetch(`/admin/article-blocks/${Number(block.id)}`,{
-        method:"PUT",
-        credentials:"include",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            block_order:Number(order),
-            block_type:block.block_type,
-            content:block.content||null,
-            image:block.image||null,
-            image_caption:block.image_caption||null,
-            image_credit:block.image_credit||null,
-            extra_data:block.extra_data||{}
-        })
-    });
-
-    if(!r.ok){
-        const d=await readJsonSafe(r);
-        throw new Error(d.detail||(`Unable to update block ${block.id} (${r.status})`));
-    }
-
-    return await readJsonSafe(r);
+let d={};
+try{d=await r.json()}catch(e){}
+if(!r.ok){
+    throw new Error(d.detail||(`Unable to save article blocks (${r.status})`));
 }
 
 /*
-Stage only the blocks currently loaded in this editor.
-We deliberately do NOT fetch the article and delete unseen blocks.
+Assign IDs returned for newly-created blocks immediately. loadArticle() will
+refresh the canonical DB state after the full article save completes.
 */
-for(let i=0;i<existingBlocks.length;i++){
-    await putBlock(existingBlocks[i],100000+i+1);
-}
-
-/* Delete only blocks explicitly removed by the user. */
-for(const id of [...new Set(deletedBlockIds)]){
-    const r=await fetch(`/admin/article-blocks/${Number(id)}`,{
-        method:"DELETE",
-        credentials:"include"
-    });
-
-    if(!r.ok && r.status!==404){
-        const d=await readJsonSafe(r);
-        throw new Error(d.detail||(`Unable to delete block ${id} (${r.status})`));
-    }
-}
-
-/* Restore/update existing blocks in the exact order shown in the editor. */
-for(let i=0;i<blocks.length;i++){
-    const b=blocks[i];
-    if(Number.isInteger(Number(b.id)) && Number(b.id)>0){
-        await putBlock(b,i+1);
-    }
-}
-
-/* Create only genuinely new blocks. */
-for(let i=0;i<blocks.length;i++){
-    const b=blocks[i];
-    if(Number.isInteger(Number(b.id)) && Number(b.id)>0)continue;
-
-    const r=await fetch(`/admin/articles/${currentArticleId}/blocks`,{
-        method:"POST",
-        credentials:"include",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            block_order:i+1,
-            block_type:b.block_type,
-            content:b.content||null,
-            image:b.image||null,
-            image_caption:b.image_caption||null,
-            image_credit:b.image_credit||null,
-            extra_data:b.extra_data||{}
-        })
-    });
-
-    if(!r.ok){
-        const d=await readJsonSafe(r);
-        throw new Error(d.detail||(`Block ${i+1} failed (${r.status})`));
-    }
+if(Array.isArray(d.block_ids) && d.block_ids.length===blocks.length){
+    blocks.forEach((b,i)=>{ b.id=d.block_ids[i]; });
 }
 
 deletedBlockIds=[];

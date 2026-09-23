@@ -6948,6 +6948,23 @@ class AdminArticleBlock(BaseModel):
     extra_data: dict[str, Any] = {}
 
 
+
+
+class AdminArticleBlockSyncItem(BaseModel):
+    id: Optional[int] = None
+    block_order: int
+    block_type: str
+    content: Optional[str] = None
+    image: Optional[str] = None
+    image_caption: Optional[str] = None
+    image_credit: Optional[str] = None
+    extra_data: dict[str, Any] = {}
+
+
+class AdminArticleBlocksSync(BaseModel):
+    blocks: list[AdminArticleBlockSyncItem] = []
+    deleted_block_ids: list[int] = []
+
 class AdminArticleLink(BaseModel):
     movie_ids: list[int] = []
     actor_ids: list[int] = []
@@ -9387,6 +9404,130 @@ def admin_delete_article(article_id: int):
         conn.commit()
 
     return {"success": True, "message": "Article deleted successfully"}
+
+
+
+
+@app.put("/admin/articles/{article_id}/blocks/sync", dependencies=[Depends(require_admin)])
+def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
+    """Fast, atomic and non-destructive article block sync."""
+    blocks = data.blocks or []
+    deleted_ids = list(dict.fromkeys(int(x) for x in (data.deleted_block_ids or [])))
+
+    expected_orders = list(range(1, len(blocks) + 1))
+    received_orders = [int(b.block_order) for b in blocks]
+    if received_orders != expected_orders:
+        raise HTTPException(status_code=400, detail="Block orders must be sequential from 1")
+
+    existing_ids = [int(b.id) for b in blocks if b.id is not None]
+    if len(existing_ids) != len(set(existing_ids)):
+        raise HTTPException(status_code=400, detail="Duplicate block IDs in save request")
+
+    if set(existing_ids) & set(deleted_ids):
+        raise HTTPException(status_code=400, detail="A block cannot be updated and deleted in the same save")
+
+    validated_types = [validate_block_type(b.block_type) for b in blocks]
+
+    with get_connection() as conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1 FROM articles WHERE id=%s FOR UPDATE", (article_id,))
+                if not cur.fetchone():
+                    raise HTTPException(status_code=404, detail="Article not found")
+
+                cur.execute("""
+                    SELECT id, block_order
+                    FROM article_blocks
+                    WHERE article_id=%s
+                    ORDER BY block_order, id
+                    FOR UPDATE
+                """, (article_id,))
+                current_rows = cur.fetchall()
+                current_ids = {int(row[0]) for row in current_rows}
+                accounted_ids = set(existing_ids) | set(deleted_ids)
+
+                # Never treat a missing editor block as permission to delete it.
+                if current_ids != accounted_ids:
+                    raise HTTPException(
+                        status_code=409,
+                        detail="Article blocks changed or were not fully loaded. Reload the article before saving."
+                    )
+
+                # Temporarily move existing submitted blocks away from final orders.
+                min_order = min((int(row[1]) for row in current_rows), default=0)
+                temp_base = min(min_order, 0) - len(existing_ids) - 1000
+                for i, block_id in enumerate(existing_ids):
+                    cur.execute("""
+                        UPDATE article_blocks
+                        SET block_order=%s
+                        WHERE id=%s AND article_id=%s
+                    """, (temp_base + i, block_id, article_id))
+                    if cur.rowcount != 1:
+                        raise HTTPException(status_code=409, detail="A block changed while saving. Reload and try again.")
+
+                # Delete only blocks explicitly removed in the editor.
+                for block_id in deleted_ids:
+                    cur.execute("""
+                        DELETE FROM article_blocks
+                        WHERE id=%s AND article_id=%s
+                    """, (block_id, article_id))
+                    if cur.rowcount != 1:
+                        raise HTTPException(status_code=409, detail="A removed block changed while saving. Reload and try again.")
+
+                saved_ids = []
+                for i, b in enumerate(blocks):
+                    block_type = validated_types[i]
+                    if b.id is not None:
+                        cur.execute("""
+                            UPDATE article_blocks
+                            SET block_order=%s, block_type=%s, content=%s, image=%s,
+                                image_caption=%s, image_credit=%s, extra_data=%s
+                            WHERE id=%s AND article_id=%s
+                            RETURNING id
+                        """, (
+                            b.block_order, block_type, b.content, b.image,
+                            b.image_caption, b.image_credit,
+                            psycopg.types.json.Jsonb(b.extra_data or {}),
+                            int(b.id), article_id,
+                        ))
+                    else:
+                        cur.execute("""
+                            INSERT INTO article_blocks (
+                                article_id, block_order, block_type, content, image,
+                                image_caption, image_credit, extra_data
+                            )
+                            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                            RETURNING id
+                        """, (
+                            article_id, b.block_order, block_type, b.content, b.image,
+                            b.image_caption, b.image_credit,
+                            psycopg.types.json.Jsonb(b.extra_data or {}),
+                        ))
+                    row = cur.fetchone()
+                    if not row:
+                        raise HTTPException(status_code=409, detail="A block changed while saving. Reload and try again.")
+                    saved_ids.append(int(row[0]))
+
+                cur.execute("""
+                    UPDATE articles
+                    SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                    WHERE id=%s
+                """, (article_id,))
+
+            conn.commit()
+        except HTTPException:
+            conn.rollback()
+            raise
+        except Exception:
+            conn.rollback()
+            raise
+
+    return {
+        "success": True,
+        "article_id": article_id,
+        "block_count": len(blocks),
+        "block_ids": saved_ids,
+    }
 
 
 @app.post("/admin/articles/{article_id}/blocks", dependencies=[Depends(require_admin)])
