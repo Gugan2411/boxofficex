@@ -2438,6 +2438,97 @@ def sitemap_xml():
     return _xml_response(xml)
 
 
+# ============================================================
+# GOOGLE NEWS SITEMAP
+# Latest published BoxOfficeX articles from the last 2 days
+# ============================================================
+
+@app.get("/news-sitemap.xml", include_in_schema=False)
+def news_sitemap_xml():
+    """
+    Google News sitemap for BoxOfficeX.
+
+    Google News sitemaps should contain recent news URLs only.
+    This endpoint includes published articles from the last 2 days
+    and is intentionally separate from the main sitemap.xml.
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    title,
+                    slug,
+                    COALESCE(published_at, created_at) AS publication_date
+                FROM articles
+                WHERE status = 'published'
+                  AND slug IS NOT NULL
+                  AND TRIM(slug) <> ''
+                  AND COALESCE(published_at, created_at)
+                      >= NOW() - INTERVAL '2 days'
+                ORDER BY
+                    COALESCE(published_at, created_at) DESC,
+                    id DESC
+                LIMIT 1000
+            """)
+            article_rows = cur.fetchall()
+
+    urls = []
+
+    india_tz = ZoneInfo("Asia/Kolkata")
+
+    for title, slug, publication_date in article_rows:
+        if not title or not publication_date:
+            continue
+
+        # Convert the stored publication timestamp to India Standard Time.
+        # If PostgreSQL returns a naive datetime, treat it as UTC first.
+        if publication_date.tzinfo is None:
+            publication_date = publication_date.replace(
+                tzinfo=timezone.utc
+            )
+
+        publication_date = publication_date.astimezone(india_tz)
+
+        article_url = xml_escape(
+            f"{SITEMAP_SITE_URL}/article/{str(slug).strip()}"
+        )
+        news_title = xml_escape(str(title).strip())
+        published_iso = xml_escape(
+            publication_date.isoformat(timespec="seconds")
+        )
+
+        urls.append(
+            "  <url>\n"
+            f"    <loc>{article_url}</loc>\n"
+            "    <news:news>\n"
+            "      <news:publication>\n"
+            "        <news:name>BoxOfficeX</news:name>\n"
+            "        <news:language>en</news:language>\n"
+            "      </news:publication>\n"
+            f"      <news:publication_date>{published_iso}</news:publication_date>\n"
+            f"      <news:title>{news_title}</news:title>\n"
+            "    </news:news>\n"
+            "  </url>"
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset '
+        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+        'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    # Keep the News sitemap much fresher than the normal 24-hour sitemap.
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=300"}
+    )
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     robots_file = BASE_DIR / "robots.txt"
