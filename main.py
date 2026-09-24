@@ -4851,7 +4851,7 @@ def get_actor_highest_grossing(actor_id: int):
 
 
 # ============================================================
-# ACTOR COMPARISON
+# ACTOR COMPARISON — OPTIMIZED SINGLE-PAYLOAD ENDPOINT
 # ============================================================
 
 @app.get("/compare/actors/{actor1_id}/{actor2_id}")
@@ -4859,6 +4859,18 @@ def compare_actors(
     actor1_id: int,
     actor2_id: int
 ):
+    """
+    Return everything required by compare.html in one HTTP request.
+
+    This replaces the old browser waterfall of:
+      /actors
+      /actors/{id}/stats (x2)
+      /actors/{id}/movies (x2)
+      /movies
+      /actors/{id}/highest-grossing (x2)
+
+    The existing public endpoints remain available for actor/movie pages.
+    """
 
     if actor1_id == actor2_id:
         raise HTTPException(
@@ -4866,92 +4878,102 @@ def compare_actors(
             detail="Choose two different actors"
         )
 
+    requested_ids = (actor1_id, actor2_id)
+
     with get_connection() as conn:
         with conn.cursor() as cur:
 
+            # 1) Both actors + all comparison statistics in one aggregate query.
             cur.execute("""
                 SELECT
                     a.id,
                     a.name,
                     a.photo,
-
                     COUNT(DISTINCT m.id) AS movie_count,
-
-                    COALESCE(
-                        SUM(m.worldwide_collection_crore),
-                        0
-                    ) AS total_worldwide,
-
-                    COALESCE(
-                        AVG(m.worldwide_collection_crore),
-                        0
-                    ) AS average_worldwide,
-
-                    COUNT(
-                        DISTINCT CASE
-                            WHEN m.verdict = 'Blockbuster'
-                            THEN m.id
-                        END
-                    ) AS blockbusters,
-
-                    COUNT(
-                        DISTINCT CASE
-                            WHEN m.verdict = 'Hit'
-                            THEN m.id
-                        END
-                    ) AS hits,
-
-                    COUNT(
-                        DISTINCT CASE
-                            WHEN m.verdict = 'Average'
-                            THEN m.id
-                        END
-                    ) AS average_movies,
-
-                    COUNT(
-                        DISTINCT CASE
-                            WHEN m.verdict = 'Flop'
-                            THEN m.id
-                        END
-                    ) AS flops
-
+                    COALESCE(SUM(m.worldwide_collection_crore), 0) AS total_worldwide,
+                    COALESCE(AVG(m.worldwide_collection_crore), 0) AS average_worldwide,
+                    COUNT(DISTINCT CASE WHEN m.verdict = 'Blockbuster' THEN m.id END) AS blockbusters,
+                    COUNT(DISTINCT CASE WHEN m.verdict = 'Hit' THEN m.id END) AS hits,
+                    COUNT(DISTINCT CASE WHEN m.verdict = 'Average' THEN m.id END) AS average_movies,
+                    COUNT(DISTINCT CASE WHEN m.verdict = 'Flop' THEN m.id END) AS flops
                 FROM actors a
-
                 LEFT JOIN actor_movies am
                     ON a.id = am.actor_id
-
                 LEFT JOIN movies m
                     ON am.movie_id = m.id
-
                 WHERE a.id IN (%s, %s)
-
-                GROUP BY
-                    a.id,
-                    a.name,
-                    a.photo
-
+                GROUP BY a.id, a.name, a.photo
                 ORDER BY a.id;
-            """, (actor1_id, actor2_id))
+            """, requested_ids)
 
-            rows = cur.fetchall()
+            stat_rows = cur.fetchall()
 
-    if len(rows) != 2:
-        found_ids = {row[0] for row in rows}
-        missing = [
-            actor_id
-            for actor_id in (actor1_id, actor2_id)
-            if actor_id not in found_ids
-        ]
-        raise HTTPException(
-            status_code=404,
-            detail=f"Actor not found: {', '.join(map(str, missing))}"
-        )
+            if len(stat_rows) != 2:
+                found_ids = {row[0] for row in stat_rows}
+                missing = [
+                    actor_id
+                    for actor_id in requested_ids
+                    if actor_id not in found_ids
+                ]
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Actor not found: {', '.join(map(str, missing))}"
+                )
 
-    result = []
+            # 2) Filmographies for both actors in ONE query.
+            # These fields are exactly what the current era-power, last-five,
+            # ROI and highest-grossing calculations need in compare.html.
+            cur.execute("""
+                SELECT
+                    am.actor_id,
+                    m.id,
+                    m.title,
+                    m.poster,
+                    m.release_date,
+                    m.worldwide_collection_crore,
+                    m.verdict,
+                    m.budget_crore
+                FROM actor_movies am
+                JOIN movies m
+                    ON m.id = am.movie_id
+                WHERE am.actor_id IN (%s, %s)
+                ORDER BY am.actor_id, m.release_date DESC NULLS LAST, m.id DESC;
+            """, requested_ids)
 
-    for row in rows:
+            movie_rows = cur.fetchall()
 
-        result.append({
+            # 3) Minimal era universe. Do NOT send the full /movies payload.
+            # Only release date + worldwide gross are required to build the
+            # five-year median benchmarks in the existing scoring engine.
+            cur.execute("""
+                SELECT
+                    release_date,
+                    worldwide_collection_crore
+                FROM movies
+                WHERE release_date IS NOT NULL
+                  AND worldwide_collection_crore IS NOT NULL
+                  AND worldwide_collection_crore > 0
+                ORDER BY release_date;
+            """)
+
+            era_rows = cur.fetchall()
+
+            # 4) Small actor catalogue used only for related-comparison links.
+            cur.execute("""
+                SELECT id, name, photo
+                FROM actors
+                ORDER BY id;
+            """)
+
+            actor_catalog_rows = cur.fetchall()
+
+    actor_slug_map = _unique_actor_slug_map()
+
+    comparison = []
+    stats_by_id = {}
+
+    for row in stat_rows:
+        actor = {
             "id": row[0],
             "name": row[1],
             "photo": safe_actor_photo(row[2]),
@@ -4962,27 +4984,114 @@ def compare_actors(
             "hits": row[7],
             "average_movies": row[8],
             "flops": row[9],
-            "slug": _unique_actor_slug_map().get(
+            "slug": actor_slug_map.get(
                 row[0],
                 actor_seo_slug(row[0], row[1])
             )
+        }
+        comparison.append(actor)
+        stats_by_id[row[0]] = {
+            "movie_count": row[3],
+            "total_worldwide": float(row[4]),
+            "average_worldwide": float(row[5]),
+            "blockbusters": row[6],
+            "hits": row[7],
+            "average_movies": row[8],
+            "flops": row[9]
+        }
+
+    movies_by_actor = {
+        actor1_id: [],
+        actor2_id: []
+    }
+
+    for row in movie_rows:
+        movies_by_actor.setdefault(row[0], []).append({
+            "id": row[1],
+            "title": row[2],
+            "poster": safe_movie_poster(row[3]),
+            "release_date": str(row[4]) if row[4] is not None else None,
+            "worldwide_collection_crore": float(row[5]) if row[5] is not None else None,
+            "verdict": row[6],
+            "budget_crore": float(row[7]) if row[7] is not None else None
         })
 
+    def highest_grossing_payload(actor_id: int):
+        usable = [
+            movie
+            for movie in movies_by_actor.get(actor_id, [])
+            if movie.get("worldwide_collection_crore") is not None
+        ]
+
+        if not usable:
+            return {"movie": None}
+
+        movie = max(
+            usable,
+            key=lambda item: item.get("worldwide_collection_crore") or 0
+        )
+
+        return {
+            "movie": {
+                "id": movie["id"],
+                "title": movie["title"],
+                "poster": movie["poster"],
+                "worldwide_collection_crore": movie["worldwide_collection_crore"],
+                "verdict": movie["verdict"]
+            }
+        }
+
+    era_universe_movies = [
+        {
+            "release_date": str(row[0]),
+            "worldwide_collection_crore": float(row[1])
+        }
+        for row in era_rows
+    ]
+
+    actors_catalog = [
+        {
+            "id": row[0],
+            "name": row[1],
+            "photo": safe_actor_photo(row[2]),
+            "slug": actor_slug_map.get(
+                row[0],
+                actor_seo_slug(row[0], row[1])
+            )
+        }
+        for row in actor_catalog_rows
+    ]
+
     canonical_actor_ids = sorted([actor1_id, actor2_id])
-    actors_by_id = {actor["id"]: actor for actor in result}
-    actor_slug_map = _unique_actor_slug_map()
+    actors_by_id = {actor["id"]: actor for actor in comparison}
 
     canonical_slug = None
     canonical_url = None
+
     if all(actor_id in actors_by_id for actor_id in canonical_actor_ids):
         first_slug = actor_slug_map.get(canonical_actor_ids[0])
         second_slug = actor_slug_map.get(canonical_actor_ids[1])
+
         if first_slug and second_slug:
             canonical_slug = f"{first_slug}-vs-{second_slug}"
             canonical_url = f"/compare/{canonical_slug}"
 
     return {
-        "comparison": result,
+        "comparison": comparison,
+        "stats": {
+            str(actor1_id): stats_by_id[actor1_id],
+            str(actor2_id): stats_by_id[actor2_id]
+        },
+        "movies": {
+            str(actor1_id): movies_by_actor.get(actor1_id, []),
+            str(actor2_id): movies_by_actor.get(actor2_id, [])
+        },
+        "highest_grossing": {
+            str(actor1_id): highest_grossing_payload(actor1_id),
+            str(actor2_id): highest_grossing_payload(actor2_id)
+        },
+        "era_universe_movies": era_universe_movies,
+        "actors_catalog": actors_catalog,
         "seo": {
             "canonical_ids": canonical_actor_ids,
             "canonical_slug": canonical_slug,
