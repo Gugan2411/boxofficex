@@ -14,6 +14,7 @@ import textwrap
 import unicodedata
 import math
 import time
+import threading
 
 # ============================================================
 # CLOUDINARY CONFIGURATION
@@ -1666,22 +1667,6 @@ async def security_headers_middleware(request: Request, call_next):
             "max-age=31536000; includeSubDomains"
         )
 
-    # Performance: cache public static assets aggressively and allow short
-    # browser/CDN reuse for read-only public API responses. Admin/auth/search
-    # responses stay uncached.
-    path = request.url.path
-    if request.method == "GET":
-        if path.startswith(("/posters/", "/actor-images/", "/article-images/", "/images/")):
-            response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
-        elif path.endswith((".css", ".js", ".woff", ".woff2")):
-            response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=604800"
-        elif (
-            not path.startswith(("/admin", "/api/admin", "/docs", "/redoc", "/openapi.json"))
-            and path != "/search"
-            and response.headers.get("content-type", "").startswith("application/json")
-        ):
-            response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
-
     return response
 
 
@@ -2242,67 +2227,78 @@ def resolve_actor_slug(actor_slug: str):
 
 
 # ============================================================
-# HOME - CACHED SSR
-# Important homepage movie content is present in the first HTML response.
-# The rendered HTML is cached in-process, so PostgreSQL is NOT queried on
-# every homepage request. Existing JavaScript may refresh live values later.
+# HOME - CACHED SERVER-RENDERED SEO CONTENT
 # ============================================================
 
-_HOME_SSR_CACHE = {
-    "html": None,
-    "expires_at": 0.0,
-    "template_mtime": None,
-}
-_HOME_SSR_TTL_SECONDS = 900  # 15 minutes; JS can still refresh live sections.
+# Five minutes keeps the homepage fresh enough for box-office discovery while
+# avoiding repeated database work for every visitor and crawler request.
+HOME_HTML_CACHE_TTL = 300
+_home_html_cache = {"html": None, "expires_at": 0.0}
+_home_html_cache_lock = threading.Lock()
+_home_html_refreshing = False
 
 
-def _home_img_src(value, folder="posters"):
-    value = str(value or "").strip()
-    if not value:
-        return f"/{folder}/coming-soon.png" if folder == "posters" else "/actor-images/default-actor.png"
-    if value.startswith(("https://", "http://", "/")):
-        return value
-    return f"/{folder}/{value}"
+def _home_movie_image_url(poster):
+    poster = safe_movie_poster(poster)
+    if _is_remote_image(poster):
+        return poster
+    return f"/posters/{poster}"
 
 
-def _home_movie_card(row, rank=None, timing=None, countdown=None):
-    movie_id, title, release_date, language, industry, poster, worldwide, verdict = row
-    title_e = html_escape(str(title or "Untitled"), quote=True)
-    language_e = html_escape(str(language or "Indian Cinema"), quote=True)
-    industry_e = html_escape(str(industry or ""), quote=True)
-    poster_e = html_escape(_home_img_src(safe_movie_poster(poster)), quote=True)
-    url_e = html_escape(public_movie_url(movie_id), quote=True)
-    meta = language_e + (f" • {industry_e}" if industry_e else "")
-    parts = []
-    if rank is not None:
-        parts.append(f'<div class="ranking-number">#{int(rank)}</div>')
-    parts.append(
-        f'<a class="bx-home-card-link" href="{url_e}" aria-label="{title_e}">'
-        f'<img class="movie-poster" src="{poster_e}" alt="{title_e}" loading="lazy" decoding="async">'
-        f'<div class="movie-info"><h3>{title_e}</h3><p>{meta}</p>'
+def _home_movie_card(movie, slug_map, rank=None, running_day=None, upcoming_days=None):
+    movie_id = int(movie["id"])
+    title = html_escape(str(movie.get("title") or "Untitled"))
+    language = html_escape(str(movie.get("language") or "Cinema"))
+    industry = html_escape(str(movie.get("industry") or ""))
+    release_date = html_escape(str(movie.get("release_date") or ""))
+    verdict = html_escape(str(movie.get("verdict") or "Box Office"))
+    image = html_escape(_home_movie_image_url(movie.get("poster")), quote=True)
+    slug = slug_map.get(movie_id)
+    url = html_escape(f"/movie/{slug}" if slug else "/new-movies.html", quote=True)
+    collection = float(movie.get("worldwide_collection_crore") or 0)
+
+    classes = "movie-card ranking-card" if rank else "movie-card"
+    rank_html = f'<div class="ranking-number">#{int(rank)}</div>' if rank else ""
+    badge_html = ""
+    timing_html = ""
+
+    if running_day is not None:
+        badge_html = '<div class="home-release-badge running">RUNNING</div>'
+        timing_html = f'<p class="home-release-timing">Running • Day {int(running_day)}</p>'
+    elif upcoming_days is not None:
+        days = int(upcoming_days)
+        countdown = "Tomorrow" if days == 1 else f"{days} Days Left"
+        timing_html = f'<span class="upcoming-countdown">{html_escape(countdown)}</span>'
+
+    meta_parts = [part for part in (language, industry) if part]
+    meta_html = f'<p>{" • ".join(meta_parts)}</p>' if meta_parts else ""
+    date_html = f'<p>📅 {release_date}</p>' if release_date and not rank else ""
+    collection_html = (
+        f'<p class="movie-collection">🌍 ₹{collection:.2f} Cr</p>'
+        if collection > 0 else ""
     )
-    if timing:
-        parts.append(f'<p class="movie-verdict">{html_escape(timing)}</p>')
-    if countdown:
-        parts.append(f'<span class="upcoming-countdown">{html_escape(countdown)}</span>')
-    if worldwide is not None and float(worldwide or 0) > 0:
-        parts.append(f'<p class="movie-collection">🌍 ₹{float(worldwide):g} Cr</p>')
-    if verdict:
-        parts.append(f'<p class="movie-verdict">{html_escape(str(verdict))}</p>')
-    parts.append('</div></a>')
-    return '<article class="movie-card ranking-card">' + ''.join(parts) + '</article>'
+    verdict_html = f'<p class="movie-verdict">{verdict}</p>' if rank else ""
+
+    return (
+        f'<article class="{classes}">'
+        f'<a href="{url}" aria-label="View {title}">'
+        f'{rank_html}{badge_html}'
+        f'<img class="movie-poster" src="{image}" alt="{title}" loading="lazy" decoding="async">'
+        f'<div class="movie-info"><h3>{title}</h3>{timing_html}{date_html}'
+        f'{meta_html}{collection_html}{verdict_html}</div>'
+        f'</a></article>'
+    )
 
 
-def _build_home_ssr_html():
-    template_path = BASE_DIR / "index.html"
-    template = template_path.read_text(encoding="utf-8")
+def _build_homepage_ssr_sections():
+    today = date.today()
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            # Running movies: release day through Day 10.
+            # Match the existing homepage Running Movies rule: release day through Day 10.
             cur.execute("""
-                SELECT id, title, release_date, language, industry, poster,
-                       worldwide_collection_crore, verdict
+                SELECT id, title, release_date, language, industry,
+                       worldwide_collection_crore, verdict, poster
                 FROM movies
                 WHERE release_date IS NOT NULL
                   AND release_date BETWEEN CURRENT_DATE - INTERVAL '9 days' AND CURRENT_DATE
@@ -2311,10 +2307,11 @@ def _build_home_ssr_html():
             """)
             running_rows = cur.fetchall()
 
-            # Upcoming movies.
+            # Match the existing Upcoming Movies endpoint ordering.
             cur.execute("""
-                SELECT id, title, release_date, language, industry, poster,
-                       worldwide_collection_crore, verdict
+                SELECT id, title, release_date, language, industry,
+                       worldwide_collection_crore, verdict, poster,
+                       (release_date - CURRENT_DATE) AS days_until_release
                 FROM movies
                 WHERE release_date IS NOT NULL
                   AND release_date > CURRENT_DATE
@@ -2323,89 +2320,157 @@ def _build_home_ssr_html():
             """)
             upcoming_rows = cur.fetchall()
 
-            # Worldwide Top 10 - a lightweight direct query, not /movies catalogue.
+            # Match the current Top 10 client ranking: highest worldwide collection.
             cur.execute("""
-                SELECT id, title, release_date, language, industry, poster,
-                       worldwide_collection_crore, verdict
+                SELECT id, title, release_date, language, industry,
+                       worldwide_collection_crore, verdict, poster
                 FROM movies
                 WHERE worldwide_collection_crore IS NOT NULL
-                  AND worldwide_collection_crore > 0
-                ORDER BY worldwide_collection_crore DESC, id DESC
+                ORDER BY worldwide_collection_crore DESC NULLS LAST, id ASC
                 LIMIT 10
             """)
             ranking_rows = cur.fetchall()
 
-    today = date.today()
-    running_html = ''.join(
+            # Build canonical movie slugs once in the same DB connection.
+            cur.execute("""
+                SELECT id, title, release_date
+                FROM movies
+                ORDER BY id
+            """)
+            slug_rows = cur.fetchall()
+
+    slug_map = _unique_movie_slug_map(slug_rows)
+
+    def movie_from_row(row):
+        return {
+            "id": row[0],
+            "title": row[1],
+            "release_date": row[2].isoformat() if row[2] else None,
+            "language": row[3],
+            "industry": row[4],
+            "worldwide_collection_crore": float(row[5]) if row[5] is not None else None,
+            "verdict": row[6],
+            "poster": row[7],
+        }
+
+    running_html = [
         _home_movie_card(
-            row,
-            timing=f"Running • Day {(today - row[2]).days + 1}"
-        ) for row in running_rows
-    ) or '<div class="movie-empty">No running movies are inside the current 10-day release window.</div>'
+            movie_from_row(row),
+            slug_map,
+            running_day=(today - row[2]).days + 1,
+        )
+        for row in running_rows
+    ]
 
-    upcoming_html_parts = []
-    for row in upcoming_rows:
-        days = (row[2] - today).days
-        countdown = "Tomorrow" if days == 1 else f"{days} Days Left"
-        upcoming_html_parts.append(_home_movie_card(row, countdown=countdown))
-    upcoming_html = ''.join(upcoming_html_parts) or '<div class="movie-empty">No upcoming movies added yet.</div>'
+    upcoming_html = [
+        _home_movie_card(
+            movie_from_row(row[:8]),
+            slug_map,
+            upcoming_days=int(row[8] or 0),
+        )
+        for row in upcoming_rows
+    ]
 
-    ranking_html = ''.join(
-        _home_movie_card(row, rank=i)
-        for i, row in enumerate(ranking_rows, start=1)
-    ) or '<div class="movie-empty">No ranking data available.</div>'
+    ranking_html = [
+        _home_movie_card(movie_from_row(row), slug_map, rank=rank)
+        for rank, row in enumerate(ranking_rows, start=1)
+    ]
 
-    template = template.replace('<!-- BOXOFFICEX_SSR_RUNNING -->', running_html, 1)
-    template = template.replace('<!-- BOXOFFICEX_SSR_UPCOMING -->', upcoming_html, 1)
-    template = template.replace('<!-- BOXOFFICEX_SSR_RANKINGS -->', ranking_html, 1)
+    return {
+        "running": "\n".join(running_html) or '<div class="movie-empty">No running movies are inside the current 10-day release window.</div>',
+        "upcoming": "\n".join(upcoming_html) or '<div class="movie-empty">No upcoming movies added yet.</div>',
+        "rankings": "\n".join(ranking_html) or '<div class="movie-empty">No ranking data available.</div>',
+    }
+
+
+def _render_homepage_html():
+    template = (BASE_DIR / "index.html").read_text(encoding="utf-8")
+    sections = _build_homepage_ssr_sections()
+
+    replacements = {
+        "<!-- BOXOFFICEX_SSR_RUNNING -->": sections["running"],
+        "<!-- BOXOFFICEX_SSR_UPCOMING -->": sections["upcoming"],
+        "<!-- BOXOFFICEX_SSR_RANKINGS -->": sections["rankings"],
+    }
+
+    for marker, content in replacements.items():
+        if marker not in template:
+            raise RuntimeError(f"Homepage SSR marker missing: {marker}")
+        template = template.replace(marker, content, 1)
+
+    # The browser loaders use this marker to avoid replacing the server-rendered copy.
+    template = template.replace('id="latestMoviesGrid"', 'id="latestMoviesGrid" data-ssr="1"', 1)
+    template = template.replace('id="upcomingMoviesGrid"', 'id="upcomingMoviesGrid" data-ssr="1"', 1)
+    template = template.replace('id="rankingGrid"', 'id="rankingGrid" data-ssr="1"', 1)
     return template
 
 
-def _cached_home_html():
-    template_path = BASE_DIR / "index.html"
-    template_mtime = template_path.stat().st_mtime_ns
+def _refresh_homepage_cache():
+    global _home_html_refreshing
+    try:
+        rendered = _render_homepage_html()
+        with _home_html_cache_lock:
+            _home_html_cache["html"] = rendered
+            _home_html_cache["expires_at"] = time.monotonic() + HOME_HTML_CACHE_TTL
+    except Exception as exc:
+        print(f"Homepage SSR cache refresh failed: {exc}")
+    finally:
+        _home_html_refreshing = False
+
+
+def _start_homepage_refresh():
+    global _home_html_refreshing
+    with _home_html_cache_lock:
+        if _home_html_refreshing:
+            return
+        _home_html_refreshing = True
+    threading.Thread(target=_refresh_homepage_cache, daemon=True).start()
+
+
+def _get_cached_homepage_html():
     now = time.monotonic()
+    cached_html = _home_html_cache.get("html")
+    expires_at = float(_home_html_cache.get("expires_at") or 0)
 
-    if (
-        _HOME_SSR_CACHE["html"] is not None
-        and _HOME_SSR_CACHE["template_mtime"] == template_mtime
-        and now < _HOME_SSR_CACHE["expires_at"]
-    ):
-        return _HOME_SSR_CACHE["html"]
+    if cached_html and now < expires_at:
+        return cached_html, "HIT"
 
-    rendered = _build_home_ssr_html()
-    _HOME_SSR_CACHE["html"] = rendered
-    _HOME_SSR_CACHE["template_mtime"] = template_mtime
-    _HOME_SSR_CACHE["expires_at"] = now + _HOME_SSR_TTL_SECONDS
-    return rendered
+    # Stale-while-revalidate: after the first successful render, never make a
+    # visitor wait for a routine cache refresh.
+    if cached_html:
+        _start_homepage_refresh()
+        return cached_html, "STALE"
+
+    # True cold start fallback: build once synchronously if startup warm-up has
+    # not completed yet. The result is cached for following requests.
+    rendered = _render_homepage_html()
+    with _home_html_cache_lock:
+        _home_html_cache["html"] = rendered
+        _home_html_cache["expires_at"] = time.monotonic() + HOME_HTML_CACHE_TTL
+    return rendered, "MISS"
+
+
+@app.on_event("startup")
+def warm_homepage_ssr_cache():
+    # Warm in the background so application startup itself is not blocked.
+    _start_homepage_refresh()
 
 
 @app.get("/")
 def home():
     try:
-        content = _cached_home_html()
-    except Exception as exc:
-        # A DB/cache problem must never take the homepage offline.
-        print("Homepage cached SSR warning:", exc)
-        content = (BASE_DIR / "index.html").read_text(encoding="utf-8")
-        content = content.replace(
-            '<!-- BOXOFFICEX_SSR_RUNNING -->',
-            '<div class="movie-empty">Running movies are updating…</div>', 1
-        ).replace(
-            '<!-- BOXOFFICEX_SSR_UPCOMING -->',
-            '<div class="movie-empty">Upcoming movies are updating…</div>', 1
-        ).replace(
-            '<!-- BOXOFFICEX_SSR_RANKINGS -->',
-            '<div class="movie-empty">Rankings are updating…</div>', 1
+        html, cache_status = _get_cached_homepage_html()
+        return HTMLResponse(
+            content=html,
+            headers={
+                "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                "X-BoxOfficeX-Homepage": "cached-ssr",
+                "X-BoxOfficeX-Cache": cache_status,
+            },
         )
-
-    return HTMLResponse(
-        content=content,
-        headers={
-            "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
-            "X-BoxOfficeX-Homepage": "cached-ssr-v3",
-        },
-    )
+    except Exception as exc:
+        print(f"Homepage SSR fallback: {exc}")
+        return FileResponse(BASE_DIR / "index.html")
 
 
 
@@ -2785,9 +2850,9 @@ def robots_txt():
 # HTML PAGES
 # ============================================================
 
-@app.get("/index.html", include_in_schema=False)
+@app.get("/index.html")
 def index_page():
-    return RedirectResponse(url="/", status_code=301)
+    return FileResponse(BASE_DIR / "index.html")
 
 @app.get("/boxofficex-placeholders.js", include_in_schema=False)
 def boxofficex_placeholders_script():

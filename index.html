@@ -7200,6 +7200,10 @@ async function loadLatestMovies() {
         return;
     }
 
+    if (grid.dataset.ssr === "1" && grid.children.length > 0) {
+        return;
+    }
+
     try {
 
         const response =
@@ -8238,6 +8242,9 @@ async function loadTop10() {
             "rankingGrid"
         );
 
+    if (grid && grid.dataset.ssr === "1" && grid.children.length > 0) {
+        return;
+    }
 
     try {
 
@@ -8976,6 +8983,7 @@ function launchEsc(v){const d=document.createElement("div");d.textContent=v??"";
 
 async function loadUpcomingMovies(){
     const grid=document.getElementById("upcomingMoviesGrid"); if(!grid)return;
+    if(grid.dataset.ssr === "1" && grid.children.length > 0) return;
     try{
         const r=await fetch(`${API_BASE}/movies/upcoming?limit=10`);
         const d=await r.json(); if(!r.ok)throw new Error("Upcoming API "+r.status);
