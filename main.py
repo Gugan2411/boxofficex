@@ -2228,9 +2228,126 @@ def resolve_actor_slug(actor_slug: str):
 # HOME
 # ============================================================
 
+_HOME_TEMPLATE_CACHE = {"mtime": None, "html": None}
+
+
+def _home_template_html():
+    """Read index.html once per file version; local edits still refresh automatically."""
+    path = BASE_DIR / "index.html"
+    mtime = path.stat().st_mtime_ns
+    if _HOME_TEMPLATE_CACHE["mtime"] != mtime:
+        _HOME_TEMPLATE_CACHE["html"] = path.read_text(encoding="utf-8")
+        _HOME_TEMPLATE_CACHE["mtime"] = mtime
+    return _HOME_TEMPLATE_CACHE["html"]
+
+
+def _home_image_src(poster):
+    value = str(poster or "").strip()
+    if value.startswith(("https://", "http://", "/")):
+        return value
+    return "/posters/" + value
+
+
+def _home_movie_card(movie, timing_text=None, countdown_text=None):
+    title = html_escape(str(movie.get("title") or "Untitled"), quote=True)
+    language = html_escape(str(movie.get("language") or "Indian Cinema"), quote=True)
+    industry = html_escape(str(movie.get("industry") or ""), quote=True)
+    poster = html_escape(_home_image_src(movie.get("poster")), quote=True)
+    url = html_escape(str(movie.get("url") or "/new-movies.html"), quote=True)
+
+    meta = language + (f" • {industry}" if industry else "")
+    extra = ""
+    if timing_text:
+        extra += f'<p class="movie-verdict">{html_escape(timing_text)}</p>'
+        collection = movie.get("worldwide_collection_crore")
+        if collection is not None and float(collection or 0) > 0:
+            extra += f'<p class="movie-collection">₹{float(collection):g} Cr Worldwide</p>'
+    if countdown_text:
+        extra += f'<span class="upcoming-countdown">{html_escape(countdown_text)}</span>'
+
+    return (
+        f'<article class="movie-card" role="link" tabindex="0" '
+        f'onclick="location.href=\'{url}\'" '
+        f'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){{event.preventDefault();location.href=\'{url}\';}}">'
+        f'<img class="movie-poster" src="{poster}" alt="{title}" loading="lazy" decoding="async">'
+        f'<div class="movie-info"><h3>{title}</h3><p>{meta}</p>{extra}</div></article>'
+    )
+
+
+def _home_primary_sections():
+    """One DB round trip for the two primary homepage movie rails."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, release_date, language, poster, industry,
+                       worldwide_collection_crore
+                FROM movies
+                WHERE release_date IS NOT NULL
+                  AND release_date BETWEEN CURRENT_DATE - INTERVAL '9 days' AND CURRENT_DATE
+                ORDER BY release_date DESC, id DESC
+                LIMIT 5
+            """)
+            running_rows = cur.fetchall()
+
+            cur.execute("""
+                SELECT id, title, release_date, language, poster, industry,
+                       (release_date - CURRENT_DATE) AS days_until_release
+                FROM movies
+                WHERE release_date IS NOT NULL
+                  AND release_date > CURRENT_DATE
+                ORDER BY release_date ASC, id ASC
+                LIMIT 10
+            """)
+            upcoming_rows = cur.fetchall()
+
+    running = []
+    for row in running_rows:
+        day_no = (date.today() - row[2]).days + 1
+        running.append(_home_movie_card({
+            "title": row[1], "language": row[3], "poster": safe_movie_poster(row[4]),
+            "industry": row[5], "worldwide_collection_crore": row[6],
+            "url": public_movie_url(row[0]),
+        }, timing_text=f"Running • Day {day_no}"))
+
+    upcoming = []
+    for row in upcoming_rows:
+        days = int(row[6] or 0)
+        countdown = "Tomorrow" if days == 1 else f"{days} Days Left"
+        upcoming.append(_home_movie_card({
+            "title": row[1], "language": row[3], "poster": safe_movie_poster(row[4]),
+            "industry": row[5], "url": public_movie_url(row[0]),
+        }, countdown_text=countdown))
+
+    if not running:
+        running = ['<div class="movie-empty">No running movies are inside the current 10-day release window.</div>']
+    if not upcoming:
+        upcoming = ['<div class="movie-empty">No upcoming movies added yet.</div>']
+    return "".join(running), "".join(upcoming)
+
+
 @app.get("/")
 def home():
-    return FileResponse(BASE_DIR / "index.html")
+    html = _home_template_html()
+    try:
+        running_html, upcoming_html = _home_primary_sections()
+        html = html.replace("<!-- BOXOFFICEX_HOME_RUNNING -->", running_html, 1)
+        html = html.replace("<!-- BOXOFFICEX_HOME_UPCOMING -->", upcoming_html, 1)
+    except Exception as exc:
+        # Never turn a homepage data problem into a site-wide 500.
+        print("Homepage SSR warning:", exc)
+        html = html.replace(
+            "<!-- BOXOFFICEX_HOME_RUNNING -->",
+            '<div class="movie-empty">Running movies temporarily unavailable.</div>', 1
+        )
+        html = html.replace(
+            "<!-- BOXOFFICEX_HOME_UPCOMING -->",
+            '<div class="movie-empty">Upcoming movies temporarily unavailable.</div>', 1
+        )
+
+    return HTMLResponse(
+        content=html,
+        headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=120"},
+    )
 
 
 
@@ -2610,9 +2727,10 @@ def robots_txt():
 # HTML PAGES
 # ============================================================
 
-@app.get("/index.html")
+@app.get("/index.html", include_in_schema=False)
 def index_page():
-    return FileResponse(BASE_DIR / "index.html")
+    # Keep one canonical homepage URL and prevent duplicate /index.html indexing.
+    return RedirectResponse(url="/", status_code=301)
 
 @app.get("/boxofficex-placeholders.js", include_in_schema=False)
 def boxofficex_placeholders_script():
