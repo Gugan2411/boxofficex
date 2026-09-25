@@ -3005,6 +3005,9 @@ line-height:1.75;
 @keyframes ltTrackerGlow{0%,100%{box-shadow:0 14px 38px rgba(15,23,42,.09)}50%{box-shadow:0 15px 42px rgba(7,148,85,.16)}}
 @keyframes ltSweep{0%,55%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
 @media(max-width:700px){.live-tracker-block{margin:25px 0;padding:14px 11px;border-radius:16px}.lt-date-panel{padding:10px 11px}.lt-day{font-size:17px}.lt-date{font-size:9px}.lt-movie-day-title{font-size:13px;padding:10px 9px}.lt-worldwide{padding:15px 10px}.lt-worldwide .lt-value{font-size:26px}.lt-grid{gap:7px}.lt-card{padding:12px 10px}.lt-value{font-size:17px}.lt-head{align-items:flex-start}.lt-status{font-size:10px}.lt-tracking-copy{font-size:7px}}
+.lt-show-performance{position:relative;z-index:1;margin-top:12px;padding:13px;border:1px solid #e4e7ec;border-radius:15px;background:#fff}.lt-show-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.lt-show-head strong{color:#101828;font-size:11px;font-weight:1000;letter-spacing:.55px;text-transform:uppercase}.lt-show-live{display:inline-flex;align-items:center;gap:5px;color:#d92d20;font-size:8px;font-weight:1000;letter-spacing:.5px;text-transform:uppercase}.lt-show-live:before{content:"";width:6px;height:6px;border-radius:50%;background:#f04438;box-shadow:0 0 0 3px rgba(240,68,56,.10)}.lt-show-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.lt-show-card{padding:11px;border:1px solid #eaecf0;border-radius:12px;background:#f9fafb;min-width:0}.lt-show-period-name{color:#344054;font-size:9px;font-weight:1000;letter-spacing:.65px;text-transform:uppercase}.lt-show-stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px}.lt-show-stat strong{display:block;color:#101828;font-size:15px;line-height:1.1}.lt-show-stat span{display:block;margin-top:3px;color:#667085;font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.45px}.lt-show-rating{display:inline-flex;margin-top:8px;padding:4px 7px;border-radius:999px;font-size:7px;font-weight:1000;letter-spacing:.45px;text-transform:uppercase;background:#f2f4f7;color:#475467}.lt-rating-low{background:#fef3f2;color:#b42318}.lt-rating-below{background:#fff6ed;color:#b54708}.lt-rating-good{background:#fffaeb;color:#b54708}.lt-rating-strong{background:#ecfdf3;color:#067647}.lt-rating-excellent{background:#ecfdf3;color:#027a48}.lt-rating-housefull{background:#eff8ff;color:#175cd3}
+@media(max-width:700px){.lt-show-performance{padding:11px}.lt-show-grid{grid-template-columns:1fr 1fr;gap:7px}.lt-show-card{padding:10px}.lt-show-stat strong{font-size:14px}}
+@media(max-width:430px){.lt-show-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.live-tracker-block.lt-active,.live-tracker-block.lt-active:before,.lt-dot,.lt-updated.live,.lt-active .lt-card.lt-money-card .lt-value,.lt-active .lt-worldwide .lt-value,.lt-tracking-copy{animation:none}}
 </style>
 
@@ -5044,6 +5047,36 @@ function renderLiveTracker(data) {
     addCard(data.fast_filling, "Fast Filling");
     addCard(data.housefull_shows, "Housefull Shows");
 
+    const occupancyRating = value => {
+        const n = number(value);
+        if (n === null) return null;
+        if (n < 15) return ["Low", "lt-rating-low"];
+        if (n < 25) return ["Below Average", "lt-rating-below"];
+        if (n < 40) return ["Good Hold", "lt-rating-good"];
+        if (n < 60) return ["Strong Hold", "lt-rating-strong"];
+        if (n < 80) return ["Excellent Hold", "lt-rating-excellent"];
+        return ["Housefull Trend", "lt-rating-housefull"];
+    };
+    const showPeriods = [
+        ["Special Shows", data.special_shows, data.special_occupancy],
+        ["Morning", data.morning_shows, data.morning_occupancy],
+        ["Afternoon", data.afternoon_shows, data.afternoon_occupancy],
+        ["Evening", data.evening_shows, data.evening_occupancy],
+        ["Night", data.night_shows, data.night_occupancy]
+    ];
+    const showPerformanceCards = showPeriods.map(([period, shows, occupancy]) => {
+        if (!has(shows) && !has(occupancy)) return "";
+        const rating = occupancyRating(occupancy);
+        return `<div class="lt-show-card">
+            <div class="lt-show-period-name">${period}</div>
+            <div class="lt-show-stats">
+                ${has(shows) ? `<div class="lt-show-stat"><strong>${plain(shows)}</strong><span>Shows Tracked</span></div>` : ""}
+                ${has(occupancy) ? `<div class="lt-show-stat"><strong>${plain(occupancy)}%</strong><span>Occupancy</span></div>` : ""}
+            </div>
+            ${rating ? `<span class="lt-show-rating ${rating[1]}">${rating[0]}</span>` : ""}
+        </div>`;
+    }).filter(Boolean);
+
     const linkedMovieName = String(window.currentBoxOfficeXLiveMovieName || "").trim();
 
     // Manual note always has first priority. If it is empty, build the live message automatically.
@@ -5072,6 +5105,7 @@ function renderLiveTracker(data) {
         ${dayNumber || releaseDateLabel || movieDayTitle ? `<div class="lt-date-panel">${dayNumber ? `<div class="lt-day">DAY ${dayNumber}</div>` : ""}${releaseDateLabel ? `<div class="lt-date">${esc(releaseDateLabel)}</div>` : ""}${movieDayTitle ? `<div class="lt-tracker-movie"><span class="lt-movie-name">${esc(linkedMovieName || "Box Office")}</span>${dayNumber ? ` DAY ${dayNumber} COLLECTION` : ` COLLECTION`}</div>` : ""}</div>` : ""}
         ${cards.length ? `<div class="lt-grid">${cards.join("")}</div>` : ""}
         ${worldwide !== null ? `<div class="lt-worldwide"><div class="lt-value">${money(worldwide)}</div><div class="lt-label">Worldwide Gross</div>${isWorldwideAuto ? `<span class="lt-auto">Auto Calculated</span>` : ""}</div>` : ""}
+        ${showPerformanceCards.length ? `<div class="lt-show-performance"><div class="lt-show-head"><strong>Show Performance</strong>${isActivelyTracking ? `<span class="lt-show-live">Live</span>` : ""}</div><div class="lt-show-grid">${showPerformanceCards.join("")}</div></div>` : ""}
         ${noteText ? `<div class="lt-note"><strong>Latest Update</strong>${renderInlineArticleFormatting(noteText).replace(/\n/g, "<br>")}<span class="lt-scroll-hint">↓ Swipe down to see complete day-wise and region-wise box office data, plus advance booking status for the next day in the Box Office Report.</span></div>` : ""}
     </section>`;
 }

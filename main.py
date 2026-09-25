@@ -7713,8 +7713,8 @@ def admin_create_article(data: AdminArticleCreate):
 
 @app.put("/admin/articles/{article_id}", dependencies=[Depends(require_admin)])
 def admin_update_article(article_id: int, data: AdminArticleCreate):
-    slug = normalize_article_slug(data.slug or data.title)
-    if not slug:
+    requested_slug = normalize_article_slug(data.slug or data.title)
+    if not requested_slug:
         raise HTTPException(status_code=400, detail="Article slug is required")
 
     status = validate_article_status(data.status)
@@ -7722,8 +7722,10 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
+            # SEO safety: once an article has ever been published,
+            # its public URL slug becomes permanent.
             cur.execute("""
-                SELECT published_at
+                SELECT slug, status, published_at
                 FROM articles
                 WHERE id = %s
             """, (article_id,))
@@ -7732,8 +7734,19 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
             if not existing:
                 raise HTTPException(status_code=404, detail="Article not found")
 
+            existing_slug = existing[0]
+            existing_status = existing[1]
+            existing_published_at = existing[2]
+
+            slug_is_locked = (
+                existing_status == "published"
+                or existing_published_at is not None
+            )
+
+            slug = existing_slug if slug_is_locked else requested_slug
+
             if status == "published" and published_at is None:
-                published_at = existing[0] or datetime.now()
+                published_at = existing_published_at or datetime.now()
 
             try:
                 cur.execute("""
@@ -7777,6 +7790,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
         "success": True,
         "article_id": article_id,
         "slug": slug,
+        "slug_locked": slug_is_locked or status == "published",
         "article_url": f"/article/{slug}",
     }
 

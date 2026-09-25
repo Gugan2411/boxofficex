@@ -54,6 +54,9 @@ textarea{min-height:92px;resize:vertical}
 .block-controls{display:flex;gap:6px}.block-controls button{padding:6px 8px;background:#151d31;color:white;font-size:10px;border:1px solid rgba(255,255,255,.07)}
 .block-body{padding:12px}.block-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .note{margin-top:8px;color:#69758e;font-size:10px}
+.slug-lock-note{margin-top:7px;padding:8px 10px;border:1px solid rgba(255,204,51,.20);border-radius:9px;background:rgba(255,204,51,.06);color:#ffda66;font-size:10px;font-weight:800;line-height:1.4}
+#slug[readonly]{cursor:not-allowed;background:#111827;color:#9aa8bf;border-color:rgba(255,204,51,.18)}
+
 .preview-bar{margin-top:16px;padding:13px;border:1px dashed rgba(77,141,255,.3);border-radius:12px;background:rgba(77,141,255,.04);color:#8aa8df;font-size:11px}
 .media-preview{margin-top:10px;min-height:90px;border:1px dashed rgba(255,255,255,.10);border-radius:12px;background:#0a101c;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .media-preview img{display:block;max-width:100%;max-height:260px;object-fit:contain}
@@ -63,6 +66,10 @@ textarea{min-height:92px;resize:vertical}
 .gallery-preview img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.08)}
 .autosave-note{margin-left:8px;color:#6f7c95;font-size:10px}
 .toast{position:fixed;right:18px;bottom:18px;z-index:3000;padding:12px 15px;border-radius:12px;background:#101725;border:1px solid rgba(255,255,255,.1);display:none;max-width:320px}
+.lt-show-editor{margin-top:12px;padding:12px;border:1px solid rgba(77,141,255,.18);border-radius:12px;background:rgba(77,141,255,.04)}
+.lt-show-editor-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px;color:#f4f7fb;font-size:12px;font-weight:900}.lt-show-editor-title span{color:#7f8ba5;font-size:9px;font-weight:700}
+.lt-show-editor-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.lt-show-period{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:#101725}.lt-show-period strong{display:block;margin-bottom:8px;color:#ffcc33;font-size:11px}.lt-show-period label{margin-top:7px;font-size:8px}.lt-show-period input{padding:9px 10px}
+@media(max-width:900px){.lt-show-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.lt-show-editor-grid{grid-template-columns:1fr}.lt-show-editor-title{align-items:flex-start;flex-direction:column}}
 @media(max-width:950px){.layout{grid-template-columns:1fr}.article-list{max-height:260px}.form-grid,.block-row{grid-template-columns:1fr}}
 @media(max-width:650px){main{width:min(94%,1280px);padding-top:22px}.navbar{min-height:60px;padding:0 12px}.logo{font-size:18px}header nav{display:none}.actions{width:100%}.actions>*{flex:1}.panel-body{padding:13px}}
 .navbar{max-width:1500px;min-height:66px;gap:12px}.admin-nav{display:flex;align-items:center;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:thin}.admin-nav a{display:inline-flex;align-items:center;min-height:38px;padding:8px 10px!important;white-space:nowrap;font-size:11px!important}.admin-nav a.active{background:rgba(77,141,255,.14)!important;color:#8db5ff!important}@media(max-width:1100px){.navbar{align-items:flex-start;flex-direction:column;padding-top:10px;padding-bottom:9px}.admin-nav{width:100%}}@media(max-width:650px){header nav.admin-nav{display:flex}.navbar{align-items:flex-start}.admin-nav a{font-size:10px!important;padding:7px 9px!important}}
@@ -848,7 +855,11 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 
 <div class="form-grid">
 <div class="full"><label>Headline</label><input id="title"></div>
-<div class="full"><label>Slug</label><input id="slug" placeholder="article-clean-url"></div>
+<div class="full">
+<label>Slug</label>
+<input id="slug" placeholder="article-clean-url">
+<div id="slugLockNote" class="slug-lock-note" style="display:none">🔒 Slug locked after publication. H1/title and SEO fields can still be updated.</div>
+</div>
 <div class="full"><label>Subtitle / Deck</label><textarea id="subtitle"></textarea></div>
 <div><label>Category</label><input id="category" value="News"></div>
 <div class="full author-tools">
@@ -1301,11 +1312,29 @@ if(!selectedActorLinkIds.includes(Number(pendingActorLink.id)))selectedActorLink
 pendingActorLink=null;$("actorLinkSearch").value="";renderSelectedArticleLinks();
 }
 
+let slugLockedAfterPublish=false;
+
+function applySlugLock(locked){
+slugLockedAfterPublish=Boolean(locked);
+const input=$("slug");
+const note=$("slugLockNote");
+if(input){
+    input.readOnly=slugLockedAfterPublish;
+    input.setAttribute("aria-readonly",slugLockedAfterPublish ? "true" : "false");
+    input.title=slugLockedAfterPublish
+        ? "Slug is permanently locked because this article has been published."
+        : "";
+    if(slugLockedAfterPublish)input.dataset.touched="1";
+}
+if(note)note.style.display=slugLockedAfterPublish ? "block" : "none";
+}
+
 function updateBadge(){
 const b=$("statusBadge");b.textContent=currentStatus;b.className="status-pill status-"+currentStatus;
 }
 function resetEditor(){
 currentArticleId=null;currentStatus="draft";blocks=[];deletedBlockIds=[];
+applySlugLock(false);
 ["title","slug","subtitle","heroImage","heroCaption","heroCredit","metaTitle","metaDescription"].forEach(id=>$(id).value="");
 setSelectedLinks([],[]);
 $("category").value="News";
@@ -1338,6 +1367,16 @@ premiere_gross:"",
 day_gross:"",
 fast_filling:"",
 housefull_shows:"",
+special_shows:"",
+special_occupancy:"",
+morning_shows:"",
+morning_occupancy:"",
+afternoon_shows:"",
+afternoon_occupancy:"",
+evening_shows:"",
+evening_occupancy:"",
+night_shows:"",
+night_occupancy:"",
 note:"",
 updated_at:""
 };
@@ -1999,6 +2038,17 @@ body=`
   <div class="block-row" style="margin-top:9px"><div><label>Tickets Sold</label><input data-extra="tickets_sold" value="${articleContentEsc(lt.tickets_sold||"")}" placeholder="609623"></div><div><label>Shows Tracked</label><input data-extra="shows_tracked" value="${articleContentEsc(lt.shows_tracked||"")}" placeholder="10000+"></div></div>
   <div class="block-row" style="margin-top:9px"><div><label>Occupancy (%)</label><input data-extra="occupancy" value="${articleContentEsc(lt.occupancy||"")}" placeholder="68.4"></div><div><label>Advance Booking (Cr)</label><input data-extra="advance_booking" value="${articleContentEsc(lt.advance_booking||"")}" placeholder="36.67"></div></div>
   <div class="block-row" style="margin-top:9px"><div><label>Premiere Gross (Cr)</label><input data-extra="premiere_gross" value="${articleContentEsc(lt.premiere_gross||"")}" placeholder=""></div><div><label>Fast Filling</label><input data-extra="fast_filling" value="${articleContentEsc(lt.fast_filling||"")}" placeholder="1041"></div></div>
+  <div class="lt-show-editor">
+    <div class="lt-show-editor-title">Show Performance <span>Optional • auto-rated from occupancy</span></div>
+    <div class="lt-show-editor-grid">
+      <div class="lt-show-period"><strong>Special Shows</strong><label>Shows Tracked</label><input data-extra="special_shows" value="${articleContentEsc(lt.special_shows||"")}" placeholder="250"><label>Occupancy (%)</label><input data-extra="special_occupancy" value="${articleContentEsc(lt.special_occupancy||"")}" placeholder="85"></div>
+      <div class="lt-show-period"><strong>Morning</strong><label>Shows Tracked</label><input data-extra="morning_shows" value="${articleContentEsc(lt.morning_shows||"")}" placeholder="1235"><label>Occupancy (%)</label><input data-extra="morning_occupancy" value="${articleContentEsc(lt.morning_occupancy||"")}" placeholder="24"></div>
+      <div class="lt-show-period"><strong>Afternoon</strong><label>Shows Tracked</label><input data-extra="afternoon_shows" value="${articleContentEsc(lt.afternoon_shows||"")}" placeholder="1800"><label>Occupancy (%)</label><input data-extra="afternoon_occupancy" value="${articleContentEsc(lt.afternoon_occupancy||"")}" placeholder="32"></div>
+      <div class="lt-show-period"><strong>Evening</strong><label>Shows Tracked</label><input data-extra="evening_shows" value="${articleContentEsc(lt.evening_shows||"")}" placeholder="2200"><label>Occupancy (%)</label><input data-extra="evening_occupancy" value="${articleContentEsc(lt.evening_occupancy||"")}" placeholder="48"></div>
+      <div class="lt-show-period"><strong>Night</strong><label>Shows Tracked</label><input data-extra="night_shows" value="${articleContentEsc(lt.night_shows||"")}" placeholder="2500"><label>Occupancy (%)</label><input data-extra="night_occupancy" value="${articleContentEsc(lt.night_occupancy||"")}" placeholder="68"></div>
+    </div>
+    <div class="note">Public rating is automatic: Low &lt;15% • Below Average 15–24.99% • Good Hold 25–39.99% • Strong Hold 40–59.99% • Excellent Hold 60–79.99% • Housefull Trend 80%+.</div>
+  </div>
   <div class="block-row" style="margin-top:9px"><div><label>Housefull Shows</label><input data-extra="housefull_shows" value="${articleContentEsc(lt.housefull_shows||"")}" placeholder="146"></div><div><label>Last Updated</label><input value="${articleContentEsc(lt.updated_at||"Auto on save")}" readonly></div></div>
   <div style="margin-top:9px"><label>Latest Update Note</label><textarea data-extra="note" placeholder="Optional short live update">${articleContentEsc(lt.note||"")}</textarea></div>
   <div class="note">Only fields with a value are shown publicly. Empty fields stay completely hidden. Day number is calculated from Movie Release Date.</div>
@@ -2479,6 +2529,7 @@ if(!a){
 }
 currentArticleId=a.id;
 currentStatus=a.status;
+applySlugLock(a.status==="published" || Boolean(a.published_at));
 blocks=Array.isArray(a.blocks)?a.blocks:[];
 deletedBlockIds=[];
 $("editorTitle").textContent="Edit Article #"+a.id;
@@ -2632,13 +2683,15 @@ async function setStatus(status){
 if(!currentArticleId){await saveArticle();if(!currentArticleId)return}
 const endpoint=status==="published"?"publish":"draft";
 const r=await fetch(`/admin/articles/${currentArticleId}/${endpoint}`,{method:"POST"});const d=await r.json();if(!r.ok){toast(d.detail||"Status failed");return}
-currentStatus=status;updateBadge();toast(status==="published"?"Published":"Moved to draft");await loadArticles();
+currentStatus=status;
+if(status==="published")applySlugLock(true);
+updateBadge();toast(status==="published"?"Published":"Moved to draft");await loadArticles();
 }
 async function deleteArticle(){
 if(!currentArticleId)return;if(!confirm("Delete this article permanently?"))return;
 const r=await fetch("/admin/articles/"+currentArticleId,{method:"DELETE"});if(r.ok){resetEditor();await loadArticles();toast("Article deleted")}
 }
-$("title").addEventListener("input",()=>{if(!$("slug").dataset.touched)$("slug").value=slugify($("title").value)});
+$("title").addEventListener("input",()=>{if(!slugLockedAfterPublish&&!$("slug").dataset.touched)$("slug").value=slugify($("title").value)});
 $("slug").addEventListener("input",()=>{$("slug").dataset.touched="1"});
 document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addBlock(b.dataset.add));
 $("newBtn").onclick=resetEditor;$("saveBtn").onclick=saveArticle;$("publishBtn").onclick=()=>setStatus("published");$("deleteBtn").onclick=deleteArticle;
@@ -3004,6 +3057,7 @@ async function setArticleStatus(status){
         if(!r.ok)throw new Error(d.detail||"Unable to update article status");
 
         currentStatus=status;
+        if(status==="published")applySlugLock(true);
         updateBadge();
         toast(status==="draft" ? "Article saved as draft" : "Article published");
 
