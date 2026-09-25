@@ -3195,6 +3195,140 @@ def movie_rankings_page():
     return FileResponse(BASE_DIR / "movie-rankings.html")
 
 
+# ============================================================
+# ACTOR DETAIL - CACHED SERVER-RENDERED SEO CONTENT
+# ============================================================
+
+ACTOR_HTML_CACHE_TTL = 300
+_actor_html_cache = {}
+_actor_html_cache_lock = threading.Lock()
+
+
+def _actor_ssr_money(value):
+    try:
+        number = float(value or 0)
+    except (TypeError, ValueError):
+        number = 0.0
+    if number.is_integer():
+        return str(int(number))
+    return f"{number:.2f}".rstrip("0").rstrip(".")
+
+
+def _actor_ssr_movie_image(movie):
+    # actor.html intentionally uses the generated BoxOfficeX movie placeholder.
+    return _home_movie_placeholder(movie)
+
+
+def _actor_ssr_profile_image(actor):
+    # actor.html intentionally uses the generated BoxOfficeX actor placeholder.
+    return _home_actor_placeholder(actor.get("name") or "Actor")
+
+
+def _actor_ssr_build(actor_slug: str):
+    actor_identity = resolve_actor_slug(actor_slug)
+    if not actor_identity:
+        return None
+
+    actor_id = int(actor_identity["id"])
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, name, profession, photo, bio
+                FROM actors
+                WHERE id = %s
+            """, (actor_id,))
+            row = cur.fetchone()
+
+    if not row:
+        return None
+
+    actor = {
+        "id": row[0], "name": row[1] or "Actor", "profession": row[2] or "Actor",
+        "photo": row[3], "bio": row[4] or "No biography available.",
+        "slug": actor_slug, "url": f"/actor/{actor_slug}",
+    }
+    movies = get_actor_movies(actor_id).get("movies", [])
+    overview = get_actor_overview(actor_id)
+    top_movies = get_actor_top_movies(actor_id).get("movies", [])
+
+    movie_slug_map = _unique_movie_slug_map()
+    for movie in top_movies:
+        movie["slug"] = movie_slug_map.get(
+            movie.get("id"),
+            movie_seo_slug(movie.get("id"), movie.get("title"), movie.get("release_date"))
+        )
+        movie["url"] = f'/movie/{movie["slug"]}'
+
+    template = (BASE_DIR / "actor.html").read_text(encoding="utf-8")
+    name, profession, bio = str(actor["name"]), str(actor["profession"]), str(actor["bio"])
+    canonical = f"https://boxofficex.in/actor/{actor_slug}"
+    title = f"{name} Movies, Box Office Collection, Hits & Flops | BoxOfficeX"
+    description = f"Explore {name} movies, worldwide box office collections, highest-grossing films, career overview, blockbusters, hits, flops and verdicts on BoxOfficeX."
+    profile_image = _actor_ssr_profile_image(actor)
+
+    template = re.sub(r"<title>.*?</title>", f"<title>{html_escape(title)}</title>", template, count=1, flags=re.S)
+    template = re.sub(r'(<meta\s+name="description"\s+content=")[^"]*(")', lambda m: m.group(1)+html_escape(description, quote=True)+m.group(2), template, count=1, flags=re.S)
+    template = re.sub(r'(<link\s+id="canonicalUrl"\s+rel="canonical"\s+href=")[^"]*(")', lambda m: m.group(1)+canonical+m.group(2), template, count=1)
+    for element_id, value in (("ogTitle", title), ("ogDescription", description), ("ogUrl", canonical), ("ogImage", profile_image), ("twitterTitle", title), ("twitterDescription", description), ("twitterImage", profile_image)):
+        template = re.sub(r'(<meta id="'+re.escape(element_id)+r'"[^>]*content=")[^"]*(")', lambda m, v=value: m.group(1)+html_escape(v, quote=True)+m.group(2), template, count=1)
+
+    structured = {"@context":"https://schema.org", "@type":"Person", "name":name, "url":canonical, "jobTitle":profession, "description":bio}
+    template = re.sub(r'<script id="actorStructuredData" type="application/ld\+json">.*?</script>', '<script id="actorStructuredData" type="application/ld+json">'+json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")+"</script>", template, count=1, flags=re.S)
+
+    hero = f'''<div class="actor" data-ssr="1" data-actor-id="{actor_id}">
+        <img id="actorPhoto" src="{html_escape(profile_image, quote=True)}" alt="{html_escape(name, quote=True)} profile">
+        <h1 id="actorName">{html_escape(name)}</h1>
+        <div id="profession">{html_escape(profession)}</div>
+        <div id="actorViewCount" class="actor-view-count">👁 0 Views</div>
+        <p id="bio">{html_escape(bio)}</p>
+    </div>'''
+    template = re.sub(r'<div class="actor">.*?</div>\s*<section id="bxActorPageAd"', hero+'\n\n    <section id="bxActorPageAd"', template, count=1, flags=re.S)
+
+    overview_html = f'''<div id="overviewGrid" data-ssr="1">
+        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openAllMoviesSection()" onkeydown="handleAllMoviesKey(event)"><div class="overview-label">🎬 Total Movies</div><div class="overview-value">{int(overview.get("movie_count") or 0)}</div></div>
+        <div class="overview-card"><div class="overview-label">🌍 Total Worldwide</div><div class="overview-value">₹{_actor_ssr_money(overview.get("total_worldwide"))} Cr</div></div>
+        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openHighestGrossingMovie()" onkeydown="handleHighestMovieKey(event)"><div class="overview-label">🏆 Highest Grossing Movie</div><div class="overview-value">{html_escape(str(overview.get("highest_movie") or "N/A"))}</div></div>
+        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openHighestGrossingMovie()" onkeydown="handleHighestMovieKey(event)"><div class="overview-label">💰 Highest Worldwide</div><div class="overview-value">₹{_actor_ssr_money(overview.get("highest_worldwide"))} Cr</div></div>
+        <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Blockbuster" onclick="openCareerVerdict('Blockbuster', this)" onkeydown="handleCareerVerdictKey(event, 'Blockbuster', this)"><div class="overview-label">🔥 Blockbusters</div><div class="overview-value">{int(overview.get("blockbusters") or 0)}</div></div>
+        <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Hit" onclick="openCareerVerdict('Hit', this)" onkeydown="handleCareerVerdictKey(event, 'Hit', this)"><div class="overview-label">⭐ Hits</div><div class="overview-value">{int(overview.get("hits") or 0)}</div></div>
+        <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Average" onclick="openCareerVerdict('Average', this)" onkeydown="handleCareerVerdictKey(event, 'Average', this)"><div class="overview-label">📊 Average Movies</div><div class="overview-value">{int(overview.get("average_movies") or 0)}</div></div>
+        <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Flop" onclick="openCareerVerdict('Flop', this)" onkeydown="handleCareerVerdictKey(event, 'Flop', this)"><div class="overview-label">❌ Flops</div><div class="overview-value">{int(overview.get("flops") or 0)}</div></div>
+    </div>'''
+    template = re.sub(r'<div id="overviewGrid">.*?</div>\s*</section>', overview_html+'\n\n    </section>', template, count=1, flags=re.S)
+
+    top_cards=[]
+    for index, movie in enumerate(top_movies):
+        url=movie.get("url") or "#"; image=_actor_ssr_movie_image(movie); movie_title=str(movie.get("title") or "Movie")
+        top_cards.append(f'<a class="top-movie-card" href="{html_escape(url, quote=True)}"><img src="{html_escape(image, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy" decoding="async"><div class="top-movie-title">#{index+1} {html_escape(movie_title)}</div><div class="top-movie-collection">🌍 ₹{_actor_ssr_money(movie.get("worldwide_collection"))} Cr</div></a>')
+    highest_url=top_movies[0].get("url") if top_movies else ""
+    top_html=f'<div id="topMovies" data-ssr="1" data-ssr-highest-url="{html_escape(highest_url or "", quote=True)}">'+("".join(top_cards) if top_cards else "<p>No top movies found.</p>")+"</div>"
+    template = re.sub(r'<div id="topMovies">.*?</div>\s*</section>', top_html+'\n\n    </section>', template, count=1, flags=re.S)
+
+    movie_cards=[]
+    for index, movie in enumerate(movies):
+        url=movie.get("url") or "#"; image=_actor_ssr_movie_image(movie); movie_title=str(movie.get("title") or "Movie")
+        movie_cards.append(f'<a class="movie-item" href="{html_escape(url, quote=True)}"><img src="{html_escape(image, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy" decoding="async"><div class="movie-details"><div class="movie-title">{html_escape(movie_title)}</div><div class="movie-info">📅 Release: {html_escape(str(movie.get("release_date") or "N/A"))}</div><div class="movie-info">🌍 Worldwide: ₹{_actor_ssr_money(movie.get("worldwide_collection_crore"))} Cr</div><div class="movie-verdict">🎬 Verdict: {html_escape(str(movie.get("verdict") or "N/A"))}</div></div></a>')
+        if index==7 and len(movies)>=12:
+            movie_cards.append('<section id="bxSmartAdSlot3" class="bx-smart-ad-slot" aria-label="Advertisement slot 3"></section>')
+    movie_html='<div id="movieList" data-ssr="1">'+("".join(movie_cards) if movie_cards else "<p>No movies found.</p>")+"</div>"
+    template = re.sub(r'<div id="movieList">.*?</div>\s*</section>', movie_html+'\n\n    </section>', template, count=1, flags=re.S)
+    return template
+
+
+def _actor_ssr_cached(actor_slug: str):
+    now=time_module.monotonic()
+    with _actor_html_cache_lock:
+        cached=_actor_html_cache.get(actor_slug)
+        if cached and cached["expires_at"] > now:
+            return cached["html"], "HIT"
+    rendered=_actor_ssr_build(actor_slug)
+    if rendered is None:
+        return None, "MISS"
+    with _actor_html_cache_lock:
+        _actor_html_cache[actor_slug]={"html":rendered, "expires_at":time_module.monotonic()+ACTOR_HTML_CACHE_TTL}
+    return rendered, "MISS"
+
+
 @app.get("/actor-movies.html", include_in_schema=False)
 def actor_movies_page(id: Optional[int] = None):
     if id is None:
@@ -3248,7 +3382,31 @@ def actor_slug_page(actor_slug: str):
     actor = resolve_actor_slug(actor_slug)
     if not actor:
         raise HTTPException(status_code=404, detail="Actor not found")
-    return FileResponse(BASE_DIR / "actor.html")
+
+    try:
+        rendered, cache_state = _actor_ssr_cached(actor_slug)
+        if rendered is None:
+            raise HTTPException(status_code=404, detail="Actor not found")
+        return HTMLResponse(
+            content=rendered,
+            headers={
+                "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                "X-BoxOfficeX-Actor": "cached-ssr",
+                "X-BoxOfficeX-Cache": cache_state,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print("Actor SSR fallback:", type(exc).__name__, exc, flush=True)
+        return FileResponse(
+            BASE_DIR / "actor.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Actor": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 @app.get("/seo/resolve/movie/{movie_slug}", include_in_schema=False)

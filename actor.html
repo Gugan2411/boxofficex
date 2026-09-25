@@ -4908,6 +4908,11 @@ async function initializeActorPage() {
         return;
     }
 
+    const ssrTopMovies = document.getElementById("topMovies");
+    if (ssrTopMovies && ssrTopMovies.dataset.ssrHighestUrl) {
+        highestGrossingMovieUrl = ssrTopMovies.dataset.ssrHighestUrl;
+    }
+
     if (!actorId) {
 
     document.getElementById(
@@ -5081,7 +5086,7 @@ else {
     // ACTOR MOVIES
     // ==========================================
 
-    fetch(
+    if (!document.getElementById("movieList")?.dataset.ssr) fetch(
         "/actors/" +
         actorId +
         "/movies"
@@ -5223,7 +5228,7 @@ else {
     // ACTOR OVERVIEW
     // ==========================================
 
-    fetch(
+    if (!document.getElementById("overviewGrid")?.dataset.ssr) fetch(
         "/actors/" +
         actorId +
         "/overview"
@@ -5412,7 +5417,7 @@ else {
     // TOP 5 MOVIES
     // ==========================================
 
-    fetch(
+    if (!document.getElementById("topMovies")?.dataset.ssr) fetch(
         "/actors/" +
         actorId +
         "/top-movies"
