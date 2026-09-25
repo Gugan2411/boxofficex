@@ -58,7 +58,7 @@
     <link
         id="canonicalUrl"
         rel="canonical"
-        href=""
+        href="https://boxofficex.in/"
     >
 
     <meta
@@ -84,13 +84,9 @@
     <meta
         id="ogUrl"
         property="og:url"
-        content=""
+        content="https://boxofficex.in/"
     >
 
-    <meta
-        name="twitter:card"
-        content="summary"
-    >
 
     <meta
         name="twitter:title"
@@ -6701,7 +6697,7 @@ html,body{scroll-padding-top:0!important}
         id="latestMoviesGrid"
     >
         <div class="movie-empty">
-            Loading running movies...
+            Preparing running movies…
         </div>
     </div>
 
@@ -6721,7 +6717,7 @@ html,body{scroll-padding-top:0!important}
         <a href="new-movies.html">View All →</a>
     </div>
     <div class="movie-grid latest-grid" id="upcomingMoviesGrid">
-        <div class="movie-empty">Loading upcoming movies...</div>
+        <div class="movie-empty">Preparing upcoming movies…</div>
     </div>
 </section>
 
@@ -6738,7 +6734,7 @@ html,body{scroll-padding-top:0!important}
     </div>
 
     <div class="movie-grid ranking-grid" id="trendingMoviesGrid">
-        <div class="movie-empty">Loading trending movies...</div>
+        <div class="movie-empty">Preparing trending movies…</div>
     </div>
 </section>
 
@@ -6757,7 +6753,7 @@ html,body{scroll-padding-top:0!important}
     </div>
 
     <div class="article-trending-grid" id="trendingArticlesGrid">
-        <div class="movie-empty">Loading trending articles...</div>
+        <div class="movie-empty">Preparing trending articles…</div>
     </div>
 </section>
 
@@ -6776,7 +6772,7 @@ html,body{scroll-padding-top:0!important}
         </div>
     </div>
     <div class="movie-grid ranking-grid" id="hypedMoviesGrid">
-        <div class="movie-empty">Loading fan hype...</div>
+        <div class="movie-empty">Preparing fan hype…</div>
     </div>
 </section>
 
@@ -6793,7 +6789,7 @@ html,body{scroll-padding-top:0!important}
         </div>
     </div>
     <div class="fan-activity-grid" id="fanActivityGrid">
-        <div class="movie-empty">Loading fan activity...</div>
+        <div class="movie-empty">Preparing fan activity…</div>
     </div>
 </section>
 
@@ -6834,7 +6830,7 @@ html,body{scroll-padding-top:0!important}
     >
 
         <div class="movie-empty">
-            Loading rankings...
+            Preparing rankings…
         </div>
 
     </div>
@@ -6875,7 +6871,7 @@ html,body{scroll-padding-top:0!important}
     <div id="actorsGrid">
 
         <div class="movie-empty">
-            Loading actors...
+            Preparing actors…
         </div>
 
     </div>
@@ -6888,19 +6884,19 @@ html,body{scroll-padding-top:0!important}
 <section class="section" id="latest-updates">
     <div class="section-header"><div class="section-title-wrap"><div class="section-label">FRESH ON BOXOFFICEX</div><h2>🔔 Latest Updates</h2></div></div>
     <div class="mobile-swipe-hint bx-latest-updates-swipe-hint" id="latestUpdatesSwipeHint">Swipe to explore more</div>
-    <div class="update-list" id="latestUpdatesList"><div class="movie-empty">Loading latest updates...</div></div>
+    <div class="update-list" id="latestUpdatesList"><div class="movie-empty">Preparing latest updates…</div></div>
 </section>
 
 <!-- FAN LEADERBOARDS -->
 <section class="section" id="fan-leaderboards">
     <div class="section-header"><div class="section-title-wrap"><div class="section-label">COMMUNITY LEADERS</div><h2>🏆 Fan Leaderboards</h2></div></div>
-    <div class="leader-grid" id="fanLeaderGrid"><div class="movie-empty">Loading leaders...</div></div>
+    <div class="leader-grid" id="fanLeaderGrid"><div class="movie-empty">Preparing leaders…</div></div>
 </section>
 
 <!-- BOXOFFICEX STATS -->
 <section class="section" id="boxofficex-stats">
     <div class="section-header"><div class="section-title-wrap"><div class="section-label">DATABASE COVERAGE</div><h2>📊 BoxOfficeX Stats</h2></div></div>
-    <div class="launch-feature-grid" id="boxOfficeXStats"><div class="movie-empty">Loading stats...</div></div>
+    <div class="launch-feature-grid" id="boxOfficeXStats"><div class="movie-empty">Preparing stats…</div></div>
 </section>
 
 <!-- ======================================================
@@ -7210,11 +7206,7 @@ async function loadLatestMovies() {
         const response =
             await fetch(
                 API_BASE +
-                "/movies/new-system",
-                {
-                    cache:
-                        "no-store"
-                }
+                "/movies/new-system"
             );
 
         if (!response.ok) {
@@ -7967,8 +7959,7 @@ async function loadTrendingMovies() {
 
     try {
         const response = await fetch(
-            `${API_BASE}/movies/trending?limit=10`,
-            {cache: "no-store"}
+            `${API_BASE}/movies/trending?limit=10`
         );
 
         if (!response.ok) {
@@ -8062,8 +8053,7 @@ async function loadTrendingArticles() {
 
     try {
         const response = await fetch(
-            `${API_BASE}/articles/trending?limit=10`,
-            {cache: "no-store"}
+            `${API_BASE}/articles/trending?limit=10`
         );
 
         if (!response.ok) {
@@ -8157,7 +8147,7 @@ async function loadMostHypedMovies() {
     const grid = document.getElementById("hypedMoviesGrid");
     if (!grid) return;
     try {
-        const response = await fetch(`${API_BASE}/movies/most-hyped?limit=10`, {cache:"no-store"});
+        const response = await fetch(`${API_BASE}/movies/most-hyped?limit=10`);
         if (!response.ok) throw new Error("Most hyped API error: " + response.status);
         const data = await response.json();
         const movies = Array.isArray(data.movies) ? data.movies : [];
@@ -8201,7 +8191,7 @@ async function loadTrendingFanActivity(){
     const grid=document.getElementById("fanActivityGrid");
     if(!grid)return;
     try{
-        const response=await fetch(`${API_BASE}/fan-activity/trending?limit=8`,{cache:"no-store"});
+        const response=await fetch(`${API_BASE}/fan-activity/trending?limit=8`);
         if(!response.ok)throw new Error("Trending fan activity API error: "+response.status);
         const data=await response.json();
         const items=Array.isArray(data.items)?data.items:[];
@@ -8632,8 +8622,7 @@ async function performSearch(query) {
 
     try {
         const response = await fetch(
-            `${API_BASE}/search?q=${encodeURIComponent(cleanQuery)}&limit=8`,
-            {cache: "no-store"}
+            `${API_BASE}/search?q=${encodeURIComponent(cleanQuery)}&limit=8`
         );
 
         if (!response.ok) {
@@ -8778,36 +8767,26 @@ if (comparisonCard) {
 ========================================================= */
 
 async function startHomePage() {
+    // Start independent homepage requests immediately instead of waiting
+    // for the full movie catalogue before rendering other sections.
+    const movieCataloguePromise = loadMovies();
 
-    /*
-        Both APIs load at the same time.
-    */
-
-    await Promise.all([
-        loadMovies()
-    ]);
-
-
-    /*
-        Uses cached movie data.
-    */
-
-    await Promise.all([
-        loadTop10(),
+    const independentSections = Promise.allSettled([
+        loadLatestMovies(),
         loadTrendingMovies(),
         loadTrendingArticles(),
         loadMostHypedMovies(),
         loadTrendingFanActivity()
     ]);
 
+    // Rankings currently use cachedMovies, so only this section waits
+    // for the catalogue request.
+    await movieCataloguePromise;
+    await loadTop10();
+    await independentSections;
 }
 
-
 startHomePage();
-
-
-
-loadLatestMovies();
 
 
 
@@ -8828,8 +8807,8 @@ function parseLocalDate(value){
 async function updateSiteNewBadges(){
     try{
         const [moviesRes,articlesRes]=await Promise.all([
-            fetch("/movies/new-system",{cache:"no-store"}),
-            fetch("/articles/latest?limit=10",{cache:"no-store"})
+            fetch("/movies/new-system"),
+            fetch("/articles/latest?limit=10")
             
         ]);
 
@@ -8999,7 +8978,7 @@ function launchEsc(v){const d=document.createElement("div");d.textContent=v??"";
 async function loadUpcomingMovies(){
     const grid=document.getElementById("upcomingMoviesGrid"); if(!grid)return;
     try{
-        const r=await fetch(`${API_BASE}/movies/upcoming?limit=10`,{cache:"no-store"});
+        const r=await fetch(`${API_BASE}/movies/upcoming?limit=10`);
         const d=await r.json(); if(!r.ok)throw new Error("Upcoming API "+r.status);
         const items=Array.isArray(d.movies)?d.movies:[];
         if(!items.length){grid.innerHTML='<div class="movie-empty">No upcoming movies added yet.</div>';return}
@@ -9017,7 +8996,7 @@ async function loadPopularActorsData(){
     if(!grid) return;
 
     try{
-        const response = await fetch(`${API_BASE}/actors/popular?limit=10`, {cache:"no-store"});
+        const response = await fetch(`${API_BASE}/actors/popular?limit=10`);
 
         if(!response.ok){
             throw new Error("Actors API " + response.status);
@@ -9074,7 +9053,7 @@ async function loadPopularActorsData(){
 async function loadBoxOfficeXStats(){
     const el=document.getElementById("boxOfficeXStats"); if(!el)return;
     try{
-        const r=await fetch(`${API_BASE}/site/stats`,{cache:"no-store"}); const d=await r.json();
+        const r=await fetch(`${API_BASE}/site/stats`); const d=await r.json();
         if(!r.ok)throw new Error("Stats API "+r.status);
         const stats=[["Movies Tracked",d.movies_tracked],["Actors",d.actors_tracked],["Articles",d.published_articles],["Box Office Records",d.boxoffice_records]];
         el.innerHTML=stats.map(x=>`<div class="launch-stat-card"><div class="launch-stat-value">${Number(x[1]||0).toLocaleString("en-IN")}</div><div class="launch-stat-label">${x[0]}</div></div>`).join("");
@@ -9084,7 +9063,7 @@ async function loadBoxOfficeXStats(){
 async function loadLatestUpdatesFeed(){
     const el=document.getElementById("latestUpdatesList"); if(!el)return;
     try{
-        const r=await fetch(`${API_BASE}/latest-updates?limit=8`,{cache:"no-store"}); const d=await r.json();
+        const r=await fetch(`${API_BASE}/latest-updates?limit=8`); const d=await r.json();
         if(!r.ok)throw new Error("Latest updates API "+r.status);
         const items=Array.isArray(d.updates)?d.updates:[];
         el.innerHTML=items.length?items.map(x=>`<article class="update-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="update-icon">${x.type==="article"?"📰":"🎬"}</div><div class="update-copy"><strong>${launchEsc(x.title)}</strong><small>${launchEsc(x.subtitle||"Latest update")}</small></div></article>`).join(""):'<div class="movie-empty">No updates yet.</div>';
@@ -9094,7 +9073,7 @@ async function loadLatestUpdatesFeed(){
 async function loadFanLeaderboards(){
     const el=document.getElementById("fanLeaderGrid"); if(!el)return;
     try{
-        const r=await fetch(`${API_BASE}/fan-leaderboards`,{cache:"no-store"}); const d=await r.json();
+        const r=await fetch(`${API_BASE}/fan-leaderboards`); const d=await r.json();
         if(!r.ok)throw new Error("Leaderboard API "+r.status);
         const items=(Array.isArray(d.leaders)?d.leaders:[]).filter(Boolean);
         el.innerHTML=items.length?items.map(x=>`<article class="leader-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count">${Number(x.count||0).toLocaleString("en-IN")} interactions</div></article>`).join(""):'<div class="movie-empty">No leaderboard data yet.</div>';
@@ -9792,7 +9771,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       try{const a=JSON.parse(localStorage.getItem("boxofficex_ad_page_preview")||"null");if(a){render(a,Number(a.ad_slot||1),true);return}}catch(e){}
    }
    try{
-      const r=await fetch(`/ads/active?placement=${encodeURIComponent(BX_PLACEMENT)}&page=${encodeURIComponent(location.pathname)}`,{cache:"no-store"});
+      const r=await fetch(`/ads/active?placement=${encodeURIComponent(BX_PLACEMENT)}&page=${encodeURIComponent(location.pathname)}`);
       if(!r.ok)return; const d=await r.json(); const pool=(d.advertisements||[]).filter(a=>a.ad_type==="in_content"&&a.is_active!==false&&freqOK(a));
       const used=new Set();
       for(let n=1;n<=BX_MAX;n++){
