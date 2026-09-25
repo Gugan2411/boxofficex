@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 import textwrap
 import unicodedata
 import math
-import time
+import time as time_module
 import threading
 
 # ============================================================
@@ -2434,7 +2434,7 @@ def _refresh_homepage_cache():
         rendered = _render_homepage_html()
         with _home_html_cache_lock:
             _home_html_cache["html"] = rendered
-            _home_html_cache["expires_at"] = time.monotonic() + HOME_HTML_CACHE_TTL
+            _home_html_cache["expires_at"] = time_module.monotonic() + HOME_HTML_CACHE_TTL
     except Exception as exc:
         print(f"Homepage SSR cache refresh failed: {exc}")
     finally:
@@ -2451,7 +2451,7 @@ def _start_homepage_refresh():
 
 
 def _get_cached_homepage_html():
-    now = time.monotonic()
+    now = time_module.monotonic()
     cached_html = _home_html_cache.get("html")
     expires_at = float(_home_html_cache.get("expires_at") or 0)
 
@@ -2469,7 +2469,7 @@ def _get_cached_homepage_html():
     rendered = _render_homepage_html()
     with _home_html_cache_lock:
         _home_html_cache["html"] = rendered
-        _home_html_cache["expires_at"] = time.monotonic() + HOME_HTML_CACHE_TTL
+        _home_html_cache["expires_at"] = time_module.monotonic() + HOME_HTML_CACHE_TTL
     return rendered, "MISS"
 
 
