@@ -6754,7 +6754,7 @@ html,body{scroll-padding-top:0!important}
     </div>
 
     <div class="article-trending-grid" id="trendingArticlesGrid">
-        <div class="movie-empty">Preparing trending articles…</div>
+        <!-- BOXOFFICEX_SSR_TRENDING_ARTICLES -->
     </div>
 </section>
 
@@ -6868,11 +6868,7 @@ html,body{scroll-padding-top:0!important}
 
 
     <div id="actorsGrid">
-
-        <div class="movie-empty">
-            Preparing actors…
-        </div>
-
+        <!-- BOXOFFICEX_SSR_POPULAR_ACTORS -->
     </div>
 
 </section>
@@ -8053,6 +8049,7 @@ async function loadTrendingMovies() {
 async function loadTrendingArticles() {
     const grid = document.getElementById("trendingArticlesGrid");
     if (!grid) return;
+    if (grid.dataset.ssr === "1" && grid.children.length > 0) return;
 
     try {
         const response = await fetch(
@@ -9001,6 +8998,7 @@ async function loadUpcomingMovies(){
 async function loadPopularActorsData(){
     const grid = document.getElementById("actorsGrid");
     if(!grid) return;
+    if(grid.dataset.ssr === "1" && grid.children.length > 0) return;
 
     try{
         const response = await fetch(`${API_BASE}/actors/popular?limit=10`);

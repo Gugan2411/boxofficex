@@ -2304,6 +2304,73 @@ def _home_movie_card(movie, slug_map, rank=None, running_day=None, upcoming_days
     )
 
 
+
+def _home_article_image_url(value):
+    value = str(value or "").strip()
+    if not value:
+        return ""
+    if _is_remote_image(value):
+        return value
+    if value.startswith("/"):
+        return value
+    if value.startswith("article-images/"):
+        return f"/{value}"
+    return f"/article-images/{value}"
+
+
+def _home_article_card(article, rank):
+    title = html_escape(str(article.get("title") or "Untitled Article"))
+    category = html_escape(str(article.get("category") or "BoxOfficeX Article"))
+    slug = html_escape(str(article.get("slug") or ""), quote=True)
+    url = f"/article/{slug}" if slug else "/articles.html"
+    image = _home_article_image_url(article.get("hero_image"))
+    views = int(article.get("view_count") or 0)
+    likes = int(article.get("like_count") or 0)
+    hype = int(article.get("hype_count") or 0)
+    comments = int(article.get("comment_count") or 0)
+
+    if image:
+        image_html = (
+            f'<img class="article-trending-image" src="{html_escape(image, quote=True)}" '
+            f'alt="{title}" loading="lazy" decoding="async">'
+        )
+    else:
+        image_html = '<div class="article-trending-placeholder" aria-hidden="true">📰</div>'
+
+    return (
+        '<article class="article-trending-card">'
+        f'<a href="{url}" aria-label="Read {title}">'
+        f'<div class="ranking-number">#{int(rank)}</div>{image_html}'
+        '<div class="article-trending-copy">'
+        f'<div class="article-trending-type">{category}</div>'
+        f'<h3 class="article-trending-title">{title}</h3>'
+        f'<div class="article-trending-stats">👁 {views:,} • ❤️ {likes:,} • 🔥 {hype:,} • 💬 {comments:,}</div>'
+        '</div></a></article>'
+    )
+
+
+def _home_actor_image_url(photo):
+    photo = safe_actor_photo(photo)
+    if _is_remote_image(photo):
+        return photo
+    return f"/actor-images/{photo}"
+
+
+def _home_actor_card(actor, actor_slug_map):
+    actor_id = int(actor["id"])
+    name = html_escape(str(actor.get("name") or "Actor"))
+    profession = html_escape(str(actor.get("profession") or "Actor"))
+    image = html_escape(_home_actor_image_url(actor.get("photo")), quote=True)
+    slug = actor_slug_map.get(actor_id)
+    url = html_escape(f"/actor/{slug}" if slug else "/actors.html", quote=True)
+    return (
+        '<article class="actor-card">'
+        f'<a href="{url}" aria-label="View {name}">'
+        f'<div class="actor-image-wrap"><img src="{image}" alt="{name}" loading="lazy" decoding="async"></div>'
+        f'<h3>{name}</h3><p>{profession}</p>'
+        '</a></article>'
+    )
+
 def _build_homepage_ssr_sections():
     """Build SEO-critical homepage sections without letting one failed query kill SSR."""
     today = date.today()
@@ -2403,7 +2470,90 @@ def _build_homepage_ssr_sections():
         print(f"Homepage SSR rankings warning: {exc}", flush=True)
         rankings = '<div class="movie-empty">Rankings are being updated.</div>'
 
-    return {"running": running, "upcoming": upcoming, "rankings": rankings}
+    # Trending articles: same 7-day activity formula as /articles/trending.
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    WITH article_activity AS (
+                        SELECT a.id, a.title, a.slug, a.category, a.hero_image,
+                               a.published_at, COALESCE(a.views, 0)::bigint AS view_count,
+                               (SELECT COUNT(*) FROM article_likes l
+                                WHERE l.article_id=a.id AND l.created_at >= NOW() - INTERVAL '7 days')::bigint AS like_count,
+                               (SELECT COUNT(*) FROM article_hype h
+                                WHERE h.article_id=a.id AND h.created_at >= NOW() - INTERVAL '7 days')::bigint AS hype_count,
+                               (SELECT COUNT(*) FROM article_comments c
+                                WHERE c.article_id=a.id AND c.created_at >= NOW() - INTERVAL '7 days'
+                                  AND c.is_hidden=FALSE AND c.is_deleted=FALSE)::bigint AS comment_count
+                        FROM articles a
+                        WHERE a.status='published'
+                    )
+                    SELECT id, title, slug, category, hero_image, published_at,
+                           view_count, like_count, hype_count, comment_count,
+                           (view_count + like_count*2 + hype_count*3 + comment_count*3)::bigint AS trending_score
+                    FROM article_activity
+                    WHERE (view_count + like_count*2 + hype_count*3 + comment_count*3) > 0
+                    ORDER BY trending_score DESC, hype_count DESC, view_count DESC,
+                             published_at DESC NULLS LAST, id DESC
+                    LIMIT 10
+                """)
+                article_rows = cur.fetchall()
+        trending_articles_html = []
+        for rank, row in enumerate(article_rows, start=1):
+            article = {
+                "id": row[0], "title": row[1], "slug": row[2], "category": row[3],
+                "hero_image": row[4], "view_count": row[6], "like_count": row[7],
+                "hype_count": row[8], "comment_count": row[9],
+            }
+            trending_articles_html.append(_home_article_card(article, rank))
+        trending_articles = "\n".join(trending_articles_html) or '<div class="movie-empty">Trending articles will appear as readers interact with articles.</div>'
+    except Exception as exc:
+        print(f"Homepage SSR trending-articles warning: {exc}", flush=True)
+        trending_articles = '<div class="movie-empty">Trending articles are being updated.</div>'
+
+    # Popular actors: same interaction-weighted ranking as /actors/popular.
+    try:
+        actor_slug_map = _unique_actor_slug_map()
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT a.id, a.name, a.profession, a.photo,
+                           (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id) AS view_count,
+                           (SELECT COUNT(*) FROM hero_comparison_likes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id) AS comparison_likes,
+                           (SELECT COUNT(*) FROM hero_comparison_hype h WHERE h.actor1_id=a.id OR h.actor2_id=a.id) AS comparison_hype,
+                           (SELECT COUNT(*) FROM hero_comparison_votes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id) AS comparison_votes,
+                           (SELECT COUNT(*) FROM hero_comparison_comments h
+                            WHERE (h.actor1_id=a.id OR h.actor2_id=a.id)
+                              AND h.is_hidden=FALSE AND h.is_deleted=FALSE) AS comparison_comments
+                    FROM actors a
+                    ORDER BY (
+                        5 * LN(1 + (SELECT COUNT(*) FROM actor_views av WHERE av.actor_id=a.id))
+                        + 8 * (SELECT COUNT(*) FROM hero_comparison_likes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                        + 14 * (SELECT COUNT(*) FROM hero_comparison_hype h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                        + 10 * (SELECT COUNT(*) FROM hero_comparison_votes h WHERE h.actor1_id=a.id OR h.actor2_id=a.id)
+                        + 12 * (SELECT COUNT(*) FROM hero_comparison_comments h
+                                WHERE (h.actor1_id=a.id OR h.actor2_id=a.id)
+                                  AND h.is_hidden=FALSE AND h.is_deleted=FALSE)
+                    ) DESC, a.id ASC
+                    LIMIT 10
+                """)
+                actor_rows = cur.fetchall()
+        popular_actors_html = [
+            _home_actor_card({"id": r[0], "name": r[1], "profession": r[2], "photo": r[3]}, actor_slug_map)
+            for r in actor_rows
+        ]
+        popular_actors = "\n".join(popular_actors_html) or '<div class="movie-empty">Popular actors are being updated.</div>'
+    except Exception as exc:
+        print(f"Homepage SSR popular-actors warning: {exc}", flush=True)
+        popular_actors = '<div class="movie-empty">Popular actors are being updated.</div>'
+
+    return {
+        "running": running,
+        "upcoming": upcoming,
+        "rankings": rankings,
+        "trending_articles": trending_articles,
+        "popular_actors": popular_actors,
+    }
 
 
 def _render_homepage_html():
@@ -2414,6 +2564,8 @@ def _render_homepage_html():
         "<!-- BOXOFFICEX_SSR_RUNNING -->": sections["running"],
         "<!-- BOXOFFICEX_SSR_UPCOMING -->": sections["upcoming"],
         "<!-- BOXOFFICEX_SSR_RANKINGS -->": sections["rankings"],
+        "<!-- BOXOFFICEX_SSR_TRENDING_ARTICLES -->": sections["trending_articles"],
+        "<!-- BOXOFFICEX_SSR_POPULAR_ACTORS -->": sections["popular_actors"],
     }
 
     for marker, content in replacements.items():
@@ -2425,6 +2577,8 @@ def _render_homepage_html():
     template = template.replace('id="latestMoviesGrid"', 'id="latestMoviesGrid" data-ssr="1"', 1)
     template = template.replace('id="upcomingMoviesGrid"', 'id="upcomingMoviesGrid" data-ssr="1"', 1)
     template = template.replace('id="rankingGrid"', 'id="rankingGrid" data-ssr="1"', 1)
+    template = template.replace('id="trendingArticlesGrid"', 'id="trendingArticlesGrid" data-ssr="1"', 1)
+    template = template.replace('id="actorsGrid"', 'id="actorsGrid" data-ssr="1"', 1)
     return template
 
 
