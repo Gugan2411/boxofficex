@@ -934,6 +934,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button data-add="image">Image</button>
 <button data-add="quote">Quote</button>
 <button data-add="boxoffice">Box Office</button>
+<button data-add="live_tracker">🔴 Live Tracker</button>
 <button data-add="table">Table</button>
 <button data-add="gallery">Gallery</button>
 <button data-add="movie">Movie</button>
@@ -1322,6 +1323,23 @@ movie_id:selectedMovieLinkIds.length===1 ? Number(selectedMovieLinkIds[0]) : nul
 budget:null,
 verdict:"",
 days:[makeBoxOfficeDay(1)]
+};
+if(type==="live_tracker")base.extra_data={
+status:"live",
+start_date:"",
+india_gross:"",
+overseas_gross:"",
+worldwide_gross:"",
+tickets_sold:"",
+shows_tracked:"",
+occupancy:"",
+advance_booking:"",
+premiere_gross:"",
+day_gross:"",
+fast_filling:"",
+housefull_shows:"",
+note:"",
+updated_at:""
 };
 if(type==="table")base.extra_data={
 headers:[],
@@ -1962,6 +1980,30 @@ if(b.block_type==="boxoffice"){
 b.extra_data=normalizeBoxOfficeExtra(b.extra_data);
 body=renderBoxOfficeBlock(b.extra_data);
 }
+if(b.block_type==="live_tracker"){
+b.extra_data=b.extra_data||{};
+const lt=b.extra_data;
+body=`
+<div class="live-tracker-editor">
+  <div class="block-row">
+    <div><label>Status</label><select data-extra="status">
+      <option value="live" ${lt.status==="live"?"selected":""}>🔴 Live</option>
+      <option value="update" ${lt.status==="update"?"selected":""}>Latest Update</option>
+      <option value="final" ${lt.status==="final"?"selected":""}>Final</option>
+      <option value="closed" ${lt.status==="closed"?"selected":""}>Tracker Ended</option>
+    </select></div>
+    <div><label>Movie Release Date</label><input type="date" data-extra="start_date" value="${articleContentEsc(lt.start_date||"")}"></div>
+  </div>
+  <div class="block-row" style="margin-top:9px"><div><label>India Gross (Cr)</label><input data-extra="india_gross" value="${articleContentEsc(lt.india_gross||"")}" placeholder="18.45"></div><div><label>Overseas Gross (Cr)</label><input data-extra="overseas_gross" value="${articleContentEsc(lt.overseas_gross||"")}" placeholder="12.75"></div></div>
+  <div class="block-row" style="margin-top:9px"><div><label>Worldwide Gross (Cr)</label><input data-extra="worldwide_gross" value="${articleContentEsc(lt.worldwide_gross||"")}" placeholder="31.20"></div><div><label>Day Gross (Cr)</label><input data-extra="day_gross" value="${articleContentEsc(lt.day_gross||"")}" placeholder="10.10"></div></div>
+  <div class="block-row" style="margin-top:9px"><div><label>Tickets Sold</label><input data-extra="tickets_sold" value="${articleContentEsc(lt.tickets_sold||"")}" placeholder="609623"></div><div><label>Shows Tracked</label><input data-extra="shows_tracked" value="${articleContentEsc(lt.shows_tracked||"")}" placeholder="10000+"></div></div>
+  <div class="block-row" style="margin-top:9px"><div><label>Occupancy (%)</label><input data-extra="occupancy" value="${articleContentEsc(lt.occupancy||"")}" placeholder="68.4"></div><div><label>Advance Booking (Cr)</label><input data-extra="advance_booking" value="${articleContentEsc(lt.advance_booking||"")}" placeholder="36.67"></div></div>
+  <div class="block-row" style="margin-top:9px"><div><label>Premiere Gross (Cr)</label><input data-extra="premiere_gross" value="${articleContentEsc(lt.premiere_gross||"")}" placeholder=""></div><div><label>Fast Filling</label><input data-extra="fast_filling" value="${articleContentEsc(lt.fast_filling||"")}" placeholder="1041"></div></div>
+  <div class="block-row" style="margin-top:9px"><div><label>Housefull Shows</label><input data-extra="housefull_shows" value="${articleContentEsc(lt.housefull_shows||"")}" placeholder="146"></div><div><label>Last Updated</label><input value="${articleContentEsc(lt.updated_at||"Auto on save")}" readonly></div></div>
+  <div style="margin-top:9px"><label>Latest Update Note</label><textarea data-extra="note" placeholder="Optional short live update">${articleContentEsc(lt.note||"")}</textarea></div>
+  <div class="note">Only fields with a value are shown publicly. Empty fields stay completely hidden. Day number is calculated from Movie Release Date.</div>
+</div>`;
+}
 if(b.block_type==="table"){
 b.extra_data=normalizeArticleTableExtra(b.extra_data);
 const tableHeaders=b.extra_data.headers.join(" | ");
@@ -2539,6 +2581,14 @@ The backend performs the sync atomically in one PostgreSQL transaction.
 It preserves existing IDs, creates only new blocks, and deletes only IDs
 that were explicitly removed with the editor's Remove button.
 */
+
+const nowIST=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace(" ","T")+"+05:30";
+blocks.forEach(b=>{
+    if(b.block_type==="live_tracker"){
+        b.extra_data=b.extra_data||{};
+        b.extra_data.updated_at=nowIST;
+    }
+});
 
 const payload={
     blocks:blocks.map((b,i)=>({

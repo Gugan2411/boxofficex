@@ -2977,6 +2977,35 @@ line-height:1.75;
     }
 }
 
+
+
+/* =========================================================
+   LIVE TRACKER ARTICLE BLOCK
+========================================================= */
+.live-tracker-block{position:relative;margin:30px 0;padding:19px;border:1px solid #d9e6f5;border-radius:20px;background:linear-gradient(145deg,#fff 0%,#f8fbff 58%,#f4fff9 100%);box-shadow:0 14px 38px rgba(15,23,42,.09);overflow:hidden}
+.live-tracker-block.lt-active{animation:ltTrackerGlow 3s ease-in-out infinite}
+.live-tracker-block.lt-active:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,rgba(16,185,129,.07) 45%,transparent 65%);transform:translateX(-100%);animation:ltSweep 3.4s ease-in-out infinite}
+.lt-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;z-index:1}
+.lt-status{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:1000;letter-spacing:.7px;text-transform:uppercase;color:#d92d20}
+.lt-status-copy{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}.lt-tracking-copy{font-size:9px;letter-spacing:.55px;font-weight:1000;animation:ltTrackingMulti 1.15s steps(1,end) infinite}
+.lt-dot{width:9px;height:9px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.55);animation:ltPulse 1.35s infinite}
+.lt-status-update{color:#b77900}.lt-status-update .lt-dot{background:#f59e0b}.lt-status-final,.lt-status-closed{color:#475467}.lt-status-final .lt-dot,.lt-status-closed .lt-dot{background:#98a2b3;animation:none;box-shadow:none}
+.lt-date-panel{position:relative;z-index:1;margin:0 0 13px;padding:16px 14px 14px;border:1px solid #bfdbfe;border-radius:16px;background:linear-gradient(135deg,#eff6ff,#f8fbff);text-align:center;box-shadow:0 8px 20px rgba(37,99,235,.08)}.lt-day{display:inline-flex;align-items:center;justify-content:center;padding:6px 15px;border-radius:999px;background:#2563eb;color:#fff;font-size:20px;font-weight:1000;letter-spacing:.7px;box-shadow:0 6px 16px rgba(37,99,235,.22)}.lt-date{margin-top:8px;font-size:11px;font-weight:1000;color:#475467;letter-spacing:.8px;text-transform:uppercase}.lt-tracker-movie{margin-top:12px;padding-top:12px;border-top:1px solid #dbeafe;color:#0f172a;font-size:16px;font-weight:1000;line-height:1.3;text-transform:uppercase;letter-spacing:.2px}.lt-tracker-movie .lt-movie-name{color:#1d4ed8}
+.lt-updated{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;margin-bottom:15px;color:#067647;font-size:11px;font-weight:1000;letter-spacing:.25px;background:#ecfdf3;border:1px solid #abefc6;border-radius:999px;padding:7px 11px}.lt-updated.live{animation:ltUpdatePulse 1.6s ease-in-out infinite}
+.lt-movie-day-title{position:relative;z-index:1;margin:-2px 0 16px;padding:11px 14px;border:1px solid #dbe7ff;border-radius:12px;background:#f8fbff;color:#1d4ed8;font-size:15px;font-weight:1000;line-height:1.3;text-align:center;text-transform:uppercase;letter-spacing:.25px}
+.lt-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.lt-card{padding:14px 12px;border:1px solid #e4e7ec;border-radius:14px;background:#fff;box-shadow:0 5px 14px rgba(15,23,42,.04);min-width:0}.lt-active .lt-card.lt-money-card .lt-value{color:#079455;animation:ltNumberPulse 1.9s ease-in-out infinite}.lt-value{font-size:19px;line-height:1.2;font-weight:1000;color:#101828;overflow-wrap:anywhere}.lt-label{margin-top:5px;font-size:8px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:#667085}
+.lt-nett-card{background:linear-gradient(145deg,#f8fafc,#f0fdf4);border-color:#d1fadf}.lt-estimated{display:inline-block;margin-top:6px;padding:3px 7px;border-radius:999px;background:#ecfdf3;color:#067647;font-size:7px;font-weight:1000;letter-spacing:.55px;text-transform:uppercase}
+.lt-worldwide{position:relative;z-index:1;margin:10px 0 0;padding:17px 14px;text-align:center;border:1px solid #b9e6d3;border-radius:15px;background:linear-gradient(135deg,#ecfdf3,#f6fffb);box-shadow:0 8px 22px rgba(7,148,85,.08)}.lt-worldwide .lt-value{font-size:29px;color:#067647}.lt-active .lt-worldwide .lt-value{animation:ltWorldPulse 1.8s ease-in-out infinite}.lt-worldwide .lt-label{color:#087a55}.lt-auto{display:inline-block;margin-top:6px;padding:3px 7px;border-radius:999px;background:#d1fadf;color:#067647;font-size:7px;font-weight:1000;letter-spacing:.6px;text-transform:uppercase}
+.lt-note{position:relative;z-index:1;margin-top:12px;padding:13px 14px;border-left:3px solid #f59e0b;border-radius:0 12px 12px 0;background:#fffbeb;color:#713f12;font-size:13px;line-height:1.55}.lt-note strong{display:block;margin-bottom:4px;color:#b45309;font-size:10px;text-transform:uppercase;letter-spacing:.55px}.lt-scroll-hint{display:block;margin-top:8px;padding-top:8px;border-top:1px solid rgba(180,83,9,.18);color:#92400e;font-size:11px;font-weight:800;line-height:1.45}
+@keyframes ltTrackingMulti{0%{color:#e11d48;text-shadow:0 0 8px rgba(225,29,72,.22)}25%{color:#7c3aed;text-shadow:0 0 8px rgba(124,58,237,.22)}50%{color:#0284c7;text-shadow:0 0 8px rgba(2,132,199,.22)}75%{color:#059669;text-shadow:0 0 8px rgba(5,150,105,.22)}100%{color:#d97706;text-shadow:0 0 8px rgba(217,119,6,.22)}}
+@keyframes ltPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.48)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+@keyframes ltUpdatePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.68;transform:scale(.985)}}
+@keyframes ltNumberPulse{0%,100%{opacity:1}50%{opacity:.62}}
+@keyframes ltWorldPulse{0%,100%{transform:scale(1);text-shadow:0 0 0 rgba(7,148,85,0)}50%{transform:scale(1.025);text-shadow:0 0 14px rgba(7,148,85,.18)}}
+@keyframes ltTrackerGlow{0%,100%{box-shadow:0 14px 38px rgba(15,23,42,.09)}50%{box-shadow:0 15px 42px rgba(7,148,85,.16)}}
+@keyframes ltSweep{0%,55%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@media(max-width:700px){.live-tracker-block{margin:25px 0;padding:14px 11px;border-radius:16px}.lt-date-panel{padding:10px 11px}.lt-day{font-size:17px}.lt-date{font-size:9px}.lt-movie-day-title{font-size:13px;padding:10px 9px}.lt-worldwide{padding:15px 10px}.lt-worldwide .lt-value{font-size:26px}.lt-grid{gap:7px}.lt-card{padding:12px 10px}.lt-value{font-size:17px}.lt-head{align-items:flex-start}.lt-status{font-size:10px}.lt-tracking-copy{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.live-tracker-block.lt-active,.live-tracker-block.lt-active:before,.lt-dot,.lt-updated.live,.lt-active .lt-card.lt-money-card .lt-value,.lt-active .lt-worldwide .lt-value,.lt-tracking-copy{animation:none}}
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4923,6 +4952,130 @@ flushParagraph();
 return html.join("");
 }
 
+
+
+function renderLiveTracker(data) {
+    data = data || {};
+    const has = value => value !== null && value !== undefined && String(value).trim() !== "";
+    const number = value => {
+        if (!has(value)) return null;
+        const cleaned = String(value).replace(/,/g, "").trim();
+        const n = Number(cleaned);
+        return Number.isFinite(n) ? n : null;
+    };
+    const money = value => {
+        const n = number(value);
+        return n === null ? "" : `₹${n.toLocaleString("en-IN", {maximumFractionDigits: 2})} Cr`;
+    };
+    const plain = value => esc(String(value ?? "").trim());
+
+    const india = number(data.india_gross);
+    // Estimated India Nett: frontend-only estimate using Gross / 1.18.
+    // This is intentionally labelled EST. INDIA NETT because it is not a reported exact nett figure.
+    const estimatedIndiaNett = india !== null ? Number((india / 1.18).toFixed(2)) : null;
+    const overseas = number(data.overseas_gross);
+    // Worldwide is shown only when BOTH India Gross and Overseas Gross are available.
+    // Never fall back to an old/manual worldwide value when either component is empty.
+    const isWorldwideAuto = india !== null && overseas !== null;
+    const worldwide = isWorldwideAuto ? Number((india + overseas).toFixed(2)) : null;
+
+    const status = String(data.status || "live").toLowerCase();
+    const statusMap = {
+        live: ["LIVE", "lt-status"],
+        update: ["LATEST UPDATE", "lt-status lt-status-update"],
+        final: ["FINAL", "lt-status lt-status-final"],
+        closed: ["TRACKER ENDED", "lt-status lt-status-closed"]
+    };
+    const [statusLabel, statusClass] = statusMap[status] || statusMap.live;
+    const isActivelyTracking = status === "live" || status === "update";
+
+    let dayNumber = null;
+    let releaseDateLabel = "";
+    // Accept the Live Tracker release-date key plus safe legacy aliases.
+    // The Live Tracker date has priority over linked-movie metadata.
+    const trackerStartDate = has(data.start_date) ? data.start_date
+        : has(data.movie_release_date) ? data.movie_release_date
+        : has(data.release_date) ? data.release_date
+        : (window.currentBoxOfficeXLiveMovieReleaseDate || "");
+    if (has(trackerStartDate)) {
+        const match = String(trackerStartDate).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (match) {
+            const y = Number(match[1]), m = Number(match[2]), d = Number(match[3]);
+            const releaseUTC = Date.UTC(y, m - 1, d);
+            // BoxOfficeX tracking day changes at 6:00 AM IST, not midnight.
+            // Shifting the current time back six hours makes 00:00–05:59 IST belong to the previous tracking day.
+            const shiftedNow = new Date(Date.now() - (6 * 60 * 60 * 1000));
+            const parts = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"})
+                .formatToParts(shiftedNow).reduce((acc, part) => (acc[part.type] = part.value, acc), {});
+            const trackingUTC = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+            const calculatedDay = Math.floor((trackingUTC - releaseUTC) / 86400000) + 1;
+            if (calculatedDay >= 1) {
+                dayNumber = calculatedDay;
+                releaseDateLabel = new Intl.DateTimeFormat("en-IN", {timeZone:"UTC",day:"2-digit",month:"short",year:"numeric",weekday:"long"})
+                    .format(new Date(trackingUTC)).toUpperCase();
+            }
+        }
+    }
+
+    let updatedLabel = "";
+    if (has(data.updated_at)) {
+        const raw = String(data.updated_at).trim();
+        let dt = new Date(raw);
+        if (Number.isNaN(dt.getTime()) && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(raw)) dt = new Date(raw.replace(" ", "T") + "+05:30");
+        if (!Number.isNaN(dt.getTime())) updatedLabel = dt.toLocaleTimeString("en-IN", {timeZone:"Asia/Kolkata",hour:"numeric",minute:"2-digit",hour12:true});
+    }
+
+    const cards = [];
+    const addCard = (value, label, formatter = plain, extraClass = "") => {
+        if (!has(value)) return;
+        cards.push(`<div class="lt-card ${extraClass}"><div class="lt-value">${formatter(value)}</div><div class="lt-label">${label}</div></div>`);
+    };
+    addCard(data.india_gross, "India Gross", money, "lt-money-card");
+    if (estimatedIndiaNett !== null) {
+        cards.push(`<div class="lt-card lt-money-card lt-nett-card"><div class="lt-value">${money(estimatedIndiaNett)}</div><div class="lt-label">Est. India Nett</div><span class="lt-estimated">Estimated</span></div>`);
+    }
+    addCard(data.overseas_gross, "Overseas Gross", money, "lt-money-card");
+    addCard(data.tickets_sold, "Tickets Sold");
+    addCard(data.shows_tracked, "Shows Tracked");
+    addCard(data.occupancy, "Occupancy", value => `${plain(value)}%`);
+    addCard(data.advance_booking, "Advance Booking", money, "lt-money-card");
+    addCard(data.premiere_gross, "Premiere Gross", money, "lt-money-card");
+    addCard(data.day_gross, "Day Gross", money, "lt-money-card");
+    addCard(data.fast_filling, "Fast Filling");
+    addCard(data.housefull_shows, "Housefull Shows");
+
+    const linkedMovieName = String(window.currentBoxOfficeXLiveMovieName || "").trim();
+
+    // Manual note always has first priority. If it is empty, build the live message automatically.
+    let noteText = has(data.note) ? String(data.note).trim() : "";
+    if (!noteText && isActivelyTracking && dayNumber) {
+        noteText = linkedMovieName
+            ? `${linkedMovieName} Day ${dayNumber} box office tracking is currently in progress. Collections will be updated as new data becomes available.`
+            : `Day ${dayNumber} box office tracking is currently in progress. Collections will be updated as new data becomes available.`;
+    } else if (!noteText && isActivelyTracking) {
+        noteText = linkedMovieName
+            ? `${linkedMovieName} box office tracking is currently in progress. Collections will be updated as new data becomes available.`
+            : "Box office tracking is currently in progress. Collections will be updated as new data becomes available.";
+    }
+
+    // Keep the tracker visible for an active release-day status even before collection numbers arrive.
+    if (worldwide === null && !cards.length && !noteText && !dayNumber) return "";
+    const movieDayTitle = dayNumber
+        ? (linkedMovieName ? `${linkedMovieName} Day ${dayNumber} Collection` : `Day ${dayNumber} Box Office Collection`)
+        : (linkedMovieName ? `${linkedMovieName} Box Office Collection` : "");
+
+    return `<section class="live-tracker-block ${isActivelyTracking ? "lt-active" : ""}" aria-label="Live box office tracker">
+        <div class="lt-head">
+            <div class="${statusClass}"><span class="lt-dot"></span><span class="lt-status-copy"><span>${statusLabel}</span>${isActivelyTracking ? `<span class="lt-tracking-copy">• CURRENTLY TRACKING</span>` : ""}</span></div>
+        </div>
+        ${updatedLabel ? `<div class="lt-updated ${isActivelyTracking ? "live" : ""}">Latest Update • ${esc(updatedLabel)} IST</div>` : ""}
+        ${dayNumber || releaseDateLabel || movieDayTitle ? `<div class="lt-date-panel">${dayNumber ? `<div class="lt-day">DAY ${dayNumber}</div>` : ""}${releaseDateLabel ? `<div class="lt-date">${esc(releaseDateLabel)}</div>` : ""}${movieDayTitle ? `<div class="lt-tracker-movie"><span class="lt-movie-name">${esc(linkedMovieName || "Box Office")}</span>${dayNumber ? ` DAY ${dayNumber} COLLECTION` : ` COLLECTION`}</div>` : ""}</div>` : ""}
+        ${cards.length ? `<div class="lt-grid">${cards.join("")}</div>` : ""}
+        ${worldwide !== null ? `<div class="lt-worldwide"><div class="lt-value">${money(worldwide)}</div><div class="lt-label">Worldwide Gross</div>${isWorldwideAuto ? `<span class="lt-auto">Auto Calculated</span>` : ""}</div>` : ""}
+        ${noteText ? `<div class="lt-note"><strong>Latest Update</strong>${renderInlineArticleFormatting(noteText).replace(/\n/g, "<br>")}<span class="lt-scroll-hint">↓ Swipe down to see complete day-wise and region-wise box office data, plus advance booking status for the next day in the Box Office Report.</span></div>` : ""}
+    </section>`;
+}
+
 async function renderBlock(block) {
     const type = block.block_type;
     const data = block.extra_data || {};
@@ -4956,6 +5109,10 @@ async function renderBlock(block) {
 
     if (type === "quote") {
         return `<blockquote>${renderInlineArticleFormatting(block.content || "").replace(/\n/g,"<br>")}</blockquote>`;
+    }
+
+    if (type === "live_tracker") {
+        return renderLiveTracker(data);
     }
 
     if (type === "boxoffice") {
@@ -5069,6 +5226,53 @@ async function renderBlock(block) {
 
 async function renderArticle(article) {
     setSEO(article);
+    window.currentBoxOfficeXArticle = article;
+
+    // Resolve linked movie metadata once for the Live Tracker.
+    // This supports a movie linked directly in the Live Tracker, a Movie content
+    // block, or article-level linked-movie data returned by the API.
+    window.currentBoxOfficeXLiveMovieName = "";
+    window.currentBoxOfficeXLiveMovieReleaseDate = "";
+
+    const linkedMovieBlock = (article.blocks || []).find(block =>
+        block && String(block.block_type || "").toLowerCase() === "movie" && block.extra_data?.movie_id
+    );
+    const liveTrackerBlock = (article.blocks || []).find(block =>
+        block && String(block.block_type || "").toLowerCase() === "live_tracker" && block.extra_data?.movie_id
+    );
+
+    const articleLinkedMovie = Array.isArray(article.movies) && article.movies.length ? article.movies[0] : null;
+    const articleLinkedMovieId = articleLinkedMovie?.id || articleLinkedMovie?.movie_id ||
+        (Array.isArray(article.movie_ids) && article.movie_ids.length ? article.movie_ids[0] : null) ||
+        article.movie_id || article.linked_movie_id || null;
+
+    const linkedMovieId = liveTrackerBlock?.extra_data?.movie_id ||
+        linkedMovieBlock?.extra_data?.movie_id || articleLinkedMovieId;
+
+    if (articleLinkedMovie) {
+        window.currentBoxOfficeXLiveMovieName = String(articleLinkedMovie.title || articleLinkedMovie.name || "").trim();
+        window.currentBoxOfficeXLiveMovieReleaseDate = String(articleLinkedMovie.release_date || "").slice(0, 10);
+    }
+
+    if (linkedMovieId) {
+        try {
+            const movieResponse = await fetch(`${API_BASE}/movies/${encodeURIComponent(linkedMovieId)}`, {cache:"no-store"});
+            const movieData = await movieResponse.json();
+            if (movieResponse.ok && movieData && !movieData.error) {
+                window.currentBoxOfficeXLiveMovieName = String(movieData.title || movieData.name || window.currentBoxOfficeXLiveMovieName || "").trim();
+                window.currentBoxOfficeXLiveMovieReleaseDate = String(movieData.release_date || window.currentBoxOfficeXLiveMovieReleaseDate || "").slice(0, 10);
+            }
+        } catch (error) {
+            console.warn("Live Tracker movie metadata could not be loaded", error);
+        }
+    }
+
+    // Last-resort display fallback: keep the tracker useful even if the API
+    // response contains no linked-movie object. This does not affect stored data.
+    if (!window.currentBoxOfficeXLiveMovieName && article.title) {
+        const titleGuess = String(article.title).split(/\s+Box Office\s+/i)[0].trim();
+        if (titleGuess && titleGuess.length <= 80) window.currentBoxOfficeXLiveMovieName = titleGuess;
+    }
 
     // PERFORMANCE: render independent article blocks in parallel instead of
     // waiting for movie/actor API-backed blocks one by one.

@@ -7158,12 +7158,76 @@ def validate_article_status(value: str) -> str:
 def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
-        "boxoffice", "movie", "actor", "video", "table",
+        "boxoffice", "movie", "actor", "video", "table", "live_tracker",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
         raise HTTPException(status_code=400, detail="Invalid article block type")
     return value
+
+
+@app.on_event("startup")
+def ensure_live_tracker_article_block_type():
+    """
+    One-time/idempotent schema compatibility check for the Live Tracker block.
+
+    Older BoxOfficeX databases have article_blocks_type_check without
+    'live_tracker'. Only replace that CHECK constraint when live_tracker is
+    missing. Future app restarts leave an already-correct constraint alone.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            # Local/dev databases may not have article_blocks yet.
+            cur.execute("SELECT to_regclass('public.article_blocks')")
+            row = cur.fetchone()
+            if not row or row[0] is None:
+                return
+
+            cur.execute("""
+                SELECT pg_get_constraintdef(c.oid)
+                FROM pg_constraint c
+                JOIN pg_class t ON t.oid = c.conrelid
+                JOIN pg_namespace n ON n.oid = t.relnamespace
+                WHERE n.nspname = 'public'
+                  AND t.relname = 'article_blocks'
+                  AND c.conname = 'article_blocks_type_check'
+                  AND c.contype = 'c'
+                LIMIT 1
+            """)
+            constraint_row = cur.fetchone()
+            constraint_def = constraint_row[0] if constraint_row else ""
+
+            if "live_tracker" in constraint_def.lower():
+                return
+
+            cur.execute("""
+                ALTER TABLE article_blocks
+                DROP CONSTRAINT IF EXISTS article_blocks_type_check
+            """)
+
+            cur.execute("""
+                ALTER TABLE article_blocks
+                ADD CONSTRAINT article_blocks_type_check
+                CHECK (
+                    block_type IN (
+                        'paragraph',
+                        'heading',
+                        'image',
+                        'quote',
+                        'gallery',
+                        'boxoffice',
+                        'movie',
+                        'actor',
+                        'video',
+                        'table',
+                        'live_tracker'
+                    )
+                )
+            """)
+
+        conn.commit()
+
+    print("ARTICLE BLOCK MIGRATION: live_tracker is allowed")
 
 
 @app.get("/admin/articles", dependencies=[Depends(require_admin)])
