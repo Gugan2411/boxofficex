@@ -5064,6 +5064,9 @@ body.bx-bottom-ad-visible{
         padding:0 13px;
     }
 }
+
+    /* Cached SSR cards use real crawlable links while preserving card layout. */
+    .bx-home-card-link{color:inherit;text-decoration:none;display:contents;}
 </style>
 
 
@@ -6696,9 +6699,7 @@ html,body{scroll-padding-top:0!important}
         class="movie-grid latest-grid"
         id="latestMoviesGrid"
     >
-        <div class="movie-empty">
-            Preparing running movies…
-        </div>
+        <!-- BOXOFFICEX_SSR_RUNNING -->
     </div>
 
 </section>
@@ -6717,7 +6718,7 @@ html,body{scroll-padding-top:0!important}
         <a href="new-movies.html">View All →</a>
     </div>
     <div class="movie-grid latest-grid" id="upcomingMoviesGrid">
-        <div class="movie-empty">Preparing upcoming movies…</div>
+        <!-- BOXOFFICEX_SSR_UPCOMING -->
     </div>
 </section>
 
@@ -6829,9 +6830,7 @@ html,body{scroll-padding-top:0!important}
         id="rankingGrid"
     >
 
-        <div class="movie-empty">
-            Preparing rankings…
-        </div>
+        <!-- BOXOFFICEX_SSR_RANKINGS -->
 
     </div>
 
