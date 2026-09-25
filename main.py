@@ -9,7 +9,7 @@ import os
 import json
 import cloudinary
 import cloudinary.uploader
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 import textwrap
 import unicodedata
 import math
@@ -2252,30 +2252,150 @@ _home_html_cache_lock = threading.Lock()
 _home_html_refreshing = False
 
 
-def _home_movie_image_url(poster):
-    poster = safe_movie_poster(poster)
-    if _is_remote_image(poster):
-        return poster
-    return f"/posters/{poster}"
+def _home_placeholder_hash(value):
+    # Match the homepage JavaScript FNV-1a placeholder hash.
+    result = 2166136261
+    raw = str(value or "BOXOFFICEX").lower().encode("utf-16-le", errors="surrogatepass")
+    for index in range(0, len(raw), 2):
+        code_unit = raw[index] | (raw[index + 1] << 8)
+        result ^= code_unit
+        result = (result * 16777619) & 0xFFFFFFFF
+    return result
+
+
+def _home_placeholder_colors(name):
+    h = _home_placeholder_hash(name)
+    a = h % 360
+    b = (a + 38 + ((h >> 8) % 83)) % 360
+    c = (b + 42 + ((h >> 20) % 67)) % 360
+    d = (a + 145 + ((h >> 17) % 71)) % 360
+    return (
+        f"hsl({a} {55 + ((h >> 4) % 26)}% 13%)",
+        f"hsl({b} {58 + ((h >> 12) % 24)}% 34%)",
+        f"hsl({c} 66% 20%)",
+        f"hsl({d} 88% 68%)",
+    )
+
+
+def _home_svg_data_uri(svg):
+    return "data:image/svg+xml;charset=UTF-8," + quote(
+        svg, safe="-_.!~*'()", encoding="utf-8", errors="strict"
+    )
+
+
+def _home_movie_placeholder(movie):
+    # Server-side equivalent of boxOfficeXMoviePlaceholder().
+    title = str(movie.get("title") or "Movie").strip() or "Movie"
+    parts = []
+    for word in title.upper().split():
+        if len(word) <= 10:
+            parts.append(word)
+        else:
+            parts.extend(word[i:i + 10] for i in range(0, len(word), 10))
+    lines, current = [], ""
+    for part in parts:
+        next_value = f"{current} {part}" if current else part
+        if len(next_value) > 10 and current:
+            lines.append(current)
+            current = part
+        else:
+            current = next_value
+    if current:
+        lines.append(current)
+    if not lines:
+        lines = ["MOVIE"]
+    if len(lines) > 4:
+        lines = lines[:4]
+        lines[3] = lines[3][:9] + "…"
+    gap = 76
+    start = 390 - ((len(lines) - 1) * gap / 2)
+    title_svg = "".join(
+        f'<text x="300" y="{start + index * gap:g}" text-anchor="middle" fill="#171717" font-family="Arial,Helvetica,sans-serif" font-size="64" font-weight="900" letter-spacing="1">{xml_escape(line)}</text>'
+        for index, line in enumerate(lines)
+    )
+    release_value = str(movie.get("release_date") or movie.get("year") or "")
+    match = re.search(r"\b(?:19|20)\d{2}\b", release_value)
+    year = match.group(0) if match else ""
+    language = str(movie.get("language") or "").strip().upper()
+    meta = "  •  ".join(part for part in (year, language) if part)
+    meta_svg = (
+        f'<text x="300" y="575" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="500" letter-spacing="7">{xml_escape(meta)}</text>'
+        if meta else ""
+    )
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="{xml_escape(title)} movie placeholder">
+      <defs>
+        <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfaf7"/><stop offset=".52" stop-color="#f4f2ed"/><stop offset="1" stop-color="#ebe9e4"/></linearGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .055"/></feComponentTransfer></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9b9b9b" stop-opacity=".25"/><stop offset="1" stop-color="#c8c8c8" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="600" height="900" fill="url(#paper)"/><rect width="600" height="900" filter="url(#grain)" opacity=".72"/>
+      <g opacity=".22" transform="rotate(24 45 230)"><rect x="-48" y="-55" width="90" height="520" rx="8" fill="url(#fade)"/><path d="M-32-35v480M26-35v480" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <g opacity=".18" transform="rotate(-18 570 720)"><rect x="550" y="505" width="92" height="470" rx="8" fill="url(#fade)"/><path d="M566 520v430M624 520v430" stroke="#888" stroke-width="5" stroke-dasharray="18 13"/></g>
+      <circle cx="64" cy="790" r="120" fill="none" stroke="#a8a8a8" stroke-width="24" opacity=".08"/>{title_svg}
+      <line x1="115" y1="525" x2="485" y2="525" stroke="#ad1726" stroke-width="5"/>{meta_svg}
+      <text x="300" y="846" text-anchor="middle" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">BOXOFFICEX MOVIE PLACEHOLDER</text>
+    </svg>'''
+    return _home_svg_data_uri(svg)
+
+
+def _home_actor_placeholder(name):
+    # Server-side equivalent of boxOfficeXActorPlaceholder().
+    actor_name = str(name or "Actor").strip() or "Actor"
+    colors = _home_placeholder_colors(actor_name)
+    words = actor_name.split()
+    initials = "BX" if not words else (words[0][:2].upper() if len(words) == 1 else "".join(word[0] for word in words[:3]).upper())
+    name_size = 50 if len(actor_name) <= 11 else 42 if len(actor_name) <= 17 else 34
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{colors[0]}"/><stop offset=".56" stop-color="{colors[1]}"/><stop offset="1" stop-color="{colors[2]}"/></linearGradient><radialGradient id="r" cx="78%" cy="12%" r="74%"><stop offset="0" stop-color="{colors[3]}" stop-opacity=".28"/><stop offset="1" stop-color="{colors[3]}" stop-opacity="0"/></radialGradient><linearGradient id="glass"><stop stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity=".03"/></linearGradient></defs><rect width="600" height="760" rx="28" fill="url(#g)"/><rect width="600" height="760" rx="28" fill="url(#r)"/><circle cx="500" cy="90" r="150" fill="{colors[3]}" fill-opacity=".13"/><rect x="92" y="104" width="416" height="414" rx="78" fill="url(#glass)" stroke="#fff" stroke-opacity=".38" stroke-width="4"/><circle cx="300" cy="300" r="164" fill="#fff" fill-opacity=".09" stroke="#fff" stroke-opacity=".24" stroke-width="3"/><text x="300" y="342" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="118" font-weight="800">{xml_escape(initials)}</text><line x1="155" y1="544" x2="445" y2="544" stroke="{colors[3]}" stroke-width="11" stroke-linecap="round"/><text x="300" y="608" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="{name_size}" font-weight="800">{xml_escape(actor_name)}</text><rect x="142" y="646" width="316" height="82" rx="24" fill="#fff" fill-opacity=".9"/><text x="300" y="691" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400">X</tspan></text><text x="300" y="716" text-anchor="middle" fill="#344054" font-family="Arial,sans-serif" font-size="12" font-weight="700">ACTOR PROFILE</text></svg>'
+    )
+    return _home_svg_data_uri(svg)
+
+
+def _home_article_placeholder(article):
+    # Server-side equivalent of boxOfficeXArticlePlaceholder().
+    title = str(article.get("title") or "BoxOfficeX Article").strip() or "BoxOfficeX Article"
+    category = str(article.get("category") or "TRENDING ARTICLE").strip().upper()
+    colors = _home_placeholder_colors(title)
+    lines, current = [], ""
+    for word in title.split():
+        next_value = f"{current} {word}" if current else word
+        if len(next_value) > 28 and current:
+            lines.append(current)
+            current = word
+        else:
+            current = next_value
+    if current:
+        lines.append(current)
+    if len(lines) > 3:
+        lines = lines[:3]
+        lines[2] = lines[2][:25] + "…"
+    start = 292 - ((len(lines) - 1) * 48 / 2)
+    title_svg = "".join(
+        f'<text x="600" y="{start + index * 48:g}" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="38" font-weight="900">{xml_escape(line)}</text>'
+        for index, line in enumerate(lines)
+    )
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="{xml_escape(title)} article placeholder"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="{colors[0]}"/><stop offset=".55" stop-color="{colors[1]}"/><stop offset="1" stop-color="{colors[2]}"/></linearGradient><radialGradient id="r" cx="82%" cy="10%" r="78%"><stop stop-color="{colors[3]}" stop-opacity=".34"/><stop offset="1" stop-color="{colors[3]}" stop-opacity="0"/></radialGradient></defs><rect width="1200" height="675" fill="url(#g)"/><rect width="1200" height="675" fill="url(#r)"/><circle cx="1060" cy="80" r="250" fill="#fff" opacity=".05"/><circle cx="130" cy="620" r="220" fill="#fff" opacity=".04"/><rect x="120" y="105" width="960" height="465" rx="34" fill="#fff" opacity=".08" stroke="#fff" stroke-opacity=".28" stroke-width="3"/><text x="600" y="190" text-anchor="middle" fill="{colors[3]}" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="900" letter-spacing="6">{xml_escape(category)}</text>{title_svg}<line x1="385" y1="405" x2="815" y2="405" stroke="{colors[3]}" stroke-width="7" stroke-linecap="round"/><text x="600" y="485" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="27" font-weight="900"><tspan fill="#fff">BOXOFFICE</tspan><tspan fill="#ffd43b">X</tspan></text><text x="600" y="522" text-anchor="middle" fill="#fff" opacity=".72" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="700" letter-spacing="5">ARTICLE</text></svg>'
+    )
+    return _home_svg_data_uri(svg)
 
 
 def _home_movie_card(movie, slug_map, rank=None, running_day=None, upcoming_days=None):
     movie_id = int(movie["id"])
-    title = html_escape(str(movie.get("title") or "Untitled"))
+    title_raw = str(movie.get("title") or "Untitled")
+    title = html_escape(title_raw)
     language = html_escape(str(movie.get("language") or "Cinema"))
     industry = html_escape(str(movie.get("industry") or ""))
     release_date = html_escape(str(movie.get("release_date") or ""))
     verdict = html_escape(str(movie.get("verdict") or "Box Office"))
-    image = html_escape(_home_movie_image_url(movie.get("poster")), quote=True)
+    image = html_escape(_home_movie_placeholder(movie), quote=True)
     slug = slug_map.get(movie_id)
     url = html_escape(f"/movie/{slug}" if slug else "/new-movies.html", quote=True)
     collection = float(movie.get("worldwide_collection_crore") or 0)
-
     classes = "movie-card ranking-card" if rank else "movie-card"
     rank_html = f'<div class="ranking-number">#{int(rank)}</div>' if rank else ""
     badge_html = ""
     timing_html = ""
-
     if running_day is not None:
         badge_html = '<div class="home-release-badge running">RUNNING</div>'
         timing_html = f'<p class="home-release-timing">Running • Day {int(running_day)}</p>'
@@ -2283,26 +2403,16 @@ def _home_movie_card(movie, slug_map, rank=None, running_day=None, upcoming_days
         days = int(upcoming_days)
         countdown = "Tomorrow" if days == 1 else f"{days} Days Left"
         timing_html = f'<span class="upcoming-countdown">{html_escape(countdown)}</span>'
-
     meta_parts = [part for part in (language, industry) if part]
     meta_html = f'<p>{" • ".join(meta_parts)}</p>' if meta_parts else ""
     date_html = f'<p>📅 {release_date}</p>' if release_date and not rank else ""
-    collection_html = (
-        f'<p class="movie-collection">🌍 ₹{collection:.2f} Cr</p>'
-        if collection > 0 else ""
-    )
+    collection_html = f'<p class="movie-collection">🌍 ₹{collection:.2f} Cr</p>' if collection > 0 else ""
     verdict_html = f'<p class="movie-verdict">{verdict}</p>' if rank else ""
-
     return (
-        f'<article class="{classes}">'
-        f'<a href="{url}" aria-label="View {title}">'
-        f'{rank_html}{badge_html}'
-        f'<img class="movie-poster" src="{image}" alt="{title}" loading="lazy" decoding="async">'
-        f'<div class="movie-info"><h3>{title}</h3>{timing_html}{date_html}'
-        f'{meta_html}{collection_html}{verdict_html}</div>'
-        f'</a></article>'
+        f'<article class="{classes}"><a href="{url}" aria-label="View {title}">{rank_html}{badge_html}'
+        f'<img class="movie-poster" src="{image}" alt="{title}" loading="lazy" decoding="async" onerror="setMovieFallback(this)">'
+        f'<div class="movie-info"><h3>{title}</h3>{timing_html}{date_html}{meta_html}{collection_html}{verdict_html}</div></a></article>'
     )
-
 
 
 def _home_article_image_url(value):
@@ -2319,57 +2429,46 @@ def _home_article_image_url(value):
 
 
 def _home_article_card(article, rank):
-    title = html_escape(str(article.get("title") or "Untitled Article"))
-    category = html_escape(str(article.get("category") or "BoxOfficeX Article"))
+    title_raw = str(article.get("title") or "Untitled Article")
+    category_raw = str(article.get("category") or "BoxOfficeX Article")
+    title = html_escape(title_raw)
+    category = html_escape(category_raw)
     slug = html_escape(str(article.get("slug") or ""), quote=True)
     url = f"/article/{slug}" if slug else "/articles.html"
-    image = _home_article_image_url(article.get("hero_image"))
+    image = _home_article_image_url(article.get("hero_image")) or _home_article_placeholder(article)
     views = int(article.get("view_count") or 0)
     likes = int(article.get("like_count") or 0)
     hype = int(article.get("hype_count") or 0)
     comments = int(article.get("comment_count") or 0)
-
-    if image:
-        image_html = (
-            f'<img class="article-trending-image" src="{html_escape(image, quote=True)}" '
-            f'alt="{title}" loading="lazy" decoding="async">'
-        )
-    else:
-        image_html = '<div class="article-trending-placeholder" aria-hidden="true">📰</div>'
-
+    image_html = (
+        f'<img class="article-trending-image" src="{html_escape(image, quote=True)}" alt="{title}" '
+        f'data-article-title="{html_escape(title_raw, quote=True)}" data-article-category="{html_escape(category_raw, quote=True)}" '
+        'loading="lazy" decoding="async" onerror="setArticleFallback(this)">'
+    )
     return (
         '<article class="article-trending-card">'
-        f'<a href="{url}" aria-label="Read {title}">'
-        f'<div class="ranking-number">#{int(rank)}</div>{image_html}'
-        '<div class="article-trending-copy">'
-        f'<div class="article-trending-type">{category}</div>'
+        f'<a href="{url}" aria-label="Read {title}"><div class="ranking-number">#{int(rank)}</div>{image_html}'
+        f'<div class="article-trending-copy"><div class="article-trending-type">{category}</div>'
         f'<h3 class="article-trending-title">{title}</h3>'
-        f'<div class="article-trending-stats">👁 {views:,} • ❤️ {likes:,} • 🔥 {hype:,} • 💬 {comments:,}</div>'
-        '</div></a></article>'
+        f'<div class="article-trending-stats">👁 {views:,} • ❤️ {likes:,} • 🔥 {hype:,} • 💬 {comments:,}</div></div></a></article>'
     )
-
-
-def _home_actor_image_url(photo):
-    photo = safe_actor_photo(photo)
-    if _is_remote_image(photo):
-        return photo
-    return f"/actor-images/{photo}"
 
 
 def _home_actor_card(actor, actor_slug_map):
     actor_id = int(actor["id"])
-    name = html_escape(str(actor.get("name") or "Actor"))
+    name_raw = str(actor.get("name") or "Actor")
+    name = html_escape(name_raw)
     profession = html_escape(str(actor.get("profession") or "Actor"))
-    image = html_escape(_home_actor_image_url(actor.get("photo")), quote=True)
+    image = html_escape(_home_actor_placeholder(name_raw), quote=True)
     slug = actor_slug_map.get(actor_id)
     url = html_escape(f"/actor/{slug}" if slug else "/actors.html", quote=True)
     return (
         '<article class="actor-card">'
-        f'<a href="{url}" aria-label="View {name}">'
-        f'<div class="actor-image-wrap"><img src="{image}" alt="{name}" loading="lazy" decoding="async"></div>'
-        f'<h3>{name}</h3><p>{profession}</p>'
-        '</a></article>'
+        f'<a href="{url}" aria-label="View {name}"><div class="actor-image-wrap">'
+        f'<img src="{image}" alt="{name}" loading="lazy" decoding="async" onerror="setActorFallback(this)"></div>'
+        f'<h3>{name}</h3><p>{profession}</p></a></article>'
     )
+
 
 def _build_homepage_ssr_sections():
     """Build SEO-critical homepage sections without letting one failed query kill SSR."""
