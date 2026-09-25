@@ -1667,6 +1667,20 @@ async def security_headers_middleware(request: Request, call_next):
             "max-age=31536000; includeSubDomains"
         )
 
+    # Public performance caching. Never cache admin/auth/search responses here.
+    path = request.url.path
+    if request.method == "GET":
+        if path.startswith(("/posters/", "/actor-images/", "/article-images/", "/images/")):
+            response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
+        elif path.endswith((".css", ".js", ".woff", ".woff2")):
+            response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=604800"
+        elif (
+            not path.startswith(("/admin", "/api/admin", "/docs", "/redoc", "/openapi.json"))
+            and path != "/search"
+            and response.headers.get("content-type", "").startswith("application/json")
+        ):
+            response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
+
     return response
 
 
@@ -2291,55 +2305,16 @@ def _home_movie_card(movie, slug_map, rank=None, running_day=None, upcoming_days
 
 
 def _build_homepage_ssr_sections():
+    """Build SEO-critical homepage sections without letting one failed query kill SSR."""
     today = date.today()
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            # Match the existing homepage Running Movies rule: release day through Day 10.
-            cur.execute("""
-                SELECT id, title, release_date, language, industry,
-                       worldwide_collection_crore, verdict, poster
-                FROM movies
-                WHERE release_date IS NOT NULL
-                  AND release_date BETWEEN CURRENT_DATE - INTERVAL '9 days' AND CURRENT_DATE
-                ORDER BY release_date DESC, id DESC
-                LIMIT 5
-            """)
-            running_rows = cur.fetchall()
-
-            # Match the existing Upcoming Movies endpoint ordering.
-            cur.execute("""
-                SELECT id, title, release_date, language, industry,
-                       worldwide_collection_crore, verdict, poster,
-                       (release_date - CURRENT_DATE) AS days_until_release
-                FROM movies
-                WHERE release_date IS NOT NULL
-                  AND release_date > CURRENT_DATE
-                ORDER BY release_date ASC, id ASC
-                LIMIT 10
-            """)
-            upcoming_rows = cur.fetchall()
-
-            # Match the current Top 10 client ranking: highest worldwide collection.
-            cur.execute("""
-                SELECT id, title, release_date, language, industry,
-                       worldwide_collection_crore, verdict, poster
-                FROM movies
-                WHERE worldwide_collection_crore IS NOT NULL
-                ORDER BY worldwide_collection_crore DESC NULLS LAST, id ASC
-                LIMIT 10
-            """)
-            ranking_rows = cur.fetchall()
-
-            # Build canonical movie slugs once in the same DB connection.
-            cur.execute("""
-                SELECT id, title, release_date
-                FROM movies
-                ORDER BY id
-            """)
-            slug_rows = cur.fetchall()
-
-    slug_map = _unique_movie_slug_map(slug_rows)
+    # Slugs are shared by all three sections. If this fails, cards still render
+    # with the safe New Movies fallback rather than returning the raw template.
+    try:
+        slug_map = _unique_movie_slug_map()
+    except Exception as exc:
+        print(f"Homepage SSR slug-map warning: {exc}", flush=True)
+        slug_map = {}
 
     def movie_from_row(row):
         return {
@@ -2353,34 +2328,82 @@ def _build_homepage_ssr_sections():
             "poster": row[7],
         }
 
-    running_html = [
-        _home_movie_card(
-            movie_from_row(row),
-            slug_map,
-            running_day=(today - row[2]).days + 1,
-        )
-        for row in running_rows
-    ]
+    # Each section uses its own short DB transaction. A ranking/data problem can
+    # no longer force the whole homepage to fall back to untouched index.html.
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, title, release_date, language, industry,
+                           worldwide_collection_crore, verdict, poster
+                    FROM movies
+                    WHERE release_date IS NOT NULL
+                      AND release_date BETWEEN CURRENT_DATE - 9 AND CURRENT_DATE
+                    ORDER BY release_date DESC, id DESC
+                    LIMIT 5
+                """)
+                running_rows = cur.fetchall()
+        running_html = [
+            _home_movie_card(
+                movie_from_row(row), slug_map,
+                running_day=(today - row[2]).days + 1,
+            )
+            for row in running_rows
+        ]
+        running = "\n".join(running_html) or '<div class="movie-empty">No running movies are inside the current 10-day release window.</div>'
+    except Exception as exc:
+        print(f"Homepage SSR running warning: {exc}", flush=True)
+        running = '<div class="movie-empty">Running movies are being updated.</div>'
 
-    upcoming_html = [
-        _home_movie_card(
-            movie_from_row(row[:8]),
-            slug_map,
-            upcoming_days=int(row[8] or 0),
-        )
-        for row in upcoming_rows
-    ]
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, title, release_date, language, industry,
+                           worldwide_collection_crore, verdict, poster,
+                           (release_date - CURRENT_DATE) AS days_until_release
+                    FROM movies
+                    WHERE release_date IS NOT NULL
+                      AND release_date > CURRENT_DATE
+                    ORDER BY release_date ASC, id ASC
+                    LIMIT 10
+                """)
+                upcoming_rows = cur.fetchall()
+        upcoming_html = [
+            _home_movie_card(
+                movie_from_row(row[:8]), slug_map,
+                upcoming_days=int(row[8] or 0),
+            )
+            for row in upcoming_rows
+        ]
+        upcoming = "\n".join(upcoming_html) or '<div class="movie-empty">No upcoming movies added yet.</div>'
+    except Exception as exc:
+        print(f"Homepage SSR upcoming warning: {exc}", flush=True)
+        upcoming = '<div class="movie-empty">Upcoming movies are being updated.</div>'
 
-    ranking_html = [
-        _home_movie_card(movie_from_row(row), slug_map, rank=rank)
-        for rank, row in enumerate(ranking_rows, start=1)
-    ]
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, title, release_date, language, industry,
+                           worldwide_collection_crore, verdict, poster
+                    FROM movies
+                    WHERE worldwide_collection_crore IS NOT NULL
+                      AND worldwide_collection_crore > 0
+                    ORDER BY worldwide_collection_crore DESC NULLS LAST, id ASC
+                    LIMIT 10
+                """)
+                ranking_rows = cur.fetchall()
+        ranking_html = [
+            _home_movie_card(movie_from_row(row), slug_map, rank=rank)
+            for rank, row in enumerate(ranking_rows, start=1)
+        ]
+        rankings = "\n".join(ranking_html) or '<div class="movie-empty">No ranking data available.</div>'
+    except Exception as exc:
+        print(f"Homepage SSR rankings warning: {exc}", flush=True)
+        rankings = '<div class="movie-empty">Rankings are being updated.</div>'
 
-    return {
-        "running": "\n".join(running_html) or '<div class="movie-empty">No running movies are inside the current 10-day release window.</div>',
-        "upcoming": "\n".join(upcoming_html) or '<div class="movie-empty">No upcoming movies added yet.</div>',
-        "rankings": "\n".join(ranking_html) or '<div class="movie-empty">No ranking data available.</div>',
-    }
+    return {"running": running, "upcoming": upcoming, "rankings": rankings}
 
 
 def _render_homepage_html():
@@ -2469,8 +2492,15 @@ def home():
             },
         )
     except Exception as exc:
-        print(f"Homepage SSR fallback: {exc}")
-        return FileResponse(BASE_DIR / "index.html")
+        print(f"Homepage SSR fallback: {type(exc).__name__}: {exc}", flush=True)
+        return FileResponse(
+            BASE_DIR / "index.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Homepage": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 
