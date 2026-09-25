@@ -4843,7 +4843,7 @@ html,body{scroll-padding-top:0!important}
     </div>
 
 
-    <div class="movie-card">
+    <div class="movie-card" data-ssr="0">
 
         <div class="movie-content">
 
@@ -5761,6 +5761,14 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
     async function resolveMovieIdentity() {
 
         if (movieId) {
+            return true;
+        }
+
+        // Movie SSR injects the resolved ID into the initial HTML.
+        // This avoids an extra slug-resolver request on server-rendered pages.
+        const ssrMovieCard = document.querySelector('.movie-card[data-ssr="1"][data-movie-id]');
+        if (ssrMovieCard && ssrMovieCard.dataset.movieId) {
+            movieId = String(ssrMovieCard.dataset.movieId);
             return true;
         }
 

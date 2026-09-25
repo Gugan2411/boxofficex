@@ -3196,6 +3196,127 @@ def movie_rankings_page():
 
 
 # ============================================================
+# MOVIE DETAIL - CACHED SERVER-RENDERED SEO CONTENT
+# ============================================================
+
+MOVIE_HTML_CACHE_TTL = 300
+_movie_html_cache = {}
+_movie_html_cache_lock = threading.Lock()
+
+
+def _movie_ssr_format_crore(value):
+    if value is None or value == "":
+        return "—"
+    try:
+        number = float(value)
+        rendered = f"{number:,.2f}".rstrip("0").rstrip(".")
+        return f"₹{rendered} Cr"
+    except (TypeError, ValueError):
+        return f"₹{value} Cr"
+
+
+def _movie_ssr_build(movie_slug: str):
+    identity = resolve_movie_slug(movie_slug)
+    if not identity:
+        return None
+
+    movie_id = int(identity["id"])
+    movie = get_movie(movie_id)
+    if not movie or movie.get("error"):
+        return None
+
+    # Always keep the canonical slug returned by the database slug map.
+    canonical_slug = str(movie.get("slug") or movie_slug)
+    canonical_path = f"/movie/{canonical_slug}"
+    canonical = "https://boxofficex.in" + canonical_path
+    title_text = str(movie.get("title") or "Movie")
+    title = f"{title_text} Box Office Collection, Budget & Verdict | BoxOfficeX"
+
+    description_parts = [f"{title_text} box office collection"]
+    if movie.get("language"):
+        description_parts.append(f"{movie['language']} movie")
+    if movie.get("worldwide_collection_crore") is not None:
+        description_parts.append("worldwide collection " + _movie_ssr_format_crore(movie.get("worldwide_collection_crore")))
+    if movie.get("budget_crore") is not None:
+        description_parts.append("budget " + _movie_ssr_format_crore(movie.get("budget_crore")))
+    if movie.get("verdict"):
+        description_parts.append(f"verdict {movie['verdict']}")
+    if movie.get("director"):
+        description_parts.append(f"directed by {movie['director']}")
+    description = ", ".join(description_parts) + ". View day-wise and state-wise box office details on BoxOfficeX."
+
+    # movie.html intentionally uses the generated BoxOfficeX placeholder on-page.
+    poster = _home_movie_placeholder(movie)
+    share_image = "https://boxofficex.in/images/boxofficex-share.jpg"
+
+    template = (BASE_DIR / "movie.html").read_text(encoding="utf-8")
+    template = re.sub(r"<title>.*?</title>", f"<title>{html_escape(title)}</title>", template, count=1, flags=re.S)
+    template = re.sub(r'(<meta id="metaDescription" name="description" content=")[^"]*(")', lambda m: m.group(1)+html_escape(description, quote=True)+m.group(2), template, count=1)
+    template = re.sub(r'(<link id="canonicalUrl" rel="canonical" href=")[^"]*(")', lambda m: m.group(1)+canonical+m.group(2), template, count=1)
+    for element_id, value in (
+        ("ogTitle", title), ("ogDescription", description), ("ogUrl", canonical), ("ogImage", share_image),
+        ("twitterTitle", title), ("twitterDescription", description), ("twitterImage", share_image),
+    ):
+        template = re.sub(r'(<meta id="'+re.escape(element_id)+r'"[^>]*content=")[^"]*(")', lambda m, v=value: m.group(1)+html_escape(v, quote=True)+m.group(2), template, count=1)
+
+    structured = {
+        "@context": "https://schema.org", "@type": "Movie", "name": title_text,
+        "url": canonical, "image": share_image,
+        "dateCreated": movie.get("release_date") or None,
+        "genre": [x.strip() for x in str(movie.get("genre") or "").split(",") if x.strip()] or None,
+        "inLanguage": movie.get("language") or None,
+        "director": {"@type":"Person", "name": movie.get("director")} if movie.get("director") else None,
+    }
+    structured = {k:v for k,v in structured.items() if v is not None}
+    template = re.sub(r'<script id="movieStructuredData" type="application/ld\+json">.*?</script>', '<script id="movieStructuredData" type="application/ld+json">'+json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")+'</script>', template, count=1, flags=re.S)
+
+    # Mark this exact movie in the initial document. JS uses the ID and skips the slug resolver call.
+    template = template.replace('<div class="movie-card" data-ssr="0">', f'<div class="movie-card" data-ssr="1" data-movie-id="{movie_id}" data-movie-slug="{html_escape(canonical_slug, quote=True)}">', 1)
+
+    # Preserve the existing design; only replace the loading shell with real initial values.
+    template = re.sub(r'(<img\s+id="moviePoster"\s+src=")[^"]*("\s+alt=")[^"]*("\s+class="movie-poster")', lambda m: m.group(1)+html_escape(poster, quote=True)+m.group(2)+html_escape(title_text+" poster", quote=True)+m.group(3), template, count=1, flags=re.S)
+    template = re.sub(r'<h1\s+id="movieTitle"\s+class="movie-title"\s*>.*?</h1>', f'<h1 id="movieTitle" class="movie-title">{html_escape(title_text)}</h1>', template, count=1, flags=re.S)
+
+    values = {
+        "language": movie.get("language") or "Indian Cinema",
+        "genre": movie.get("genre") or "Genre unavailable",
+        "release_date": movie.get("release_date") or "Release date unavailable",
+        "worldwide": _movie_ssr_format_crore(movie.get("worldwide_collection_crore")),
+        "budget": _movie_ssr_format_crore(movie.get("budget_crore")),
+        "india": _movie_ssr_format_crore(movie.get("india_collection_crore")),
+        "overseas": _movie_ssr_format_crore(movie.get("overseas_collection_crore")),
+        "director": movie.get("director") or "Not available",
+        "verdict": movie.get("verdict") or "Box Office",
+    }
+    for element_id, value in values.items():
+        pattern = r'(<(?:span|div)\b[^>]*\bid="'+re.escape(element_id)+r'"[^>]*>).*?(</(?:span|div)>)'
+        template = re.sub(pattern, lambda m, v=str(value): m.group(1)+html_escape(v)+m.group(2), template, count=1, flags=re.S)
+
+    # The worldwide shell alone carries the pulse class in the original HTML.
+    template = re.sub(r'(id="worldwide"\s+class=")worldwide-value\s+loading("\s*)', r'\1worldwide-value\2', template, count=1)
+    return template
+
+
+def _movie_ssr_cached(movie_slug: str):
+    now = time_module.monotonic()
+    with _movie_html_cache_lock:
+        cached = _movie_html_cache.get(movie_slug)
+        if cached and cached["expires_at"] > now:
+            return cached["html"], "HIT"
+
+    rendered = _movie_ssr_build(movie_slug)
+    if rendered is None:
+        return None, "MISS"
+
+    with _movie_html_cache_lock:
+        _movie_html_cache[movie_slug] = {
+            "html": rendered,
+            "expires_at": time_module.monotonic() + MOVIE_HTML_CACHE_TTL,
+        }
+    return rendered, "MISS"
+
+
+# ============================================================
 # ACTOR DETAIL - CACHED SERVER-RENDERED SEO CONTENT
 # ============================================================
 
@@ -3361,7 +3482,31 @@ def movie_slug_page(movie_slug: str):
     movie = resolve_movie_slug(movie_slug)
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
-    return FileResponse(BASE_DIR / "movie.html")
+
+    try:
+        rendered, cache_state = _movie_ssr_cached(movie_slug)
+        if rendered is None:
+            raise HTTPException(status_code=404, detail="Movie not found")
+        return HTMLResponse(
+            content=rendered,
+            headers={
+                "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                "X-BoxOfficeX-Movie": "cached-ssr",
+                "X-BoxOfficeX-Cache": cache_state,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print("Movie SSR fallback:", type(exc).__name__, exc, flush=True)
+        return FileResponse(
+            BASE_DIR / "movie.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Movie": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 @app.get("/actor/{actor_slug}/movies", include_in_schema=False)
