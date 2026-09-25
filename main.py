@@ -2428,6 +2428,34 @@ def _home_article_image_url(value):
     return f"/article-images/{value}"
 
 
+def _home_cloudinary_article_thumbnail(value, width=500):
+    """Return a lighter Cloudinary URL for homepage article cards only.
+
+    The stored/original URL is never changed. Non-Cloudinary URLs are returned
+    untouched. c_limit preserves the original aspect ratio while f_auto/q_auto
+    let Cloudinary choose an efficient browser format and quality.
+    """
+    original = _home_article_image_url(value)
+    if not original:
+        return "", ""
+
+    try:
+        parsed = urlparse(original)
+        if (
+            parsed.scheme in {"http", "https"}
+            and parsed.netloc.lower().endswith("res.cloudinary.com")
+            and "/image/upload/" in parsed.path
+        ):
+            marker = "/image/upload/"
+            transform = f"f_auto,q_auto,w_{int(width)},c_limit/"
+            optimized = original.replace(marker, marker + transform, 1)
+            return optimized, original
+    except Exception:
+        pass
+
+    return original, original
+
+
 def _home_article_card(article, rank):
     title_raw = str(article.get("title") or "Untitled Article")
     category_raw = str(article.get("category") or "BoxOfficeX Article")
@@ -2435,15 +2463,19 @@ def _home_article_card(article, rank):
     category = html_escape(category_raw)
     slug = html_escape(str(article.get("slug") or ""), quote=True)
     url = f"/article/{slug}" if slug else "/articles.html"
-    image = _home_article_image_url(article.get("hero_image")) or _home_article_placeholder(article)
+    image, original_image = _home_cloudinary_article_thumbnail(article.get("hero_image"), width=500)
+    image = image or _home_article_placeholder(article)
+    original_image = original_image or image
     views = int(article.get("view_count") or 0)
     likes = int(article.get("like_count") or 0)
     hype = int(article.get("hype_count") or 0)
     comments = int(article.get("comment_count") or 0)
     image_html = (
         f'<img class="article-trending-image" src="{html_escape(image, quote=True)}" alt="{title}" '
+        f'data-original-src="{html_escape(original_image, quote=True)}" '
         f'data-article-title="{html_escape(title_raw, quote=True)}" data-article-category="{html_escape(category_raw, quote=True)}" '
-        'loading="lazy" decoding="async" onerror="setArticleFallback(this)">'
+        'loading="lazy" decoding="async" '
+        'onerror="if(this.dataset.originalSrc&&this.src!==this.dataset.originalSrc){this.src=this.dataset.originalSrc;this.dataset.originalSrc='';}else{setArticleFallback(this)}">'
     )
     return (
         '<article class="article-trending-card">'
