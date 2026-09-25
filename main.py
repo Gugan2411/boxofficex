@@ -3190,9 +3190,164 @@ def movie_page(id: Optional[int] = None):
     return RedirectResponse(url=movie_url, status_code=301)
 
 
+# ============================================================
+# MOVIE RANKINGS - CACHED SERVER-RENDERED TOP 50
+# ============================================================
+
+MOVIE_RANKINGS_HTML_CACHE_TTL = 300
+_movie_rankings_html_cache = {"html": None, "expires_at": 0.0}
+_movie_rankings_html_cache_lock = threading.Lock()
+_movie_rankings_html_refreshing = False
+
+
+def _movie_rankings_ssr_rows(limit: int = 50):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, release_date, worldwide_collection_crore, verdict, poster
+                FROM movies
+                WHERE worldwide_collection_crore IS NOT NULL
+                  AND worldwide_collection_crore > 0
+                ORDER BY worldwide_collection_crore DESC
+                LIMIT %s;
+            """, (limit,))
+            rows = cur.fetchall()
+
+    rankings = []
+    for position, row in enumerate(rows, start=1):
+        movie_id = row[0]
+        rankings.append({
+            "rank": position,
+            "id": movie_id,
+            "title": row[1],
+            "release_date": str(row[2]) if row[2] else None,
+            "worldwide_collection": float(row[3] or 0),
+            "verdict": row[4],
+            "poster": row[5],
+            "url": public_movie_url(movie_id),
+        })
+    return rankings
+
+
+def _movie_rankings_ssr_number(value):
+    try:
+        number = float(value or 0)
+        return f"{number:,.2f}".rstrip("0").rstrip(".")
+    except (TypeError, ValueError):
+        return "0"
+
+
+def _build_movie_rankings_ssr_html():
+    template = (BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8")
+    rankings = _movie_rankings_ssr_rows(50)
+
+    cards = []
+    for movie in rankings:
+        title = str(movie.get("title") or "Movie")
+        release_date = str(movie.get("release_date") or "N/A")
+        verdict = str(movie.get("verdict") or "Box Office")
+        url = str(movie.get("url") or "/new-movies.html")
+        poster = _home_movie_placeholder(movie)
+        worldwide = _movie_rankings_ssr_number(movie.get("worldwide_collection"))
+
+        cards.append(f"""<a class="movie-card" href="{html_escape(url, quote=True)}" aria-label="{html_escape(title, quote=True)} box office details">
+    <div class="rank">#{movie["rank"]}</div>
+    <img src="{html_escape(poster, quote=True)}" alt="{html_escape(title, quote=True)}" loading="lazy">
+    <div class="movie-info">
+        <div class="movie-title">{html_escape(title)}</div>
+        <div class="details">📅 {html_escape(release_date)} &nbsp; | &nbsp; 🌍 ₹{worldwide} Cr</div>
+        <div class="verdict">🎬 {html_escape(verdict)}</div>
+    </div>
+</a>""")
+
+    ranking_html = "\n".join(cards) if cards else '<div class="loading">No movies found.</div>'
+    start_marker = '<div id="movies">'
+    start = template.find(start_marker)
+    if start < 0:
+        raise RuntimeError("movie rankings container not found")
+    section_marker = '<section id="bxInContentVideoAds"'
+    end = template.find(section_marker, start)
+    if end < 0:
+        raise RuntimeError("movie rankings end marker not found")
+    template = (
+        template[:start]
+        + '<div id="movies" data-ssr="1">\n' + ranking_html + '\n</div>\n\n'
+        + template[end:]
+    )
+
+    count_start = template.find('class="results-count"')
+    if count_start >= 0:
+        open_end = template.find('>', count_start)
+        close_start = template.find('</div>', open_end)
+        if open_end >= 0 and close_start >= 0:
+            template = template[:open_end+1] + f'\n        {len(rankings)} movies\n    ' + template[close_start:]
+    return template
+
+
+def _refresh_movie_rankings_ssr_cache():
+    global _movie_rankings_html_refreshing
+    try:
+        rendered = _build_movie_rankings_ssr_html()
+        with _movie_rankings_html_cache_lock:
+            _movie_rankings_html_cache["html"] = rendered
+            _movie_rankings_html_cache["expires_at"] = time_module.monotonic() + MOVIE_RANKINGS_HTML_CACHE_TTL
+    except Exception as exc:
+        print("Movie rankings SSR cache refresh failed:", type(exc).__name__, exc, flush=True)
+    finally:
+        with _movie_rankings_html_cache_lock:
+            _movie_rankings_html_refreshing = False
+
+
+def _start_movie_rankings_ssr_refresh():
+    global _movie_rankings_html_refreshing
+    with _movie_rankings_html_cache_lock:
+        if _movie_rankings_html_refreshing:
+            return
+        _movie_rankings_html_refreshing = True
+    threading.Thread(target=_refresh_movie_rankings_ssr_cache, daemon=True).start()
+
+
+def _get_cached_movie_rankings_html():
+    now = time_module.monotonic()
+    with _movie_rankings_html_cache_lock:
+        cached_html = _movie_rankings_html_cache.get("html")
+        expires_at = _movie_rankings_html_cache.get("expires_at", 0.0)
+
+    if cached_html and expires_at > now:
+        return cached_html, "HIT"
+    if cached_html:
+        _start_movie_rankings_ssr_refresh()
+        return cached_html, "STALE"
+
+    rendered = _build_movie_rankings_ssr_html()
+    with _movie_rankings_html_cache_lock:
+        _movie_rankings_html_cache["html"] = rendered
+        _movie_rankings_html_cache["expires_at"] = time_module.monotonic() + MOVIE_RANKINGS_HTML_CACHE_TTL
+    return rendered, "MISS"
+
+
 @app.get("/movie-rankings.html")
 def movie_rankings_page():
-    return FileResponse(BASE_DIR / "movie-rankings.html")
+    try:
+        rendered, cache_state = _get_cached_movie_rankings_html()
+        return HTMLResponse(
+            content=rendered,
+            headers={
+                "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                "X-BoxOfficeX-Movie-Rankings": "cached-ssr",
+                "X-BoxOfficeX-Cache": cache_state,
+            },
+        )
+    except Exception as exc:
+        print("Movie rankings SSR fallback:", type(exc).__name__, exc, flush=True)
+        return FileResponse(
+            BASE_DIR / "movie-rankings.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Movie-Rankings": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 # ============================================================

@@ -4477,12 +4477,19 @@ async function loadMovies(
 
                 const card =
                     document.createElement(
-                        "div"
+                        "a"
                     );
 
 
                 card.className =
                     "movie-card";
+
+                // Real crawlable movie URL for users and search engines.
+                card.href = bxMoviePublicUrl(movie);
+                card.setAttribute(
+                    "aria-label",
+                    `${movie.title || "Movie"} box office details`
+                );
 
 
                 card.innerHTML = `
@@ -4553,17 +4560,6 @@ async function loadMovies(
                 `;
 
 
-                card.addEventListener(
-                    "click",
-                    function() {
-
-                        window.location.href =
-                            bxMoviePublicUrl(movie);
-
-                    }
-                );
-
-
                 container.appendChild(
                     card
                 );
@@ -4626,9 +4622,12 @@ async function loadMovies(
    INITIAL LOAD
 ========================================== */
 
-loadMovies(
-    "All"
-);
+const bxInitialRankingList = document.getElementById("movies");
+if (!(bxInitialRankingList && bxInitialRankingList.dataset.ssr === "1")) {
+    loadMovies("All");
+} else {
+    window.__bxCurrentMovieRankingIndustry = "Global";
+}
 
 
 
