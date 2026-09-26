@@ -3452,7 +3452,7 @@ html,body{scroll-padding-top:0!important}
 
     <section id="bxActorRankingsAd" aria-label="Sponsored advertisement"></section>
 
-    <div id="rankings">
+    <div id="rankings" data-ssr="0">
         Loading...
     </div>
 
@@ -3661,9 +3661,11 @@ function loadRankings(language) {
         data.rankings.forEach((actor, actorIndex) => {
 
             const div =
-                document.createElement("div");
+                document.createElement("a");
 
             div.className = "rank";
+            div.href = actor.url || "/actors.html";
+            div.setAttribute("aria-label", `${actor.name || "Actor"} profile`);
 
             div.innerHTML = `
 
@@ -3698,32 +3700,6 @@ function loadRankings(language) {
             actorImage.addEventListener("error", function () {
                 actorImage.src = boxOfficeXActorRankingPlaceholder(actor.name);
             }, { once: true });
-
-            div.onclick = async function () {
-
-                try {
-                    const response = await fetch(
-                        "/actors/" + encodeURIComponent(actor.id),
-                        { cache: "no-store" }
-                    );
-
-                    if (!response.ok) {
-                        throw new Error("Actor route lookup failed");
-                    }
-
-                    const actorData = await response.json();
-
-                    if (!actorData?.url) {
-                        throw new Error("Actor clean URL missing");
-                    }
-
-                    window.location.href = actorData.url;
-                }
-                catch (error) {
-                    console.error("Actor ranking navigation error:", error);
-                }
-
-            };
 
             container.appendChild(div);
 
@@ -3774,7 +3750,15 @@ function loadRankings(language) {
 
 }
 
-loadRankings("All");
+const bxInitialActorRankings = document.getElementById("rankings");
+if (!(bxInitialActorRankings && bxInitialActorRankings.dataset.ssr === "1")) {
+    loadRankings("All");
+} else {
+    window.__bxCurrentActorRankingIndustry = "Global";
+    if (window.BoxOfficeXLoadRankingInContentAds) {
+        window.BoxOfficeXLoadRankingInContentAds("Global");
+    }
+}
 
 </script>
 
