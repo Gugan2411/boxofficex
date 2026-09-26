@@ -11649,6 +11649,7 @@ def _render_movie_comparison_html(comparison):
         except Exception:
             catalogue = []
 
+        slug_map = _unique_movie_slug_map()
         current_ids = {int(a["id"]), int(b["id"])}
         candidates = []
         for item in catalogue:
@@ -11672,7 +11673,16 @@ def _render_movie_comparison_html(comparison):
                 continue
 
             base_slug = movie1_ref["slug"] if base_id == int(movie1_ref["id"]) else movie2_ref["slug"]
-            other_slug = str(other.get("slug") or "").strip()
+            other_slug = str(
+                other.get("slug")
+                or slug_map.get(other_id)
+                or movie_seo_slug(
+                    other_id,
+                    other.get("title"),
+                    other.get("release_date")
+                )
+                or ""
+            ).strip()
             if not base_slug or not other_slug:
                 continue
 
@@ -11755,13 +11765,22 @@ def _render_movie_comparison_html(comparison):
         '</div></main>'
     )
 
-    template = re.sub(
-        r'<main id="app"(?:\s+data-ssr="[01]")?\s*>\s*<div class="loading">Loading comparison\.\.\.</div>\s*</main>',
-        content,
-        template,
-        count=1,
-        flags=re.S,
+    static_app_shell = '<main id="app"><div class="loading">Loading comparison...</div></main>'
+    ssr_app_pattern = re.compile(
+        r'<main\b[^>]*\bid="app"[^>]*>.*?</main>',
+        flags=re.S | re.I,
     )
+
+    if static_app_shell in template:
+        template = template.replace(static_app_shell, content, 1)
+    elif ssr_app_pattern.search(template):
+        template = ssr_app_pattern.sub(lambda _match: content, template, count=1)
+    else:
+        raise RuntimeError("Movie comparison SSR app shell not found")
+
+    # Never cache a metadata-only SSR response.
+    if '<main id="app" data-ssr="1">' not in template:
+        raise RuntimeError("Movie comparison SSR body injection failed")
 
     safe_title = html_escape(page_title, quote=True)
     safe_description = html_escape(description, quote=True)
