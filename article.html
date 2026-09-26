@@ -435,6 +435,46 @@
             font-weight: 800;
         }
 
+        .bx-explore-more {
+            margin: 34px 0 8px;
+            padding: 20px;
+            border: 1px solid rgba(77,141,255,.20);
+            border-radius: 16px;
+            background: rgba(77,141,255,.055);
+        }
+
+        .bx-explore-more h2 {
+            margin: 0 0 14px !important;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 18px !important;
+            letter-spacing: 0;
+        }
+
+        .bx-explore-links {
+            display: grid;
+            gap: 8px;
+        }
+
+        .bx-explore-link {
+            display: block;
+            padding: 11px 12px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 10px;
+            background: rgba(255,255,255,.035);
+            color: #9fc2ff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.4;
+            text-decoration: none;
+        }
+
+        .bx-explore-link:hover {
+            border-color: rgba(77,141,255,.38);
+            background: rgba(77,141,255,.10);
+            color: white;
+        }
+
         .article-end {
             margin-top: 50px;
             padding-top: 22px;
@@ -5258,6 +5298,55 @@ async function renderBlock(block) {
     return "";
 }
 
+function renderArticleExploreMore(article) {
+    const movies = Array.isArray(article?.movies) ? article.movies.slice(0, 3) : [];
+    const actors = Array.isArray(article?.actors) ? article.actors.slice(0, 5) : [];
+    const links = [];
+    const seen = new Set();
+
+    const add = (url, label, kind) => {
+        url = String(url || "").trim();
+        label = String(label || "").trim();
+        if (!url || !label || seen.has(url)) return;
+        seen.add(url);
+        links.push({url, label, kind});
+    };
+
+    movies.forEach(movie => {
+        add(
+            movie.url,
+            `${movie.title || "Movie"} — Box Office & Movie Details`,
+            "movie"
+        );
+    });
+
+    actors.forEach(actor => {
+        add(
+            actor.url,
+            `${actor.name || "Actor"} — Movies & Box Office`,
+            "actor"
+        );
+    });
+
+    add("/movie-rankings.html", "Explore Movie Box Office Rankings", "ranking");
+    add("/rankings.html", "Explore Actor Box Office Rankings", "ranking");
+
+    if (!links.length) return "";
+
+    return `
+        <section class="bx-explore-more" aria-labelledby="bxExploreMoreTitle">
+            <h2 id="bxExploreMoreTitle">Explore More on BoxOfficeX</h2>
+            <div class="bx-explore-links">
+                ${links.map(item => `
+                    <a class="bx-explore-link bx-explore-${esc(item.kind)}"
+                       href="${esc(item.url)}">${esc(item.label)}</a>
+                `).join("")}
+            </div>
+        </section>
+    `;
+}
+
+
 async function renderArticle(article) {
     setSEO(article);
     window.currentBoxOfficeXArticle = article;
@@ -5376,6 +5465,8 @@ async function renderArticle(article) {
 <div class="article-layout">
                 <div class="article-content">
                     ${blockHTML.join("")}
+
+                    ${renderArticleExploreMore(article)}
 
                     <div class="article-end">
                         BoxOfficeX • Movie box office, entertainment news and career data

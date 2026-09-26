@@ -8456,6 +8456,56 @@ def _article_ssr_format_date(value):
         return str(value)
 
 
+def _article_ssr_explore_more(article):
+    """Crawlable Internal Linking V1: article -> linked movie/actors + ranking hubs."""
+    movies = list(article.get("movies") or [])[:3]
+    actors = list(article.get("actors") or [])[:5]
+
+    links = []
+    seen = set()
+
+    def add_link(url, label, kind):
+        url = str(url or "").strip()
+        label = str(label or "").strip()
+        if not url or not label or url in seen:
+            return
+        seen.add(url)
+        links.append((url, label, kind))
+
+    for movie in movies:
+        add_link(
+            movie.get("url"),
+            f"{movie.get('title') or 'Movie'} — Box Office & Movie Details",
+            "movie",
+        )
+
+    for actor in actors:
+        add_link(
+            actor.get("url"),
+            f"{actor.get('name') or 'Actor'} — Movies & Box Office",
+            "actor",
+        )
+
+    # Stable crawlable hub links. Keep V1 conservative rather than guessing filters.
+    add_link("/movie-rankings.html", "Explore Movie Box Office Rankings", "ranking")
+    add_link("/rankings.html", "Explore Actor Box Office Rankings", "ranking")
+
+    if not links:
+        return ""
+
+    items = "".join(
+        f'<a class="bx-explore-link bx-explore-{html_escape(kind, quote=True)}" '
+        f'href="{html_escape(url, quote=True)}">{html_escape(label)}</a>'
+        for url, label, kind in links
+    )
+    return (
+        '<section class="bx-explore-more" aria-labelledby="bxExploreMoreTitle">'
+        '<h2 id="bxExploreMoreTitle">Explore More on BoxOfficeX</h2>'
+        '<div class="bx-explore-links">' + items + '</div>'
+        '</section>'
+    )
+
+
 def _render_article_detail_html(slug):
     response = get_article(slug)
     article = response.get("article") if isinstance(response, dict) else None
@@ -8584,6 +8634,7 @@ By <strong>{html_escape(author)}</strong>
 <section id="bxArticleDetailAd" aria-label="Sponsored advertisement"></section>
 <div class="article-layout"><div class="article-content">
 {"".join(block_html)}
+{_article_ssr_explore_more(article)}
 <div class="article-end">BoxOfficeX • Movie box office, entertainment news and career data</div>
 </div></div>
 </article>
@@ -8994,11 +9045,48 @@ def get_article(slug: str):
             """,(a[0],))
             blocks=cur.fetchall()
 
-            cur.execute("SELECT movie_id FROM article_movies WHERE article_id=%s ORDER BY movie_id",(a[0],))
-            movie_ids=[r[0] for r in cur.fetchall()]
+            cur.execute("""
+                SELECT m.id, m.title, m.release_date, m.language, m.industry
+                FROM article_movies am
+                JOIN movies m ON m.id = am.movie_id
+                WHERE am.article_id = %s
+                ORDER BY m.id
+            """, (a[0],))
+            movie_rows = cur.fetchall()
+            movie_ids = [r[0] for r in movie_rows]
 
-            cur.execute("SELECT actor_id FROM article_actors WHERE article_id=%s ORDER BY actor_id",(a[0],))
-            actor_ids=[r[0] for r in cur.fetchall()]
+            cur.execute("""
+                SELECT ac.id, ac.name
+                FROM article_actors aa
+                JOIN actors ac ON ac.id = aa.actor_id
+                WHERE aa.article_id = %s
+                ORDER BY ac.id
+            """, (a[0],))
+            actor_rows = cur.fetchall()
+            actor_ids = [r[0] for r in actor_rows]
+
+    movie_slug_map = _unique_movie_slug_map()
+    actor_slug_map = _unique_actor_slug_map()
+
+    linked_movies = [
+        {
+            "id": r[0],
+            "title": r[1],
+            "release_date": r[2],
+            "language": r[3],
+            "industry": r[4],
+            "url": f"/movie/{movie_slug_map[r[0]]}" if r[0] in movie_slug_map else "/new-movies.html",
+        }
+        for r in movie_rows
+    ]
+    linked_actors = [
+        {
+            "id": r[0],
+            "name": r[1],
+            "url": f"/actor/{actor_slug_map[r[0]]}" if r[0] in actor_slug_map else "/actors.html",
+        }
+        for r in actor_rows
+    ]
 
     return {"article":{
         "id":a[0],"title":a[1],"slug":a[2],"subtitle":a[3],
@@ -9007,6 +9095,7 @@ def get_article(slug: str):
         "meta_title":a[10],"meta_description":a[11],"views":a[12],
         "published_at":a[13],"created_at":a[14],"updated_at":a[15],
         "movie_ids":movie_ids,"actor_ids":actor_ids,
+        "movies":linked_movies,"actors":linked_actors,
         "blocks":[
             {"id":r[0],"block_order":r[1],"block_type":r[2],"content":r[3],
              "image":r[4],"image_caption":r[5],"image_credit":r[6],
