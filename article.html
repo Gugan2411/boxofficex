@@ -5012,15 +5012,15 @@ function renderLiveTracker(data) {
     };
     const plain = value => esc(String(value ?? "").trim());
 
-    const india = number(data.india_gross);
+    let india = number(data.india_gross);
     // Estimated India Nett: frontend-only estimate using Gross / 1.18.
     // This is intentionally labelled EST. INDIA NETT because it is not a reported exact nett figure.
-    const estimatedIndiaNett = india !== null ? Number((india / 1.18).toFixed(2)) : null;
-    const overseas = number(data.overseas_gross);
+    let estimatedIndiaNett = india !== null ? Number((india / 1.18).toFixed(2)) : null;
+    let overseas = number(data.overseas_gross);
     // Worldwide is shown only when BOTH India Gross and Overseas Gross are available.
     // Never fall back to an old/manual worldwide value when either component is empty.
-    const isWorldwideAuto = india !== null && overseas !== null;
-    const worldwide = isWorldwideAuto ? Number((india + overseas).toFixed(2)) : null;
+    let isWorldwideAuto = india !== null && overseas !== null;
+    let worldwide = isWorldwideAuto ? Number((india + overseas).toFixed(2)) : null;
 
     const status = String(data.status || "live").toLowerCase();
     const statusMap = {
@@ -5051,6 +5051,7 @@ function renderLiveTracker(data) {
             const parts = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"})
                 .formatToParts(shiftedNow).reduce((acc, part) => (acc[part.type] = part.value, acc), {});
             const trackingUTC = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+            window.__boxOfficeXCurrentTrackingUTC = trackingUTC;
             const calculatedDay = Math.floor((trackingUTC - releaseUTC) / 86400000) + 1;
             if (calculatedDay >= 1) {
                 dayNumber = calculatedDay;
@@ -5059,6 +5060,44 @@ function renderLiveTracker(data) {
             }
         }
     }
+
+    // Hide the previous day's live snapshot after the 6:00 AM IST rollover.
+    let trackerDataIsCurrent = true;
+    if (has(data.updated_at) && window.__boxOfficeXCurrentTrackingUTC !== undefined) {
+        const rawUpdated = String(data.updated_at).trim();
+        let updatedDate = new Date(rawUpdated);
+        if (Number.isNaN(updatedDate.getTime()) && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(rawUpdated)) {
+            updatedDate = new Date(rawUpdated.replace(" ", "T") + "+05:30");
+        }
+        if (!Number.isNaN(updatedDate.getTime())) {
+            const shiftedUpdated = new Date(updatedDate.getTime() - (6 * 60 * 60 * 1000));
+            const updatedParts = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"})
+                .formatToParts(shiftedUpdated).reduce((acc, part) => (acc[part.type] = part.value, acc), {});
+            const updatedTrackingUTC = Date.UTC(Number(updatedParts.year), Number(updatedParts.month) - 1, Number(updatedParts.day));
+            trackerDataIsCurrent = updatedTrackingUTC === window.__boxOfficeXCurrentTrackingUTC;
+        }
+    }
+
+    // Keep LIVE status, DAY N and date visible; only stale live values are hidden.
+    const liveData = trackerDataIsCurrent ? data : {
+        ...data,
+        india_gross:"", overseas_gross:"", worldwide_gross:"",
+        tickets_sold:"", shows_tracked:"", occupancy:"",
+        advance_booking:"", premiere_gross:"", day_gross:"",
+        fast_filling:"", housefull_shows:"",
+        special_shows:"", special_occupancy:"",
+        morning_shows:"", morning_occupancy:"",
+        afternoon_shows:"", afternoon_occupancy:"",
+        evening_shows:"", evening_occupancy:"",
+        night_shows:"", night_occupancy:"",
+        note:""
+    };
+
+    india = number(liveData.india_gross);
+    estimatedIndiaNett = india !== null ? Number((india / 1.18).toFixed(2)) : null;
+    overseas = number(liveData.overseas_gross);
+    isWorldwideAuto = india !== null && overseas !== null;
+    worldwide = isWorldwideAuto ? Number((india + overseas).toFixed(2)) : null;
 
     let updatedLabel = "";
     if (has(data.updated_at)) {
@@ -5073,19 +5112,19 @@ function renderLiveTracker(data) {
         if (!has(value)) return;
         cards.push(`<div class="lt-card ${extraClass}"><div class="lt-value">${formatter(value)}</div><div class="lt-label">${label}</div></div>`);
     };
-    addCard(data.india_gross, "India Gross", money, "lt-money-card");
+    addCard(liveData.india_gross, "India Gross", money, "lt-money-card");
     if (estimatedIndiaNett !== null) {
         cards.push(`<div class="lt-card lt-money-card lt-nett-card"><div class="lt-value">${money(estimatedIndiaNett)}</div><div class="lt-label">Est. India Nett</div><span class="lt-estimated">Estimated</span></div>`);
     }
-    addCard(data.overseas_gross, "Overseas Gross", money, "lt-money-card");
-    addCard(data.tickets_sold, "Tickets Sold");
-    addCard(data.shows_tracked, "Shows Tracked");
-    addCard(data.occupancy, "Occupancy", value => `${plain(value)}%`);
-    addCard(data.advance_booking, "Advance Booking", money, "lt-money-card");
-    addCard(data.premiere_gross, "Premiere Gross", money, "lt-money-card");
-    addCard(data.day_gross, "Day Gross", money, "lt-money-card");
-    addCard(data.fast_filling, "Fast Filling");
-    addCard(data.housefull_shows, "Housefull Shows");
+    addCard(liveData.overseas_gross, "Overseas Gross", money, "lt-money-card");
+    addCard(liveData.tickets_sold, "Tickets Sold");
+    addCard(liveData.shows_tracked, "Shows Tracked");
+    addCard(liveData.occupancy, "Occupancy", value => `${plain(value)}%`);
+    addCard(liveData.advance_booking, "Advance Booking", money, "lt-money-card");
+    addCard(liveData.premiere_gross, "Premiere Gross", money, "lt-money-card");
+    addCard(liveData.day_gross, "Day Gross", money, "lt-money-card");
+    addCard(liveData.fast_filling, "Fast Filling");
+    addCard(liveData.housefull_shows, "Housefull Shows");
 
     const occupancyRating = value => {
         const n = number(value);
@@ -5098,11 +5137,11 @@ function renderLiveTracker(data) {
         return ["Housefull Trend", "lt-rating-housefull"];
     };
     const showPeriods = [
-        ["Special Shows", data.special_shows, data.special_occupancy],
-        ["Morning", data.morning_shows, data.morning_occupancy],
-        ["Afternoon", data.afternoon_shows, data.afternoon_occupancy],
-        ["Evening", data.evening_shows, data.evening_occupancy],
-        ["Night", data.night_shows, data.night_occupancy]
+        ["Special Shows", liveData.special_shows, liveData.special_occupancy],
+        ["Morning", liveData.morning_shows, liveData.morning_occupancy],
+        ["Afternoon", liveData.afternoon_shows, liveData.afternoon_occupancy],
+        ["Evening", liveData.evening_shows, liveData.evening_occupancy],
+        ["Night", liveData.night_shows, liveData.night_occupancy]
     ];
     const showPerformanceCards = showPeriods.map(([period, shows, occupancy]) => {
         if (!has(shows) && !has(occupancy)) return "";
@@ -5120,7 +5159,7 @@ function renderLiveTracker(data) {
     const linkedMovieName = String(window.currentBoxOfficeXLiveMovieName || "").trim();
 
     // Manual note always has first priority. If it is empty, build the live message automatically.
-    let noteText = has(data.note) ? String(data.note).trim() : "";
+    let noteText = has(liveData.note) ? String(liveData.note).trim() : "";
     if (!noteText && isActivelyTracking && dayNumber) {
         noteText = linkedMovieName
             ? `${linkedMovieName} Day ${dayNumber} box office tracking is currently in progress. Collections will be updated as new data becomes available.`
