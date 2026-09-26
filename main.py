@@ -4044,9 +4044,247 @@ def admin_advertisements_page():
         BASE_DIR / "admin-advertisements.html"
     )
 
+# ============================================================
+# NEW MOVIES - NON-BLOCKING CACHED SSR
+# ============================================================
+
+NEW_MOVIES_HTML_CACHE_TTL = 300
+_new_movies_html_cache = {"html": None, "expires_at": 0.0}
+_new_movies_html_cache_lock = threading.Lock()
+_new_movies_html_refreshing = False
+
+
+def _new_movies_ssr_money(value):
+    if value is None or value == "":
+        return '<span class="collection-na">N/A</span>'
+    try:
+        formatted = f"{float(value):,.2f}".rstrip("0").rstrip(".")
+        return f"₹{formatted} Cr"
+    except (TypeError, ValueError):
+        return '<span class="collection-na">N/A</span>'
+
+
+def _new_movies_ssr_date(value):
+    if not value:
+        return "N/A"
+    try:
+        parsed = datetime.strptime(str(value)[:10], "%Y-%m-%d")
+        return f"{parsed.day} {parsed.strftime('%b %Y')}"
+    except Exception:
+        return html_escape(str(value))
+
+
+def _new_movies_ssr_card(movie, status, slug_map):
+    movie_id = int(movie.get("id"))
+    title = html_escape(str(movie.get("title") or "Untitled Movie"))
+    slug = str(movie.get("slug") or slug_map.get(movie_id) or "").strip()
+    movie_url = html_escape(f"/movie/{slug}" if slug else "/new-movies.html", quote=True)
+    poster = html_escape(_home_movie_placeholder(movie), quote=True)
+    release_date = _new_movies_ssr_date(movie.get("release_date"))
+    language = html_escape(str(movie.get("language") or "N/A"))
+    genre = html_escape(str(movie.get("genre") or "N/A"))
+    director = html_escape(str(movie.get("director") or "N/A"))
+    worldwide = (
+        '<span class="collection-na">Not released</span>'
+        if status == "upcoming"
+        else _new_movies_ssr_money(movie.get("worldwide_collection_crore"))
+    )
+    status_label = {
+        "running": "● NOW RUNNING",
+        "upcoming": "COMING SOON",
+        "final": "FINAL",
+    }.get(status, "FINAL")
+    verdict_html = ""
+    if status != "upcoming":
+        verdict = html_escape(str(movie.get("verdict") or "Not Rated"))
+        verdict_html = f'<div class="verdict">🎯 {verdict}</div>'
+
+    return (
+        f'<a class="movie-card" href="{movie_url}" aria-label="View {title}">'
+        f'<img class="poster" src="{poster}" alt="{title}" loading="lazy">'
+        '<div class="movie-content">'
+        f'<span class="status-badge status-{html_escape(status)}">{status_label}</span>'
+        f'<div class="movie-title">{title}</div>'
+        f'<div class="movie-info">📅 Release: {release_date}</div>'
+        f'<div class="movie-info">🎭 Language: {language}</div>'
+        f'<div class="movie-info">🎬 Genre: {genre}</div>'
+        f'<div class="movie-info">🌍 Worldwide: {worldwide}</div>'
+        f'<div class="movie-info">🎥 Director: {director}</div>'
+        f'{verdict_html}</div></a>'
+    )
+
+
+def _new_movies_ssr_grid(movies, status, slug_map):
+    if movies:
+        return "".join(_new_movies_ssr_card(movie, status, slug_map) for movie in movies)
+    messages = {
+        "running": "No movies are currently marked as running.",
+        "upcoming": "No upcoming movies are currently listed.",
+        "final": "No recently released movies found.",
+    }
+    return '<div class="empty-section">' + html_escape(messages[status]) + '</div>'
+
+
+def _render_new_movies_html():
+    template = (BASE_DIR / "new-movies.html").read_text(encoding="utf-8")
+    payload = get_new_movie_system()
+    running = list(payload.get("running") or [])
+    upcoming = list(payload.get("upcoming") or [])
+    recent = list(payload.get("recent") or [])
+    slug_map = _unique_movie_slug_map()
+
+    grids = {
+        "runningGrid": (running, "running", "Loading running movies..."),
+        "upcomingGrid": (upcoming, "upcoming", "Loading upcoming movies..."),
+        "recentGrid": (recent, "final", "Loading recent movies..."),
+    }
+    for grid_id, (movies, status, loading_text) in grids.items():
+        old = (
+            f'<div id="{grid_id}" class="movie-grid">\n'
+            f'            <div class="loading">{loading_text}</div>\n'
+            '        </div>'
+        )
+        if old not in template:
+            raise RuntimeError(f"New Movies SSR grid shell not found: {grid_id}")
+        rendered = _new_movies_ssr_grid(movies, status, slug_map)
+        template = template.replace(
+            old,
+            f'<div id="{grid_id}" class="movie-grid" data-ssr="1">{rendered}</div>',
+            1,
+        )
+
+    counts = {
+        "runningCount": len(running),
+        "upcomingCount": len(upcoming),
+        "recentCount": len(recent),
+    }
+    for count_id, count in counts.items():
+        label = f'{count} {"movie" if count == 1 else "movies"}'
+        template = re.sub(
+            rf'(<span class="section-count" id="{count_id}">).*?(</span>)',
+            rf'\g<1>{label}\g<2>',
+            template,
+            count=1,
+            flags=re.S,
+        )
+
+    initial_json = json.dumps(
+        payload, ensure_ascii=False, separators=(",", ":"), default=str
+    ).replace("</", "<\\/")
+    initial_script = (
+        '<script id="boxofficexNewMoviesSSRData">'
+        f'window.__BOXOFFICEX_NEW_MOVIES_SSR_DATA__={initial_json};'
+        '</script>'
+    )
+    template = template.replace("</head>", initial_script + "\n</head>", 1)
+
+    item_movies = running + upcoming + recent
+    seen = set()
+    items = []
+    for movie in item_movies:
+        movie_id = int(movie.get("id"))
+        if movie_id in seen:
+            continue
+        seen.add(movie_id)
+        slug = slug_map.get(movie_id)
+        if not slug:
+            continue
+        items.append({
+            "@type": "ListItem",
+            "position": len(items) + 1,
+            "url": f"https://boxofficex.in/movie/{slug}",
+            "name": str(movie.get("title") or "Movie"),
+        })
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "New Movies - Latest Releases & Box Office Collections",
+        "url": "https://boxofficex.in/new-movies.html",
+        "description": (
+            "Explore new and recently released movies with box office collections, "
+            "verdicts, language, genre, director and complete movie details on BoxOfficeX."
+        ),
+        "mainEntity": {"@type": "ItemList", "itemListElement": items},
+    }
+    structured_json = json.dumps(
+        structured, ensure_ascii=False, separators=(",", ":")
+    ).replace("</", "<\\/")
+    template = re.sub(
+        r'<script\s+id="newMoviesStructuredData"\s+type="application/ld\+json"\s*>.*?</script>',
+        f'<script id="newMoviesStructuredData" type="application/ld+json">{structured_json}</script>',
+        template,
+        count=1,
+        flags=re.S | re.I,
+    )
+
+    if template.count('data-ssr="1"') < 3:
+        raise RuntimeError("New Movies SSR body injection failed")
+    return template
+
+
+def _refresh_new_movies_cache():
+    global _new_movies_html_refreshing
+    try:
+        rendered = _render_new_movies_html()
+        now = time_module.monotonic()
+        with _new_movies_html_cache_lock:
+            _new_movies_html_cache["html"] = rendered
+            _new_movies_html_cache["expires_at"] = now + NEW_MOVIES_HTML_CACHE_TTL
+    except Exception as exc:
+        print("New Movies SSR cache refresh failed:", exc, flush=True)
+    finally:
+        with _new_movies_html_cache_lock:
+            _new_movies_html_refreshing = False
+
+
+def _start_new_movies_refresh():
+    global _new_movies_html_refreshing
+    with _new_movies_html_cache_lock:
+        if _new_movies_html_refreshing:
+            return
+        _new_movies_html_refreshing = True
+    threading.Thread(
+        target=_refresh_new_movies_cache,
+        name="boxofficex-new-movies-ssr",
+        daemon=True,
+    ).start()
+
+
+@app.on_event("startup")
+def warm_new_movies_ssr_cache():
+    _start_new_movies_refresh()
+
+
 @app.get("/new-movies.html")
 def new_movies_page():
-    return FileResponse(BASE_DIR / "new-movies.html")
+    now = time_module.monotonic()
+    with _new_movies_html_cache_lock:
+        cached_html = _new_movies_html_cache.get("html")
+        expires_at = float(_new_movies_html_cache.get("expires_at") or 0)
+
+    if cached_html:
+        state = "HIT" if expires_at > now else "STALE"
+        if state == "STALE":
+            _start_new_movies_refresh()
+        return HTMLResponse(
+            cached_html,
+            headers={
+                "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                "X-BoxOfficeX-New-Movies": "cached-ssr",
+                "X-BoxOfficeX-Cache": state,
+            },
+        )
+
+    _start_new_movies_refresh()
+    return FileResponse(
+        BASE_DIR / "new-movies.html",
+        headers={
+            "Cache-Control": "no-store",
+            "X-BoxOfficeX-New-Movies": "warming",
+            "X-BoxOfficeX-Cache": "WARMING",
+        },
+    )
 
 
 # ============================================================
