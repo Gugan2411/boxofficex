@@ -3697,6 +3697,26 @@ def _render_actor_comparison_html(comparison):
             f'<div class="stat-value">{html_escape(str(v2))}</div></div>'
         )
 
+    def clickable_stat_row(v1, label, v2, verdict=None):
+        def actor_movies_url(actor_slug):
+            url = f"/actor/{quote(str(actor_slug), safe='')}/movies"
+            if verdict:
+                url += f"?verdict={quote(str(verdict), safe='')}"
+            return url
+
+        left_url = actor_movies_url(slug1)
+        right_url = actor_movies_url(slug2)
+        return (
+            '<div class="stat-row">'
+            f'<a class="stat-value clickable-stat" href="{html_escape(left_url, quote=True)}" '
+            'style="color:inherit;text-decoration:none">'
+            f'{html_escape(str(v1))}</a>'
+            f'<div class="stat-label">{html_escape(label)}</div>'
+            f'<a class="stat-value clickable-stat" href="{html_escape(right_url, quote=True)}" '
+            'style="color:inherit;text-decoration:none">'
+            f'{html_escape(str(v2))}</a></div>'
+        )
+
     def highest_card(actor_name, movie):
         if not movie:
             return (
@@ -3732,14 +3752,14 @@ def _render_actor_comparison_html(comparison):
         + '<div class="vs">VS</div>'
         + actor_card(right, name2, actor2_url)
         + '</div>'
-        + '<div class="compare-click-hint"><span>👆</span> Tap Blockbusters, Hits, Average or Flops counts to view the movies</div>'
+        + '<div class="compare-click-hint"><span>👆</span> Tap Total Movies, Blockbusters, Hits, Average or Flops counts to view the movies</div>'
         + '<div class="stats">'
-        + stat_row(s1.get("movie_count", 0), "🎬 Total Movies", s2.get("movie_count", 0))
+        + clickable_stat_row(s1.get("movie_count", 0), "🎬 Total Movies", s2.get("movie_count", 0))
         + stat_row(f"₹{_actor_comparison_ssr_number(s1.get('total_worldwide'))} Cr", "🌍 Total Worldwide", f"₹{_actor_comparison_ssr_number(s2.get('total_worldwide'))} Cr")
-        + stat_row(s1.get("blockbusters", 0), "🔥 Blockbusters", s2.get("blockbusters", 0))
-        + stat_row(s1.get("hits", 0), "⭐ Hits", s2.get("hits", 0))
-        + stat_row(s1.get("average_movies", 0), "➖ Average", s2.get("average_movies", 0))
-        + stat_row(s1.get("flops", 0), "❌ Flops", s2.get("flops", 0))
+        + clickable_stat_row(s1.get("blockbusters", 0), "🔥 Blockbusters", s2.get("blockbusters", 0), "Blockbuster")
+        + clickable_stat_row(s1.get("hits", 0), "⭐ Hits", s2.get("hits", 0), "Hit")
+        + clickable_stat_row(s1.get("average_movies", 0), "➖ Average", s2.get("average_movies", 0), "Average")
+        + clickable_stat_row(s1.get("flops", 0), "❌ Flops", s2.get("flops", 0), "Flop")
         + '</div>'
         + '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>'
         + '<div class="highest-section"><h2 class="highest-section-title">🏆 Highest-Grossing Movies</h2><div class="highest-grid">'
