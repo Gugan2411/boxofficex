@@ -11652,9 +11652,285 @@ def admin_articles_page():
 
 
 
+# ============================================================
+# ARTICLES LIST - NON-BLOCKING CACHED SSR
+# ============================================================
+
+ARTICLES_LIST_HTML_CACHE_TTL = 300
+_articles_list_html_cache = {"html": None, "expires_at": 0.0}
+_articles_list_html_cache_lock = threading.Lock()
+_articles_list_html_refreshing = False
+
+
+def _articles_list_image(article):
+    value = str(article.get("hero_image") or "").strip()
+    if not value:
+        return _home_article_placeholder(article)
+    if value.startswith(("https://", "http://", "/")):
+        return value
+    if value.startswith("article-images/"):
+        return "/" + value
+    return "/article-images/" + quote(value)
+
+
+def _articles_list_date(value):
+    if not value:
+        return ""
+    if hasattr(value, "strftime"):
+        return f"{value.day} {value.strftime('%b %Y')}"
+    return str(value)
+
+
+def _articles_list_meta(article):
+    author = str(article.get("author") or "BoxOfficeX").strip() or "BoxOfficeX"
+    published = _articles_list_date(article.get("published_at"))
+    return html_escape(author) + (f" • {html_escape(published)}" if published else "")
+
+
+def _articles_list_img(article):
+    title = str(article.get("title") or "Latest Cinema Story")
+    category = str(article.get("category") or "BOX OFFICE NEWS")
+    src = _articles_list_image(article)
+    return (
+        f'<img src="{html_escape(src, quote=True)}" '
+        f'alt="{html_escape(title, quote=True)}" '
+        f'data-category="{html_escape(category, quote=True)}" loading="lazy">'
+    )
+
+
+def _articles_list_hero(article):
+    slug = quote(str(article.get("slug") or ""), safe="")
+    title = str(article.get("title") or "")
+    category = str(article.get("category") or "News")
+    subtitle = str(article.get("subtitle") or "").strip()
+    subtitle_html = f'<p>{html_escape(subtitle)}</p>' if subtitle else ""
+    return (
+        f'<a class="hero-main" href="/article/{slug}">'
+        f'{_articles_list_img(article)}'
+        f'<div class="hero-copy"><span class="badge">{html_escape(category)}</span>'
+        f'<h2>{html_escape(title)}</h2>{subtitle_html}'
+        f'<div class="meta">{_articles_list_meta(article)}</div></div></a>'
+    )
+
+
+def _articles_list_side(article):
+    slug = quote(str(article.get("slug") or ""), safe="")
+    title = str(article.get("title") or "")
+    category = str(article.get("category") or "News")
+    return (
+        f'<a class="side-card" href="/article/{slug}">'
+        f'{_articles_list_img(article)}<div>'
+        f'<span class="badge">{html_escape(category)}</span>'
+        f'<h3>{html_escape(title)}</h3>'
+        f'<div class="meta">{_articles_list_meta(article)}</div></div></a>'
+    )
+
+
+def _articles_list_card(article):
+    slug = quote(str(article.get("slug") or ""), safe="")
+    title = str(article.get("title") or "")
+    category = str(article.get("category") or "News")
+    subtitle = str(article.get("subtitle") or "").strip()
+    subtitle_html = f'<p>{html_escape(subtitle)}</p>' if subtitle else ""
+    return (
+        f'<a class="story-card" href="/article/{slug}">'
+        f'{_articles_list_img(article)}<div class="story-body">'
+        f'<span class="badge">{html_escape(category)}</span>'
+        f'<h3>{html_escape(title)}</h3>{subtitle_html}'
+        f'<div class="meta">{_articles_list_meta(article)}</div></div></a>'
+    )
+
+
+def _articles_list_trend(article, index):
+    slug = quote(str(article.get("slug") or ""), safe="")
+    title = str(article.get("title") or "")
+    category = str(article.get("category") or "News")
+    views = int(article.get("views") or 0)
+    return (
+        f'<a class="trend-card" href="/article/{slug}">'
+        f'<div class="trend-num">{index:02d}</div><div>'
+        f'<span class="badge">{html_escape(category)}</span>'
+        f'<h3>{html_escape(title)}</h3>'
+        f'<div class="meta">{views:,} views</div></div></a>'
+    )
+
+
+def _render_articles_list_html():
+    template = (BASE_DIR / "articles.html").read_text(encoding="utf-8")
+    data = get_articles()
+    articles = list(data.get("articles") or [])
+
+    if not articles:
+        content_html = '<div id="content" data-ssr="1"><div class="empty">No published articles yet.</div></div>'
+    else:
+        hero = articles[0]
+        side = articles[1:4]
+        latest = articles[1:]
+
+        categories = []
+        for article in articles:
+            category = str(article.get("category") or "News")
+            if category not in categories:
+                categories.append(category)
+
+        trending = sorted(
+            articles,
+            key=lambda item: int(item.get("views") or 0),
+            reverse=True,
+        )[:6]
+
+        side_html = "".join(_articles_list_side(a) for a in side)
+        if not side_html:
+            side_html = '<div class="empty">More stories coming soon.</div>'
+
+        latest_html = "".join(_articles_list_card(a) for a in latest)
+        if not latest_html:
+            latest_html = _articles_list_card(hero)
+
+        category_buttons = ['<button class="active" data-category="All">All</button>']
+        category_buttons.extend(
+            f'<button data-category="{html_escape(c, quote=True)}">{html_escape(c)}</button>'
+            for c in categories
+        )
+
+        trending_html = "".join(
+            _articles_list_trend(article, position)
+            for position, article in enumerate(trending, 1)
+        )
+
+        content_html = (
+            '<div id="content" data-ssr="1">'
+            f'<section class="hero">{_articles_list_hero(hero)}'
+            '<div><div class="mobile-swipe-hint">↔ Swipe to explore more</div>'
+            f'<div class="hero-side">{side_html}</div></div></section>'
+            '<div class="section-head"><h2>Latest Stories</h2>'
+            f'<span>{len(articles)} published</span></div>'
+            f'<div class="category-tabs">{"".join(category_buttons)}</div>'
+            '<div class="mobile-swipe-hint">↔ Swipe to explore more</div>'
+            f'<section id="latestGrid" class="latest-grid">{latest_html}</section>'
+            '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>'
+            '<div class="section-head"><h2>Trending</h2><span>Most-read BoxOfficeX stories</span></div>'
+            '<div class="mobile-swipe-hint">↔ Swipe to explore more</div>'
+            f'<section class="trending">{trending_html}</section>'
+            '<section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>'
+            '</div>'
+        )
+
+    static_shell = '<div id="content"><div class="loading">Loading latest stories...</div></div>'
+    if static_shell not in template:
+        raise RuntimeError("Articles list static content shell not found")
+    template = template.replace(static_shell, content_html, 1)
+
+    item_list = []
+    for position, article in enumerate(articles, 1):
+        slug = quote(str(article.get("slug") or ""), safe="")
+        item_list.append({
+            "@type": "ListItem",
+            "position": position,
+            "name": article.get("title") or "BoxOfficeX Article",
+            "url": f"https://boxofficex.in/article/{slug}",
+        })
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Movie News & Box Office Articles | BoxOfficeX",
+        "url": "https://boxofficex.in/articles.html",
+        "description": "Read the latest Indian movie news, box-office reports, theatrical analysis, actor stories, rankings and entertainment articles on BoxOfficeX.",
+        "mainEntity": {"@type": "ItemList", "itemListElement": item_list},
+    }
+    json_ld = json.dumps(structured, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    template, count = re.subn(
+        r'<script\s+id="articlesStructuredData"\s+type="application/ld\+json"\s*>.*?</script>',
+        f'<script id="articlesStructuredData" type="application/ld+json">{json_ld}</script>',
+        template,
+        count=1,
+        flags=re.S | re.I,
+    )
+    if count != 1:
+        raise RuntimeError("Articles list structured-data injection failed")
+
+    serializable = {"articles": []}
+    for article in articles:
+        item = dict(article)
+        for key in ("published_at", "updated_at"):
+            value = item.get(key)
+            if value is not None and hasattr(value, "isoformat"):
+                item[key] = value.isoformat()
+        serializable["articles"].append(item)
+
+    payload = json.dumps(serializable, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    if "</head>" not in template:
+        raise RuntimeError("Articles list </head> marker missing")
+    template = template.replace(
+        "</head>",
+        f'<script>window.__BOXOFFICEX_ARTICLES_SSR_DATA__={payload};</script>\n</head>',
+        1,
+    )
+
+    if 'id="content" data-ssr="1"' not in template:
+        raise RuntimeError("Articles list SSR validation failed")
+    if 'href="/article/' not in template and articles:
+        raise RuntimeError("Articles list crawlable href validation failed")
+    return template
+
+
+def _refresh_articles_list_cache():
+    global _articles_list_html_refreshing
+    try:
+        rendered = _render_articles_list_html()
+        with _articles_list_html_cache_lock:
+            _articles_list_html_cache["html"] = rendered
+            _articles_list_html_cache["expires_at"] = time_module.monotonic() + ARTICLES_LIST_HTML_CACHE_TTL
+    except Exception as exc:
+        print("Articles list SSR cache refresh failed:", type(exc).__name__, exc, flush=True)
+    finally:
+        with _articles_list_html_cache_lock:
+            _articles_list_html_refreshing = False
+
+
+def _start_articles_list_refresh():
+    global _articles_list_html_refreshing
+    with _articles_list_html_cache_lock:
+        if _articles_list_html_refreshing:
+            return
+        _articles_list_html_refreshing = True
+    threading.Thread(target=_refresh_articles_list_cache, name="articles-list-ssr", daemon=True).start()
+
+
+@app.on_event("startup")
+def warm_articles_list_ssr_cache():
+    _start_articles_list_refresh()
+
+
 @app.get("/articles.html")
 def articles_page():
-    return FileResponse(BASE_DIR / "articles.html")
+    now = time_module.monotonic()
+    with _articles_list_html_cache_lock:
+        cached_html = _articles_list_html_cache.get("html")
+        expires_at = float(_articles_list_html_cache.get("expires_at") or 0.0)
+
+    if cached_html and expires_at > now:
+        return HTMLResponse(content=cached_html, headers={
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+            "X-BoxOfficeX-Articles-List": "cached-ssr",
+            "X-BoxOfficeX-Cache": "HIT",
+        })
+
+    if cached_html:
+        _start_articles_list_refresh()
+        return HTMLResponse(content=cached_html, headers={
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+            "X-BoxOfficeX-Articles-List": "cached-ssr",
+            "X-BoxOfficeX-Cache": "STALE",
+        })
+
+    _start_articles_list_refresh()
+    return FileResponse(BASE_DIR / "articles.html", headers={
+        "Cache-Control": "no-store",
+        "X-BoxOfficeX-Articles-List": "warming",
+        "X-BoxOfficeX-Cache": "WARMING",
+    })
 
 
 

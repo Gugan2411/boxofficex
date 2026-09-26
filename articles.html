@@ -3231,13 +3231,21 @@ bindCards();
 }
 async function load(){
 try{
+const ssrContent=document.getElementById("content");
+const ssrData=window.__BOXOFFICEX_ARTICLES_SSR_DATA__;
+if(ssrContent?.dataset?.ssr==="1" && ssrData && Array.isArray(ssrData.articles)){
+allArticles=ssrData.articles;
+document.querySelectorAll(".category-tabs button").forEach(b=>b.onclick=()=>renderCategory(b.dataset.category));
+updateSiteNewBadges();
+return;
+}
 const r=await fetch("/articles");
 const data=await r.json();
 if(!r.ok)throw new Error("Failed");
 allArticles=Array.isArray(data.articles)?data.articles:[];
 render();
 updateSiteNewBadges();
-}catch(e){console.error(e);document.getElementById("content").innerHTML=`<div class="empty">Unable to load articles.</div>`}
+}catch(e){console.error(e);if(document.getElementById("content")?.dataset?.ssr!=="1")document.getElementById("content").innerHTML=`<div class="empty">Unable to load articles.</div>`}
 }
 load();
 
