@@ -8100,293 +8100,530 @@ def admin_unlink_actor_movie(
 
 # ============================================================
 
+
+# ============================================================
+# ARTICLE DETAIL - CACHED SSR
+# ============================================================
+
+ARTICLE_DETAIL_HTML_CACHE_TTL = 60
+_article_detail_html_cache = {}
+_article_detail_cache_lock = threading.Lock()
+
+
+def _article_ssr_image(value, fallback="/images/boxofficex-og.png"):
+    value = str(value or "").strip()
+    if not value:
+        return fallback
+    if value.startswith(("https://", "http://", "/")):
+        return value
+    if value.startswith("article-images/"):
+        return "/" + value
+    return "/article-images/" + quote(value)
+
+
+def _article_ssr_inline(value):
+    safe = html_escape(str(value or ""))
+    safe = re.sub(r"\*\*([^*\n]+)\*\*", r"<strong>\1</strong>", safe)
+    safe = re.sub(r"(^|[^*])\*([^*\n]+)\*", r"\1<em>\2</em>", safe)
+    return safe
+
+
+def _article_ssr_paragraph(value):
+    lines = str(value or "").splitlines()
+    output, paragraph, items = [], [], []
+    list_type = None
+
+    def flush_paragraph():
+        nonlocal paragraph
+        if paragraph:
+            text = "\n".join(paragraph).strip()
+            if text:
+                output.append("<p>" + _article_ssr_inline(text).replace("\n", "<br>") + "</p>")
+            paragraph = []
+
+    def flush_list():
+        nonlocal items, list_type
+        if items:
+            tag = "ol" if list_type == "ol" else "ul"
+            output.append(
+                f'<{tag} class="bx-article-list">' +
+                "".join(f"<li>{_article_ssr_inline(item)}</li>" for item in items) +
+                f"</{tag}>"
+            )
+            items, list_type = [], None
+
+    for line in lines:
+        numbered = re.match(r"^\s*\d+[.)]\s+(.+)$", line)
+        bullet = re.match(r"^\s*(?:•|-)\s+(.+)$", line)
+        if numbered or bullet:
+            flush_paragraph()
+            current = "ol" if numbered else "ul"
+            if list_type and list_type != current:
+                flush_list()
+            list_type = current
+            items.append((numbered or bullet).group(1))
+        elif not line.strip():
+            flush_paragraph()
+            flush_list()
+        else:
+            flush_list()
+            paragraph.append(line)
+
+    flush_paragraph()
+    flush_list()
+    return "".join(output)
+
+
+def _article_ssr_money(value):
+    try:
+        if value is None or str(value).strip() == "":
+            return ""
+        number = float(str(value).replace(",", "").strip())
+        shown = f"{number:,.2f}".rstrip("0").rstrip(".")
+        return f"₹{shown} Cr"
+    except Exception:
+        return html_escape(str(value or ""))
+
+
+def _article_ssr_live_tracker(data):
+    data = data or {}
+    status = str(data.get("status") or "live").lower()
+    labels = {
+        "live": "LIVE",
+        "update": "LATEST UPDATE",
+        "final": "FINAL",
+        "closed": "TRACKER ENDED",
+    }
+    active = status in {"live", "update"}
+    cards = []
+
+    def add(key, label, money=False, suffix=""):
+        value = data.get(key)
+        if value is None or str(value).strip() == "":
+            return
+        shown = _article_ssr_money(value) if money else html_escape(str(value))
+        cards.append(
+            f'<div class="lt-card"><div class="lt-value">{shown}{suffix}</div>'
+            f'<div class="lt-label">{html_escape(label)}</div></div>'
+        )
+
+    add("india_gross", "India Gross", True)
+    add("overseas_gross", "Overseas Gross", True)
+    add("tickets_sold", "Tickets Sold")
+    add("shows_tracked", "Shows Tracked")
+    add("occupancy", "Occupancy", suffix="%")
+    add("advance_booking", "Advance Booking", True)
+    add("premiere_gross", "Premiere Gross", True)
+    add("day_gross", "Day Gross", True)
+    add("fast_filling", "Fast Filling")
+    add("housefull_shows", "Housefull Shows")
+
+    worldwide = ""
+    try:
+        india = float(str(data.get("india_gross")).replace(",", ""))
+        overseas = float(str(data.get("overseas_gross")).replace(",", ""))
+        worldwide = (
+            '<div class="lt-worldwide"><div class="lt-value">'
+            + _article_ssr_money(india + overseas)
+            + '</div><div class="lt-label">Worldwide Gross</div>'
+              '<span class="lt-auto">Auto Calculated</span></div>'
+        )
+    except Exception:
+        pass
+
+    show_periods = [
+        ("Special Shows", "special_shows", "special_occupancy"),
+        ("Morning", "morning_shows", "morning_occupancy"),
+        ("Afternoon", "afternoon_shows", "afternoon_occupancy"),
+        ("Evening", "evening_shows", "evening_occupancy"),
+        ("Night", "night_shows", "night_occupancy"),
+    ]
+    show_cards = []
+    for label, shows_key, occ_key in show_periods:
+        shows, occ = data.get(shows_key), data.get(occ_key)
+        if (shows is None or str(shows).strip() == "") and (occ is None or str(occ).strip() == ""):
+            continue
+        parts = []
+        if shows is not None and str(shows).strip() != "":
+            parts.append(f'<div class="lt-show-stat"><strong>{html_escape(str(shows))}</strong><span>Shows Tracked</span></div>')
+        if occ is not None and str(occ).strip() != "":
+            parts.append(f'<div class="lt-show-stat"><strong>{html_escape(str(occ))}%</strong><span>Occupancy</span></div>')
+        show_cards.append(
+            f'<div class="lt-show-card"><div class="lt-show-period-name">{label}</div>'
+            f'<div class="lt-show-stats">{"".join(parts)}</div></div>'
+        )
+
+    note = str(data.get("note") or "").strip()
+    if not cards and not worldwide and not show_cards and not note:
+        return ""
+
+    return (
+        f'<section class="live-tracker-block {"lt-active" if active else ""}" aria-label="Live box office tracker">'
+        f'<div class="lt-head"><div class="lt-status"><span class="lt-dot"></span>'
+        f'<span class="lt-status-copy"><span>{html_escape(labels.get(status, "LIVE"))}</span>'
+        f'{"<span class=\"lt-tracking-copy\">• CURRENTLY TRACKING</span>" if active else ""}'
+        f'</span></div></div>'
+        f'{"<div class=\"lt-grid\">" + "".join(cards) + "</div>" if cards else ""}'
+        f'{worldwide}'
+        f'{"<div class=\"lt-show-performance\"><div class=\"lt-show-head\"><strong>Show Performance</strong></div><div class=\"lt-show-grid\">" + "".join(show_cards) + "</div></div>" if show_cards else ""}'
+        f'{"<div class=\"lt-note\"><strong>Latest Update</strong>" + _article_ssr_inline(note).replace(chr(10), "<br>") + "</div>" if note else ""}'
+        f'</section>'
+    )
+
+
+def _article_ssr_boxoffice(data):
+    data = data or {}
+    days = data.get("days") if isinstance(data.get("days"), list) else []
+    if days:
+        rows = []
+        for index, day in enumerate(days, 1):
+            label = html_escape(str(day.get("label") or f"Day {day.get('number') or index}"))
+            india = sum(float(day.get(k) or 0) for k in ("tamil_nadu","kerala","karnataka","telugu_states","rest_of_india"))
+            overseas = float(day.get("overseas") or 0)
+            rows.append(
+                "<tr>"
+                f"<td>{label}</td><td>{html_escape(str(day.get('date') or ''))}</td>"
+                f"<td>{_article_ssr_money(india)}</td><td>{_article_ssr_money(overseas)}</td>"
+                f"<td>{_article_ssr_money(india + overseas)}</td></tr>"
+            )
+        return (
+            '<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>'
+            '<div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr>'
+            '<th>Day</th><th>Date</th><th>India</th><th>Overseas</th><th>Worldwide</th>'
+            f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div></div>'
+        )
+
+    pairs = []
+    for key, label in (
+        ("budget", "Budget"), ("india", "India Gross"), ("india_gross", "India Gross"),
+        ("overseas", "Overseas"), ("overseas_gross", "Overseas"),
+        ("worldwide", "Worldwide"), ("worldwide_gross", "Worldwide"),
+        ("verdict", "Verdict"),
+    ):
+        value = data.get(key)
+        if value is None or str(value).strip() == "":
+            continue
+        shown = html_escape(str(value)) if key == "verdict" else _article_ssr_money(value)
+        pairs.append(f'<div class="bo-card"><div class="bo-label">{label}</div><div class="bo-value">{shown}</div></div>')
+    return (
+        '<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>'
+        f'<div class="boxoffice-grid">{"".join(pairs)}</div></div>'
+    ) if pairs else ""
+
+
+def _article_ssr_related_entity(block_type, data):
+    entity_id = data.get(f"{block_type}_id")
+    if not entity_id:
+        return ""
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                if block_type == "movie":
+                    cur.execute("SELECT title, release_date, poster FROM movies WHERE id=%s LIMIT 1", (entity_id,))
+                    row = cur.fetchone()
+                    if not row:
+                        return ""
+                    title, release_date, poster = row
+                    slug = _slugify(title)
+                    year = str(release_date)[:4] if release_date else ""
+                    if year:
+                        slug = f"{slug}-{year}"
+                    href = f"/movie/{quote(slug)}"
+                    image = safe_movie_poster(poster)
+                    if not _is_remote_image(image):
+                        image = "/posters/" + quote(str(image))
+                    meta = "Movie"
+                else:
+                    cur.execute("SELECT name, photo FROM actors WHERE id=%s LIMIT 1", (entity_id,))
+                    row = cur.fetchone()
+                    if not row:
+                        return ""
+                    title, photo = row
+                    href = f"/actor/{quote(_slugify(title))}"
+                    image = safe_actor_photo(photo)
+                    if not _is_remote_image(image):
+                        image = "/actors/" + quote(str(image))
+                    meta = "Actor"
+
+        return (
+            f'<a class="related-card" href="{html_escape(href, quote=True)}">'
+            f'<img src="{html_escape(image, quote=True)}" alt="{html_escape(str(title), quote=True)}" loading="lazy">'
+            f'<div><strong>{html_escape(str(title))}</strong><small>{meta}</small></div></a>'
+        )
+    except Exception as exc:
+        print("Article SSR entity block warning:", type(exc).__name__, exc, flush=True)
+        return ""
+
+
+def _article_ssr_block(block):
+    block_type = str(block.get("block_type") or "").lower()
+    data = block.get("extra_data") or {}
+    content = block.get("content") or ""
+
+    if block_type == "paragraph":
+        return _article_ssr_paragraph(content)
+    if block_type == "heading":
+        return f"<h2>{_article_ssr_inline(content)}</h2>"
+    if block_type == "quote":
+        return "<blockquote>" + _article_ssr_inline(content).replace("\n", "<br>") + "</blockquote>"
+    if block_type == "image":
+        image = _article_ssr_image(block.get("image"))
+        caption = str(block.get("image_caption") or "")
+        credit = str(block.get("image_credit") or "")
+        figcaption = ""
+        if caption or credit:
+            figcaption = (
+                '<figcaption class="media-caption">' + html_escape(caption)
+                + (f'<span class="media-credit"> • {html_escape(credit)}</span>' if credit else "")
+                + "</figcaption>"
+            )
+        return (
+            '<figure class="article-image">'
+            f'<img src="{html_escape(image, quote=True)}" alt="{html_escape(caption or "Article image", quote=True)}" loading="lazy">'
+            f'{figcaption}</figure>'
+        )
+    if block_type == "table":
+        headers = data.get("headers") if isinstance(data.get("headers"), list) else []
+        rows = data.get("rows") if isinstance(data.get("rows"), list) else []
+        if not headers and not rows:
+            return ""
+        width = max([len(headers)] + [len(r) for r in rows if isinstance(r, list)] + [1])
+        head = "".join(f"<th scope=\"col\">{_article_ssr_inline(headers[i] if i < len(headers) else '')}</th>" for i in range(width))
+        body = "".join(
+            "<tr>" + "".join(f"<td>{_article_ssr_inline(row[i] if i < len(row) else '')}</td>" for i in range(width)) + "</tr>"
+            for row in rows if isinstance(row, list)
+        )
+        return (
+            '<div class="article-table-block"><div class="article-table-scroll" role="region" aria-label="Article data table" tabindex="0">'
+            f'<table class="article-data-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div></div>'
+        )
+    if block_type == "gallery":
+        images = data.get("images") if isinstance(data.get("images"), list) else []
+        return '<div class="gallery-block">' + "".join(
+            f'<img src="{html_escape(_article_ssr_image(name), quote=True)}" alt="Article gallery image" loading="lazy">'
+            for name in images
+        ) + "</div>" if images else ""
+    if block_type == "video":
+        url = str(data.get("url") or "").strip()
+        return (
+            f'<a class="video-link" href="{html_escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">▶ Watch Video</a>'
+            if url else ""
+        )
+    if block_type == "live_tracker":
+        return _article_ssr_live_tracker(data)
+    if block_type == "boxoffice":
+        return _article_ssr_boxoffice(data)
+    if block_type in {"movie", "actor"}:
+        return _article_ssr_related_entity(block_type, data)
+    return ""
+
+
+def _article_ssr_format_date(value):
+    if not value:
+        return ""
+    try:
+        return value.strftime("%d %b %Y")
+    except Exception:
+        return str(value)
+
+
+def _render_article_detail_html(slug):
+    response = get_article(slug)
+    article = response.get("article") if isinstance(response, dict) else None
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    article_file = BASE_DIR / "article.html"
+    if not article_file.is_file():
+        raise HTTPException(status_code=500, detail="article.html not found")
+    template = article_file.read_text(encoding="utf-8")
+
+    title = str(article.get("title") or "BoxOfficeX Article")
+    seo_title = str(article.get("meta_title") or title).strip()
+    if "boxofficex" not in seo_title.lower():
+        seo_title += " | BoxOfficeX"
+    description = str(
+        article.get("meta_description")
+        or article.get("subtitle")
+        or "Read the latest movie, box office and entertainment stories on BoxOfficeX."
+    ).strip()
+    canonical = f"https://boxofficex.in/article/{article['slug']}"
+    author = str(article.get("author") or "BoxOfficeX")
+    category = str(article.get("category") or "Movies & Box Office")
+    hero = _article_ssr_image(article.get("hero_image"))
+    hero_abs = hero if hero.startswith(("http://", "https://")) else f"https://boxofficex.in{hero}"
+
+    published = article.get("published_at") or article.get("created_at")
+    modified = article.get("updated_at") or published
+    published_iso = published.isoformat() if hasattr(published, "isoformat") else str(published or "")
+    modified_iso = modified.isoformat() if hasattr(modified, "isoformat") else str(modified or "")
+
+    replacements = {
+        '<title id="pageTitle">Article | BoxOfficeX</title>':
+            f'<title id="pageTitle">{html_escape(seo_title)}</title>',
+        '<meta id="metaDescription" name="description" content="Read the latest movie, box office and entertainment stories on BoxOfficeX.">':
+            f'<meta id="metaDescription" name="description" content="{html_escape(description, quote=True)}">',
+        '<meta name="robots" content="index, follow">':
+            '<meta name="robots" content="index, follow, max-image-preview:large">',
+        '<link id="canonicalUrl" rel="canonical" href="">':
+            f'<link id="canonicalUrl" rel="canonical" href="{html_escape(canonical, quote=True)}">',
+        '<meta id="ogTitle" property="og:title" content="BoxOfficeX Article">':
+            f'<meta id="ogTitle" property="og:title" content="{html_escape(seo_title, quote=True)}">',
+        '<meta id="ogDescription" property="og:description" content="">':
+            f'<meta id="ogDescription" property="og:description" content="{html_escape(description, quote=True)}">',
+        '<meta id="ogImage" property="og:image" content="">':
+            f'<meta id="ogImage" property="og:image" content="{html_escape(hero_abs, quote=True)}">',
+        '<meta id="ogUrl" property="og:url" content="">':
+            f'<meta id="ogUrl" property="og:url" content="{html_escape(canonical, quote=True)}">',
+        '<meta id="twitterTitle" name="twitter:title" content="BoxOfficeX Article">':
+            f'<meta id="twitterTitle" name="twitter:title" content="{html_escape(seo_title, quote=True)}">',
+        '<meta id="twitterDescription" name="twitter:description" content="Read the latest movie and box-office stories on BoxOfficeX.">':
+            f'<meta id="twitterDescription" name="twitter:description" content="{html_escape(description, quote=True)}">',
+        '<meta id="twitterImage" name="twitter:image" content="">':
+            f'<meta id="twitterImage" name="twitter:image" content="{html_escape(hero_abs, quote=True)}">',
+        '<meta id="articleAuthorMeta" name="author" content="BoxOfficeX">':
+            f'<meta id="articleAuthorMeta" name="author" content="{html_escape(author, quote=True)}">',
+        '<meta id="articlePublishedMeta" property="article:published_time" content="">':
+            f'<meta id="articlePublishedMeta" property="article:published_time" content="{html_escape(published_iso, quote=True)}">',
+        '<meta id="articleModifiedMeta" property="article:modified_time" content="">':
+            f'<meta id="articleModifiedMeta" property="article:modified_time" content="{html_escape(modified_iso, quote=True)}">',
+        '<meta id="articleSectionMeta" property="article:section" content="Movies & Box Office">':
+            f'<meta id="articleSectionMeta" property="article:section" content="{html_escape(category, quote=True)}">',
+    }
+    for old, new in replacements.items():
+        template = template.replace(old, new, 1)
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": title,
+        "description": description,
+        "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
+        "url": canonical,
+        "image": [hero_abs],
+        "author": {"@type": "Organization", "name": author},
+        "publisher": {"@type": "Organization", "name": "BoxOfficeX", "url": "https://boxofficex.in"},
+        "articleSection": category,
+    }
+    if published_iso:
+        structured["datePublished"] = published_iso
+    if modified_iso:
+        structured["dateModified"] = modified_iso
+    structured_json = json.dumps(structured, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    template = re.sub(
+        r'<script\s+id="articleStructuredData"\s+type="application/ld\+json"\s*>.*?</script>',
+        f'<script id="articleStructuredData" type="application/ld+json">{structured_json}</script>',
+        template, count=1, flags=re.S | re.I,
+    )
+
+    block_html = [_article_ssr_block(block) for block in (article.get("blocks") or [])]
+    if block_html:
+        length = len(block_html)
+        for slot, fraction in ((3, .82), (2, .55), (1, .25)):
+            at = max(1, min(length, int(math.ceil(length * fraction))))
+            block_html.insert(at, f'<section id="bxSmartAdSlot{slot}" class="bx-smart-ad-slot" aria-label="Advertisement slot {slot}"></section>')
+
+    subtitle = str(article.get("subtitle") or "")
+    caption = str(article.get("hero_caption") or "")
+    credit = str(article.get("hero_credit") or "")
+    hero_caption = ""
+    if caption or credit:
+        hero_caption = (
+            '<figcaption class="media-caption">' + html_escape(caption)
+            + (f'<span class="media-credit"> • {html_escape(credit)}</span>' if credit else "")
+            + "</figcaption>"
+        )
+
+    body = f"""
+<main id="app" data-ssr="1">
+<article class="article-shell">
+<div class="article-top">
+<span class="category">{html_escape(category)}</span>
+<h1>{html_escape(title)}</h1>
+{f'<div class="subtitle">{html_escape(subtitle)}</div>' if subtitle else ''}
+<div class="byline-row"><div class="byline">
+By <strong>{html_escape(author)}</strong>
+{f' • Published {_article_ssr_format_date(published)}' if published else ''}
+{f'<span class="article-updated-time"> • Updated {_article_ssr_format_date(modified)}</span>' if modified else ''}
+<span class="article-view-count" id="articleViewCount">👁 {int(article.get("views") or 0):,} Views</span>
+</div></div>
+<figure class="hero-wrap">
+<img src="{html_escape(hero, quote=True)}" alt="{html_escape(caption or title, quote=True)}" loading="lazy">
+{hero_caption}
+</figure>
+</div>
+<section id="bxArticleDetailAd" aria-label="Sponsored advertisement"></section>
+<div class="article-layout"><div class="article-content">
+{"".join(block_html)}
+<div class="article-end">BoxOfficeX • Movie box office, entertainment news and career data</div>
+</div></div>
+</article>
+</main>"""
+
+    shell_pattern = re.compile(
+        r'<main\s+id="app"\s*>\s*<div\s+class="loading-state">Loading article\.\.\.</div>\s*</main>',
+        re.S | re.I,
+    )
+    template, count = shell_pattern.subn(body, template, count=1)
+    if count != 1:
+        raise RuntimeError("Article SSR app-shell injection failed")
+
+    payload = dict(article)
+    for key in ("published_at", "created_at", "updated_at"):
+        value = payload.get(key)
+        if hasattr(value, "isoformat"):
+            payload[key] = value.isoformat()
+    payload_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str).replace("</", "<\\/")
+    template = template.replace(
+        "</head>",
+        f'<script>window.__BOXOFFICEX_ARTICLE_SSR_DATA__={payload_json};</script>\n</head>',
+        1,
+    )
+
+    if 'id="app" data-ssr="1"' not in template:
+        raise RuntimeError("Article SSR validation failed")
+    if "<h1>" not in template:
+        raise RuntimeError("Article SSR H1 validation failed")
+    return template
+
+
 @app.get("/article.html", include_in_schema=False)
 def article_page(slug: Optional[str] = None):
     if not slug:
         return RedirectResponse(url="/articles.html", status_code=301)
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT slug
-                FROM articles
-                WHERE slug = %s
-                  AND status = 'published'
-                LIMIT 1
-                """,
-                (slug,)
-            )
-            row = cur.fetchone()
-
-    if not row:
+    response = get_article(slug)
+    article = response.get("article") if isinstance(response, dict) else None
+    if not article:
         raise HTTPException(status_code=404, detail="Article not found")
-
-    return RedirectResponse(url=f"/article/{row[0]}", status_code=301)
+    return RedirectResponse(url=f"/article/{article['slug']}", status_code=301)
 
 
 @app.get("/article/{slug}", response_class=HTMLResponse)
 def article_pretty_page(slug: str):
-    """
-    Serve the existing article.html UI, but inject critical SEO metadata
-    server-side before the HTML is returned.
+    now = time_module.monotonic()
+    with _article_detail_cache_lock:
+        cached = _article_detail_html_cache.get(slug)
+        if cached and cached.get("expires_at", 0) > now:
+            return HTMLResponse(content=cached["html"], headers={
+                "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+                "X-BoxOfficeX-Article": "cached-ssr",
+                "X-BoxOfficeX-Cache": "HIT",
+            })
 
-    This gives crawlers the final title, description, canonical, Open Graph,
-    Twitter and Article structured data in the initial HTTP response instead
-    of requiring JavaScript to create/update those values after page load.
-    """
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                    id,
-                    title,
-                    slug,
-                    subtitle,
-                    category,
-                    author,
-                    hero_image,
-                    meta_title,
-                    meta_description,
-                    published_at,
-                    created_at,
-                    updated_at
-                FROM articles
-                WHERE slug = %s
-                  AND status = 'published'
-                LIMIT 1
-                """,
-                (slug,)
-            )
-            article = cur.fetchone()
+    rendered = _render_article_detail_html(slug)
+    with _article_detail_cache_lock:
+        _article_detail_html_cache[slug] = {
+            "html": rendered,
+            "expires_at": time_module.monotonic() + ARTICLE_DETAIL_HTML_CACHE_TTL,
+        }
 
-    if not article:
-        raise HTTPException(status_code=404, detail="Article not found")
-
-    (
-        article_id,
-        title,
-        article_slug,
-        subtitle,
-        category,
-        author,
-        hero_image,
-        meta_title,
-        meta_description,
-        published_at,
-        created_at,
-        updated_at,
-    ) = article
-
-    article_file = BASE_DIR / "article.html"
-
-    if not article_file.is_file():
-        raise HTTPException(status_code=500, detail="article.html not found")
-
-    html = article_file.read_text(encoding="utf-8")
-
-    canonical_url = f"https://boxofficex.in/article/{article_slug}"
-
-    seo_title = (meta_title or title or "BoxOfficeX").strip()
-    if "boxofficex" not in seo_title.lower():
-        seo_title = f"{seo_title} | BoxOfficeX"
-
-    seo_description = (
-        meta_description
-        or subtitle
-        or "Read the latest movie, box office and entertainment stories on BoxOfficeX."
-    ).strip()
-
-    article_author = (author or "BoxOfficeX").strip()
-    article_category = (category or "Movies & Box Office").strip()
-
-    def _absolute_article_image(value):
-        value = str(value or "").strip()
-
-        if not value:
-            return "https://boxofficex.in/images/boxofficex-og.png"
-
-        if value.startswith(("https://", "http://")):
-            return value
-
-        if value.startswith("/"):
-            return f"https://boxofficex.in{value}"
-
-        # Article hero images are normally stored under /article-images/.
-        return f"https://boxofficex.in/article-images/{value}"
-
-    seo_image = _absolute_article_image(hero_image)
-
-    published_value = published_at or created_at
-    modified_value = updated_at or published_value
-
-    published_iso = (
-        published_value.isoformat()
-        if published_value and hasattr(published_value, "isoformat")
-        else ""
-    )
-    modified_iso = (
-        modified_value.isoformat()
-        if modified_value and hasattr(modified_value, "isoformat")
-        else published_iso
-    )
-
-    safe_title = html_escape(seo_title, quote=True)
-    safe_description = html_escape(seo_description, quote=True)
-    safe_canonical = html_escape(canonical_url, quote=True)
-    safe_image = html_escape(seo_image, quote=True)
-    safe_author = html_escape(article_author, quote=True)
-    safe_category = html_escape(article_category, quote=True)
-    safe_published = html_escape(published_iso, quote=True)
-    safe_modified = html_escape(modified_iso, quote=True)
-
-    # Replace the default static SEO placeholders already present in article.html.
-    html = html.replace(
-        '<title id="pageTitle">Article | BoxOfficeX</title>',
-        f'<title id="pageTitle">{safe_title}</title>',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="metaDescription" name="description" content="Read the latest movie, box office and entertainment stories on BoxOfficeX.">',
-        f'<meta id="metaDescription" name="description" content="{safe_description}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta name="robots" content="index, follow">',
-        '<meta name="robots" content="index, follow, max-image-preview:large">',
-        1,
-    )
-
-    html = html.replace(
-        '<link id="canonicalUrl" rel="canonical" href="">',
-        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="ogTitle" property="og:title" content="BoxOfficeX Article">',
-        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="ogDescription" property="og:description" content="">',
-        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="ogImage" property="og:image" content="">',
-        f'<meta id="ogImage" property="og:image" content="{safe_image}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="ogUrl" property="og:url" content="">',
-        f'<meta id="ogUrl" property="og:url" content="{safe_canonical}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="twitterTitle" name="twitter:title" content="BoxOfficeX Article">',
-        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="twitterDescription" name="twitter:description" content="Read the latest movie and box-office stories on BoxOfficeX.">',
-        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="twitterImage" name="twitter:image" content="">',
-        f'<meta id="twitterImage" name="twitter:image" content="{safe_image}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="articleAuthorMeta" name="author" content="BoxOfficeX">',
-        f'<meta id="articleAuthorMeta" name="author" content="{safe_author}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="articlePublishedMeta" property="article:published_time" content="">',
-        f'<meta id="articlePublishedMeta" property="article:published_time" content="{safe_published}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="articleModifiedMeta" property="article:modified_time" content="">',
-        f'<meta id="articleModifiedMeta" property="article:modified_time" content="{safe_modified}">',
-        1,
-    )
-
-    html = html.replace(
-        '<meta id="articleSectionMeta" property="article:section" content="Movies & Box Office">',
-        f'<meta id="articleSectionMeta" property="article:section" content="{safe_category}">',
-        1,
-    )
-
-    # Server-render Article JSON-LD as well. The existing front-end JavaScript
-    # may refresh this with the same article data after load; that is fine.
-    structured_data = {
-        "@context": "https://schema.org",
-        "@type": "NewsArticle",
-        "headline": title or seo_title,
-        "description": seo_description,
-        "mainEntityOfPage": {
-            "@type": "WebPage",
-            "@id": canonical_url,
-        },
-        "url": canonical_url,
-        "image": [seo_image] if seo_image else [],
-        "author": {
-            "@type": "Organization",
-            "name": article_author,
-        },
-        "publisher": {
-            "@type": "Organization",
-            "name": "BoxOfficeX",
-            "url": "https://boxofficex.in",
-        },
-        "articleSection": article_category,
-    }
-
-    if published_iso:
-        structured_data["datePublished"] = published_iso
-
-    if modified_iso:
-        structured_data["dateModified"] = modified_iso
-
-    structured_json = json.dumps(
-        structured_data,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    ).replace("</", "<\\/")
-
-    html = html.replace(
-        '<script id="articleStructuredData" type="application/ld+json"></script>',
-        (
-            '<script id="articleStructuredData" type="application/ld+json">'
-            f'{structured_json}'
-            '</script>'
-        ),
-        1,
-    )
-
-    return HTMLResponse(
-        content=html,
-        status_code=200,
-        headers={
-            "Cache-Control": "public, max-age=300",
-            "Link": f'<{canonical_url}>; rel="canonical"',
-        },
-    )
+    return HTMLResponse(content=rendered, headers={
+        "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+        "X-BoxOfficeX-Article": "cached-ssr",
+        "X-BoxOfficeX-Cache": "MISS",
+    })
 
 
 # BOXOFFICEX ARTICLES API
