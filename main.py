@@ -4155,7 +4155,13 @@ def seo_resolve_actor_comparison(comparison_slug: str):
 
 @app.get("/compare-select.html")
 def compare_select_page():
-    return FileResponse(BASE_DIR / "compare-select.html")
+    return FileResponse(
+        BASE_DIR / "compare-select.html",
+        headers={
+            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+            "X-BoxOfficeX-Compare-Select": "long-cache",
+        },
+    )
 
 
 @app.get("/compare.html", include_in_schema=False)
@@ -12988,7 +12994,13 @@ def seo_resolve_movie_comparison_by_ids(movie1_id: int, movie2_id: int):
 
 @app.get("/movie-compare-select.html")
 def movie_compare_select_page():
-    return FileResponse(BASE_DIR / "movie-compare-select.html")
+    return FileResponse(
+        BASE_DIR / "movie-compare-select.html",
+        headers={
+            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+            "X-BoxOfficeX-Movie-Compare-Select": "long-cache",
+        },
+    )
 
 
 @app.get("/movie-compare.html", include_in_schema=False)
