@@ -9178,17 +9178,25 @@ def _article_is_live_boxoffice(title: str) -> bool:
 
 def _article_admin_seo_values(data):
     """
-    Live tracker titles change frequently (Day 1 -> Day 2 -> Day 3).
-    Keep search/social metadata aligned with the current title/subtitle.
-    Normal editorial articles continue to respect manual SEO fields.
+    SEO System V2.
+
+    Article/H1 and search metadata are intentionally independent.
+    This lets live box-office headlines change frequently without
+    overwriting manually optimized evergreen SEO metadata.
+
+    Fallbacks are used only when an SEO field is empty:
+    - meta title -> article title
+    - meta description -> subtitle, then article title
     """
     title = str(data.title or "").strip()
     subtitle = str(data.subtitle or "").strip()
+    meta_title = str(data.meta_title or "").strip()
+    meta_description = str(data.meta_description or "").strip()
 
-    if _article_is_live_boxoffice(title):
-        return title, (subtitle or title)
-
-    return data.meta_title, data.meta_description
+    return (
+        meta_title or title,
+        meta_description or subtitle or title,
+    )
 
 
 def _invalidate_article_detail_cache(*slugs):
@@ -9762,7 +9770,7 @@ def admin_create_article(data: AdminArticleCreate):
 
     return {
         "success": True,
-        "seo_auto_synced": _article_is_live_boxoffice(data.title),
+        "seo_auto_synced": False,
         "article_id": article_id,
         "slug": slug,
         "article_url": f"/article/{slug}",
@@ -9849,7 +9857,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
 
     return {
         "success": True,
-        "seo_auto_synced": _article_is_live_boxoffice(data.title),
+        "seo_auto_synced": False,
         "article_id": article_id,
         "slug": slug,
         "slug_locked": slug_is_locked or status == "published",
