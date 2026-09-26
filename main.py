@@ -11524,111 +11524,472 @@ def resolve_movie_comparison_slug(comparison_slug: str):
     return None
 
 
+# ============================================================
+# MOVIE COMPARISON - NON-BLOCKING CACHED SSR
+# ============================================================
+
+MOVIE_COMPARISON_HTML_CACHE_TTL = 300
+_movie_comparison_html_cache = {}
+_movie_comparison_cache_lock = threading.Lock()
+_movie_comparison_refreshing = set()
+
+
+def _movie_comparison_ssr_text(value):
+    value = str(value or "").strip()
+    return value if value else "N/A"
+
+
+def _movie_comparison_ssr_money(value):
+    try:
+        return f"₹{float(value):,.2f} Cr"
+    except (TypeError, ValueError):
+        return "N/A"
+
+
+def _movie_comparison_ssr_date(value):
+    value = str(value or "").strip()
+    if not value:
+        return "N/A"
+    try:
+        return datetime.strptime(value[:10], "%Y-%m-%d").strftime("%d %b %Y")
+    except Exception:
+        return value
+
+
+def _movie_comparison_ssr_poster(movie):
+    title = str(movie.get("title") or "Movie").strip()
+    poster = str(movie.get("poster") or "").strip()
+    if poster and poster != DEFAULT_MOVIE_POSTER:
+        if _is_remote_image(poster) or poster.startswith("/"):
+            return poster
+        return f"/posters/{quote(poster, safe='')}"
+    return _home_movie_placeholder(title)
+
+
+def _render_movie_comparison_html(comparison):
+    template = (BASE_DIR / "movie-compare.html").read_text(encoding="utf-8")
+
+    movie1_ref = comparison["movie1"]
+    movie2_ref = comparison["movie2"]
+    payload = compare_movies(int(movie1_ref["id"]), int(movie2_ref["id"]))
+    a = payload["movie1"]
+    b = payload["movie2"]
+    winners = payload.get("winners") or {}
+
+    title_a = str(a.get("title") or movie1_ref.get("title") or "Movie").strip()
+    title_b = str(b.get("title") or movie2_ref.get("title") or "Movie").strip()
+    url_a = f"/movie/{movie1_ref['slug']}"
+    url_b = f"/movie/{movie2_ref['slug']}"
+    canonical_path = comparison["canonical_url"]
+    canonical_url = f"https://boxofficex.in{canonical_path}"
+
+    page_title = f"{title_a} vs {title_b} Box Office Comparison | BoxOfficeX"
+    description = (
+        f"Compare {title_a} vs {title_b}: budget, India gross, overseas gross, "
+        f"worldwide box office collection and verdict on BoxOfficeX."
+    )
+
+    poster_a = _movie_comparison_ssr_poster(a)
+    poster_b = _movie_comparison_ssr_poster(b)
+
+    def movie_card(movie, movie_title, movie_url, poster_src):
+        meta = " • ".join(
+            item for item in [
+                _movie_comparison_ssr_text(movie.get("language"))
+                if movie.get("language") else "",
+                _movie_comparison_ssr_date(movie.get("release_date"))
+                if movie.get("release_date") else "",
+            ]
+            if item
+        )
+        return (
+            '<div class="movie-card">'
+            f'<a href="{html_escape(movie_url, quote=True)}" '
+            f'aria-label="{html_escape(movie_title, quote=True)} movie page" '
+            'style="color:inherit;text-decoration:none">'
+            f'<img src="{html_escape(poster_src, quote=True)}" '
+            f'alt="{html_escape(movie_title, quote=True)}" loading="lazy">'
+            f'<h2>{html_escape(movie_title)}</h2></a>'
+            f'<p>{html_escape(meta or "Movie")}</p></div>'
+        )
+
+    def row(label, field, formatter=_movie_comparison_ssr_text, winner_key=None):
+        va = a.get(field)
+        vb = b.get(field)
+        left = formatter(va)
+        right = formatter(vb)
+        winner = (winners.get(winner_key) or {}).get("winner") if winner_key else None
+
+        left_class = "cell value"
+        right_class = "cell value"
+        if winner == a.get("id"):
+            left_class += " winner"
+        elif winner == b.get("id"):
+            right_class += " winner"
+        elif winner == "tie":
+            left_class += " tie"
+            right_class += " tie"
+
+        if va is None or str(va).strip() == "":
+            left_class += " na"
+        if vb is None or str(vb).strip() == "":
+            right_class += " na"
+
+        return (
+            '<div class="row">'
+            f'<div class="cell label">{html_escape(label)}</div>'
+            f'<div class="{left_class}">{html_escape(left)}</div>'
+            f'<div class="{right_class}">{html_escape(right)}</div>'
+            '</div>'
+        )
+
+    def related_comparisons_html():
+        try:
+            catalogue = (comparison_eligible_movies() or {}).get("movies") or []
+        except Exception:
+            catalogue = []
+
+        current_ids = {int(a["id"]), int(b["id"])}
+        candidates = []
+        for item in catalogue:
+            try:
+                item_id = int(item.get("id"))
+            except (TypeError, ValueError):
+                continue
+            if item_id in current_ids:
+                continue
+            candidates.append(item)
+
+        # Keep the same compact six-link discovery pattern used by the client.
+        picked = candidates[:6]
+        links = []
+        for index, other in enumerate(picked):
+            base = a if index % 2 == 0 else b
+            try:
+                base_id = int(base["id"])
+                other_id = int(other["id"])
+            except (TypeError, ValueError, KeyError):
+                continue
+
+            base_slug = movie1_ref["slug"] if base_id == int(movie1_ref["id"]) else movie2_ref["slug"]
+            other_slug = str(other.get("slug") or "").strip()
+            if not base_slug or not other_slug:
+                continue
+
+            ordered = sorted(
+                [(base_id, base_slug), (other_id, other_slug)],
+                key=lambda item: item[0],
+            )
+            href = (
+                f"/compare/movies/{quote(ordered[0][1], safe='')}"
+                f"-vs-{quote(ordered[1][1], safe='')}"
+            )
+
+            base_title = str(base.get("title") or "Movie").strip()
+            other_title = str(other.get("title") or "Movie").strip()
+            base_poster = _movie_comparison_ssr_poster(base)
+            other_poster = _movie_comparison_ssr_poster(other)
+
+            links.append(
+                f'<a class="more-movie-card" href="{html_escape(href, quote=True)}" '
+                f'aria-label="Compare {html_escape(base_title, quote=True)} vs '
+                f'{html_escape(other_title, quote=True)}">'
+                '<div class="more-movie-pair">'
+                '<div class="more-movie-person">'
+                f'<img src="{html_escape(base_poster, quote=True)}" '
+                f'alt="{html_escape(base_title, quote=True)}" loading="lazy">'
+                f'<span class="more-movie-name">{html_escape(base_title)}</span></div>'
+                '<div class="more-movie-vs">VS</div>'
+                '<div class="more-movie-person">'
+                f'<img src="{html_escape(other_poster, quote=True)}" '
+                f'alt="{html_escape(other_title, quote=True)}" loading="lazy">'
+                f'<span class="more-movie-name">{html_escape(other_title)}</span></div>'
+                '</div><div class="more-movie-action">Compare now →</div></a>'
+            )
+
+        if not links:
+            return ""
+
+        return (
+            '<section class="more-movie-comparisons" id="moreMovieComparisons" '
+            'aria-labelledby="moreMovieComparisonsTitle">'
+            '<div class="more-movie-head"><div>'
+            '<h2 class="more-movie-title" id="moreMovieComparisonsTitle">'
+            '🎬 More Movie Comparisons</h2>'
+            f'<p class="more-movie-sub">Keep comparing {html_escape(title_a)} and '
+            f'{html_escape(title_b)} with other eligible movies.</p></div>'
+            '<a class="more-movie-all" href="/movie-compare-select.html">'
+            'Choose movies →</a></div>'
+            f'<div class="more-movie-grid" id="moreMovieComparisonsGrid">{"".join(links)}</div>'
+            '</section>'
+        )
+
+    content = (
+        '<main id="app" data-ssr="1">'
+        '<div class="top"><div class="eyebrow">BoxOfficeX Movie Comparison</div>'
+        f'<h1>{html_escape(title_a)} vs {html_escape(title_b)}</h1>'
+        '<a class="change" href="/movie-compare-select.html">↔ Change Movies</a></div>'
+        '<section class="movie-heads">'
+        + movie_card(a, title_a, url_a, poster_a)
+        + '<div class="vs">VS</div>'
+        + movie_card(b, title_b, url_b, poster_b)
+        + '</section>'
+        '<section class="table">'
+        + row("Release Date", "release_date", _movie_comparison_ssr_date)
+        + row("Language", "language")
+        + row("Industry", "industry")
+        + row("Genre", "genre")
+        + row("Director", "director")
+        + row("Budget", "budget_crore", _movie_comparison_ssr_money, "budget")
+        + row("India Gross", "india_collection_crore", _movie_comparison_ssr_money, "india_collection")
+        + row("Overseas Gross", "overseas_collection_crore", _movie_comparison_ssr_money, "overseas_collection")
+        + row("Worldwide Gross", "worldwide_collection_crore", _movie_comparison_ssr_money, "worldwide_collection")
+        + row("Verdict", "verdict")
+        + '</section>'
+        '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>'
+        + related_comparisons_html()
+        + '<div class="bx-ssr-comparison-note">'
+        f'<p><strong>{html_escape(title_a)} vs {html_escape(title_b)}</strong> '
+        'includes budget, India gross, overseas gross, worldwide collection and verdict. '
+        'Interactive scoring, Fan Zone, comments, sponsorships and live engagement load in the browser.</p>'
+        '</div></main>'
+    )
+
+    template = re.sub(
+        r'<main id="app"(?:\s+data-ssr="[01]")?\s*>\s*<div class="loading">Loading comparison\.\.\.</div>\s*</main>',
+        content,
+        template,
+        count=1,
+        flags=re.S,
+    )
+
+    safe_title = html_escape(page_title, quote=True)
+    safe_description = html_escape(description, quote=True)
+    safe_canonical = html_escape(canonical_url, quote=True)
+    safe_og_image = html_escape(
+        poster_a if poster_a.startswith(("http://", "https://"))
+        else f"https://boxofficex.in{poster_a}",
+        quote=True,
+    )
+
+    template = re.sub(
+        r'<title>.*?</title>',
+        f'<title>{safe_title}</title>',
+        template,
+        count=1,
+        flags=re.S,
+    )
+    template = re.sub(
+        r'<meta id="metaDescription" name="description" content="[^"]*">',
+        f'<meta id="metaDescription" name="description" content="{safe_description}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<link id="canonicalUrl" rel="canonical" href="[^"]*">',
+        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="ogTitle" property="og:title" content="[^"]*">',
+        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="ogDescription" property="og:description" content="[^"]*">',
+        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="ogUrl" property="og:url" content="[^"]*">',
+        f'<meta id="ogUrl" property="og:url" content="{safe_canonical}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="ogImage" property="og:image" content="[^"]*">',
+        f'<meta id="ogImage" property="og:image" content="{safe_og_image}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="twitterTitle" name="twitter:title" content="[^"]*">',
+        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="twitterDescription" name="twitter:description" content="[^"]*">',
+        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'<meta id="twitterImage" name="twitter:image" content="[^"]*">',
+        f'<meta id="twitterImage" name="twitter:image" content="{safe_og_image}">',
+        template,
+        count=1,
+    )
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": f"{title_a} vs {title_b} Box Office Comparison",
+        "url": canonical_url,
+        "description": description,
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "BoxOfficeX",
+            "url": "https://boxofficex.in/",
+        },
+        "about": [
+            {
+                "@type": "Movie",
+                "name": title_a,
+                "url": f"https://boxofficex.in{url_a}",
+                "image": (
+                    poster_a if poster_a.startswith(("http://", "https://"))
+                    else f"https://boxofficex.in{poster_a}"
+                ),
+            },
+            {
+                "@type": "Movie",
+                "name": title_b,
+                "url": f"https://boxofficex.in{url_b}",
+                "image": (
+                    poster_b if poster_b.startswith(("http://", "https://"))
+                    else f"https://boxofficex.in{poster_b}"
+                ),
+            },
+        ],
+    }
+    json_ld = json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")
+    template = re.sub(
+        r'<script id="comparisonStructuredData" type="application/ld\+json">.*?</script>',
+        f'<script id="comparisonStructuredData" type="application/ld+json">{json_ld}</script>',
+        template,
+        count=1,
+        flags=re.S,
+    )
+
+    return template
+
+
+def _refresh_movie_comparison_cache(comparison_slug, comparison):
+    try:
+        rendered = _render_movie_comparison_html(comparison)
+        with _movie_comparison_cache_lock:
+            _movie_comparison_html_cache[comparison_slug] = {
+                "html": rendered,
+                "expires_at": time_module.monotonic() + MOVIE_COMPARISON_HTML_CACHE_TTL,
+            }
+    except Exception as exc:
+        print(
+            "Movie Comparison SSR refresh failed:",
+            comparison_slug,
+            type(exc).__name__,
+            exc,
+            flush=True,
+        )
+    finally:
+        with _movie_comparison_cache_lock:
+            _movie_comparison_refreshing.discard(comparison_slug)
+
+
+def _start_movie_comparison_refresh(comparison_slug, comparison):
+    with _movie_comparison_cache_lock:
+        if comparison_slug in _movie_comparison_refreshing:
+            return False
+        _movie_comparison_refreshing.add(comparison_slug)
+
+    threading.Thread(
+        target=_refresh_movie_comparison_cache,
+        args=(comparison_slug, comparison),
+        daemon=True,
+        name=f"movie-compare-ssr-{comparison_slug[:40]}",
+    ).start()
+    return True
+
+
+def _get_movie_comparison_cached_html(comparison_slug, comparison):
+    now = time_module.monotonic()
+
+    with _movie_comparison_cache_lock:
+        cached = _movie_comparison_html_cache.get(comparison_slug)
+        if cached and cached.get("html"):
+            if float(cached.get("expires_at") or 0) > now:
+                return cached["html"], "HIT"
+            stale_html = cached["html"]
+        else:
+            stale_html = None
+
+    _start_movie_comparison_refresh(comparison_slug, comparison)
+
+    if stale_html is not None:
+        return stale_html, "STALE"
+
+    return None, "WARMING"
+
+
 @app.get("/compare/movies/{comparison_slug}", include_in_schema=False)
 def movie_comparison_slug_page(comparison_slug: str):
     comparison = resolve_movie_comparison_slug(comparison_slug)
 
     if not comparison:
-        raise HTTPException(
-            status_code=404,
-            detail="Movie comparison not found"
-        )
+        raise HTTPException(status_code=404, detail="Movie comparison not found")
 
-    # Keep only one public URL for each movie pair.
     if not comparison.get("is_canonical", True):
-        return RedirectResponse(
-            url=comparison["canonical_url"],
-            status_code=301
-        )
-
-    movie1_title = str(comparison["movie1"]["title"]).strip()
-    movie2_title = str(comparison["movie2"]["title"]).strip()
-
-    canonical_url = (
-        f"https://boxofficex.in{comparison['canonical_url']}"
-    )
-
-    title = (
-        f"{movie1_title} vs {movie2_title} "
-        f"Box Office Comparison | BoxOfficeX"
-    )
-
-    description = (
-        f"Compare {movie1_title} vs {movie2_title} box office: "
-        f"budget, India gross, overseas gross, worldwide collection "
-        f"and verdict on BoxOfficeX."
-    )
-
-    safe_title = html_escape(title, quote=True)
-    safe_description = html_escape(description, quote=True)
-    safe_canonical_url = html_escape(canonical_url, quote=True)
-
-    html_path = BASE_DIR / "movie-compare.html"
+        return RedirectResponse(url=comparison["canonical_url"], status_code=301)
 
     try:
-        page_html = html_path.read_text(encoding="utf-8")
-    except OSError:
-        raise HTTPException(
-            status_code=500,
-            detail="Movie comparison page template could not be loaded"
+        rendered, cache_state = _get_movie_comparison_cached_html(
+            comparison_slug,
+            comparison,
         )
 
-    # Inject final SEO metadata before the HTML is sent to Google.
-    page_html = page_html.replace(
-        "<title>Movie Box Office Comparison | BoxOfficeX</title>",
-        f"<title>{safe_title}</title>",
-        1
-    )
+        if rendered is not None:
+            return HTMLResponse(
+                content=rendered,
+                status_code=200,
+                headers={
+                    "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                    "X-BoxOfficeX-Movie-Comparison": "cached-ssr",
+                    "X-BoxOfficeX-Cache": cache_state,
+                },
+            )
 
-    page_html = page_html.replace(
-        '<meta id="metaDescription" name="description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">',
-        f'<meta id="metaDescription" name="description" content="{safe_description}">',
-        1
-    )
+        # Cold cache never waits for the comparison renderer.
+        # Existing JavaScript remains the immediate fallback while the cache warms.
+        return FileResponse(
+            BASE_DIR / "movie-compare.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Movie-Comparison": "warming",
+                "X-BoxOfficeX-Cache": "WARMING",
+            },
+        )
 
-    page_html = page_html.replace(
-        '<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/movie-compare.html">',
-        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical_url}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="ogTitle" property="og:title" content="Movie Box Office Comparison | BoxOfficeX">',
-        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="ogDescription" property="og:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">',
-        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="ogUrl" property="og:url" content="https://boxofficex.in/movie-compare.html">',
-        f'<meta id="ogUrl" property="og:url" content="{safe_canonical_url}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="twitterTitle" name="twitter:title" content="Movie Box Office Comparison | BoxOfficeX">',
-        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="twitterDescription" name="twitter:description" content="Compare movie budgets, India gross, overseas gross, worldwide box office collections and verdicts on BoxOfficeX.">',
-        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
-        1
-    )
-
-    return HTMLResponse(
-        content=page_html,
-        status_code=200,
-        headers={
-            "Cache-Control": "public, max-age=300"
-        }
-    )
+    except Exception as exc:
+        print(
+            "Movie Comparison SSR fallback:",
+            comparison_slug,
+            type(exc).__name__,
+            exc,
+            flush=True,
+        )
+        _start_movie_comparison_refresh(comparison_slug, comparison)
+        return FileResponse(
+            BASE_DIR / "movie-compare.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Movie-Comparison": "ssr-fallback",
+                "X-BoxOfficeX-Cache": "FALLBACK",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 @app.get("/seo/resolve/movie-comparison/{comparison_slug}", include_in_schema=False)
