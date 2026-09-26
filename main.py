@@ -5982,6 +5982,26 @@ def unified_search(q: str = "", limit: int = 8):
             ))
             article_rows = cur.fetchall()
 
+            # Build canonical slug maps ONCE using this same DB connection.
+            # Previously public_movie_url()/public_actor_url() rebuilt the full
+            # slug map for every individual result.
+            cur.execute("""
+                SELECT id, title, release_date
+                FROM movies
+                ORDER BY id
+            """)
+            search_movie_slug_rows = cur.fetchall()
+
+            cur.execute("""
+                SELECT id, name
+                FROM actors
+                ORDER BY id
+            """)
+            search_actor_slug_rows = cur.fetchall()
+
+    search_movie_slug_map = _unique_movie_slug_map(search_movie_slug_rows)
+    search_actor_slug_map = _unique_actor_slug_map(search_actor_slug_rows)
+
     movies = [
         {
             "type": "movie",
@@ -5995,7 +6015,7 @@ def unified_search(q: str = "", limit: int = 8):
             "worldwide_collection_crore": float(row[7] or 0),
             "verdict": row[8],
             "poster": safe_movie_poster(row[9]),
-            "url": public_movie_url(row[0]),
+            "url": f"/movie/{search_movie_slug_map[row[0]]}" if row[0] in search_movie_slug_map else "/new-movies.html",
         }
         for row in movie_rows
     ]
@@ -6008,7 +6028,7 @@ def unified_search(q: str = "", limit: int = 8):
             "profession": row[2],
             "photo": safe_actor_photo(row[3]),
             "bio": row[4],
-            "url": public_actor_url(row[0]),
+            "url": f"/actor/{search_actor_slug_map[row[0]]}" if row[0] in search_actor_slug_map else "/actors.html",
         }
         for row in actor_rows
     ]
