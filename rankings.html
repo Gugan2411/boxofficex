@@ -515,6 +515,8 @@
         .rank {
 
             position: relative;
+            text-decoration: none;
+            color: inherit;
 
             display: flex;
 
@@ -3638,6 +3640,12 @@ function boxOfficeXActorImageUrl(photo, actorName) {
 })();
 
 
+function bxActorPublicUrl(actor) {
+    if (actor && actor.url) return actor.url;
+    return actor && actor.id ? ("/actor.html?id=" + encodeURIComponent(actor.id)) : "/actors.html";
+}
+
+
 function loadRankings(language) {
 
     window.__bxCurrentActorRankingIndustry = language === "All" ? "Global" : language;
@@ -3645,6 +3653,20 @@ function loadRankings(language) {
     const container =
         document.getElementById("rankings");
 
+    const hasServerRenderedGlobal =
+        language === "All" &&
+        container &&
+        container.dataset.ssr === "1" &&
+        container.querySelector("a.rank[href]");
+
+    if (hasServerRenderedGlobal) {
+        if (window.BoxOfficeXLoadRankingInContentAds) {
+            window.BoxOfficeXLoadRankingInContentAds(window.__bxCurrentActorRankingIndustry);
+        }
+        return;
+    }
+
+    if (container) container.dataset.ssr = "0";
     container.innerHTML = "Loading...";
 
     fetch(
@@ -3661,9 +3683,14 @@ function loadRankings(language) {
         data.rankings.forEach((actor, actorIndex) => {
 
             const div =
-                document.createElement("div");
+                document.createElement("a");
 
             div.className = "rank";
+            div.href = bxActorPublicUrl(actor);
+            div.setAttribute(
+                "aria-label",
+                `${actor.name || "Actor"} box office profile`
+            );
 
             div.innerHTML = `
 
@@ -3698,32 +3725,6 @@ function loadRankings(language) {
             actorImage.addEventListener("error", function () {
                 actorImage.src = boxOfficeXActorRankingPlaceholder(actor.name);
             }, { once: true });
-
-            div.onclick = async function () {
-
-                try {
-                    const response = await fetch(
-                        "/actors/" + encodeURIComponent(actor.id),
-                        { cache: "no-store" }
-                    );
-
-                    if (!response.ok) {
-                        throw new Error("Actor route lookup failed");
-                    }
-
-                    const actorData = await response.json();
-
-                    if (!actorData?.url) {
-                        throw new Error("Actor clean URL missing");
-                    }
-
-                    window.location.href = actorData.url;
-                }
-                catch (error) {
-                    console.error("Actor ranking navigation error:", error);
-                }
-
-            };
 
             container.appendChild(div);
 
