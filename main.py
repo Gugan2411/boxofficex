@@ -11563,7 +11563,7 @@ def _movie_comparison_ssr_poster(movie):
         if _is_remote_image(poster) or poster.startswith("/"):
             return poster
         return f"/posters/{quote(poster, safe='')}"
-    return _home_movie_placeholder(title)
+    return _home_movie_placeholder({"title": title})
 
 
 def _render_movie_comparison_html(comparison):
