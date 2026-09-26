@@ -3627,114 +3627,259 @@ def resolve_actor_comparison_slug(comparison_slug: str):
     return None
 
 
+# ============================================================
+# ACTOR COMPARISON - NON-BLOCKING CACHED SSR
+# ============================================================
+
+ACTOR_COMPARISON_HTML_CACHE_TTL = 300
+_actor_comparison_html_cache = {}
+_actor_comparison_cache_lock = threading.Lock()
+_actor_comparison_refreshing = set()
+
+
+def _actor_comparison_ssr_number(value, digits=2):
+    try:
+        return f"{float(value):,.{digits}f}"
+    except (TypeError, ValueError):
+        return "0.00"
+
+
+def _actor_comparison_ssr_movie_url(movie):
+    movie_id = movie.get("id")
+    if movie_id is None:
+        return "/new-movies.html"
+    try:
+        return public_movie_url(int(movie_id))
+    except Exception:
+        return "/new-movies.html"
+
+
+def _render_actor_comparison_html(comparison):
+    template = (BASE_DIR / "compare.html").read_text(encoding="utf-8")
+    actor1 = comparison["actor1"]
+    actor2 = comparison["actor2"]
+    payload = compare_actors(int(actor1["id"]), int(actor2["id"]))
+    actors_by_id = {int(a["id"]): a for a in (payload.get("comparison") or [])}
+    left = actors_by_id.get(int(actor1["id"]), actor1)
+    right = actors_by_id.get(int(actor2["id"]), actor2)
+    stats = payload.get("stats") or {}
+    s1 = stats.get(str(actor1["id"]), {})
+    s2 = stats.get(str(actor2["id"]), {})
+    highest = payload.get("highest_grossing") or {}
+    h1 = (highest.get(str(actor1["id"])) or {}).get("movie")
+    h2 = (highest.get(str(actor2["id"])) or {}).get("movie")
+
+    name1 = str(left.get("name") or actor1.get("name") or "Actor").strip()
+    name2 = str(right.get("name") or actor2.get("name") or "Actor").strip()
+    actor1_url = f"/actor/{actor1['slug']}"
+    actor2_url = f"/actor/{actor2['slug']}"
+    canonical_url = f"https://boxofficex.in{comparison['canonical_url']}"
+    title = f"{name1} vs {name2} Box Office Comparison | BoxOfficeX"
+    description = (
+        f"Compare {name1} vs {name2} by total movies, worldwide box office collections, "
+        f"averages, blockbusters, hits, flops and highest-grossing films on BoxOfficeX."
+    )
+
+    def actor_card(actor, name, url):
+        image = _home_actor_placeholder(name)
+        return (
+            '<div class="hero-card">'
+            f'<a href="{html_escape(url, quote=True)}" aria-label="{html_escape(name, quote=True)} profile">'
+            f'<img src="{html_escape(image, quote=True)}" alt="{html_escape(name, quote=True)}" class="comparison-photo">'
+            f'<h2>{html_escape(name)}</h2></a><p>Actor</p></div>'
+        )
+
+    def stat_row(v1, label, v2):
+        return (
+            '<div class="stat-row">'
+            f'<div class="stat-value">{html_escape(str(v1))}</div>'
+            f'<div class="stat-label">{html_escape(label)}</div>'
+            f'<div class="stat-value">{html_escape(str(v2))}</div></div>'
+        )
+
+    def highest_card(actor_name, movie):
+        if not movie:
+            return (
+                '<div class="highest-card">'
+                f'<h3>🏆 {html_escape(actor_name)}\'s Highest Grosser</h3>'
+                '<p>No movie data available.</p></div>'
+            )
+        movie_title = str(movie.get("title") or "Movie")
+        movie_url = _actor_comparison_ssr_movie_url(movie)
+        gross = movie.get("worldwide_collection_crore")
+        verdict = movie.get("verdict") or "N/A"
+        poster = movie.get("poster")
+        poster_src = (
+            poster if _is_remote_image(poster)
+            else (f"/posters/{quote(str(poster))}" if poster and poster != DEFAULT_MOVIE_POSTER else "")
+        )
+        image_html = (
+            f'<img src="{html_escape(poster_src, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy">'
+            if poster_src else ""
+        )
+        return (
+            f'<a class="highest-card" href="{html_escape(movie_url, quote=True)}">'
+            f'<h3>🏆 {html_escape(actor_name)}\'s Highest Grosser</h3>{image_html}'
+            f'<h2>{html_escape(movie_title)}</h2>'
+            f'<p>🌍 ₹{_actor_comparison_ssr_number(gross)} Cr</p>'
+            f'<p>🎬 {html_escape(str(verdict))}</p><p>👆 Click to view movie</p></a>'
+        )
+
+    content = (
+        '<div id="comparisonContent" data-ssr="1">'
+        '<div class="heroes">'
+        + actor_card(left, name1, actor1_url)
+        + '<div class="vs">VS</div>'
+        + actor_card(right, name2, actor2_url)
+        + '</div>'
+        + '<div class="compare-click-hint"><span>👆</span> Tap Blockbusters, Hits, Average or Flops counts to view the movies</div>'
+        + '<div class="stats">'
+        + stat_row(s1.get("movie_count", 0), "🎬 Total Movies", s2.get("movie_count", 0))
+        + stat_row(f"₹{_actor_comparison_ssr_number(s1.get('total_worldwide'))} Cr", "🌍 Total Worldwide", f"₹{_actor_comparison_ssr_number(s2.get('total_worldwide'))} Cr")
+        + stat_row(s1.get("blockbusters", 0), "🔥 Blockbusters", s2.get("blockbusters", 0))
+        + stat_row(s1.get("hits", 0), "⭐ Hits", s2.get("hits", 0))
+        + stat_row(s1.get("average_movies", 0), "➖ Average", s2.get("average_movies", 0))
+        + stat_row(s1.get("flops", 0), "❌ Flops", s2.get("flops", 0))
+        + '</div>'
+        + '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>'
+        + '<div class="highest-section"><h2 class="highest-section-title">🏆 Highest-Grossing Movies</h2><div class="highest-grid">'
+        + highest_card(name1, h1) + highest_card(name2, h2)
+        + '</div></div>'
+        + '<div class="bx-ssr-comparison-note">'
+        + f'<p><strong>{html_escape(name1)} vs {html_escape(name2)}</strong> comparison includes career movie counts, worldwide collections, verdict records and highest-grossing films. Interactive scoring, ROI, Fan Zone and live engagement load in the browser.</p>'
+        + '</div></div>'
+    )
+
+    template = re.sub(
+        r'<div id="comparisonContent"(?:\s+data-ssr="[01]")?\s*>\s*<div class="loading">.*?</div>\s*</div>',
+        content,
+        template,
+        count=1,
+        flags=re.S,
+    )
+
+    safe_title = html_escape(title, quote=True)
+    safe_description = html_escape(description, quote=True)
+    safe_canonical = html_escape(canonical_url, quote=True)
+    template = re.sub(r'<title>.*?</title>', f'<title>{safe_title}</title>', template, count=1, flags=re.S)
+    template = re.sub(r'<meta\s+name="description"\s+content="[^"]*"\s*/?>', f'<meta name="description" content="{safe_description}">', template, count=1, flags=re.S)
+    template = re.sub(r'<link id="canonicalUrl" rel="canonical" href="[^"]*">', f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical}">', template, count=1)
+    template = re.sub(r'<meta id="ogTitle" property="og:title" content="[^"]*">', f'<meta id="ogTitle" property="og:title" content="{safe_title}">', template, count=1)
+    template = re.sub(r'<meta id="ogDescription" property="og:description" content="[^"]*">', f'<meta id="ogDescription" property="og:description" content="{safe_description}">', template, count=1)
+    template = re.sub(r'<meta id="ogUrl" property="og:url" content="[^"]*">', f'<meta id="ogUrl" property="og:url" content="{safe_canonical}">', template, count=1)
+    template = re.sub(r'<meta id="twitterTitle" name="twitter:title" content="[^"]*">', f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">', template, count=1)
+    template = re.sub(r'<meta id="twitterDescription" name="twitter:description" content="[^"]*">', f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">', template, count=1)
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": f"{name1} vs {name2} Box Office Comparison",
+        "url": canonical_url,
+        "description": description,
+        "about": [
+            {"@type": "Person", "name": name1, "url": f"https://boxofficex.in{actor1_url}"},
+            {"@type": "Person", "name": name2, "url": f"https://boxofficex.in{actor2_url}"},
+        ],
+    }
+    json_ld = json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")
+    template = re.sub(
+        r'<script\s+id="compareStructuredData"\s+type="application/ld\+json"\s*>.*?</script>',
+        f'<script id="compareStructuredData" type="application/ld+json">{json_ld}</script>',
+        template,
+        count=1,
+        flags=re.S,
+    )
+    return template
+
+
+def _refresh_actor_comparison_cache(comparison_slug, comparison):
+    try:
+        rendered = _render_actor_comparison_html(comparison)
+        with _actor_comparison_cache_lock:
+            _actor_comparison_html_cache[comparison_slug] = {
+                "html": rendered,
+                "expires_at": time_module.monotonic() + ACTOR_COMPARISON_HTML_CACHE_TTL,
+            }
+    except Exception as exc:
+        print("Actor Comparison SSR refresh failed:", comparison_slug, type(exc).__name__, exc, flush=True)
+    finally:
+        with _actor_comparison_cache_lock:
+            _actor_comparison_refreshing.discard(comparison_slug)
+
+
+def _start_actor_comparison_refresh(comparison_slug, comparison):
+    with _actor_comparison_cache_lock:
+        if comparison_slug in _actor_comparison_refreshing:
+            return False
+        _actor_comparison_refreshing.add(comparison_slug)
+    threading.Thread(
+        target=_refresh_actor_comparison_cache,
+        args=(comparison_slug, comparison),
+        daemon=True,
+        name=f"actor-compare-ssr-{comparison_slug[:40]}",
+    ).start()
+    return True
+
+
+def _get_actor_comparison_cached_html(comparison_slug, comparison):
+    now = time_module.monotonic()
+    with _actor_comparison_cache_lock:
+        cached = _actor_comparison_html_cache.get(comparison_slug)
+        if cached and cached.get("html"):
+            if float(cached.get("expires_at") or 0) > now:
+                return cached["html"], "HIT"
+            stale_html = cached["html"]
+        else:
+            stale_html = None
+
+    _start_actor_comparison_refresh(comparison_slug, comparison)
+    if stale_html is not None:
+        return stale_html, "STALE"
+    return None, "WARMING"
+
+
 @app.get("/compare/{comparison_slug}", include_in_schema=False)
 def actor_comparison_slug_page(comparison_slug: str):
     comparison = resolve_actor_comparison_slug(comparison_slug)
-
     if not comparison:
-        raise HTTPException(
-            status_code=404,
-            detail="Actor comparison not found"
-        )
+        raise HTTPException(status_code=404, detail="Actor comparison not found")
 
-    # Keep only one public URL for each actor pair.
     if not comparison.get("is_canonical", True):
-        return RedirectResponse(
-            url=comparison["canonical_url"],
-            status_code=301
-        )
-
-    actor1_name = str(comparison["actor1"]["name"]).strip()
-    actor2_name = str(comparison["actor2"]["name"]).strip()
-
-    canonical_url = (
-        f"https://boxofficex.in{comparison['canonical_url']}"
-    )
-
-    title = (
-        f"{actor1_name} vs {actor2_name} "
-        f"Box Office Comparison | BoxOfficeX"
-    )
-
-    description = (
-        f"Compare {actor1_name} vs {actor2_name} by total movies, "
-        f"worldwide box office collections, averages, blockbusters, "
-        f"hits, flops and highest-grossing films on BoxOfficeX."
-    )
-
-    # Escape dynamic text before inserting it into HTML attributes/tags.
-    safe_title = html_escape(title, quote=True)
-    safe_description = html_escape(description, quote=True)
-    safe_canonical_url = html_escape(canonical_url, quote=True)
-
-    html_path = BASE_DIR / "compare.html"
+        return RedirectResponse(url=comparison["canonical_url"], status_code=301)
 
     try:
-        page_html = html_path.read_text(encoding="utf-8")
-    except OSError:
-        raise HTTPException(
-            status_code=500,
-            detail="Comparison page template could not be loaded"
+        rendered, cache_state = _get_actor_comparison_cached_html(comparison_slug, comparison)
+        if rendered is not None:
+            return HTMLResponse(
+                content=rendered,
+                headers={
+                    "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+                    "X-BoxOfficeX-Actor-Comparison": "cached-ssr",
+                    "X-BoxOfficeX-Cache": cache_state,
+                },
+            )
+
+        # Cold cache must never block on the expensive comparison payload.
+        # Serve the existing page immediately; its current JS remains the fallback.
+        return FileResponse(
+            BASE_DIR / "compare.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Actor-Comparison": "warming",
+                "X-BoxOfficeX-Cache": "WARMING",
+            },
         )
-
-    # Inject the final SEO metadata into the original server response.
-    # Client-side JavaScript may update the same elements later, but
-    # Google receives the correct title/description/canonical immediately.
-    page_html = page_html.replace(
-        "<title>Actor Box Office Comparison | BoxOfficeX</title>",
-        f"<title>{safe_title}</title>",
-        1
-    )
-
-    page_html = page_html.replace(
-        'content="Compare actors by movies, worldwide box office collections, averages, blockbusters, hits, flops and highest-grossing films on BoxOfficeX."',
-        f'content="{safe_description}"',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/compare.html">',
-        f'<link id="canonicalUrl" rel="canonical" href="{safe_canonical_url}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="ogTitle" property="og:title" content="Actor Box Office Comparison | BoxOfficeX">',
-        f'<meta id="ogTitle" property="og:title" content="{safe_title}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="ogDescription" property="og:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">',
-        f'<meta id="ogDescription" property="og:description" content="{safe_description}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="ogUrl" property="og:url" content="https://boxofficex.in/compare.html">',
-        f'<meta id="ogUrl" property="og:url" content="{safe_canonical_url}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="twitterTitle" name="twitter:title" content="Actor Box Office Comparison | BoxOfficeX">',
-        f'<meta id="twitterTitle" name="twitter:title" content="{safe_title}">',
-        1
-    )
-
-    page_html = page_html.replace(
-        '<meta id="twitterDescription" name="twitter:description" content="Compare actors by movies, worldwide box office collections, blockbusters, hits and highest-grossing films on BoxOfficeX.">',
-        f'<meta id="twitterDescription" name="twitter:description" content="{safe_description}">',
-        1
-    )
-
-    return HTMLResponse(
-        content=page_html,
-        status_code=200,
-        headers={
-            "Cache-Control": "public, max-age=300"
-        }
-    )
+    except Exception as exc:
+        print("Actor Comparison SSR fallback:", comparison_slug, type(exc).__name__, exc, flush=True)
+        _start_actor_comparison_refresh(comparison_slug, comparison)
+        return FileResponse(
+            BASE_DIR / "compare.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Actor-Comparison": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 @app.get("/seo/resolve/actor-comparison/{comparison_slug}", include_in_schema=False)
