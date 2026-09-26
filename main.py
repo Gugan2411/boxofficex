@@ -3956,130 +3956,9 @@ def new_movies_page():
     return FileResponse(BASE_DIR / "new-movies.html")
 
 
-# ============================================================
-# ACTOR RANKINGS - CACHED SERVER-RENDERED GLOBAL RANKINGS
-# ============================================================
-
-ACTOR_RANKINGS_HTML_CACHE_TTL = 300
-_actor_rankings_html_cache = {"html": None, "expires_at": 0.0}
-_actor_rankings_html_cache_lock = threading.Lock()
-_actor_rankings_html_refreshing = False
-
-
-def _actor_rankings_ssr_rows(limit: int = 100):
-    data = actor_rankings("All")
-    rows = list((data or {}).get("rankings") or [])[:limit]
-    for actor in rows:
-        actor["url"] = public_actor_url(actor["id"])
-    return rows
-
-
-def _actor_rankings_ssr_number(value):
-    try:
-        number = float(value or 0)
-        return f"{number:,.2f}".rstrip("0").rstrip(".")
-    except (TypeError, ValueError):
-        return "0"
-
-
-def _actor_rankings_placeholder(name):
-    actor_name = str(name or "Actor").strip() or "Actor"
-    result = 2166136261
-    for char in actor_name.lower():
-        result ^= ord(char)
-        result = (result * 16777619) & 0xFFFFFFFF
-    actor_hash = result
-    first_hue = actor_hash % 360
-    hue_distance = 38 + ((actor_hash >> 8) % 83)
-    second_hue = (first_hue + hue_distance) % 360
-    accent_hue = (first_hue + 145 + ((actor_hash >> 17) % 71)) % 360
-    first_sat = 55 + ((actor_hash >> 4) % 26)
-    second_sat = 58 + ((actor_hash >> 12) % 24)
-    palette = [f"hsl({first_hue} {first_sat}% 13%)", f"hsl({second_hue} {second_sat}% 34%)", f"hsl({accent_hue} 88% 68%)"]
-    words = actor_name.split()
-    initials = (words[0][:2] if len(words) == 1 else "".join(word[0] for word in words[:3])).upper() or "BX"
-    safe_name = xml_escape(actor_name)
-    safe_initials = xml_escape(initials)
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" role="img" aria-label="{safe_name} image not available"><defs><linearGradient id="actorGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{palette[0]}"/><stop offset="1" stop-color="{palette[1]}"/></linearGradient><pattern id="actorPattern" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="16" height="64" fill="#ffffff" fill-opacity=".035"/></pattern></defs><rect width="600" height="760" rx="28" fill="url(#actorGradient)"/><rect width="600" height="760" rx="28" fill="url(#actorPattern)"/><circle cx="500" cy="90" r="150" fill="{palette[2]}" fill-opacity=".13"/><rect x="92" y="104" width="416" height="414" rx="78" fill="#ffffff" fill-opacity=".11" stroke="#ffffff" stroke-opacity=".38" stroke-width="4"/><circle cx="300" cy="300" r="164" fill="#ffffff" fill-opacity=".08" stroke="#ffffff" stroke-opacity=".24" stroke-width="3"/><text x="300" y="342" text-anchor="middle" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="118" font-weight="800">{safe_initials}</text><line x1="150" y1="520" x2="450" y2="520" stroke="{palette[2]}" stroke-width="12" stroke-linecap="round"/><text x="300" y="592" text-anchor="middle" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="38" font-weight="750">{safe_name}</text><rect x="142" y="626" width="316" height="92" rx="24" fill="#ffffff" fill-opacity=".92"/><text x="300" y="676" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400">X</tspan></text><text x="300" y="704" text-anchor="middle" fill="#344054" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="700">ACTOR PROFILE</text></svg>'''
-    return _home_svg_data_uri(svg)
-
-
-def _build_actor_rankings_ssr_html():
-    template = (BASE_DIR / "rankings.html").read_text(encoding="utf-8")
-    rankings = _actor_rankings_ssr_rows(100)
-    cards = []
-    for actor in rankings:
-        name = str(actor.get("name") or "Actor")
-        url = str(actor.get("url") or "/actors.html")
-        image = _actor_rankings_placeholder(name)
-        total = _actor_rankings_ssr_number(actor.get("total_worldwide"))
-        movie_count = int(actor.get("movie_count") or 0)
-        blockbusters = int(actor.get("blockbusters") or 0)
-        rank = int(actor.get("rank") or 0)
-        cards.append(f'''<a class="rank" href="{html_escape(url, quote=True)}" aria-label="{html_escape(name, quote=True)} box office profile">
-    <div class="rank-number">#{rank}</div>
-    <img src="{html_escape(image, quote=True)}" alt="{html_escape(name, quote=True)}" loading="lazy">
-    <div><div class="name">{html_escape(name)}</div><div class="stats">{movie_count} movies | ₹{total} Cr | {blockbusters} Blockbusters</div></div>
-</a>''')
-    ranking_html = "\n".join(cards) if cards else "No actors found."
-    start_marker = '<div id="rankings">'
-    start = template.find(start_marker)
-    if start < 0:
-        raise RuntimeError("actor rankings container not found")
-    close = template.find('</div>', start + len(start_marker))
-    if close < 0:
-        raise RuntimeError("actor rankings container end not found")
-    return template[:start] + '<div id="rankings" data-ssr="1">\n' + ranking_html + '\n' + template[close:]
-
-
-def _refresh_actor_rankings_ssr_cache():
-    global _actor_rankings_html_refreshing
-    try:
-        rendered = _build_actor_rankings_ssr_html()
-        with _actor_rankings_html_cache_lock:
-            _actor_rankings_html_cache["html"] = rendered
-            _actor_rankings_html_cache["expires_at"] = time_module.monotonic() + ACTOR_RANKINGS_HTML_CACHE_TTL
-    except Exception as exc:
-        print("Actor rankings SSR cache refresh failed:", type(exc).__name__, exc, flush=True)
-    finally:
-        with _actor_rankings_html_cache_lock:
-            _actor_rankings_html_refreshing = False
-
-
-def _start_actor_rankings_ssr_refresh():
-    global _actor_rankings_html_refreshing
-    with _actor_rankings_html_cache_lock:
-        if _actor_rankings_html_refreshing:
-            return
-        _actor_rankings_html_refreshing = True
-    threading.Thread(target=_refresh_actor_rankings_ssr_cache, daemon=True).start()
-
-
-def _get_cached_actor_rankings_html():
-    now = time_module.monotonic()
-    with _actor_rankings_html_cache_lock:
-        cached_html = _actor_rankings_html_cache.get("html")
-        expires_at = _actor_rankings_html_cache.get("expires_at", 0.0)
-    if cached_html and expires_at > now:
-        return cached_html, "HIT"
-    if cached_html:
-        _start_actor_rankings_ssr_refresh()
-        return cached_html, "STALE"
-    rendered = _build_actor_rankings_ssr_html()
-    with _actor_rankings_html_cache_lock:
-        _actor_rankings_html_cache["html"] = rendered
-        _actor_rankings_html_cache["expires_at"] = time_module.monotonic() + ACTOR_RANKINGS_HTML_CACHE_TTL
-    return rendered, "MISS"
-
-
 @app.get("/rankings.html")
 def rankings_page():
-    try:
-        rendered, cache_state = _get_cached_actor_rankings_html()
-        return HTMLResponse(content=rendered, headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=240", "X-BoxOfficeX-Actor-Rankings": "cached-ssr", "X-BoxOfficeX-Cache": cache_state})
-    except Exception as exc:
-        print("Actor rankings SSR fallback:", type(exc).__name__, exc, flush=True)
-        return FileResponse(BASE_DIR / "rankings.html", headers={"Cache-Control": "no-store", "X-BoxOfficeX-Actor-Rankings": "ssr-fallback", "X-BoxOfficeX-SSR-Error": type(exc).__name__})
+    return FileResponse(BASE_DIR / "rankings.html")
 
 
 @app.get("/disclaimer.html")
@@ -6518,8 +6397,7 @@ def actor_rankings(language: str = "All"):
             "movie_count": row[3],
             "total_worldwide": float(row[4]),
             "average_worldwide": float(row[5]),
-            "blockbusters": row[6],
-            "url": public_actor_url(row[0])
+            "blockbusters": row[6]
         })
 
     return {
