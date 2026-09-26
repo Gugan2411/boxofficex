@@ -3570,9 +3570,169 @@ def seo_resolve_actor(actor_slug: str):
     return actor
 
 
+# ============================================================
+# ACTORS LIST - NON-BLOCKING CACHED SSR
+# ============================================================
+
+ACTORS_LIST_HTML_CACHE_TTL = 300
+_actors_list_html_cache = {"html": None, "expires_at": 0.0}
+_actors_list_html_cache_lock = threading.Lock()
+_actors_list_html_refreshing = False
+
+_ACTORS_LIST_FEATURED_GROUPS = [
+    ("Tamil", [7, 8, 9, 10, 11]),
+    ("Telugu", [27, 28, 29, 30, 31]),
+    ("Hindi", [37, 38, 39, 40, 41]),
+    ("Malayalam", [47, 48, 49, 50, 51]),
+    ("Kannada", [54, 55, 56, 57, 58]),
+]
+
+
+def _actors_list_ssr_card(actor):
+    name = str(actor.get("name") or "Actor").strip() or "Actor"
+    profession = str(actor.get("profession") or "Actor").strip() or "Actor"
+    url = str(actor.get("url") or "/actors.html")
+    # actors.html intentionally uses branded placeholders for copyright-safe parity.
+    photo = _home_actor_placeholder(name)
+    return (
+        f'<a class="actor-card" href="{html_escape(url, quote=True)}" '
+        f'aria-label="View {html_escape(name, quote=True)} actor profile">'
+        f'<img src="{html_escape(photo, quote=True)}" data-actor-name="{html_escape(name, quote=True)}" '
+        f'alt="{html_escape(name, quote=True)}" loading="lazy">'
+        f'<div class="actor-name">{html_escape(name)}</div>'
+        f'<div class="actor-profession">{html_escape(profession)}</div>'
+        f'</a>'
+    )
+
+
+def _render_actors_list_html():
+    template = (BASE_DIR / "actors.html").read_text(encoding="utf-8")
+    data = get_actors()
+    actors = list(data.get("actors") or [])
+    by_id = {int(actor["id"]): actor for actor in actors if actor.get("id") is not None}
+
+    sections = []
+    visible = []
+    for language, ids in _ACTORS_LIST_FEATURED_GROUPS:
+        group = [by_id[actor_id] for actor_id in ids if actor_id in by_id]
+        if not group:
+            continue
+        visible.extend(group)
+        cards = "".join(_actors_list_ssr_card(actor) for actor in group)
+        sections.append(
+            '<section class="language-section">'
+            f'<h2 class="language-heading">🎬 {html_escape(language)}</h2>'
+            '<div class="swipe-hint">↔ Swipe to explore more</div>'
+            f'<div class="language-grid">{cards}</div>'
+            '</section>'
+        )
+
+    ssr_grid = f'<div id="actorsGrid" class="actor-grid" data-ssr="1">{"".join(sections)}</div>'
+    grid_pattern = re.compile(r'<div\s+id="actorsGrid"\s+class="actor-grid"\s*>.*?</div>\s*(?=<section\s+class="bx-popular-comparisons")', re.S | re.I)
+    template, count = grid_pattern.subn(ssr_grid + "\n\n    ", template, count=1)
+    if count != 1:
+        raise RuntimeError("Actors list SSR body injection failed")
+
+    item_list = []
+    for position, actor in enumerate(visible, 1):
+        item_list.append({
+            "@type": "ListItem",
+            "position": position,
+            "name": actor.get("name") or "Actor",
+            "url": "https://boxofficex.in" + str(actor.get("url") or "/actors.html"),
+        })
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Indian Actors, Movies & Box Office Careers | BoxOfficeX",
+        "url": "https://boxofficex.in/actors.html",
+        "description": "Explore popular Indian actors across Tamil, Telugu, Hindi, Malayalam and Kannada cinema, with movies, box office collections, career highlights and verdicts on BoxOfficeX.",
+        "mainEntity": {"@type": "ItemList", "itemListElement": item_list},
+    }
+    json_ld = json.dumps(structured, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    template, count = re.subn(
+        r'<script\s+id="actorsStructuredData"\s+type="application/ld\+json"\s*>.*?</script>',
+        f'<script id="actorsStructuredData" type="application/ld+json">{json_ld}</script>',
+        template,
+        count=1,
+        flags=re.S | re.I,
+    )
+    if count != 1:
+        raise RuntimeError("Actors list structured-data injection failed")
+
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    marker = "</head>"
+    if marker not in template:
+        raise RuntimeError("Actors list </head> marker missing")
+    template = template.replace(
+        marker,
+        f'<script>window.__BOXOFFICEX_ACTORS_SSR_DATA__={payload};</script>\n{marker}',
+        1,
+    )
+
+    if 'id="actorsGrid" class="actor-grid" data-ssr="1"' not in template:
+        raise RuntimeError("Actors list SSR validation failed")
+    if 'href="/actor/' not in template:
+        raise RuntimeError("Actors list crawlable href validation failed")
+    return template
+
+
+def _refresh_actors_list_cache():
+    global _actors_list_html_refreshing
+    try:
+        rendered = _render_actors_list_html()
+        with _actors_list_html_cache_lock:
+            _actors_list_html_cache["html"] = rendered
+            _actors_list_html_cache["expires_at"] = time_module.monotonic() + ACTORS_LIST_HTML_CACHE_TTL
+    except Exception as exc:
+        print("Actors list SSR cache refresh failed:", type(exc).__name__, exc, flush=True)
+    finally:
+        with _actors_list_html_cache_lock:
+            _actors_list_html_refreshing = False
+
+
+def _start_actors_list_refresh():
+    global _actors_list_html_refreshing
+    with _actors_list_html_cache_lock:
+        if _actors_list_html_refreshing:
+            return
+        _actors_list_html_refreshing = True
+    threading.Thread(target=_refresh_actors_list_cache, name="actors-list-ssr", daemon=True).start()
+
+
+@app.on_event("startup")
+def warm_actors_list_ssr_cache():
+    _start_actors_list_refresh()
+
+
 @app.get("/actors.html")
 def actors_page():
-    return FileResponse(BASE_DIR / "actors.html")
+    now = time_module.monotonic()
+    with _actors_list_html_cache_lock:
+        cached_html = _actors_list_html_cache.get("html")
+        expires_at = float(_actors_list_html_cache.get("expires_at") or 0.0)
+
+    if cached_html and expires_at > now:
+        return HTMLResponse(content=cached_html, headers={
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+            "X-BoxOfficeX-Actors-List": "cached-ssr",
+            "X-BoxOfficeX-Cache": "HIT",
+        })
+
+    if cached_html:
+        _start_actors_list_refresh()
+        return HTMLResponse(content=cached_html, headers={
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+            "X-BoxOfficeX-Actors-List": "cached-ssr",
+            "X-BoxOfficeX-Cache": "STALE",
+        })
+
+    _start_actors_list_refresh()
+    return FileResponse(BASE_DIR / "actors.html", headers={
+        "Cache-Control": "no-store",
+        "X-BoxOfficeX-Actors-List": "warming",
+        "X-BoxOfficeX-Cache": "WARMING",
+    })
 
 
 def resolve_actor_comparison_slug(comparison_slug: str):

@@ -397,6 +397,12 @@
                 box-shadow 0.25s ease;
         }
 
+
+        .actor-card {
+            color: inherit;
+            text-decoration: none;
+        }
+
         .actor-card:hover {
             transform: translateY(-8px);
 
@@ -3329,45 +3335,32 @@ setupActorsSEO();
 
 function loadActors() {
 
+    const ssrData = window.__BOXOFFICEX_ACTORS_SSR_DATA__;
+    const ssrGrid = document.getElementById("actorsGrid")?.dataset?.ssr === "1";
+
+    if (ssrGrid && ssrData && Array.isArray(ssrData.actors)) {
+        // Keep server-rendered actor cards/hrefs untouched for crawlability.
+        // The same payload still powers the interactive comparison section.
+        renderPopularActorComparisons(ssrData.actors);
+        return;
+    }
+
     fetch(window.location.origin + "/actors")
-
         .then(response => {
-
             if (!response.ok) {
-
-                throw new Error(
-                    "Actors API error: " +
-                    response.status
-                );
-
+                throw new Error("Actors API error: " + response.status);
             }
-
             return response.json();
-
         })
-
         .then(data => {
-
             const actors = data.actors || [];
             displayActors(actors);
             renderPopularActorComparisons(actors);
-
         })
-
         .catch(error => {
-
-            console.error(
-                "Actors loading error:",
-                error
-            );
-
-            document.getElementById(
-                "actorsGrid"
-            ).innerHTML =
-                "Unable to load actors.";
-
+            console.error("Actors loading error:", error);
+            document.getElementById("actorsGrid").innerHTML = "Unable to load actors.";
         });
-
 }
 
 
@@ -3506,8 +3499,10 @@ function displayActors(actors) {
 
         featuredActors.forEach(actor => {
 
-            const card = document.createElement("div");
+            const card = document.createElement("a");
             card.className = "actor-card";
+            card.href = actor.url || (actor.slug ? "/actor/" + encodeURIComponent(actor.slug) : "/actors.html");
+            card.setAttribute("aria-label", `View ${actor.name || "Actor"} actor profile`);
 
             /*
                If photo is NULL/blank -> default image.
@@ -3533,18 +3528,6 @@ function displayActors(actors) {
                     ${escapeSearchHTML(actor.profession || "Actor")}
                 </div>
             `;
-
-            card.onclick = function () {
-                if (actor.url) {
-                    window.location.href = actor.url;
-                    return;
-                }
-
-                if (actor.slug) {
-                    window.location.href =
-                        "/actor/" + encodeURIComponent(actor.slug);
-                }
-            };
 
             languageGrid.appendChild(card);
         });
