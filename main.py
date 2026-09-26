@@ -8132,8 +8132,10 @@ def admin_unlink_actor_movie(
 # ============================================================
 
 ARTICLE_DETAIL_HTML_CACHE_TTL = 60
+ARTICLE_DETAIL_HTML_STALE_TTL = 300
 _article_detail_html_cache = {}
 _article_detail_cache_lock = threading.Lock()
+_article_detail_refreshing = set()
 
 
 def _article_ssr_image(value, fallback="/images/boxofficex-og.png"):
@@ -8626,30 +8628,86 @@ def article_page(slug: Optional[str] = None):
     return RedirectResponse(url=f"/article/{article['slug']}", status_code=301)
 
 
+def _refresh_article_detail_cache(slug: str):
+    try:
+        rendered = _render_article_detail_html(slug)
+        now = time_module.monotonic()
+        with _article_detail_cache_lock:
+            _article_detail_html_cache[slug] = {
+                "html": rendered,
+                "expires_at": now + ARTICLE_DETAIL_HTML_CACHE_TTL,
+                "stale_until": now + ARTICLE_DETAIL_HTML_CACHE_TTL + ARTICLE_DETAIL_HTML_STALE_TTL,
+            }
+    except Exception as exc:
+        print(f"[Article SSR] refresh failed for {slug}: {exc}")
+    finally:
+        with _article_detail_cache_lock:
+            _article_detail_refreshing.discard(slug)
+
+
+def _start_article_detail_refresh(slug: str) -> bool:
+    with _article_detail_cache_lock:
+        if slug in _article_detail_refreshing:
+            return False
+        _article_detail_refreshing.add(slug)
+
+    threading.Thread(
+        target=_refresh_article_detail_cache,
+        args=(slug,),
+        daemon=True,
+        name=f"article-ssr-{slug[:40]}",
+    ).start()
+    return True
+
+
+def _article_detail_headers(state: str):
+    return {
+        "Cache-Control": "public, max-age=30, stale-while-revalidate=300",
+        "X-BoxOfficeX-Article": "cached-ssr" if state != "WARMING" else "warming",
+        "X-BoxOfficeX-Cache": state,
+    }
+
+
 @app.get("/article/{slug}", response_class=HTMLResponse)
 def article_pretty_page(slug: str):
     now = time_module.monotonic()
+
     with _article_detail_cache_lock:
         cached = _article_detail_html_cache.get(slug)
         if cached and cached.get("expires_at", 0) > now:
-            return HTMLResponse(content=cached["html"], headers={
-                "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
-                "X-BoxOfficeX-Article": "cached-ssr",
-                "X-BoxOfficeX-Cache": "HIT",
-            })
+            return HTMLResponse(
+                content=cached["html"],
+                headers=_article_detail_headers("HIT"),
+            )
 
-    rendered = _render_article_detail_html(slug)
-    with _article_detail_cache_lock:
-        _article_detail_html_cache[slug] = {
-            "html": rendered,
-            "expires_at": time_module.monotonic() + ARTICLE_DETAIL_HTML_CACHE_TTL,
-        }
+        stale_html = None
+        if cached and cached.get("html") and cached.get("stale_until", 0) > now:
+            stale_html = cached["html"]
 
-    return HTMLResponse(content=rendered, headers={
-        "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
-        "X-BoxOfficeX-Article": "cached-ssr",
-        "X-BoxOfficeX-Cache": "MISS",
-    })
+    if stale_html is not None:
+        _start_article_detail_refresh(slug)
+        return HTMLResponse(
+            content=stale_html,
+            headers=_article_detail_headers("STALE"),
+        )
+
+    # Cold/fully-expired cache: never make the visitor wait for expensive SSR.
+    # Start regeneration in the background and return the normal article shell.
+    # article.html's JS fallback loads the article API on this one cold request.
+    _start_article_detail_refresh(slug)
+
+    article_file = BASE_DIR / "article.html"
+    if not article_file.is_file():
+        raise HTTPException(status_code=500, detail="article.html not found")
+
+    return HTMLResponse(
+        content=article_file.read_text(encoding="utf-8"),
+        headers={
+            "Cache-Control": "no-store",
+            "X-BoxOfficeX-Article": "warming",
+            "X-BoxOfficeX-Cache": "WARMING",
+        },
+    )
 
 
 # BOXOFFICEX ARTICLES API

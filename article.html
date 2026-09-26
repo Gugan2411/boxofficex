@@ -5788,6 +5788,22 @@ async function loadArticle() {
             ? null
             : new URLSearchParams(window.location.search).get("admin_preview");
 
+    // SSR V2: for normal public article pages the backend already injected the
+    // complete article payload. Reuse it instead of immediately requesting
+    // /articles/{slug} again. Admin preview intentionally keeps its API flow.
+    const ssrApp = document.getElementById("app");
+    const ssrArticle = window.__BOXOFFICEX_ARTICLE_SSR_DATA__;
+    if (
+        slug &&
+        !adminPreviewId &&
+        ssrApp?.dataset?.ssr === "1" &&
+        ssrArticle &&
+        String(ssrArticle.slug || "") === String(slug)
+    ) {
+        await renderArticle(ssrArticle);
+        return;
+    }
+
     if (!slug && !adminPreviewId) {
         document.getElementById("app").innerHTML = `
             <div class="error-state">
