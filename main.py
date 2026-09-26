@@ -9081,6 +9081,37 @@ def normalize_article_slug(value: str) -> str:
     return value
 
 
+def _article_is_live_boxoffice(title: str) -> bool:
+    """Return True only for clearly identified live box-office articles."""
+    value = re.sub(r"\s+", " ", str(title or "")).strip().lower()
+    return "live" in value and "box office" in value
+
+
+def _article_admin_seo_values(data):
+    """
+    Live tracker titles change frequently (Day 1 -> Day 2 -> Day 3).
+    Keep search/social metadata aligned with the current title/subtitle.
+    Normal editorial articles continue to respect manual SEO fields.
+    """
+    title = str(data.title or "").strip()
+    subtitle = str(data.subtitle or "").strip()
+
+    if _article_is_live_boxoffice(title):
+        return title, (subtitle or title)
+
+    return data.meta_title, data.meta_description
+
+
+def _invalidate_article_detail_cache(*slugs):
+    """Invalidate only the affected per-article SSR cache entries."""
+    clean = {str(slug or "").strip() for slug in slugs if str(slug or "").strip()}
+    if not clean:
+        return
+    with _article_detail_cache_lock:
+        for slug in clean:
+            _article_detail_html_cache.pop(slug, None)
+
+
 def validate_article_status(value: str) -> str:
     allowed = {"draft", "published", "archived"}
     value = (value or "draft").lower().strip()
@@ -9596,6 +9627,7 @@ def admin_create_article(data: AdminArticleCreate):
 
     status = validate_article_status(data.status)
     published_at = data.published_at
+    effective_meta_title, effective_meta_description = _article_admin_seo_values(data)
 
     if status == "published" and published_at is None:
         published_at = datetime.now()
@@ -9627,8 +9659,8 @@ def admin_create_article(data: AdminArticleCreate):
                     data.hero_caption,
                     data.hero_credit,
                     status,
-                    data.meta_title,
-                    data.meta_description,
+                    effective_meta_title,
+                    effective_meta_description,
                     published_at,
                 ))
                 article_id = cur.fetchone()[0]
@@ -9637,8 +9669,11 @@ def admin_create_article(data: AdminArticleCreate):
 
         conn.commit()
 
+    _invalidate_article_detail_cache(slug)
+
     return {
         "success": True,
+        "seo_auto_synced": _article_is_live_boxoffice(data.title),
         "article_id": article_id,
         "slug": slug,
         "article_url": f"/article/{slug}",
@@ -9653,6 +9688,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
 
     status = validate_article_status(data.status)
     published_at = data.published_at
+    effective_meta_title, effective_meta_description = _article_admin_seo_values(data)
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -9710,8 +9746,8 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
                     data.hero_caption,
                     data.hero_credit,
                     status,
-                    data.meta_title,
-                    data.meta_description,
+                    effective_meta_title,
+                    effective_meta_description,
                     published_at,
                     article_id,
                 ))
@@ -9720,8 +9756,11 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
 
         conn.commit()
 
+    _invalidate_article_detail_cache(existing_slug, slug)
+
     return {
         "success": True,
+        "seo_auto_synced": _article_is_live_boxoffice(data.title),
         "article_id": article_id,
         "slug": slug,
         "slug_locked": slug_is_locked or status == "published",
