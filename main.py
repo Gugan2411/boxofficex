@@ -3668,6 +3668,7 @@ def _render_actor_comparison_html(comparison):
     highest = payload.get("highest_grossing") or {}
     h1 = (highest.get(str(actor1["id"])) or {}).get("movie")
     h2 = (highest.get(str(actor2["id"])) or {}).get("movie")
+    actors_catalog = payload.get("actors_catalog") or []
 
     name1 = str(left.get("name") or actor1.get("name") or "Actor").strip()
     name2 = str(right.get("name") or actor2.get("name") or "Actor").strip()
@@ -3704,8 +3705,8 @@ def _render_actor_comparison_html(comparison):
                 url += f"?verdict={quote(str(verdict), safe='')}"
             return url
 
-        left_url = actor_movies_url(slug1)
-        right_url = actor_movies_url(slug2)
+        left_url = actor_movies_url(actor1["slug"])
+        right_url = actor_movies_url(actor2["slug"])
         return (
             '<div class="stat-row">'
             f'<a class="stat-value clickable-stat" href="{html_escape(left_url, quote=True)}" '
@@ -3715,6 +3716,87 @@ def _render_actor_comparison_html(comparison):
             f'<a class="stat-value clickable-stat" href="{html_escape(right_url, quote=True)}" '
             'style="color:inherit;text-decoration:none">'
             f'{html_escape(str(v2))}</a></div>'
+        )
+
+    def related_comparisons_html():
+        current_ids = {str(actor1.get("id", "")), str(actor2.get("id", ""))}
+        current_names = {name1.lower(), name2.lower()}
+        candidates = []
+        for item in actors_catalog:
+            item_name = str(item.get("name") or "").strip()
+            if not item_name:
+                continue
+            if str(item.get("id", "")) in current_ids or item_name.lower() in current_names:
+                continue
+            candidates.append(item)
+
+        languages = {
+            str(v or "").strip().lower()
+            for v in (left.get("language"), right.get("language"))
+            if str(v or "").strip()
+        }
+        ranked = sorted(
+            enumerate(candidates),
+            key=lambda pair: (
+                -int(bool(languages) and str(pair[1].get("language") or "").strip().lower() in languages),
+                pair[0],
+            ),
+        )
+        picked = [item for _, item in ranked[:6]]
+        if not picked:
+            return ""
+
+        def related_slug(item):
+            actor_id = item.get("id")
+            try:
+                actor_id = int(actor_id)
+            except (TypeError, ValueError):
+                actor_id = None
+            # Use the canonical slug map whenever possible; fall back to the same
+            # public slug normalization used by the client for catalogue entries.
+            if actor_id is not None:
+                try:
+                    slug_map = _unique_actor_slug_map()
+                    if actor_id in slug_map:
+                        return slug_map[actor_id]
+                except Exception:
+                    pass
+            raw = str(item.get("slug") or item.get("name") or "").strip().lower()
+            raw = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode("ascii")
+            return re.sub(r"^-+|-+$", "", re.sub(r"[^a-z0-9]+", "-", raw))
+
+        # Resolve once for the two current actors; these are already canonical.
+        current_slug_by_id = {int(actor1["id"]): actor1["slug"], int(actor2["id"]): actor2["slug"]}
+        links = []
+        for index, other in enumerate(picked):
+            base = left if index % 2 == 0 else right
+            base_id = int(base.get("id"))
+            other_id = int(other.get("id"))
+            other_slug = related_slug(other)
+            base_slug = current_slug_by_id.get(base_id) or related_slug(base)
+            ordered = sorted([(base_id, base_slug), (other_id, other_slug)], key=lambda x: x[0])
+            if not ordered[0][1] or not ordered[1][1]:
+                continue
+            href = f"/compare/{quote(ordered[0][1], safe='')}-vs-{quote(ordered[1][1], safe='')}"
+            base_name = str(base.get("name") or "Actor").strip()
+            other_name = str(other.get("name") or "Actor").strip()
+            base_img = _home_actor_placeholder(base_name)
+            other_img = _home_actor_placeholder(other_name)
+            links.append(
+                f'<a class="bx-related-comparison-link" href="{html_escape(href, quote=True)}" '
+                f'aria-label="{html_escape(base_name, quote=True)} vs {html_escape(other_name, quote=True)} actor comparison">'
+                f'<span class="bx-related-person"><img src="{html_escape(base_img, quote=True)}" alt="{html_escape(base_name, quote=True)}" loading="lazy"><strong>{html_escape(base_name)}</strong></span>'
+                f'<span class="bx-related-vs-badge">VS</span>'
+                f'<span class="bx-related-person"><img src="{html_escape(other_img, quote=True)}" alt="{html_escape(other_name, quote=True)}" loading="lazy"><strong>{html_escape(other_name)}</strong></span>'
+                f'<span class="bx-related-open">View Comparison →</span></a>'
+            )
+        if not links:
+            return ""
+        return (
+            '<section class="bx-related-comparisons" aria-labelledby="bxRelatedComparisonsTitle">'
+            '<div class="bx-related-comparisons-head"><h2 id="bxRelatedComparisonsTitle">🔥 More Related Actor Comparisons</h2>'
+            f'<p>Keep exploring {html_escape(name1)} and {html_escape(name2)} against other actors.</p></div>'
+            f'<div class="bx-related-comparisons-grid">{"".join(links)}</div></section>'
         )
 
     def highest_card(actor_name, movie):
@@ -3765,6 +3847,7 @@ def _render_actor_comparison_html(comparison):
         + '<div class="highest-section"><h2 class="highest-section-title">🏆 Highest-Grossing Movies</h2><div class="highest-grid">'
         + highest_card(name1, h1) + highest_card(name2, h2)
         + '</div></div>'
+        + related_comparisons_html()
         + '<div class="bx-ssr-comparison-note">'
         + f'<p><strong>{html_escape(name1)} vs {html_escape(name2)}</strong> comparison includes career movie counts, worldwide collections, verdict records and highest-grossing films. Interactive scoring, ROI, Fan Zone and live engagement load in the browser.</p>'
         + '</div></div>'
