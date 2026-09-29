@@ -4265,72 +4265,36 @@ function renderMovieSection(gridId, countId, movies, status) {
     });
 }
 
-fetch(window.location.origin + "/movies/new-system")
-
-.then(response => {
-
-    if (!response.ok) {
-        throw new Error(
-            "New Movie System API error: " +
-            response.status
-        );
-    }
-
-    return response.json();
-
-})
-
-.then(data => {
-
+function boxOfficeXApplyNewMoviesData(data, renderMovieGrids = true) {
     renderNewMovieComparisons(data);
+    if (!renderMovieGrids) return;
 
-    renderMovieSection(
-        "runningGrid",
-        "runningCount",
-        data.running,
-        "running"
-    );
+    renderMovieSection("runningGrid", "runningCount", data.running, "running");
+    renderMovieSection("upcomingGrid", "upcomingCount", data.upcoming, "upcoming");
+    renderMovieSection("recentGrid", "recentCount", data.recent, "final");
+}
 
-    renderMovieSection(
-        "upcomingGrid",
-        "upcomingCount",
-        data.upcoming,
-        "upcoming"
-    );
+const bxNewMoviesSSR =
+    document.getElementById("runningGrid")?.dataset?.ssr === "1" &&
+    window.__BOXOFFICEX_NEW_MOVIES_SSR_DATA__;
 
-    renderMovieSection(
-        "recentGrid",
-        "recentCount",
-        data.recent,
-        "final"
-    );
-
-})
-
-.catch(error => {
-
-    console.error(
-        "New movie system loading error:",
-        error
-    );
-
-    [
-        "runningGrid",
-        "upcomingGrid",
-        "recentGrid"
-    ].forEach(id => {
-
-        document.getElementById(id).innerHTML = `
-            <div class="error">
-                Unable to load new movies.
-                <br><br>
-                Check whether FastAPI is running.
-            </div>
-        `;
-
+if (bxNewMoviesSSR) {
+    boxOfficeXApplyNewMoviesData(window.__BOXOFFICEX_NEW_MOVIES_SSR_DATA__, false);
+} else {
+    fetch(window.location.origin + "/movies/new-system")
+    .then(response => {
+        if (!response.ok) throw new Error("New Movie System API error: " + response.status);
+        return response.json();
+    })
+    .then(data => boxOfficeXApplyNewMoviesData(data, true))
+    .catch(error => {
+        console.error("New movie system loading error:", error);
+        ["runningGrid", "upcomingGrid", "recentGrid"].forEach(id => {
+            document.getElementById(id).innerHTML =
+                '<div class="error">Unable to load new movies.</div>';
+        });
     });
-
-});
+}
 
 
 

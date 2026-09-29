@@ -2458,6 +2458,18 @@ body.bx-bottom-ad-visible{
         margin-top:1px;
     }
 }
+
+
+/* ACTOR SEO + THEATRICAL PERFORMANCE V2 */
+.actor #actorName{margin-bottom:8px}
+#boxOfficeOverviewGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+#boxOfficeOverviewGrid .overview-card{min-width:0}
+#boxOfficeOverviewGrid .overview-value{overflow-wrap:anywhere}
+.actor-data-note{margin:12px 0 0;color:#7f8ba5;font-size:10px;line-height:1.55}
+.top-movie-financials{margin-top:7px;color:#aeb8ce;font-size:11px;line-height:1.55}
+.movie-financials{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:7px;color:#aeb8ce;font-size:13px;line-height:1.5}
+@media(max-width:900px){#boxOfficeOverviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.actor-deck{font-size:13px;line-height:1.68}.actor-freshness{font-size:10px}#boxOfficeOverviewGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.movie-financials{font-size:11px}}
 </style>
 
 
@@ -3647,7 +3659,1460 @@ html,body{scroll-padding-top:0!important}
 @media(max-width:320px){
   [id^="bxSmartAdSlot"] .bx-smart-ad-card{width:calc(100vw - 20px) !important;height:auto !important;aspect-ratio:6/5 !important}
 }
+
+/* =========================================================
+   BOXOFFICEX ACTOR PAGE — CLEAN UI POLISH
+   UI ONLY — NO STRUCTURE / JS / API CHANGES
+========================================================= */
+
+:root{
+    --bx-bg:#f4f7fb;
+    --bx-surface:#ffffff;
+    --bx-soft:#f8fafc;
+
+    --bx-text:#0f172a;
+    --bx-text-2:#334155;
+    --bx-muted:#64748b;
+
+    --bx-border:#e2e8f0;
+
+    --bx-blue:#2563eb;
+    --bx-blue-soft:#eff6ff;
+
+    --bx-gold:#d97706;
+    --bx-gold-soft:#fffbeb;
+
+    --bx-red:#dc2626;
+    --bx-green:#059669;
+
+    --bx-radius:16px;
+
+    --bx-shadow:
+        0 4px 18px rgba(15,23,42,.045);
+
+    --bx-shadow-hover:
+        0 10px 28px rgba(15,23,42,.08);
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+body{
+    background:
+        linear-gradient(
+            180deg,
+            #f8fafc 0,
+            var(--bx-bg) 420px
+        ) !important;
+
+    color:var(--bx-text) !important;
+}
+
+
+/* =========================================================
+   MAIN CONTENT WIDTH
+========================================================= */
+
+.container{
+    max-width:1120px !important;
+}
+
+
+/* =========================================================
+   ACTOR PROFILE
+========================================================= */
+
+.actor{
+    position:relative;
+
+    overflow:hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff 0%,
+            #f8fbff 100%
+        ) !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    border-radius:
+        20px !important;
+
+    box-shadow:
+        0 8px 30px rgba(15,23,42,.055) !important;
+}
+
+
+/* subtle top accent */
+
+.actor::before{
+    content:"";
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:3px;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--bx-blue),
+            #60a5fa,
+            #f59e0b
+        );
+}
+
+
+/* Actor photo */
+
+#actorPhoto{
+    border:
+        1px solid #e2e8f0 !important;
+
+    box-shadow:
+        0 8px 22px rgba(15,23,42,.10) !important;
+}
+
+
+/* Actor name */
+
+#actorName{
+    color:
+        var(--bx-text) !important;
+
+    letter-spacing:
+        -.7px;
+
+    line-height:
+        1.08;
+}
+
+
+/* Profession */
+
+#profession{
+    color:
+        var(--bx-gold) !important;
+
+    font-weight:
+        800;
+}
+
+
+/* Bio */
+
+#bio{
+    color:
+        var(--bx-muted) !important;
+
+    line-height:
+        1.7 !important;
+}
+
+
+/* Views */
+
+.actor-view-count{
+    background:
+        var(--bx-blue-soft) !important;
+
+    color:
+        var(--bx-blue) !important;
+
+    border:
+        1px solid #bfdbfe !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.section,
+.verdict-section{
+
+    background:
+        var(--bx-surface) !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    border-radius:
+        var(--bx-radius) !important;
+
+    box-shadow:
+        var(--bx-shadow) !important;
+}
+
+
+/* Section headings */
+
+.section h2,
+.verdict-section h2{
+
+    position:relative;
+
+    color:
+        var(--bx-text) !important;
+
+    font-weight:
+        850;
+
+    letter-spacing:
+        -.25px;
+}
+
+
+/* small blue accent before headings */
+
+.section > h2::before,
+.verdict-section > h2::before{
+
+    content:"";
+
+    display:inline-block;
+
+    width:4px;
+    height:18px;
+
+    margin-right:9px;
+
+    border-radius:10px;
+
+    vertical-align:-3px;
+
+    background:
+        var(--bx-blue);
+}
+
+
+/* =========================================================
+   CAREER OVERVIEW
+========================================================= */
+
+.overview-card{
+
+    background:
+        var(--bx-soft) !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    border-radius:
+        14px !important;
+
+    box-shadow:
+        none !important;
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease !important;
+}
+
+
+.overview-card:hover{
+
+    transform:
+        translateY(-2px) !important;
+
+    background:
+        #ffffff !important;
+
+    border-color:
+        #bfdbfe !important;
+
+    box-shadow:
+        0 7px 20px rgba(15,23,42,.065) !important;
+}
+
+
+.overview-label{
+
+    color:
+        var(--bx-muted) !important;
+
+    font-weight:
+        650;
+
+    letter-spacing:
+        .1px;
+}
+
+
+.overview-value{
+
+    color:
+        var(--bx-text) !important;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        -.3px;
+}
+
+
+/* Highest grosser card */
+
+.overview-highlight-card{
+
+    background:
+        linear-gradient(
+            145deg,
+            #fffbeb,
+            #ffffff
+        ) !important;
+
+    border-color:
+        #fde68a !important;
+}
+
+
+.overview-highlight-card .overview-value{
+
+    color:
+        #b45309 !important;
+}
+
+
+.overview-highlight-card::after{
+
+    color:
+        #b45309 !important;
+}
+
+
+/* Clickable verdict overview cards */
+
+.overview-verdict-card::after{
+
+    color:
+        var(--bx-blue) !important;
+}
+
+
+.overview-verdict-card:hover,
+.overview-verdict-card:focus-visible{
+
+    background:
+        var(--bx-blue-soft) !important;
+
+    border-color:
+        #93c5fd !important;
+}
+
+
+/* Selected verdict */
+
+.overview-verdict-card.active-verdict{
+
+    background:
+        #fff1f2 !important;
+
+    border-color:
+        #fda4af !important;
+
+    box-shadow:
+        0 6px 18px rgba(220,38,38,.06) !important;
+}
+
+
+.overview-verdict-card.active-verdict::after{
+
+    color:
+        var(--bx-red) !important;
+}
+
+
+/* =========================================================
+   TOP 5 MOVIES
+========================================================= */
+
+.top-movie-card{
+
+    background:
+        #ffffff !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    border-radius:
+        14px !important;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 2px 8px rgba(15,23,42,.035);
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease !important;
+}
+
+
+.top-movie-card:hover{
+
+    transform:
+        translateY(-3px) !important;
+
+    border-color:
+        #bfdbfe !important;
+
+    box-shadow:
+        var(--bx-shadow-hover) !important;
+}
+
+
+.top-movie-card img{
+
+    border-radius:
+        10px !important;
+
+    background:
+        #e2e8f0 !important;
+}
+
+
+.top-movie-title{
+
+    color:
+        var(--bx-text) !important;
+
+    font-weight:
+        850;
+}
+
+
+.top-movie-collection{
+
+    color:
+        var(--bx-muted) !important;
+
+    font-weight:
+        650;
+}
+
+
+/* =========================================================
+   MOVIE LIST
+========================================================= */
+
+.movie-item{
+
+    background:
+        #ffffff !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    box-shadow:
+        none !important;
+
+    transition:
+        transform .16s ease,
+        border-color .16s ease,
+        box-shadow .16s ease !important;
+}
+
+
+.movie-item:hover{
+
+    transform:
+        translateY(-1px) !important;
+
+    background:
+        #ffffff !important;
+
+    border-color:
+        #bfdbfe !important;
+
+    box-shadow:
+        0 6px 18px rgba(15,23,42,.055) !important;
+}
+
+
+.movie-title{
+
+    color:
+        var(--bx-text) !important;
+
+    font-weight:
+        850;
+}
+
+
+.movie-info{
+
+    color:
+        var(--bx-muted) !important;
+}
+
+
+.movie-verdict{
+
+    color:
+        var(--bx-gold) !important;
+
+    font-weight:
+        850;
+}
+
+
+/* =========================================================
+   VERDICT MOVIE CARDS
+========================================================= */
+
+.verdict-movie-card{
+
+    background:
+        #ffffff !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+.verdict-movie-card:hover{
+
+    background:
+        #ffffff !important;
+
+    border-color:
+        #bfdbfe !important;
+
+    box-shadow:
+        var(--bx-shadow-hover) !important;
+}
+
+
+.verdict-movie-card h3{
+
+    color:
+        var(--bx-text) !important;
+
+    font-weight:
+        850;
+}
+
+
+.verdict-movie-card p{
+
+    color:
+        var(--bx-muted) !important;
+}
+
+
+.verdict-movie-card .verdict-text{
+
+    color:
+        var(--bx-gold) !important;
+
+    font-weight:
+        850;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.close-verdict{
+
+    background:
+        #f1f5f9 !important;
+
+    color:
+        var(--bx-text-2) !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    font-weight:
+        750;
+}
+
+
+.close-verdict:hover{
+
+    background:
+        #e2e8f0 !important;
+}
+
+
+/* =========================================================
+   RELATED ARTICLES
+========================================================= */
+
+.related-article-card{
+
+    background:
+        #ffffff !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+.related-article-card:hover{
+
+    transform:
+        translateY(-2px) !important;
+
+    border-color:
+        #bfdbfe !important;
+
+    box-shadow:
+        var(--bx-shadow-hover) !important;
+}
+
+
+.related-article-category{
+
+    color:
+        var(--bx-blue) !important;
+}
+
+
+.related-article-title{
+
+    color:
+        var(--bx-text) !important;
+
+    font-weight:
+        850;
+}
+
+
+.related-article-subtitle{
+
+    color:
+        var(--bx-muted) !important;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-form{
+
+    background:
+        #ffffff !important;
+
+    border:
+        1px solid var(--bx-border) !important;
+
+    box-shadow:
+        0 6px 20px rgba(15,23,42,.055) !important;
+}
+
+
+.search-form:focus-within{
+
+    border-color:
+        #93c5fd !important;
+
+    box-shadow:
+        0 0 0 3px rgba(37,99,235,.08) !important;
+}
+
+
+/* =========================================================
+   DESKTOP HEADER
+========================================================= */
+
+@media(min-width:701px){
+
+    header{
+
+        background:
+            rgba(255,255,255,.97) !important;
+
+        border-bottom:
+            1px solid var(--bx-border) !important;
+
+        box-shadow:
+            0 2px 14px rgba(15,23,42,.045) !important;
+    }
+
+
+    header nav a{
+
+        transition:
+            background .15s ease,
+            color .15s ease;
+    }
+
+
+    header nav a:hover,
+    header nav a.active{
+
+        background:
+            var(--bx-blue-soft) !important;
+
+        color:
+            var(--bx-blue) !important;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE POLISH
+========================================================= */
+
+@media(max-width:700px){
+
+    body{
+
+        background:
+            #f4f7fb !important;
+    }
+
+
+    .container{
+
+        padding-left:
+            10px !important;
+
+        padding-right:
+            10px !important;
+    }
+
+
+    .actor{
+
+        border-radius:
+            15px !important;
+
+        box-shadow:
+            0 4px 16px rgba(15,23,42,.045) !important;
+    }
+
+
+    #actorName{
+
+        letter-spacing:
+            -.4px;
+    }
+
+
+    .section,
+    .verdict-section{
+
+        border-radius:
+            14px !important;
+
+        box-shadow:
+            0 3px 13px rgba(15,23,42,.04) !important;
+    }
+
+
+    .section > h2::before,
+    .verdict-section > h2::before{
+
+        height:
+            15px;
+
+        width:
+            3px;
+
+        margin-right:
+            7px;
+
+        vertical-align:
+            -2px;
+    }
+
+
+    .overview-card{
+
+        border-radius:
+            12px !important;
+    }
+
+
+    /*
+       Disable movement on touch devices.
+       Keeps mobile UI stable and avoids unnecessary visual work.
+    */
+
+    .overview-card:hover,
+    .top-movie-card:hover,
+    .movie-item:hover,
+    .verdict-movie-card:hover,
+    .related-article-card:hover{
+
+        transform:
+            none !important;
+    }
+
+
+    #topMovies .top-movie-card,
+    .verdict-movie-grid .verdict-movie-card{
+
+        background:
+            #ffffff !important;
+
+        border:
+            1px solid var(--bx-border) !important;
+    }
+
+
+    .swipe-hint{
+
+        color:
+            var(--bx-muted) !important;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media(max-width:420px){
+
+    .section,
+    .verdict-section{
+
+        padding:
+            12px !important;
+    }
+
+
+    .overview-card{
+
+        min-height:
+            90px !important;
+    }
+
+
+    .overview-value{
+
+        font-size:
+            15px !important;
+    }
+
+
+    .overview-label{
+
+        font-size:
+            9.5px !important;
+    }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY / PERFORMANCE
+========================================================= */
+
+@media(prefers-reduced-motion:reduce){
+
+    .overview-card,
+    .top-movie-card,
+    .movie-item,
+    .verdict-movie-card,
+    .related-article-card{
+
+        transition:
+            none !important;
+    }
+
+}
+/* =========================================================
+   BOXOFFICEX ACTOR PAGE — COMPACT FINAL TUNING
+========================================================= */
+
+/* ---------- SECTION SPACING ---------- */
+
+.section,
+.verdict-section{
+    margin-top:18px !important;
+    padding:16px !important;
+}
+
+.section h2,
+.verdict-section h2{
+    margin-bottom:16px !important;
+}
+
+
+/* ---------- CAREER / FINANCIAL STAT CARDS ---------- */
+
+/*
+   Works with existing overview-style cards.
+   Reduce unnecessary height while keeping numbers prominent.
+*/
+
+.overview-card{
+    min-height:88px !important;
+    padding:12px 10px !important;
+}
+
+.overview-label{
+    font-size:10.5px !important;
+    line-height:1.3 !important;
+}
+
+.overview-value{
+    margin-top:5px !important;
+    font-size:18px !important;
+    line-height:1.2 !important;
+}
+
+
+/* ---------- TOP 5 MOVIES ---------- */
+
+#topMovies{
+    gap:11px !important;
+}
+
+.top-movie-card{
+    padding:8px !important;
+}
+
+.top-movie-title{
+    margin-top:8px !important;
+    line-height:1.3 !important;
+}
+
+.top-movie-collection{
+    color:#2563eb !important;
+    font-weight:800 !important;
+}
+
+
+/* secondary information under Top 5 */
+
+.top-movie-card p,
+.top-movie-card small{
+    color:#64748b !important;
+}
+
+
+/* ---------- COMPLETE FILMOGRAPHY ---------- */
+
+.movie-item{
+    min-height:112px !important;
+    margin-top:9px !important;
+    padding:10px !important;
+}
+
+.movie-item img{
+    width:64px !important;
+}
+
+.movie-title{
+    margin-bottom:6px !important;
+    color:#0f172a !important;
+    font-size:16px !important;
+    line-height:1.25 !important;
+}
+
+.movie-info{
+    margin-top:4px !important;
+    color:#64748b !important;
+    line-height:1.45 !important;
+}
+
+/*
+   Collection information is currently too light
+   in the screenshot.
+*/
+
+.movie-details{
+    color:#334155 !important;
+}
+
+.movie-details strong{
+    color:#0f172a !important;
+}
+
+
+/* ---------- COMPARE ACTOR ---------- */
+
+.compare-card,
+[class*="compare-card"]{
+    border-color:#e2e8f0 !important;
+}
+
+.compare-card:hover,
+[class*="compare-card"]:hover{
+    border-color:#93c5fd !important;
+}
+
+
+/* ---------- DESKTOP ---------- */
+
+@media(min-width:701px){
+
+    /*
+       Slightly tighter content rhythm.
+    */
+
+    .container{
+        padding-top:24px !important;
+    }
+
+}
+
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:700px){
+
+    .section,
+    .verdict-section{
+        margin-top:14px !important;
+        padding:12px !important;
+    }
+
+    .section h2,
+    .verdict-section h2{
+        margin-bottom:13px !important;
+    }
+
+    .overview-card{
+        min-height:82px !important;
+        padding:9px 7px !important;
+    }
+
+    .overview-value{
+        font-size:15px !important;
+    }
+
+    .movie-item{
+        min-height:auto !important;
+        padding:9px !important;
+    }
+
+}
+/* =========================================================
+   BOXOFFICEX ACTOR — TEXT READABILITY FIX
+========================================================= */
+
+/* TOP 5 — secondary movie information */
+.top-movie-card,
+.top-movie-card p,
+.top-movie-card small,
+.top-movie-card div{
+    color:#475569 !important;
+    opacity:1 !important;
+}
+
+/* Movie title */
+.top-movie-title{
+    color:#0f172a !important;
+    font-weight:800 !important;
+}
+
+/* Worldwide collection — important */
+.top-movie-collection{
+    color:#2563eb !important;
+    font-weight:800 !important;
+    opacity:1 !important;
+}
+
+
+/* =========================================================
+   COMPLETE FILMOGRAPHY
+========================================================= */
+
+.movie-item,
+.movie-details{
+    color:#334155 !important;
+}
+
+/* Movie title */
+.movie-title{
+    color:#0f172a !important;
+    font-weight:800 !important;
+}
+
+/* Release / Budget / India / Overseas / Worldwide */
+.movie-info{
+    color:#475569 !important;
+    opacity:1 !important;
+}
+
+/* Any spans inside movie information */
+.movie-info span{
+    color:#475569 !important;
+    opacity:1 !important;
+}
+
+/* Strong values */
+.movie-info strong,
+.movie-details strong{
+    color:#1e293b !important;
+    opacity:1 !important;
+}
+
+
+/* Verdict remains visually distinct */
+.movie-verdict{
+    color:#d97706 !important;
+    font-weight:800 !important;
+    opacity:1 !important;
+}
+
+
+/* =========================================================
+   MOBILE — KEEP SAME READABILITY
+========================================================= */
+
+@media(max-width:700px){
+
+    .top-movie-card p,
+    .top-movie-card small,
+    .top-movie-card div,
+    .movie-info,
+    .movie-info span{
+        color:#475569 !important;
+        opacity:1 !important;
+    }
+
+}
+
+/* =========================================================
+   COMPLETE FILMOGRAPHY — FINAL READABILITY FIX
+========================================================= */
+
+/* Main movie information */
+#movieList .movie-item .movie-details .movie-info{
+    color:#334155 !important;
+    opacity:1 !important;
+    font-weight:600 !important;
+    font-size:12px !important;
+}
+
+/* Anything nested inside the information */
+#movieList .movie-item .movie-details .movie-info span,
+#movieList .movie-item .movie-details .movie-info a{
+    color:#334155 !important;
+    opacity:1 !important;
+}
+
+/* Movie title */
+#movieList .movie-item .movie-title{
+    color:#0f172a !important;
+    opacity:1 !important;
+    font-weight:850 !important;
+}
+
+/* Release line */
+#movieList .movie-item .movie-info:first-of-type{
+    color:#334155 !important;
+}
+
+/* Verdict */
+#movieList .movie-item .movie-verdict{
+    color:#b45309 !important;
+    opacity:1 !important;
+    font-weight:800 !important;
+}
+
+/* Make whole card text fully opaque */
+#movieList .movie-item,
+#movieList .movie-details{
+    opacity:1 !important;
+}
+
+/* Desktop readability */
+@media(min-width:701px){
+
+    #movieList .movie-info{
+        font-size:12px !important;
+        line-height:1.55 !important;
+    }
+
+}
+
+/* Mobile readability */
+@media(max-width:700px){
+
+    #movieList .movie-item .movie-details .movie-info{
+        color:#334155 !important;
+        font-size:11px !important;
+        font-weight:600 !important;
+        line-height:1.5 !important;
+    }
+
+}
+/* =========================================================
+   COMPLETE FILMOGRAPHY — FINANCIAL VALUES READABILITY
+========================================================= */
+
+/* Budget */
+#movieList .movie-budget{
+    color:#92400e !important;
+    opacity:1 !important;
+    font-weight:700 !important;
+}
+
+/* India collection */
+#movieList .movie-india{
+    color:#b91c1c !important;
+    opacity:1 !important;
+    font-weight:700 !important;
+}
+
+/* Overseas */
+#movieList .movie-overseas{
+    color:#6d28d9 !important;
+    opacity:1 !important;
+    font-weight:700 !important;
+}
+
+/* Worldwide — strongest collection number */
+#movieList .movie-worldwide{
+    color:#1d4ed8 !important;
+    opacity:1 !important;
+    font-weight:800 !important;
+}
+
+/* Financial row itself */
+#movieList .movie-financials,
+#movieList .movie-boxoffice,
+#movieList .movie-collections{
+    color:#334155 !important;
+    opacity:1 !important;
+}
+
+/* Kill inherited faded opacity */
+#movieList .movie-financials *,
+#movieList .movie-boxoffice *,
+#movieList .movie-collections *,
+#movieList .movie-budget,
+#movieList .movie-india,
+#movieList .movie-overseas,
+#movieList .movie-worldwide{
+    opacity:1 !important;
+}
+/* =========================================================
+   BOXOFFICEX — ACTOR FINANCIAL READABILITY FINAL
+========================================================= */
+
+/* ---------------------------------------------------------
+   COMMON FINANCIAL COLORS
+--------------------------------------------------------- */
+
+.movie-budget{
+    color:#b45309 !important;
+    font-weight:800 !important;
+    opacity:1 !important;
+}
+
+.movie-india{
+    color:#dc2626 !important;
+    font-weight:800 !important;
+    opacity:1 !important;
+}
+
+.movie-overseas{
+    color:#6d28d9 !important;
+    font-weight:800 !important;
+    opacity:1 !important;
+}
+
+.movie-worldwide{
+    color:#075dcc !important;
+    font-weight:850 !important;
+    opacity:1 !important;
+}
+
+
+/* =========================================================
+   TOP 5 HIGHEST-GROSSING MOVIES
+========================================================= */
+
+/* Never allow financial information to become pale */
+#topMovies .top-movie-card{
+    color:#334155 !important;
+}
+
+#topMovies .top-movie-card .top-movie-title{
+    color:#0f172a !important;
+    font-weight:850 !important;
+    opacity:1 !important;
+}
+
+#topMovies .top-movie-card .top-movie-collection{
+    color:#075dcc !important;
+    font-weight:850 !important;
+    opacity:1 !important;
+}
+
+/* Generic secondary information */
+#topMovies .top-movie-card p,
+#topMovies .top-movie-card small{
+    color:#334155 !important;
+    opacity:1 !important;
+    font-weight:600 !important;
+}
+
+/* Semantic financial values */
+#topMovies .movie-budget{
+    color:#b45309 !important;
+}
+
+#topMovies .movie-india{
+    color:#dc2626 !important;
+}
+
+#topMovies .movie-overseas{
+    color:#6d28d9 !important;
+}
+
+#topMovies .movie-worldwide{
+    color:#075dcc !important;
+}
+
+
+/* =========================================================
+   COMPLETE FILMOGRAPHY
+========================================================= */
+
+#movieList .movie-item{
+    color:#334155 !important;
+}
+
+#movieList .movie-title{
+    color:#0f172a !important;
+    font-weight:850 !important;
+    opacity:1 !important;
+}
+
+#movieList .movie-info{
+    color:#334155 !important;
+    font-weight:650 !important;
+    opacity:1 !important;
+}
+
+/* Any generic financial row */
+#movieList .movie-financials,
+#movieList .movie-boxoffice,
+#movieList .movie-collections{
+    color:#334155 !important;
+    font-weight:650 !important;
+    opacity:1 !important;
+}
+
+/* Individual financial metrics */
+#movieList .movie-budget{
+    color:#b45309 !important;
+    font-weight:800 !important;
+}
+
+#movieList .movie-india{
+    color:#dc2626 !important;
+    font-weight:800 !important;
+}
+
+#movieList .movie-overseas{
+    color:#6d28d9 !important;
+    font-weight:800 !important;
+}
+
+#movieList .movie-worldwide{
+    color:#075dcc !important;
+    font-weight:850 !important;
+}
+
+/* Verdict */
+#movieList .movie-verdict{
+    color:#c45f00 !important;
+    font-weight:800 !important;
+    opacity:1 !important;
+}
+
+
+/* =========================================================
+   FILMS BUDGET & BOX OFFICE OVERVIEW
+========================================================= */
+
+.boxoffice-overview-grid .overview-card{
+    color:#0f172a !important;
+}
+
+.boxoffice-overview-grid .overview-label{
+    color:#475569 !important;
+    font-weight:700 !important;
+    opacity:1 !important;
+}
+
+.boxoffice-overview-grid .overview-value{
+    color:#0f172a !important;
+    font-weight:850 !important;
+    opacity:1 !important;
+}
+
+/* Give important financial cards stronger values */
+
+.boxoffice-overview-grid .overview-card:nth-child(2) .overview-value,
+.boxoffice-overview-grid .overview-card:nth-child(3) .overview-value{
+    color:#b45309 !important;
+}
+
+.boxoffice-overview-grid .overview-card:nth-child(5) .overview-value{
+    color:#dc2626 !important;
+}
+
+.boxoffice-overview-grid .overview-card:nth-child(6) .overview-value{
+    color:#6d28d9 !important;
+}
+
+.boxoffice-overview-grid .overview-card:nth-child(7) .overview-value,
+.boxoffice-overview-grid .overview-card:nth-child(8) .overview-value{
+    color:#075dcc !important;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:700px){
+
+    #topMovies .top-movie-card p,
+    #topMovies .top-movie-card small,
+    #movieList .movie-info{
+        opacity:1 !important;
+    }
+
+    #movieList .movie-info{
+        color:#334155 !important;
+    }
+
+    .boxoffice-overview-grid .overview-label{
+        color:#475569 !important;
+    }
+
+}
 </style>
+
+
 
 </head>
 
@@ -3807,6 +5272,17 @@ html,body{scroll-padding-top:0!important}
 
 
     <!-- ==========================================
+         BUDGET & BOX OFFICE OVERVIEW
+    ========================================== -->
+    <section class="section" id="boxOfficeOverviewSection">
+        <h2>💰 Budget & Box Office Overview</h2>
+        <div id="boxOfficeOverviewGrid">
+            <div class="loading-message">Loading budget and box-office data...</div>
+        </div>
+        <p class="actor-data-note" id="boxOfficeOverviewNote"></p>
+    </section>
+
+    <!-- ==========================================
          TOP 5 MOVIES
     ========================================== -->
 
@@ -3898,7 +5374,7 @@ html,body{scroll-padding-top:0!important}
     <section class="section">
 
         <h2>
-            🎬 Movies
+            🎬 Complete Filmography
         </h2>
 
 
@@ -4426,15 +5902,16 @@ function updateActorSEO(actor) {
     const actorName = actor.name;
     const profession = actor.profession || "Actor";
 
-    const title =
-        actorName +
-        " Movies, Box Office Collection & Career | BoxOfficeX";
+    // SSR owns the CTR-focused title/description because it has the complete
+    // career and recent-five box-office dataset. Do not overwrite those values
+    // in the browser with a generic description.
+    const title = document.title ||
+        (actorName + " Movies, Budget & Box Office Collection | BoxOfficeX");
 
-    const description =
-        "Explore " +
-        actorName +
-        " movies, box office collections, highest-grossing films, " +
-        "career statistics, blockbusters, hits and verdicts on BoxOfficeX.";
+    const descriptionMeta =
+        document.querySelector('meta[name="description"]');
+    const description = descriptionMeta?.getAttribute("content") ||
+        ("Explore " + actorName + " movies, budgets, box office collections and verdicts.");
 
     const canonicalPath =
         actor.url ||
@@ -4455,9 +5932,6 @@ function updateActorSEO(actor) {
     const photoUrl = "https://boxofficex.in/images/boxofficex-share.jpg";
 
     document.title = title;
-
-    const descriptionMeta =
-        document.querySelector('meta[name="description"]');
 
     if (descriptionMeta) {
         descriptionMeta.setAttribute("content", description);
@@ -5028,25 +6502,17 @@ else {
         trackActorView();
 
 
-        document.getElementById(
-            "actorName"
-        ).innerText =
-            actor.name ||
-            "Unknown Actor";
+        const actorHero = document.querySelector(".actor");
+        const hasSsrActorHero = actorHero?.dataset?.ssr === "1";
 
-
-        document.getElementById(
-            "profession"
-        ).innerText =
-            actor.profession ||
-            "Actor";
-
-
-        document.getElementById(
-            "bio"
-        ).innerText =
-            actor.bio ||
-            "No biography available.";
+        if (!hasSsrActorHero) {
+            document.getElementById("actorName").innerText =
+                actor.name || "Unknown Actor";
+            document.getElementById("profession").innerText =
+                actor.profession || "Actor";
+            document.getElementById("bio").innerText =
+                actor.bio || "No biography available.";
+        }
 
 
         const actorPhotoElement = document.getElementById("actorPhoto");
@@ -6986,6 +8452,86 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{min-height:28px!important;d
 [id^="bxSmartAdSlot"] .bx-smart-video-info{position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:3!important;height:58px!important;display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:8px!important;padding:21px 10px 9px!important;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.82))!important;color:#fff!important;pointer-events:none!important}
 [id^="bxSmartAdSlot"] .bx-smart-video-info strong{min-width:0!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;color:#fff!important;font:900 11px/1.15 Arial,sans-serif!important}
 [id^="bxSmartAdSlot"] .bx-smart-video-cta{flex:0 0 auto!important;padding:5px 7px!important;border-radius:6px!important;background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/1 Arial,sans-serif!important}
+
+
+        /* ACTOR FINANCIAL UI POLISH V5 */
+        .movie-item a,
+        .movie-title a,
+        .movie-info a,
+        .top-movie-card a,
+        #topMovies a,
+        #movieList a,
+        #verdictMovies a {
+            text-decoration: none !important;
+        }
+
+        .movie-title a,
+        .top-movie-title a {
+            font-weight: 800;
+        }
+
+        /* Financial overview cards: stronger contrast + soft category grading */
+        #boxOfficeOverview .overview-card,
+        #budgetBoxOfficeGrid .overview-card,
+        .boxoffice-overview-grid .overview-card {
+            border-width: 1px;
+            border-style: solid;
+            box-shadow: 0 7px 18px rgba(15,23,42,.06);
+        }
+
+        #boxOfficeOverview .overview-label,
+        #budgetBoxOfficeGrid .overview-label,
+        .boxoffice-overview-grid .overview-label {
+            color: #53627a !important;
+            font-weight: 650;
+        }
+
+        #boxOfficeOverview .overview-value,
+        #budgetBoxOfficeGrid .overview-value,
+        .boxoffice-overview-grid .overview-value {
+            color: #111827 !important;
+            font-weight: 850;
+        }
+
+        /* Existing SSR currently uses overviewGrid for this section too.
+           Apply grading only when the section heading identifies Budget & Box Office. */
+        .section:has(h2[id*="box" i]) .overview-card:nth-child(1),
+        .section:has(h2) .boxoffice-overview-grid .overview-card:nth-child(1) {
+            background: linear-gradient(135deg,#eef6ff,#f8fbff);
+            border-color:#cfe4ff;
+        }
+
+        /* Movie financial row: improve readability even when individual metric spans
+           are not present in older SSR markup. */
+        .movie-info {
+            color: #44546d !important;
+            font-weight: 600;
+        }
+        .movie-info a {
+            color: #44546d !important;
+        }
+        .top-movie-collection {
+            color: #075dcc !important;
+            font-weight: 850;
+        }
+
+        /* Semantic metric classes supported by current/future SSR/JS markup. */
+        .movie-budget { color:#b45309 !important; font-weight:800; }
+        .movie-india { color:#c81e2b !important; font-weight:800; }
+        .movie-overseas { color:#6d28d9 !important; font-weight:800; }
+        .movie-worldwide { color:#075dcc !important; font-weight:850; }
+
+        .boxoffice-overview-grid .overview-card:nth-child(1){background:linear-gradient(135deg,#eef6ff,#f8fbff);border-color:#cfe4ff;}
+        .boxoffice-overview-grid .overview-card:nth-child(2){background:linear-gradient(135deg,#fff5df,#fffbf3);border-color:#f3d69a;}
+        .boxoffice-overview-grid .overview-card:nth-child(3){background:linear-gradient(135deg,#f5ecff,#fbf7ff);border-color:#ddc8f7;}
+        .boxoffice-overview-grid .overview-card:nth-child(4){background:linear-gradient(135deg,#eafaf2,#f5fdf9);border-color:#bfe7d1;}
+        .boxoffice-overview-grid .overview-card:nth-child(5){background:linear-gradient(135deg,#ffedef,#fff7f7);border-color:#f1c7cc;}
+        .boxoffice-overview-grid .overview-card:nth-child(6){background:linear-gradient(135deg,#f3ecff,#faf7ff);border-color:#d9c8f4;}
+        .boxoffice-overview-grid .overview-card:nth-child(7){background:linear-gradient(135deg,#e9f4ff,#f5faff);border-color:#c3def7;}
+        .boxoffice-overview-grid .overview-card:nth-child(8){background:linear-gradient(135deg,#eafaf2,#f5fdf9);border-color:#bfe7d1;}
+        .boxoffice-overview-grid .overview-card:nth-child(9){background:linear-gradient(135deg,#fff5df,#fffbf3);border-color:#f3d69a;}
+        .boxoffice-overview-grid .overview-card:nth-child(10){background:linear-gradient(135deg,#ffedef,#fff7f7);border-color:#f1c7cc;}
+
 </style>
 </body>
 

@@ -3049,6 +3049,256 @@ line-height:1.75;
 @media(max-width:700px){.lt-show-performance{padding:11px}.lt-show-grid{grid-template-columns:1fr 1fr;gap:7px}.lt-show-card{padding:10px}.lt-show-stat strong{font-size:14px}}
 @media(max-width:430px){.lt-show-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.live-tracker-block.lt-active,.live-tracker-block.lt-active:before,.lt-dot,.lt-updated.live,.lt-active .lt-card.lt-money-card .lt-value,.lt-active .lt-worldwide .lt-value,.lt-tracking-copy{animation:none}}
+
+/* ===== V6: EVERY MILESTONE AREA-WISE CONTRIBUTION ===== */
+.bx-ms-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.bx-ms-card{min-width:0;overflow:hidden;padding:16px;border:1px solid #dfe8f3;border-radius:17px;background:#fff;box-shadow:0 5px 16px rgba(22,55,98,.04)}
+.bx-ms-card:nth-child(4n+1){background:linear-gradient(180deg,#f4fff8,#fff);border-color:#c8edd8}
+.bx-ms-card:nth-child(4n+2){background:linear-gradient(180deg,#f4f9ff,#fff);border-color:#d2e4ff}
+.bx-ms-card:nth-child(4n+3){background:linear-gradient(180deg,#fff9ee,#fff);border-color:#f1dfb5}
+.bx-ms-card:nth-child(4n){background:linear-gradient(180deg,#fbf7ff,#fff);border-color:#e4d6f7}
+.bx-ms-card-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:start}.bx-ms-card-head>div{min-width:0}.bx-ms-title{overflow:visible}
+.bx-ms-title{font-size:15px;line-height:1.25;font-weight:950;color:#142b4b;white-space:nowrap}.bx-ms-meta{margin-top:4px;font-size:8px;line-height:1.5;color:#70829a}
+.bx-ms-badge{flex:0 0 auto;padding:5px 9px;border-radius:999px;background:#eaf3ff;color:#075dcc;font-size:8px;font-weight:950}.bx-ms-badge.advance{background:#fff1cd;color:#a86000}
+.bx-ms-bars{display:grid;gap:9px;margin-top:14px}.bx-ms-row{display:grid;grid-template-columns:92px minmax(0,1fr) 126px;gap:8px;align-items:center}
+.bx-ms-name{font-size:9px;font-weight:850;color:#29415f;white-space:nowrap}.bx-ms-track{display:block;width:100%;height:10px;overflow:hidden;border-radius:999px;background:#eaf0f6}.bx-ms-fill{display:block;height:100%;border-radius:999px}.bx-ms-value{text-align:right;font-size:8px;font-weight:900;color:#173052;white-space:nowrap}
+.bx-ms-total{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:10px 11px;border-radius:11px;background:rgba(13,102,232,.07);font-size:10px;font-weight:850;color:#163052}.bx-ms-total strong{font-size:16px;color:#0d5fd3}
+.bx-ms-reference{margin-top:11px;padding:9px 10px;border-radius:9px;background:#fff8e7;color:#6e592b;font-size:8px;line-height:1.5}
+.bx-ms-upcoming{display:flex;min-height:215px;flex-direction:column;align-items:center;justify-content:center;text-align:center;border-style:dashed;background:#fbfdff}.bx-ms-upcoming .bx-ms-next-icon{display:flex;width:42px;height:42px;align-items:center;justify-content:center;border-radius:50%;background:#eaf3ff;color:#1769e8;font-size:20px;font-weight:950}.bx-ms-upcoming strong{margin-top:10px;font-size:18px;color:#075dcc}.bx-ms-upcoming span{margin-top:5px;font-size:9px;font-weight:850;color:#667a95}
+.bx-ms-controls{display:flex;justify-content:flex-end;margin-bottom:11px}.bx-ms-toggle{padding:7px 11px;border:1px solid #9bc3ff;border-radius:9px;background:#f6faff;color:#075dcc;font-size:10px;font-weight:900;cursor:pointer}
+.bx-ms-hidden{display:none}.bx-ms-hidden.show{display:grid;margin-top:14px}
+@media(max-width:800px){.bx-ms-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.bx-ms-row{grid-template-columns:78px minmax(0,1fr) 104px;gap:6px}.bx-ms-title{font-size:13px;white-space:nowrap}.bx-ms-badge{font-size:7px;padding:4px 6px}.bx-ms-card{padding:13px}.bx-ms-value{font-size:7.5px}}
+
+
+/* =========================================================
+   BOXOFFICEX ESTIMATED THEATRICAL PERFORMANCE
+   Additive only — existing milestone + budget UI unchanged.
+========================================================= */
+.bx-tp{margin:22px 0 0;padding:20px;border:1px solid #d8e2f0;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(15,23,42,.05);font-family:Arial,Helvetica,sans-serif}
+.bx-tp-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}
+.bx-tp-title{color:#102a56;font-size:20px;font-weight:900;line-height:1.2}
+.bx-tp-sub{margin-top:5px;color:#667085;font-size:11px;font-weight:700}
+.bx-tp-combined{padding:16px;border:1px solid #cfe0f8;border-radius:14px;background:linear-gradient(180deg,#f8fbff,#fff)}
+.bx-tp-kicker{color:#2563eb;font-size:9px;font-weight:900;letter-spacing:.45px;text-transform:uppercase}
+.bx-tp-combined-title{margin-top:3px;color:#102a56;font-size:17px;font-weight:900}
+.bx-tp-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:13px}
+.bx-tp-stat{padding:11px 9px;border:1px solid #e0e7f0;border-radius:11px;background:#fff}
+.bx-tp-stat span{display:block;color:#667085;font-size:8px;font-weight:800;text-transform:uppercase}
+.bx-tp-stat strong{display:block;margin-top:4px;color:#102a56;font-size:15px;font-weight:900}
+.bx-tp-stat.level strong{color:#087f4f}
+.bx-tp-next{margin-top:13px;padding:12px;border:1px solid #dce6f3;border-radius:11px;background:#f8fafc}
+.bx-tp-next-row{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#344054;font-size:11px;font-weight:800}
+.bx-tp-next-row strong{color:#102a56;font-size:12px}
+.bx-tp-progress{height:9px;margin-top:9px;overflow:hidden;border-radius:999px;background:#e7edf5}
+.bx-tp-progress>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#16b86a)}
+.bx-tp-achieved{margin-top:10px;color:#087f4f;font-size:10px;font-weight:900}
+.bx-tp-section-title{margin:18px 0 9px;color:#102a56;font-size:13px;font-weight:900}
+.bx-tp-regions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bx-tp-region{padding:14px;border:1px solid #e0e7f0;border-radius:13px;background:#fff}
+.bx-tp-region-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.bx-tp-region-name{color:#102a56;font-size:13px;font-weight:900}
+.bx-tp-badge{padding:4px 7px;border-radius:999px;background:#eef7f2;color:#087f4f;font-size:8px;font-weight:900;text-transform:uppercase;white-space:nowrap}
+.bx-tp-region-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.bx-tp-mini{padding:8px;border-radius:9px;background:#f8fafc}
+.bx-tp-mini span{display:block;color:#667085;font-size:7px;font-weight:800;text-transform:uppercase}
+.bx-tp-mini strong{display:block;margin-top:3px;color:#102a56;font-size:11px;font-weight:900}
+.bx-tp-region .bx-tp-next{margin-top:9px;padding:9px}
+.bx-tp-notes{margin-top:16px;padding:12px 13px;border-left:4px solid #e8a317;border-radius:9px;background:#fff8e8;color:#5d4a1d;font-size:9px;font-weight:600;line-height:1.55}
+.bx-tp-notes p{margin:0!important;color:inherit!important;font-family:Arial,Helvetica,sans-serif!important;font-size:9px!important;line-height:1.55!important}
+.bx-tp-notes p+p{margin-top:7px!important}
+@media(max-width:700px){
+ .bx-tp{padding:14px 11px;border-radius:15px}
+ .bx-tp-title{font-size:17px}
+ .bx-tp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bx-tp-regions{grid-template-columns:1fr}
+ .bx-tp-region-values{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .bx-tp-next-row{align-items:flex-start}
+}
+@media(max-width:380px){
+ .bx-tp-region-values{grid-template-columns:1fr}
+}
+
+
+.bx-tp-level-big{
+    display:inline-flex!important;
+    width:max-content;
+    margin-top:6px!important;
+    padding:7px 11px;
+    border-radius:999px;
+    font-size:13px!important;
+    line-height:1!important;
+    font-weight:1000!important;
+    letter-spacing:.25px;
+    text-transform:uppercase;
+}
+.bx-tp-level-flop{background:#fff0f1;color:#d92d3e!important;border:1px solid #ffc9cf}
+.bx-tp-level-average{background:#fff7e6;color:#b26a00!important;border:1px solid #ffd98a}
+.bx-tp-level-above-average{background:#eef4ff;color:#175cd3!important;border:1px solid #bfd4ff}
+.bx-tp-level-break-even{background:#eef9ff;color:#0875a5!important;border:1px solid #b7e4f7}
+.bx-tp-level-hit{background:#ecfdf3;color:#067647!important;border:1px solid #abefc6}
+.bx-tp-level-super-hit{background:#e9fbf4;color:#057a55!important;border:1px solid #9fe3c7}
+.bx-tp-level-blockbuster{background:#f4efff;color:#6938b8!important;border:1px solid #d6c3ff}
+.bx-tp-level-atb{background:#fff8df;color:#9a6700!important;border:1px solid #f2d675}
+.bx-tp-next-simple{justify-content:flex-start;font-size:12px}
+.bx-tp-next-simple strong:first-child{font-size:14px;color:#102a56}
+
+
+.bx-tp + .bx-ba-budget{margin-top:22px}
+.bx-tp-atb-complete .bx-tp-progress>span{width:100%!important}
+
+
+/* =========================================================
+   BOXOFFICEX THEATRICAL LEVEL COLOR SCALE — LIVE LOCK
+   FLOP red | AVERAGE yellow | ABOVE AVERAGE light green
+   BREAK-EVEN teal | HIT green | SUPER HIT purple
+   BLOCKBUSTER blue | ATB trophy gold
+========================================================= */
+.bx-tp-level-flop{background:#fee2e2!important;color:#b42318!important;border:1px solid #fca5a5!important}
+.bx-tp-level-average{background:#fef3c7!important;color:#92400e!important;border:1px solid #facc15!important}
+.bx-tp-level-above-average{background:#dcfce7!important;color:#166534!important;border:1px solid #86efac!important}
+.bx-tp-level-break-even{background:#ccfbf1!important;color:#0f766e!important;border:1px solid #5eead4!important}
+.bx-tp-level-hit{background:#d1fae5!important;color:#047857!important;border:1px solid #6ee7b7!important}
+.bx-tp-level-super-hit{background:#f3e8ff!important;color:#7e22ce!important;border:1px solid #d8b4fe!important}
+.bx-tp-level-blockbuster{background:#dbeafe!important;color:#1d4ed8!important;border:1px solid #93c5fd!important}
+.bx-tp-level-atb{
+    background:linear-gradient(135deg,#fff7c2,#facc15)!important;
+    color:#713f12!important;
+    border:1px solid #eab308!important;
+    box-shadow:0 0 0 2px rgba(250,204,21,.10),0 5px 16px rgba(234,179,8,.18)!important
+}
+
+/* Regional badges use the exact same learned scale. */
+.bx-tp-badge.level-flop{background:#fee2e2;color:#b42318;border:1px solid #fca5a5}
+.bx-tp-badge.level-average{background:#fef3c7;color:#92400e;border:1px solid #facc15}
+.bx-tp-badge.level-above-average{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.bx-tp-badge.level-break-even{background:#ccfbf1;color:#0f766e;border:1px solid #5eead4}
+.bx-tp-badge.level-hit{background:#d1fae5;color:#047857;border:1px solid #6ee7b7}
+.bx-tp-badge.level-super-hit{background:#f3e8ff;color:#7e22ce;border:1px solid #d8b4fe}
+.bx-tp-badge.level-blockbuster{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd}
+.bx-tp-badge.level-atb{
+    background:linear-gradient(135deg,#fff7c2,#facc15);
+    color:#713f12;
+    border:1px solid #eab308;
+    box-shadow:0 3px 10px rgba(234,179,8,.18)
+}
+
+/* Screenshot-friendly ATB celebration: intentionally subtle. */
+.bx-tp-region.bx-tp-atb-card,
+.bx-tp-combined.bx-tp-atb-card{
+    position:relative;
+    border-color:#eab308!important;
+    box-shadow:0 0 0 1px rgba(250,204,21,.22),0 8px 24px rgba(234,179,8,.14)!important;
+    overflow:hidden;
+}
+.bx-tp-atb-card::after{
+    content:"🎉";
+    position:absolute;
+    top:9px;
+    right:10px;
+    font-size:16px;
+    line-height:1;
+    filter:drop-shadow(0 2px 4px rgba(180,120,0,.22));
+}
+.bx-tp-atb-complete{
+    border-color:#f0cf52!important;
+    background:linear-gradient(180deg,#fffdf3,#fff9dc)!important;
+    box-shadow:0 4px 14px rgba(234,179,8,.10);
+}
+.bx-tp-atb-complete .bx-tp-progress>span{
+    background:linear-gradient(90deg,#eab308,#facc15,#f59e0b)!important;
+}
+.bx-tp-atb-complete .bx-tp-achieved{color:#8a5a00!important}
+
+
+/* =========================================================
+   EXPLORE MORE — FINAL READABILITY POLISH
+========================================================= */
+.bx-explore-more{
+    background:#ffffff!important;
+    border:1px solid #cbdaf2!important;
+    box-shadow:0 8px 24px rgba(15,23,42,.05)!important;
+}
+.bx-explore-more h2{
+    color:#111827!important;
+    font-weight:900!important;
+}
+.bx-explore-links{
+    gap:9px!important;
+}
+.bx-explore-link{
+    background:#f8fbff!important;
+    border:1px solid #d8e4f5!important;
+    color:#175cd3!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    opacity:1!important;
+    text-shadow:none!important;
+}
+.bx-explore-link:visited{
+    color:#175cd3!important;
+}
+.bx-explore-link:hover{
+    background:#eef4ff!important;
+    border-color:#93b4ea!important;
+    color:#0b4db8!important;
+}
+@media(max-width:700px){
+    .bx-explore-more{padding:16px!important}
+    .bx-explore-more h2{font-size:18px!important}
+    .bx-explore-link{
+        padding:12px!important;
+        font-size:12px!important;
+        line-height:1.45!important;
+    }
+}
+
+
+/* =========================================================
+   EXPLORE MORE — HIGH CONTRAST FINAL OVERRIDE
+========================================================= */
+.bx-explore-more{
+    background:#fff!important;
+    border:1px solid #b8c9df!important;
+}
+.bx-explore-more h2{
+    color:#0f172a!important;
+    opacity:1!important;
+    font-size:20px!important;
+    font-weight:900!important;
+}
+.bx-explore-more .bx-explore-link,
+.bx-explore-more .bx-explore-link:link,
+.bx-explore-more .bx-explore-link:visited{
+    display:block!important;
+    background:#f1f6fd!important;
+    border:1px solid #c5d5ea!important;
+    color:#0b3f91!important;
+    -webkit-text-fill-color:#0b3f91!important;
+    opacity:1!important;
+    filter:none!important;
+    text-shadow:none!important;
+    font-size:14px!important;
+    font-weight:900!important;
+    line-height:1.45!important;
+    text-decoration:none!important;
+}
+.bx-explore-more .bx-explore-link:hover{
+    background:#e5effd!important;
+    border-color:#7fa6dc!important;
+    color:#082f73!important;
+    -webkit-text-fill-color:#082f73!important;
+}
+@media(max-width:700px){
+    .bx-explore-more h2{font-size:19px!important}
+    .bx-explore-more .bx-explore-link,
+    .bx-explore-more .bx-explore-link:link,
+    .bx-explore-more .bx-explore-link:visited{
+        font-size:14px!important;
+        padding:13px 12px!important;
+    }
+}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4223,6 +4473,26 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+
+<style>
+/* =========================================================
+   BOXOFFICEX BOX OFFICE ANALYSIS — APPROVED UI
+   ========================================================= */
+.bx-bo-analysis{margin:24px 0 38px;padding:22px;border:1px solid #dce7f3;border-radius:22px;background:#fff;box-shadow:0 12px 34px rgba(19,55,98,.07);color:#10294d}
+.bx-ba-head{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.bx-ba-title{font-size:25px;font-weight:950;color:#102b55}.bx-ba-sub{margin-top:4px;font-size:11px;font-weight:700;color:#60738f}.bx-ba-current{text-align:right}.bx-ba-current strong{display:block;font-size:34px;line-height:1;color:#0866e8}.bx-ba-current span{display:block;margin-top:6px;font-size:10px;font-weight:800;color:#60738f}
+.bx-ba-timeline-shell{margin-top:22px;padding:17px 12px 13px;border:1px solid #e1eaf5;border-radius:17px;background:#fff}.bx-ba-timeline{display:flex;overflow-x:auto;padding:3px 0 12px;scrollbar-width:thin}.bx-ba-node{position:relative;flex:1 0 105px;min-width:105px;text-align:center}.bx-ba-node:not(:last-child):after{content:"";position:absolute;z-index:0;top:42px;left:57%;width:86%;height:5px;background:#dfe6ef}.bx-ba-node.done:not(:last-child):after{background:#0fa15b}.bx-ba-node strong{display:block;margin-bottom:8px;font-size:12px;color:#142c4d}.bx-ba-dot{position:relative;z-index:1;display:flex;width:32px;height:32px;margin:auto;align-items:center;justify-content:center;border-radius:50%;background:#aeb9c8;color:#fff;font-size:15px;font-weight:950;box-shadow:0 0 0 5px #fff}.bx-ba-node.done .bx-ba-dot{background:#0fa15b}.bx-ba-node.current .bx-ba-dot{background:#1769e8;box-shadow:0 0 0 5px #eaf2ff}.bx-ba-node.done strong{color:#087847}.bx-ba-node.current strong{color:#075dcc}.bx-ba-node small{display:block;margin-top:8px;font-size:9px;font-weight:900;color:#60738f;text-transform:uppercase}.bx-ba-node.current small{color:#075dcc}.bx-ba-node em{display:block;margin-top:3px;font-size:8px;font-style:normal;color:#71839b}
+.bx-ba-progress-card{margin-top:10px;padding:13px 14px;border-radius:13px;background:#f8fbff}.bx-ba-progress-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:900;color:#203858}.bx-ba-progress-track{height:10px;margin-top:9px;overflow:hidden;border-radius:999px;background:#e5ebf3}.bx-ba-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#0d7cff,#4858f5)}
+.bx-ba-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 11px;font-size:18px;font-weight:950;color:#102b55}.bx-ba-section-title .bx-ba-total{font-size:13px}.bx-ba-card{padding:18px;border:1px solid #dfe8f3;border-radius:17px;background:#fff}
+.bx-ba-current-layout{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px;align-items:center}.bx-ba-bars{display:grid;gap:11px}.bx-ba-bar-row{display:grid;grid-template-columns:118px minmax(0,1fr) 98px;gap:10px;align-items:center;min-width:0}.bx-ba-bar-name{font-size:11px;font-weight:850;color:#29415f;white-space:nowrap}.bx-ba-bar-track{display:block;width:100%;height:12px;overflow:hidden;border-radius:999px;background:#eaf0f6}.bx-ba-bar-fill{display:block;height:100%;border-radius:999px}.bx-ba-bar-value{text-align:right;font-size:10px;font-weight:900;color:#173052;white-space:nowrap}
+.bx-area-tn{background:linear-gradient(90deg,#ff9f1a,#ff7900)}.bx-area-kl{background:linear-gradient(90deg,#39ca79,#0caf5d)}.bx-area-ka{background:linear-gradient(90deg,#914fff,#6931df)}.bx-area-ts{background:linear-gradient(90deg,#3394ff,#0869e8)}.bx-area-roi{background:linear-gradient(90deg,#ff5360,#ef3040)}.bx-area-os{background:linear-gradient(90deg,#19baca,#078fa1)}
+.bx-ba-incomplete{margin-top:11px;padding:9px 10px;border-radius:10px;background:#f7f9fc;color:#667891;font-size:9px;line-height:1.5}.bx-ba-donut-wrap{text-align:center}.bx-ba-donut{position:relative;width:158px;height:158px;margin:auto;border-radius:50%;background:var(--donut)}.bx-ba-donut:after{content:"";position:absolute;inset:30px;border-radius:50%;background:#fff}.bx-ba-donut-center{position:absolute;z-index:2;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.bx-ba-donut-center strong{font-size:20px;color:#11294c}.bx-ba-donut-center span{font-size:10px;font-weight:800;color:#687b96}.bx-ba-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;margin-top:10px}.bx-ba-legend span{font-size:8px;font-weight:850;color:#536783}.bx-ba-legend i{display:inline-block;width:8px;height:8px;margin-right:3px;border-radius:50%;vertical-align:-1px}
+.bx-ba-view{padding:7px 11px;border:1px solid #9bc3ff;border-radius:9px;background:#f6faff;color:#075dcc;font-size:10px;font-weight:900;cursor:pointer}.bx-ba-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.bx-ba-milestone-card{min-width:0;overflow:hidden;padding:15px;border:1px solid #dfe8f3;border-radius:16px;background:#fff}.bx-ba-milestone-card.tone-green{background:linear-gradient(180deg,#f4fff8,#fff);border-color:#c9edd8}.bx-ba-milestone-card.tone-blue{background:linear-gradient(180deg,#f4f9ff,#fff);border-color:#d3e5ff}.bx-ba-milestone-card.tone-gold{background:linear-gradient(180deg,#fff9ee,#fff);border-color:#f2dfb3}.bx-ba-card-head{display:flex;justify-content:space-between;gap:7px;align-items:flex-start}.bx-ba-card-title{min-width:0}.bx-ba-card-title strong{display:block;font-size:14px;color:#142b4b}.bx-ba-card-title small{display:block;margin-top:4px;font-size:8px;line-height:1.45;color:#70829a}.bx-ba-badge{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:#eaf3ff;color:#075dcc;font-size:8px;font-weight:950}.bx-ba-badge.advance{background:#fff1cd;color:#a86000}.bx-ba-milestone-card .bx-ba-bars{margin-top:13px;gap:8px}.bx-ba-milestone-card .bx-ba-bar-row{grid-template-columns:78px minmax(0,1fr) 60px;gap:6px}.bx-ba-milestone-card .bx-ba-bar-name{font-size:8px}.bx-ba-milestone-card .bx-ba-bar-track{height:9px}.bx-ba-milestone-card .bx-ba-bar-value{font-size:8px}.bx-ba-card-total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px;border-radius:11px;background:rgba(13,102,232,.07);font-size:10px;font-weight:850;color:#163052}.bx-ba-card-total strong{font-size:16px;color:#0d5fd3}.bx-ba-extra{display:none;margin-top:12px}.bx-ba-extra.show{display:grid}.bx-ba-init-note{margin-top:12px;padding:10px 11px;border-radius:10px;background:#fff8e7;color:#6f5b2d;font-size:9px;line-height:1.5}
+.bx-ba-budget{margin-top:26px;padding:19px;border:1px solid #dce7f3;border-radius:18px;background:linear-gradient(180deg,#fff,#fbfdff)}.bx-ba-budget-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.bx-ba-budget-title{font-size:20px;font-weight:950;color:#102b55}.bx-ba-budget-stats{display:flex;gap:8px;flex-wrap:wrap}.bx-ba-budget-stat{min-width:112px;padding:10px 12px;border:1px solid #dbe7f4;border-radius:11px;background:#f6faff;text-align:center}.bx-ba-budget-stat strong{display:block;font-size:16px;color:#16345c}.bx-ba-budget-stat.green strong{color:#07874d}.bx-ba-budget-stat span{font-size:8px;font-weight:800;color:#637690}.bx-ba-budget-scale{position:relative;height:18px;margin:38px 4px 25px;border-radius:999px;background:linear-gradient(90deg,#ff4d5b 0%,#ffb13b 28%,#d9dd43 45%,#70d45a 62%,#13bd73 100%)}.bx-ba-budget-marker{position:absolute;top:50%;width:22px;height:22px;border:4px solid #fff;border-radius:50%;background:#1769e8;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.2)}.bx-ba-budget-marker:before{content:attr(data-label);position:absolute;bottom:25px;left:50%;transform:translateX(-50%);padding:4px 7px;border-radius:7px;background:#102b55;color:#fff;font-size:9px;font-weight:900;white-space:nowrap}.bx-ba-budget-labels{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.bx-ba-budget-labels span{text-align:center;font-size:8px;font-weight:850;color:#445a77}.bx-ba-budget-labels strong{display:block;font-size:10px;color:#172f52}.bx-ba-method{margin-top:16px;padding:12px 13px;border:1px solid #f0c36b;border-left:4px solid #f0aa25;border-radius:10px;background:#fff9eb;color:#66552e;font-size:9px;line-height:1.55}.bx-ba-method strong{color:#493b1f}
+@media(max-width:900px){.bx-ba-current-layout{grid-template-columns:1fr}.bx-ba-donut-wrap{margin-top:8px}.bx-ba-cards{grid-template-columns:1fr}.bx-ba-milestone-card .bx-ba-bar-row{grid-template-columns:105px minmax(0,1fr) 80px}}
+@media(max-width:700px){.bx-bo-analysis{margin:14px 0 28px;padding:13px;border-radius:16px}.bx-ba-title{font-size:19px}.bx-ba-current{text-align:left}.bx-ba-current strong{font-size:27px}.bx-ba-node{flex-basis:88px;min-width:88px}.bx-ba-bar-row,.bx-ba-milestone-card .bx-ba-bar-row{grid-template-columns:86px minmax(0,1fr) 70px;gap:6px}.bx-ba-donut{width:145px;height:145px}.bx-ba-budget-stats{width:100%}.bx-ba-budget-stat{flex:1;min-width:90px}.bx-ba-budget-labels{grid-template-columns:repeat(3,1fr);row-gap:9px}}
+
+</style>
+
 </head>
 
 <body>
@@ -4622,6 +4892,316 @@ const publicCanonical = article.slug
     if (jsonLd) jsonLd.textContent = JSON.stringify(structured);
 }
 
+
+function renderBoxOfficeAnalysis(analysis, boxData) {
+    const milestones = Array.isArray(analysis?.milestones) ? analysis.milestones : [];
+    if (!milestones.length) return "";
+
+    const n = value => {
+        if (value === null || value === undefined || String(value).trim() === "") return null;
+        const x = Number(value);
+        return Number.isFinite(x) ? x : null;
+    };
+    const money = value => {
+        const x = n(value);
+        return x === null ? "" : `₹${x.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+    };
+    const step = Math.max(1, Number(analysis?.milestone_step) || 50);
+    const latest = milestones[milestones.length - 1];
+    const areaMeta = [
+        ["tamil_nadu","Tamil Nadu","bx-area-tn","#ff8a00"],
+        ["kerala","Kerala","bx-area-kl","#18b765"],
+        ["karnataka","Karnataka","bx-area-ka","#7540e8"],
+        ["telugu_states","AP & Telangana","bx-area-ts","#1478ef"],
+        ["rest_of_india","Rest of India","bx-area-roi","#f23847"],
+        ["overseas","Overseas","bx-area-os","#079caf"]
+    ];
+    const areaKeys = areaMeta.map(row => row[0]);
+
+    const sumRows = rows => {
+        const out = Object.fromEntries(areaKeys.map(key => [key,0]));
+        const present = Object.fromEntries(areaKeys.map(key => [key,false]));
+        rows.forEach(row => areaKeys.forEach(key => {
+            if (row?.[key] !== null && row?.[key] !== undefined && String(row[key]).trim() !== "") {
+                const value = Number(row[key]);
+                if (Number.isFinite(value)) {
+                    out[key] += value;
+                    if (value > 0) present[key] = true;
+                }
+            }
+        }));
+        out.india = out.tamil_nadu + out.kerala + out.karnataka + out.telugu_states + out.rest_of_india;
+        out.worldwide = out.india + out.overseas;
+        out.present = present;
+        return out;
+    };
+
+    const rawDays = Array.isArray(boxData?.days) ? boxData.days : [];
+    // ADVANCE is determined by status, even when the row type is PREVIEW.
+    // This prevents a future Preview/Premiere advance row from becoming earned gross.
+    const advanceRows = rawDays.filter(d => String(d?.status || "").toUpperCase() === "ADVANCE");
+    const earnedRows = rawDays.filter(d => String(d?.status || "").toUpperCase() !== "ADVANCE");
+    const earned = sumRows(earnedRows);
+    const advance = sumRows(advanceRows);
+
+    // Advance and earned gross remain separate. Whichever legitimately represents
+    // the highest current tracked worldwide figure drives the milestone display.
+    const currentSource = advance.worldwide > earned.worldwide ? advance : earned;
+    const current = currentSource.worldwide || n(latest?.detected_gross) || n(latest?.areas?.worldwide) || 0;
+    const nextMilestone = (Math.floor(current / step) + 1) * step;
+    const previousMilestone = Math.floor(current / step) * step;
+    const segmentProgress = Math.max(0,Math.min(100,((current-previousMilestone)/step)*100));
+    const remaining = Math.max(0,nextMilestone-current);
+
+    const fmtDate = raw => {
+        if (!raw) return "";
+        const dt = new Date(raw);
+        if (Number.isNaN(dt.getTime())) return "";
+        return dt.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric"});
+    };
+
+    const timelineEnd = Math.max(nextMilestone + step, Number(latest?.milestone || step) + step);
+    const timeline = [];
+    for (let value=step; value<=timelineEnd; value+=step) {
+        const hit = milestones.find(item => Number(item?.milestone) === value);
+        const cls = hit ? "done" : (value === nextMilestone ? "current" : "");
+        const icon = hit ? "✓" : (value === nextMilestone ? "●" : "◆");
+        const label = hit ? (hit.stage_label || hit.stage || "Reached") : (value===nextMilestone ? "Next" : "Upcoming");
+        const date = hit ? fmtDate(hit.detected_at) : (value===nextMilestone ? "In Progress" : "");
+        timeline.push(`<div class="bx-ba-node ${cls}"><strong>₹${value.toLocaleString("en-IN")} Cr</strong><span class="bx-ba-dot">${icon}</span><small>${esc(label)}</small>${date ? `<em>${esc(date)}</em>` : ""}</div>`);
+    }
+
+    const stateFor = item => {
+        const areas = item?.areas || {};
+        const visible = areaMeta.map(([key,label,cls,color]) => ({key,label,cls,color,value:n(areas[key])}))
+            .filter(row => row.value !== null && row.value > 0);
+        const reported = visible.reduce((sum,row)=>sum+row.value,0);
+        const worldwide = n(areas.worldwide) || n(item?.detected_gross) || 0;
+        const reconciles = worldwide > 0 && Math.abs(reported-worldwide) <= Math.max(.05,worldwide*.01);
+        return {visible,reported,worldwide,reconciles};
+    };
+
+    const renderBars = (item, compact=false) => {
+        const state = stateFor(item);
+        if (!state.visible.length) return "";
+        const scale = Math.max(...state.visible.map(row=>row.value),1);
+        return `<div class="bx-ba-bars">${state.visible.map(row => {
+            const width = Math.max(3,Math.min(100,(row.value/scale)*100));
+            const pct = state.worldwide > 0 && !compact ? ` · ${(row.value/state.worldwide*100).toFixed(1)}%` : "";
+            return `<div class="bx-ba-bar-row"><span class="bx-ba-bar-name">${esc(row.label)}</span><span class="bx-ba-bar-track"><span class="bx-ba-bar-fill ${row.cls}" style="width:${width}%"></span></span><span class="bx-ba-bar-value">${money(row.value)}${pct}</span></div>`;
+        }).join("")}</div>${state.reconciles ? "" : `<div class="bx-ba-incomplete">Available territory figures do not fully reconcile with worldwide gross. Percentages are hidden and missing territories are not treated as ₹0.</div>`}`;
+    };
+
+    const renderDonut = item => {
+        const state = stateFor(item);
+        if (!state.visible.length || !state.reconciles) return "";
+        let start = 0;
+        const segments = state.visible.map(row => {
+            const pct = row.value/state.worldwide*100;
+            const end = start+pct;
+            const segment = `${row.color} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+            start=end;
+            return segment;
+        });
+        const legend = state.visible.map(row => `<span><i style="background:${row.color}"></i>${esc(row.label)} ${(row.value/state.worldwide*100).toFixed(1)}%</span>`).join("");
+        return `<div class="bx-ba-donut-wrap"><div class="bx-ba-donut" style="--donut:conic-gradient(${segments.join(",")})"><div class="bx-ba-donut-center"><strong>${money(state.worldwide)}</strong><span>Worldwide</span></div></div><div class="bx-ba-legend">${legend}</div></div>`;
+    };
+
+    const currentItem = {detected_gross:current,areas:{
+        tamil_nadu:currentSource.present?.tamil_nadu?currentSource.tamil_nadu:null,
+        kerala:currentSource.present?.kerala?currentSource.kerala:null,
+        karnataka:currentSource.present?.karnataka?currentSource.karnataka:null,
+        telugu_states:currentSource.present?.telugu_states?currentSource.telugu_states:null,
+        rest_of_india:currentSource.present?.rest_of_india?currentSource.rest_of_india:null,
+        overseas:currentSource.present?.overseas?currentSource.overseas:null,
+        india:currentSource.india>0?currentSource.india:null,
+        worldwide:current
+    }};
+    const currentBars = renderBars(currentItem);
+    const currentDonut = renderDonut(currentItem);
+
+    const reversed = [...milestones].reverse();
+    const milestoneCard = (item,index) => {
+        const tone = index%3===0 ? "tone-green" : (index%3===1 ? "tone-blue" : "tone-gold");
+        const advanceStage = String(item?.stage || "").toUpperCase()==="ADVANCE";
+        const gross = n(item?.detected_gross) || n(item?.areas?.worldwide) || Number(item?.milestone);
+        const dt = item?.detected_at ? new Date(item.detected_at) : null;
+        const when = dt && !Number.isNaN(dt.getTime())
+            ? dt.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit",hour12:true})
+            : "";
+        const snapshotState = stateFor(item);
+        const scale = Math.max(...snapshotState.visible.map(r=>r.value),1);
+        const bars = snapshotState.visible.map(row => { const pct = snapshotState.worldwide > 0 ? ` · ${(row.value/snapshotState.worldwide*100).toFixed(1)}%` : ""; return `<div class="bx-ms-row"><span class="bx-ms-name">${esc(row.label)}</span><span class="bx-ms-track"><span class="bx-ms-fill ${row.cls}" style="width:${Math.max(3,Math.min(100,row.value/scale*100))}%"></span></span><span class="bx-ms-value">${money(row.value)}${pct}</span></div>`; }).join("");
+        return `<article class="bx-ms-card"><div class="bx-ms-card-head"><div><div class="bx-ms-title">🏆 ₹${Number(item.milestone).toLocaleString("en-IN")} Cr Milestone</div><div class="bx-ms-meta">${when ? `Detected ${esc(when)} · Gross ${money(gross)}` : `Gross ${money(gross)}`}</div></div><span class="bx-ms-badge ${advanceStage?"advance":""}">${esc(item.stage_label || item.stage || "Reached")}</span></div><div class="bx-ms-bars">${bars}</div><div class="bx-ms-total"><span>Worldwide at snapshot</span><strong>${money(gross)}</strong></div></article>`;
+    };
+
+    const allMilestoneCards = reversed.map((m,i)=>milestoneCard(m,i)).join("");
+
+
+
+    return `<section class="bx-bo-analysis" aria-label="Box office milestone analysis">
+        <div class="bx-ba-head"><div><div class="bx-ba-title">🏆 Box Office Milestone Tracker</div><div class="bx-ba-sub">Track the movie's journey in ₹${step} Cr steps (Worldwide Gross)</div></div><div class="bx-ba-current"><strong>${money(current)}</strong><span>Worldwide Gross (Latest)</span></div></div>
+        <div class="bx-ba-timeline-shell"><div class="bx-ba-timeline">${timeline.join("")}</div><div class="bx-ba-progress-card"><div class="bx-ba-progress-row"><span>Next milestone ₹${nextMilestone.toLocaleString("en-IN")} Cr</span><span>${money(remaining)} remaining</span></div><div class="bx-ba-progress-track"><div class="bx-ba-progress-fill" style="width:${segmentProgress}%"></div></div></div></div>
+        ${currentBars ? `<div class="bx-ba-section-title"><span>📊 Current Area-wise Contribution</span><span class="bx-ba-total">Total: ${money(current)} (Worldwide)</span></div><div class="bx-ba-card"><div class="bx-ba-current-layout"><div>${currentBars}</div>${currentDonut}</div></div>` : ""}
+        <div class="bx-ba-section-title"><span>📊 Every ₹50 Cr Milestone — Area-wise Contribution</span></div>
+        <div class="bx-ms-grid">${allMilestoneCards}</div>
+        <div class="bx-ms-grid" style="margin-top:14px"><article class="bx-ms-card bx-ms-upcoming"><span class="bx-ms-next-icon">○</span><strong>₹${nextMilestone.toLocaleString("en-IN")} Cr</strong><span>Next milestone · waiting to be crossed</span></article></div>
+    </section>`;
+}
+
+
+
+function renderBudgetSuccessTracker(analysis) {
+    const budgetData = analysis?.theatrical_performance?.budget;
+    if (!budgetData) return "";
+
+    const budget = Number(budgetData.reported_budget);
+    const current = Number(budgetData.worldwide_gross);
+    const multiple = Number(budgetData.gross_budget_multiple);
+
+    if (!Number.isFinite(budget) || budget <= 0 ||
+        !Number.isFinite(current) || current <= 0 ||
+        !Number.isFinite(multiple)) return "";
+
+    const money = value => `₹${Number(value).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+    const marker = Math.max(1,Math.min(99,(multiple/3.25)*100));
+
+    return `<div class="bx-ba-budget">
+        <div class="bx-ba-budget-head">
+            <div>
+                <div class="bx-ba-budget-title">🎯 Budget Success Tracker</div>
+                <div class="bx-ba-sub">Based on reported production budget and current worldwide gross</div>
+            </div>
+            <div class="bx-ba-budget-stats">
+                <div class="bx-ba-budget-stat"><strong>${money(budget)}</strong><span>Reported Budget</span></div>
+                <div class="bx-ba-budget-stat green"><strong>${money(current)}</strong><span>Worldwide Gross</span></div>
+                <div class="bx-ba-budget-stat green"><strong>${multiple.toFixed(2)}×</strong><span>Current Multiple</span></div>
+            </div>
+        </div>
+        <div class="bx-ba-budget-scale">
+            <span class="bx-ba-budget-marker" data-label="${multiple.toFixed(2)}×" style="left:${marker}%"></span>
+        </div>
+        <div class="bx-ba-budget-labels">
+            <span><strong>0.5×</strong>Low Recovery</span>
+            <span><strong>1×</strong>Budget Level</span>
+            <span><strong>1.5×</strong>Strong</span>
+            <span><strong>2×</strong>Very Strong</span>
+            <span><strong>2.5×</strong>Major</span>
+            <span><strong>3×+</strong>Exceptional</span>
+        </div>
+        <div class="bx-ba-method">
+            <strong>Budget Success Note:</strong> This tracker is based on the film's reported production budget and worldwide gross and is intended as a simplified performance indicator. Actual theatrical profitability and trade verdicts can differ based on theatrical rights values, distributor shares, regional business, taxes, marketing costs and other revenue arrangements. Reported budget figures may also vary between sources.<br>
+            <strong>Budget-based indicator • Not an official theatrical verdict.</strong>
+        </div>
+    </div>`;
+}
+
+
+function renderTheatricalPerformance(analysis) {
+    const tp = analysis?.theatrical_performance;
+    if (!tp) return "";
+
+    const num = value => {
+        if (value === null || value === undefined || String(value).trim() === "") return null;
+        const n = Number(value);
+        return Number.isFinite(n) ? n : null;
+    };
+    const money = value => {
+        const n = num(value);
+        return n === null ? "—" : `₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+    };
+    const multiple = value => {
+        const n = num(value);
+        return n === null ? "—" : `${n.toFixed(2)}×`;
+    };
+    const pct = value => Math.max(0,Math.min(100,Number(value)||0));
+
+    const nextHtml = item => {
+        const next = item?.next_level;
+        if (!next) {
+            return `<div class="bx-tp-next bx-tp-atb-complete">
+                <div class="bx-tp-next-row bx-tp-next-simple">
+                    <span><strong>ALL TIME BLOCKBUSTER ACHIEVED</strong></span>
+                </div>
+                <div class="bx-tp-progress" aria-label="All Time Blockbuster achieved">
+                    <span style="width:100%"></span>
+                </div>
+                <div class="bx-tp-achieved">✓ 100% · Highest performance level achieved</div>
+            </div>`;
+        }
+        return `<div class="bx-tp-next">
+            <div class="bx-tp-next-row bx-tp-next-simple">
+                <span><strong>${money(next.remaining)}</strong> more gross collection needed to reach <strong>${esc(String(next.label || "").toUpperCase())}</strong></span>
+            </div>
+            <div class="bx-tp-progress" aria-label="${esc(next.label)} progress">
+                <span style="width:${pct(next.progress_percent)}%"></span>
+            </div>
+            <div class="bx-tp-achieved">${Number(next.progress_percent||0).toFixed(1)}% of next target</div>
+        </div>`;
+    };
+
+    const combined = tp.combined;
+    let combinedHtml = "";
+    if (combined && Number(combined.market_count) >= 2) {
+        combinedHtml = `<div class="bx-tp-combined ${combined.atb_achieved ? "bx-tp-atb-card" : ""}">
+            <div class="bx-tp-kicker">Combined tracker</div>
+            <div class="bx-tp-combined-title">Calculated Theatrical Value — Available Markets</div>
+            <div class="bx-tp-stats">
+                <div class="bx-tp-stat"><span>Theatrical Rights</span><strong>${money(combined.theatrical_value)}</strong></div>
+                <div class="bx-tp-stat"><span>Current Gross</span><strong>${money(combined.gross)}</strong></div>
+                <div class="bx-tp-stat"><span>Estimated Net</span><strong>${money(combined.estimated_net)}</strong></div>
+                <div class="bx-tp-stat"><span>Estimated Theatrical Share</span><strong>${money(combined.estimated_theatrical_share)}</strong></div>
+                <div class="bx-tp-stat"><span>Performance</span><strong>${multiple(combined.multiple)}</strong></div>
+                <div class="bx-tp-stat level"><span>Estimated Level</span><strong class="bx-tp-level-big bx-tp-level-${String(combined.current_level?.key || "flop").toLowerCase().replaceAll("_","-")}">${esc(combined.current_level?.label || "—")}</strong></div>
+            </div>
+            ${nextHtml(combined)}
+        </div>`;
+    }
+
+    const regionOrder = ["tamil_nadu","kerala","karnataka","telugu_states","rest_of_india","overseas"];
+    const regions = tp.regions || {};
+    const regionCards = regionOrder
+        .filter(key => regions[key])
+        .map(key => {
+            const r = regions[key];
+            const levelClass = String(r.current_level?.key || "flop").toLowerCase().replaceAll("_","-");
+            return `<article class="bx-tp-region ${r.atb_achieved ? "bx-tp-atb-card" : ""}">
+                <div class="bx-tp-region-head">
+                    <div class="bx-tp-region-name">${esc(r.label || key)}</div>
+                    <span class="bx-tp-badge level-${levelClass}">${esc(r.current_level?.label || "Estimated")}</span>
+                </div>
+                <div class="bx-tp-region-values">
+                    <div class="bx-tp-mini"><span>Theatrical Rights</span><strong>${money(r.theatrical_value)}</strong></div>
+                    <div class="bx-tp-mini"><span>Current Gross</span><strong>${money(r.gross)}</strong></div>
+                    ${key !== "overseas" ? `<div class="bx-tp-mini"><span>Estimated Net</span><strong>${money(r.estimated_net)}</strong></div>` : ""}
+                    <div class="bx-tp-mini"><span>Estimated Theatrical Share</span><strong>${money(r.estimated_theatrical_share)}</strong></div>
+                    <div class="bx-tp-mini"><span>Multiple</span><strong>${multiple(r.multiple)}</strong></div>
+                </div>
+                ${nextHtml(r)}
+            </article>`;
+        }).join("");
+
+    if (!combinedHtml && !regionCards) return "";
+
+    const disclaimer = tp.disclaimer || "Theatrical values, distribution rights, distributor shares and territory-wise recovery figures are based on available industry reports and estimates. Actual commercial agreements, revenue shares and final settlements are private financial information known fully only to the producers, distributors, exhibitors/theatre owners and other parties involved.";
+    const performanceNote = tp.performance_note || "BoxOfficeX performance labels are estimates based on reported theatrical values and available box-office gross. They are not official distributor profit/loss statements.";
+
+    return `<section class="bx-tp" aria-label="Estimated theatrical performance">
+        <div class="bx-tp-head">
+            <div>
+                <div class="bx-tp-title">🎯 Estimated Theatrical Performance</div>
+                <div class="bx-tp-sub">Reported theatrical values compared with matching earned box-office gross</div>
+            </div>
+        </div>
+        ${combinedHtml}
+        ${regionCards ? `<div class="bx-tp-section-title">Area-wise Theatrical Value Tracker</div><div class="bx-tp-regions">${regionCards}</div>` : ""}
+        <div class="bx-tp-notes">
+            <p><strong>BoxOfficeX Note:</strong> ${esc(disclaimer)}</p>
+            <p><strong>Performance Note:</strong> ${esc(performanceNote)}</p>
+        </div>
+    </section>`;
+}
+
 function renderBoxOffice(data) {
 const money=v=>{const n=Number(v);return Number.isFinite(n)?`₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`:"N/A"};
 const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
@@ -4840,7 +5420,7 @@ w.includesPreview
 }</td><td>${money(w.tamil_nadu)}</td><td>${money(w.kerala)}</td><td>${money(w.karnataka)}</td><td>${money(w.telugu_states)}</td><td>${money(w.rest_of_india)}</td><td class="bo-auto-total">${money(w.india)}</td><td>${money(w.overseas)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">${esc(currentGrossHeading)}</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(actualTotal.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(actualTotal.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(actualTotal.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(actualTotal.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(actualTotal.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Gross</span><strong>${money(actualTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas</span><strong>${money(actualTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(actualTotal.worldwide)}</strong></div></div>
 ${hasAdvance?`<div class="bo-subtitle">${esc(advanceHeading)}</div><div class="bo-final-grid"><div class="bo-final-item"><span>Tamil Nadu</span><strong>${money(advanceTotal.tamil_nadu)}</strong></div><div class="bo-final-item"><span>Kerala</span><strong>${money(advanceTotal.kerala)}</strong></div><div class="bo-final-item"><span>Karnataka</span><strong>${money(advanceTotal.karnataka)}</strong></div><div class="bo-final-item"><span>Telugu States</span><strong>${money(advanceTotal.telugu_states)}</strong></div><div class="bo-final-item"><span>Rest of India</span><strong>${money(advanceTotal.rest_of_india)}</strong></div><div class="bo-final-item total"><span>India Advance</span><strong>${money(advanceTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Advance</span><strong>${money(advanceTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Advance</span><strong>${money(advanceTotal.worldwide)}</strong></div></div>
-<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>`;
+<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>${renderBoxOfficeAnalysis(data?.analysis, data)}${renderTheatricalPerformance(data?.analysis)}${renderBudgetSuccessTracker(data?.analysis)}`;
 }
 
 // =========================================================
@@ -5034,12 +5614,10 @@ function renderLiveTracker(data) {
 
     let dayNumber = null;
     let releaseDateLabel = "";
-    // Accept the Live Tracker release-date key plus safe legacy aliases.
-    // The Live Tracker date has priority over linked-movie metadata.
-    const trackerStartDate = has(data.start_date) ? data.start_date
-        : has(data.movie_release_date) ? data.movie_release_date
-        : has(data.release_date) ? data.release_date
-        : (window.currentBoxOfficeXLiveMovieReleaseDate || "");
+    // Linked movie release date is the single Day-N authority.
+    // Live Tracker start_date must never shift Day 1 / Day 2 / ... independently.
+    // The backend sets this from the article's linked movie metadata.
+    const trackerStartDate = window.currentBoxOfficeXLiveMovieReleaseDate || "";
     if (has(trackerStartDate)) {
         const match = String(trackerStartDate).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (match) {
@@ -5104,7 +5682,11 @@ function renderLiveTracker(data) {
         const raw = String(data.updated_at).trim();
         let dt = new Date(raw);
         if (Number.isNaN(dt.getTime()) && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(raw)) dt = new Date(raw.replace(" ", "T") + "+05:30");
-        if (!Number.isNaN(dt.getTime())) updatedLabel = dt.toLocaleTimeString("en-IN", {timeZone:"Asia/Kolkata",hour:"numeric",minute:"2-digit",hour12:true});
+        if (!Number.isNaN(dt.getTime())) {
+            const datePart = dt.toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata",day:"numeric",month:"short"});
+            const timePart = dt.toLocaleTimeString("en-IN", {timeZone:"Asia/Kolkata",hour:"numeric",minute:"2-digit",hour12:true});
+            updatedLabel = `${datePart}, ${timePart}`;
+        }
     }
 
     const cards = [];

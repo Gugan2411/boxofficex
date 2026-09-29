@@ -3839,6 +3839,8 @@ html,body{scroll-padding-top:0!important}
 [id^="bxSmartAdSlot"] .bx-smart-video-cta{flex:0 0 auto!important;padding:4px 7px!important;border-radius:5px!important;background:#fff!important;color:#111827!important;font-size:8px!important;font-weight:900!important}
 @media(max-width:320px){[id^="bxSmartAdSlot"] .bx-smart-ad-card{width:calc(100vw - 20px)!important;height:auto!important;aspect-ratio:6/5!important}}
 </style>
+
+
 </head>
 
 <body>
@@ -3952,7 +3954,7 @@ html,body{scroll-padding-top:0!important}
         <button
             class="industry-btn active"
             data-industry="All"
-            onclick="loadMovies('All')"
+            onclick="window.location.href='/movie-rankings.html'"
         >
             🌍 Global
         </button>
@@ -3961,7 +3963,7 @@ html,body{scroll-padding-top:0!important}
         <button
             class="industry-btn"
             data-industry="Kollywood"
-            onclick="loadMovies('Kollywood')"
+            onclick="window.location.href='/movie-rankings/tamil'"
         >
             🎬 Kollywood
         </button>
@@ -3970,7 +3972,7 @@ html,body{scroll-padding-top:0!important}
         <button
             class="industry-btn"
             data-industry="Tollywood"
-            onclick="loadMovies('Tollywood')"
+            onclick="window.location.href='/movie-rankings/telugu'"
         >
             🎬 Tollywood
         </button>
@@ -3979,7 +3981,7 @@ html,body{scroll-padding-top:0!important}
         <button
             class="industry-btn"
             data-industry="Bollywood"
-            onclick="loadMovies('Bollywood')"
+            onclick="window.location.href='/movie-rankings/hindi'"
         >
             🎬 Bollywood
         </button>
@@ -3988,7 +3990,7 @@ html,body{scroll-padding-top:0!important}
         <button
             class="industry-btn"
             data-industry="Sandalwood"
-            onclick="loadMovies('Sandalwood')"
+            onclick="window.location.href='/movie-rankings/kannada'"
         >
             🎬 Sandalwood
         </button>
@@ -3997,7 +3999,7 @@ html,body{scroll-padding-top:0!important}
         <button
             class="industry-btn"
             data-industry="Mollywood"
-            onclick="loadMovies('Mollywood')"
+            onclick="window.location.href='/movie-rankings/malayalam'"
         >
             🎬 Mollywood
         </button>
@@ -4063,8 +4065,10 @@ html,body{scroll-padding-top:0!important}
     <div class="loading">
         Loading rankings...
     </div>
+    <!-- SSR_MOVIES_END -->
 
 </div>
+
 
 
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
@@ -4208,54 +4212,26 @@ function bxMoviePublicUrl(movie){
 ========================================== */
 
 function setupMovieRankingsSEO() {
-
-    const canonical =
-        window.location.origin +
-        window.location.pathname;
-
-    const canonicalTag =
-        document.getElementById(
-            "canonicalUrl"
-        );
-
-    if (canonicalTag) {
-        canonicalTag.href = canonical;
-    }
-
-    const ogUrl =
-        document.getElementById(
-            "ogUrl"
-        );
-
-    if (ogUrl) {
-        ogUrl.setAttribute(
-            "content",
-            canonical
-        );
-    }
-
-    const structuredData = {
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        "name": "Highest-Grossing Movies & Box Office Rankings | BoxOfficeX",
-        "url": canonical,
-        "description":
-            "Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
-    };
-
-    const jsonLd =
-        document.getElementById(
-            "rankingsStructuredData"
-        );
-
-    if (jsonLd) {
-        jsonLd.textContent =
-            JSON.stringify(
-                structuredData
-            );
+    const page = window.__BOXOFFICEX_MOVIE_RANKINGS_PAGE__ || {};
+    const canonical = page.canonical || (window.location.origin + window.location.pathname);
+    const canonicalTag = document.getElementById("canonicalUrl");
+    if (canonicalTag) canonicalTag.href = canonical;
+    const ogUrl = document.getElementById("ogUrl");
+    if (ogUrl) ogUrl.setAttribute("content", canonical);
+    // Server-rendered pages already contain the authoritative CollectionPage + ItemList JSON-LD.
+    // Keep the static fallback only when no server page config is present.
+    if (!page.canonical) {
+        const structuredData = {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Highest-Grossing Movies & Box Office Rankings | BoxOfficeX",
+            "url": canonical,
+            "description": "Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+        };
+        const jsonLd = document.getElementById("rankingsStructuredData");
+        if (jsonLd) jsonLd.textContent = JSON.stringify(structuredData);
     }
 }
-
 
 setupMovieRankingsSEO();
 
@@ -4623,10 +4599,16 @@ async function loadMovies(
 ========================================== */
 
 const bxInitialRankingList = document.getElementById("movies");
+const bxRankingPage = window.__BOXOFFICEX_MOVIE_RANKINGS_PAGE__ || {};
+const bxInitialIndustry = bxRankingPage.industry || "All";
 if (!(bxInitialRankingList && bxInitialRankingList.dataset.ssr === "1")) {
-    loadMovies("All");
+    loadMovies(bxInitialIndustry);
 } else {
-    window.__bxCurrentMovieRankingIndustry = "Global";
+    window.__bxCurrentMovieRankingIndustry = bxInitialIndustry === "All" ? "Global" : bxInitialIndustry;
+    updateActiveIndustry(bxInitialIndustry);
+    updateRankingHeading(bxInitialIndustry);
+    const bxCount = document.getElementById("resultsCount");
+    if (bxCount) bxCount.innerText = bxInitialRankingList.querySelectorAll(".movie-card").length + " movies";
 }
 
 
@@ -4715,15 +4697,7 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 
-<script>
-(function() {
-    const productionUrl = "https://boxofficex.in/movie-rankings.html";
-    const canonicalTag = document.getElementById("canonicalUrl");
-    if (canonicalTag) canonicalTag.href = productionUrl;
-    const ogUrlTag = document.getElementById("ogUrl");
-    if (ogUrlTag) ogUrlTag.setAttribute("content", productionUrl);
-})();
-</script>
+
 
 <script>
 /* =========================================================

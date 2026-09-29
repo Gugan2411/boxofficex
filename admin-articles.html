@@ -777,6 +777,50 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
     .article-table-preview{min-width:560px}
 }
 
+
+/* =====================================================
+   BOX OFFICE — REPORTED THEATRICAL BUSINESS / VALUE
+   ===================================================== */
+.bo-theatrical-values{
+    padding:13px;
+    border:1px solid rgba(255,204,51,.16);
+    border-radius:12px;
+    background:rgba(255,204,51,.035);
+}
+.bo-theatrical-values .bo-period-title{margin:0 0 5px}
+.bo-theatrical-note{
+    margin-bottom:11px;
+    color:#8e99b3;
+    font-size:9px;
+    line-height:1.45;
+}
+.bo-theatrical-worldwide{max-width:420px;margin-bottom:10px}
+.bo-theatrical-worldwide input[readonly]{background:#131d30;color:#7de2bb;font-weight:900;cursor:not-allowed}
+.bo-theatrical-auto-note{margin-top:5px;color:#78859e;font-size:9px;line-height:1.4}
+.bo-theatrical-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:9px;
+}
+@media(max-width:900px){
+    .bo-theatrical-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+    .bo-theatrical-grid{grid-template-columns:1fr}
+    .bo-theatrical-worldwide{max-width:none}
+}
+
+
+/* BOXOFFICEX GENERATED SEO PREVIEW */
+.generated-seo-preview{margin-top:4px;padding:14px;border:1px solid rgba(77,141,255,.22);border-radius:12px;background:#0d1423}
+.generated-seo-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.generated-seo-preview-head strong{color:#fff;font-size:13px}
+.generated-seo-mode{padding:4px 8px;border-radius:999px;background:rgba(77,141,255,.12);color:#8db8ff;font-size:10px;font-weight:900}
+.generated-seo-row{margin-top:9px}.generated-seo-row span{display:block;color:#7f8ba5;font-size:9px;font-weight:800;text-transform:uppercase}
+.generated-seo-row div{margin-top:3px;color:#e8edf7;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.generated-seo-meta{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);color:#8793aa;font-size:10px;line-height:1.5}
+.generated-seo-ok{color:#7de2bb}.generated-seo-warn{color:#ffcc33}
+
 </style>
 </head>
 <body>
@@ -908,6 +952,31 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <div class="full"><label>Meta title</label><input id="metaTitle"></div>
 <div class="full"><label>Meta description</label><textarea id="metaDescription"></textarea></div>
 <div class="full">
+    <div class="generated-seo-preview" style="padding:14px 16px">
+        <div class="generated-seo-preview-head">
+            <strong>🎬 Automatic Box Office Tracking</strong>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:800;cursor:pointer">
+                <input id="trackingEnabled" type="checkbox" checked style="width:18px;height:18px">
+                <span id="trackingEnabledLabel">ON — Automatic Day N</span>
+            </label>
+        </div>
+        <div class="generated-seo-meta">ON keeps automatic Day N tracking running with no 7-day limit. OFF freezes the final H1, SEO title, snippet and visible intro from the stored Box Office Report.</div>
+    </div>
+</div>
+<div class="full">
+    <div id="generatedSeoPreview" class="generated-seo-preview">
+        <div class="generated-seo-preview-head">
+            <strong>🔎 Public SSR / Google Preview</strong>
+            <span id="generatedSeoMode" class="generated-seo-mode">NOT LOADED</span>
+        </div>
+        <div class="generated-seo-row"><span>Public H1</span><div id="generatedSeoH1">Save the article to generate preview.</div></div>
+        <div class="generated-seo-row"><span>SEO Title</span><div id="generatedSeoTitle">—</div></div>
+        <div class="generated-seo-row"><span>Meta Description</span><div id="generatedSeoDescription">—</div></div>
+        <div class="generated-seo-row"><span>Canonical</span><div id="generatedSeoCanonical">—</div></div>
+        <div id="generatedSeoMeta" class="generated-seo-meta">This preview is returned by the same backend priority logic used by public SSR.</div>
+    </div>
+</div>
+<div class="full">
     <div class="link-picker">
         <label>🎬 Linked Movies</label>
         <div class="link-picker-row">
@@ -1038,6 +1107,8 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 
 <script>
 let currentArticleId=null;
+let loadedTrackingEnabled=true;
+
 let currentStatus="draft";
 let articles=[];
 let blocks=[];
@@ -1567,6 +1638,21 @@ if(d.label===undefined)d.label="";
 });
 renumberRegularDays(e.days);
 if(e.budget===undefined)e.budget=null;
+
+/* Optional reported theatrical business / value fields (₹ Cr). */
+[
+"theatrical_worldwide",
+"theatrical_tamil_nadu",
+"theatrical_kerala",
+"theatrical_karnataka",
+"theatrical_telugu_states",
+"theatrical_rest_of_india",
+"theatrical_overseas"
+].forEach(k=>{
+    if(e[k]===undefined)e[k]=null;
+});
+
+syncBoxOfficeTheatricalWorldwide(e);
 if(e.verdict===undefined)e.verdict="";
 if((e.movie_id===undefined || e.movie_id===null || e.movie_id==="") && selectedMovieLinkIds.length===1){
 e.movie_id=Number(selectedMovieLinkIds[0]);
@@ -1814,6 +1900,33 @@ return `
 </div>`;
 }
 
+const BOXOFFICE_THEATRICAL_REGION_KEYS=[
+"theatrical_tamil_nadu","theatrical_kerala","theatrical_karnataka",
+"theatrical_telugu_states","theatrical_rest_of_india","theatrical_overseas"
+];
+
+function syncBoxOfficeTheatricalWorldwide(e,card=null){
+if(!e||typeof e!=="object")return null;
+const values=BOXOFFICE_THEATRICAL_REGION_KEYS
+.map(k=>e[k])
+.filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))&&Number(v)>=0)
+.map(Number);
+
+e.theatrical_worldwide=values.length>=2
+?Number(values.reduce((sum,v)=>sum+v,0).toFixed(2))
+:null;
+
+if(card){
+const output=card.querySelector("[data-bo-worldwide-auto]");
+const note=card.querySelector("[data-bo-worldwide-note]");
+if(output)output.value=e.theatrical_worldwide??"";
+if(note)note.textContent=values.length>=2
+?`${values.length} available markets combined automatically.`
+:"Add at least 2 regional theatrical values to calculate the combined value.";
+}
+return e.theatrical_worldwide;
+}
+
 function renderBoxOfficeBlock(e){
 e=normalizeBoxOfficeExtra(e);
 return `
@@ -1840,6 +1953,28 @@ ${e.movie_id && movieReleaseDateById(e.movie_id) ? `<button type="button" class=
 </div>
 <div><label>Budget</label><input type="number" step="0.01" min="0" data-bo-root="budget" value="${e.budget??""}"></div>
 <div><label>Verdict</label><input data-bo-root="verdict" value="${lookupEsc(e.verdict??"")}"></div>
+</div>
+
+<div class="bo-theatrical-values">
+    <div class="bo-period-title">THEATRICAL BUSINESS / VALUE — OPTIONAL (₹ CR)</div>
+    <div class="bo-theatrical-note">
+        Enter only reported values that are available. Leave unknown territories blank.
+    </div>
+
+    <div class="bo-theatrical-worldwide">
+        <label>Calculated Theatrical Value — Available Markets</label>
+        <input type="number" step="0.01" min="0" data-bo-worldwide-auto value="" readonly>
+        <div class="bo-theatrical-auto-note" data-bo-worldwide-note>Add at least 2 regional theatrical values to calculate the combined value.</div>
+    </div>
+
+    <div class="bo-theatrical-grid">
+        <div><label>Tamil Nadu</label><input type="number" step="0.01" min="0" data-bo-root="theatrical_tamil_nadu" value="${e.theatrical_tamil_nadu??""}"></div>
+        <div><label>Kerala</label><input type="number" step="0.01" min="0" data-bo-root="theatrical_kerala" value="${e.theatrical_kerala??""}"></div>
+        <div><label>Karnataka</label><input type="number" step="0.01" min="0" data-bo-root="theatrical_karnataka" value="${e.theatrical_karnataka??""}"></div>
+        <div><label>AP & Telangana</label><input type="number" step="0.01" min="0" data-bo-root="theatrical_telugu_states" value="${e.theatrical_telugu_states??""}"></div>
+        <div><label>Rest of India</label><input type="number" step="0.01" min="0" data-bo-root="theatrical_rest_of_india" value="${e.theatrical_rest_of_india??""}"></div>
+        <div><label>Overseas</label><input type="number" step="0.01" min="0" data-bo-root="theatrical_overseas" value="${e.theatrical_overseas??""}"></div>
+    </div>
 </div>
 
 <div>
@@ -2142,6 +2277,7 @@ if(tableRowsInput)tableRowsInput.oninput=syncArticleTableBlock;
 
 if(b.block_type==="boxoffice"){
 bindBoxOfficeMovieSearch(card,b);
+syncBoxOfficeTheatricalWorldwide(b.extra_data,card);
 card.querySelectorAll("[data-bo-root]").forEach(el=>{
 const k=el.dataset.boRoot;
 
@@ -2149,10 +2285,21 @@ const k=el.dataset.boRoot;
 if(k==="movie_id")return;
 
 el.oninput=()=>{
-if(k==="budget"){
-b.extra_data[k]=el.value===""?null:Number(el.value);
+if([
+"budget",
+"theatrical_tamil_nadu",
+"theatrical_kerala",
+"theatrical_karnataka",
+"theatrical_telugu_states",
+"theatrical_rest_of_india",
+"theatrical_overseas"
+].includes(k)){
+    b.extra_data[k]=el.value===""?null:Number(el.value);
 }else{
-b.extra_data[k]=el.value;
+    b.extra_data[k]=el.value;
+}
+if(k.startsWith("theatrical_")){
+    syncBoxOfficeTheatricalWorldwide(b.extra_data,card);
 }
 };
 });
@@ -2503,6 +2650,44 @@ rows.forEach(a=>{
 });
 }
 
+
+async function refreshGeneratedSeoPreview(){
+    if(!currentArticleId) return;
+    const modeEl=$("generatedSeoMode");
+    const metaEl=$("generatedSeoMeta");
+    try{
+        modeEl.textContent="LOADING";
+        const r=await fetch(`/admin/articles/${currentArticleId}/generated-seo-preview`,{
+            credentials:"include",
+            cache:"no-store"
+        });
+        let d={};
+        try{d=await r.json()}catch(e){}
+        if(!r.ok) throw new Error(d.detail||("HTTP "+r.status));
+
+        $("generatedSeoH1").textContent=d.h1||"—";
+        $("generatedSeoTitle").textContent=d.seo_title||"—";
+        $("generatedSeoDescription").textContent=d.meta_description||"—";
+        $("generatedSeoCanonical").textContent=d.canonical||"—";
+        modeEl.textContent=`${d.priority||"ADMIN"} • ${d.mode||"NORMAL"}`;
+
+        const checks=d.checks||{};
+        const sourceText=Array.isArray(d.sources)&&d.sources.length
+            ? `Data: ${d.sources.join(" + ")}`
+            : "Data source unavailable";
+        const releaseText=checks.linked_movie_release_date===false && d.automatic
+            ? " • Movie release date required for automatic Day N"
+            : "";
+        const timeText=d.generated_at
+            ? ` • Generated ${new Date(d.generated_at).toLocaleString()}`
+            : "";
+        metaEl.innerHTML=`<span class="${checks.public_ssr_priority_logic?"generated-seo-ok":"generated-seo-warn"}">Public SSR priority logic: ${checks.public_ssr_priority_logic?"PASS":"CHECK"}</span> • ${lookupEsc(sourceText+releaseText+timeText)}`;
+    }catch(e){
+        modeEl.textContent="ERROR";
+        metaEl.textContent="Preview failed: "+e.message;
+    }
+}
+
 async function loadArticle(id){
 try{
     await fetch(`/admin/articles/${id}/refresh-boxoffice-statuses`,{
@@ -2534,22 +2719,31 @@ blocks=Array.isArray(a.blocks)?a.blocks:[];
 deletedBlockIds=[];
 $("editorTitle").textContent="Edit Article #"+a.id;
 $("title").value=a.title||"";$("slug").value=a.slug||"";$("subtitle").value=a.subtitle||"";$("category").value=a.category||"News";$("author").value=a.author||"BoxOfficeX";$("heroImage").value=a.hero_image||"";$("heroCaption").value=a.hero_caption||"";$("heroCredit").value=a.hero_credit||"";$("metaTitle").value=a.meta_title||"";$("metaDescription").value=a.meta_description||"";
+loadedTrackingEnabled = a.tracking_enabled !== false;
+if($("trackingEnabled")) $("trackingEnabled").checked = loadedTrackingEnabled;
+updateTrackingModeLabel();
 setSelectedLinks(a.movie_ids||[],a.actor_ids||[]);
 renumber();renderBlocks();updateBadge();updateHeroPreview();loadArticles();
+await refreshGeneratedSeoPreview();
 }
+function updateTrackingModeLabel(){
+const cb=$("trackingEnabled"), label=$("trackingEnabledLabel");
+if(!cb||!label)return;
+label.textContent=cb.checked ? "ON — Automatic Day N" : "OFF — Final / Frozen";
+}
+
 function articlePayload(){
 return {title:$("title").value.trim(),slug:slugify($("slug").value||$("title").value),subtitle:$("subtitle").value||null,category:$("category").value.trim()||"News",author:$("author").value.trim()||
 CURRENT_ARTICLE_ADMIN?.display_name||
 CURRENT_ARTICLE_ADMIN?.email||
-"BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null};
+"BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null,tracking_enabled:$("trackingEnabled")?$("trackingEnabled").checked:true};
 }
 
 async function saveArticle(){
 const payload=articlePayload();
-if(!payload.title){
-toast("Headline is required");
-return;
-}
+// Headline is optional. Tracking articles can be saved without a manual H1;
+// the backend/public SSR automatic CTR package will generate the public H1.
+// Slug remains the stable article identity and must still be supplied.
 
 let r;
 if(currentArticleId){
@@ -2590,6 +2784,17 @@ await saveBlocks();
 }catch(e){
 toast("Article saved, but content blocks failed: "+e.message);
 return;
+}
+
+const requestedTrackingEnabled = $("trackingEnabled") ? $("trackingEnabled").checked : true;
+if(requestedTrackingEnabled !== loadedTrackingEnabled){
+    const tr=await fetch(`/admin/articles/${currentArticleId}/tracking-mode`,{
+        method:"PUT",credentials:"include",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({enabled:requestedTrackingEnabled})
+    });
+    let td={}; try{td=await tr.json()}catch(e){}
+    if(!tr.ok){toast(td.detail||("Tracking mode update failed ("+tr.status+")"));return;}
+    loadedTrackingEnabled=requestedTrackingEnabled;
 }
 
 /*
@@ -3401,6 +3606,11 @@ $("draftManagerModal")?.addEventListener("click",e=>{if(e.target===$("draftManag
  document.addEventListener("keydown",event=>{if(event.key==="Escape")setMenu(false)});
  window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
 })();
+
+if($("trackingEnabled")){
+    $("trackingEnabled").addEventListener("change",updateTrackingModeLabel);
+    updateTrackingModeLabel();
+}
 </script>
 
 </body>

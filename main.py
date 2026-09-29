@@ -2848,6 +2848,17 @@ def sitemap_xml():
         ("/", "daily", "1.0"),
         ("/new-movies.html", "daily", "0.9"),
         ("/movie-rankings.html", "daily", "0.9"),
+        ("/movie-rankings/tamil", "daily", "0.9"),
+        ("/movie-rankings/telugu", "daily", "0.9"),
+        ("/movie-rankings/hindi", "daily", "0.9"),
+        ("/movie-rankings/kannada", "daily", "0.9"),
+        ("/movie-rankings/malayalam", "daily", "0.9"),
+        ("/rankings.html", "daily", "0.9"),
+        ("/actor-rankings/tamil", "daily", "0.9"),
+        ("/actor-rankings/telugu", "daily", "0.9"),
+        ("/actor-rankings/hindi", "daily", "0.9"),
+        ("/actor-rankings/kannada", "daily", "0.9"),
+        ("/actor-rankings/malayalam", "daily", "0.9"),
         ("/actors.html", "weekly", "0.8"),
         ("/articles.html", "daily", "0.9"),
         ("/compare-select.html", "weekly", "0.7"),
@@ -3190,9 +3201,235 @@ def movie_page(id: Optional[int] = None):
     return RedirectResponse(url=movie_url, status_code=301)
 
 
+# ============================================================
+# MOVIE RANKINGS - CACHED SSR + INDEXABLE INDUSTRY URLS
+# ============================================================
+
+MOVIE_RANKINGS_HTML_CACHE_TTL = 3600
+MOVIE_RANKINGS_HTML_STALE_TTL = 900
+_movie_rankings_html_cache = {}
+_movie_rankings_html_cache_lock = threading.Lock()
+_movie_rankings_html_refreshing = set()
+
+_MOVIE_RANKING_TARGETS = {
+    "all": {"label": "Indian", "industry": "All", "language": None, "path": "/movie-rankings.html"},
+    "tamil": {"label": "Tamil", "industry": "Kollywood", "language": "Tamil", "path": "/movie-rankings/tamil"},
+    "telugu": {"label": "Telugu", "industry": "Tollywood", "language": "Telugu", "path": "/movie-rankings/telugu"},
+    "hindi": {"label": "Hindi", "industry": "Bollywood", "language": "Hindi", "path": "/movie-rankings/hindi"},
+    "kannada": {"label": "Kannada", "industry": "Sandalwood", "language": "Kannada", "path": "/movie-rankings/kannada"},
+    "malayalam": {"label": "Malayalam", "industry": "Mollywood", "language": "Malayalam", "path": "/movie-rankings/malayalam"},
+}
+
+
+def _movie_rankings_format_crore(value):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return ""
+    if number <= 0:
+        return ""
+    return f"{number:,.2f}".rstrip("0").rstrip(".")
+
+
+def _movie_rankings_fetch_rows():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, title, language, industry, release_date,
+                       worldwide_collection_crore, verdict, poster
+                FROM movies
+                WHERE worldwide_collection_crore IS NOT NULL
+                  AND worldwide_collection_crore > 0
+                ORDER BY worldwide_collection_crore DESC
+                LIMIT 300
+            """)
+            rows = cur.fetchall()
+    return [{
+        "id": row[0], "title": row[1], "language": row[2], "industry": row[3],
+        "release_date": str(row[4]) if row[4] else None,
+        "worldwide_collection": float(row[5]) if row[5] is not None else None,
+        "verdict": row[6], "poster": safe_movie_poster(row[7]),
+    } for row in rows]
+
+
+def _movie_rankings_matches(movie, industry, language):
+    return (
+        str(movie.get("industry") or "").strip().lower() == str(industry or "").lower()
+        or str(movie.get("language") or "").strip().lower() == str(language or "").lower()
+    )
+
+
+def _movie_rankings_public_url(movie):
+    movie_id = movie.get("id")
+    if movie_id is None:
+        return "/new-movies.html"
+    try:
+        return public_movie_url(int(movie_id)) or "/new-movies.html"
+    except Exception:
+        return "/new-movies.html"
+
+
+def _movie_rankings_card(movie, rank):
+    title = str(movie.get("title") or "Movie").strip()
+    gross = _movie_rankings_format_crore(movie.get("worldwide_collection"))
+    release = str(movie.get("release_date") or "").strip()
+    verdict = str(movie.get("verdict") or "Box Office").strip()
+    poster = str(movie.get("poster") or DEFAULT_MOVIE_POSTER).strip()
+    poster_url = poster if _is_remote_image(poster) else f"/posters/{poster}"
+    url = _movie_rankings_public_url(movie)
+    details = []
+    if release:
+        details.append(f"📅 {html_escape(release)}")
+    if gross:
+        details.append(f"🌍 ₹{html_escape(gross)} Cr")
+    return (
+        f'<a class="movie-card" href="{html_escape(url, quote=True)}" aria-label="{html_escape(title, quote=True)} box office details">'
+        f'<div class="rank">#{rank}</div>'
+        f'<img src="{html_escape(poster_url, quote=True)}" alt="{html_escape(title, quote=True)}" loading="lazy">'
+        '<div class="movie-info">'
+        f'<div class="movie-title">{html_escape(title)}</div>'
+        f'<div class="details">{" &nbsp; | &nbsp; ".join(details)}</div>'
+        f'<div class="verdict">🎬 {html_escape(verdict)}</div>'
+        '</div></a>'
+    )
+
+
+def _movie_rankings_meta(target_key, ranked_movies):
+    target = _MOVIE_RANKING_TARGETS[target_key]
+    label = target["label"]
+    canonical = f'https://boxofficex.in{target["path"]}'
+    if target_key == "all":
+        title = "Highest-Grossing Indian Movies of All Time | BoxOfficeX"
+        fallback = "Explore India's all-time highest-grossing movies and Top 50 rankings across Tamil, Telugu, Hindi, Kannada and Malayalam cinema on BoxOfficeX."
+    else:
+        title = f"Highest-Grossing {label} Movies of All Time | BoxOfficeX"
+        fallback = f"Explore the highest-grossing {label} movies of all time, ranked by worldwide box office collection on BoxOfficeX."
+    leaders = []
+    for movie in ranked_movies:
+        name = str(movie.get("title") or "").strip()
+        gross = _movie_rankings_format_crore(movie.get("worldwide_collection"))
+        if name and gross:
+            leaders.append(f"{name} ₹{gross} Cr")
+        if len(leaders) == 2:
+            break
+    if leaders:
+        if target_key == "all":
+            description = f"{', '.join(leaders)} worldwide — explore India's all-time highest-grossing movies and Top 50 rankings across Tamil, Telugu, Hindi, Kannada and Malayalam cinema."
+        else:
+            description = f"{', '.join(leaders)} worldwide — explore the highest-grossing {label} movies of all time and {label} box office rankings on BoxOfficeX."
+    else:
+        description = fallback
+    return title, description, canonical
+
+
+def _movie_rankings_apply_meta(template, title, description, canonical):
+    et = html_escape(title, quote=True); ed = html_escape(description, quote=True); ec = html_escape(canonical, quote=True)
+    replacements = [
+        (r"<title\b[^>]*>.*?</title>", f"<title>{html_escape(title)}</title>"),
+        (r'<meta\b(?=[^>]*\bname=["\']description["\'])[^>]*>', f'<meta id="metaDescription" name="description" content="{ed}">'),
+        (r'<link\b(?=[^>]*\brel=["\']canonical["\'])[^>]*>', f'<link id="canonicalUrl" rel="canonical" href="{ec}">'),
+        (r'<meta\b(?=[^>]*\bproperty=["\']og:title["\'])[^>]*>', f'<meta id="ogTitle" property="og:title" content="{et}">'),
+        (r'<meta\b(?=[^>]*\bproperty=["\']og:description["\'])[^>]*>', f'<meta id="ogDescription" property="og:description" content="{ed}">'),
+        (r'<meta\b(?=[^>]*\bproperty=["\']og:url["\'])[^>]*>', f'<meta id="ogUrl" property="og:url" content="{ec}">'),
+        (r'<meta\b(?=[^>]*\bname=["\']twitter:title["\'])[^>]*>', f'<meta id="twitterTitle" name="twitter:title" content="{et}">'),
+        (r'<meta\b(?=[^>]*\bname=["\']twitter:description["\'])[^>]*>', f'<meta id="twitterDescription" name="twitter:description" content="{ed}">'),
+    ]
+    for pattern, replacement in replacements:
+        template = re.sub(pattern, replacement, template, count=1, flags=re.I | re.S)
+    return template
+
+
+def _render_movie_rankings_html(target_key="all"):
+    target = _MOVIE_RANKING_TARGETS[target_key]
+    template = (BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8")
+    movies = _movie_rankings_fetch_rows()
+    if target_key == "all":
+        ranked = movies[:50]
+    else:
+        ranked = [m for m in movies if _movie_rankings_matches(m, target["industry"], target["language"])][:50]
+    title, description, canonical = _movie_rankings_meta(target_key, ranked)
+    template = _movie_rankings_apply_meta(template, title, description, canonical)
+
+    cards = "".join(_movie_rankings_card(movie, rank) for rank, movie in enumerate(ranked, 1))
+    if cards:
+        template = re.sub(
+            r'(<div\s+id=["\']movies["\']\s*>).*?(</div>\s*<!--\s*SSR_MOVIES_END\s*-->)',
+            lambda m: m.group(1).replace('id="movies"', 'id="movies" data-ssr="1"') + cards + m.group(2),
+            template, count=1, flags=re.I | re.S,
+        )
+
+    item_list = []
+    for rank, movie in enumerate(ranked, 1):
+        name = str(movie.get("title") or "").strip(); url = _movie_rankings_public_url(movie)
+        if name and url != "/new-movies.html":
+            item_list.append({"@type":"ListItem","position":rank,"name":name,"url":f"https://boxofficex.in{url}"})
+    list_name = "BoxOfficeX Top 50 Highest-Grossing Indian Movies" if target_key == "all" else f"BoxOfficeX Highest-Grossing {target['label']} Movies"
+    structured = {"@context":"https://schema.org","@type":"CollectionPage","name":title.replace(" | BoxOfficeX", ""),"url":canonical,"description":description,"mainEntity":{"@type":"ItemList","name":list_name,"itemListElement":item_list}}
+    structured_json = json.dumps(structured, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    template = re.sub(r'<script\s+id=["\']rankingsStructuredData["\']\s+type=["\']application/ld\+json["\']\s*>.*?</script>', f'<script id="rankingsStructuredData" type="application/ld+json">{structured_json}</script>', template, count=1, flags=re.I | re.S)
+
+    config = json.dumps({"targetKey":target_key,"industry":target["industry"],"label":target["label"],"canonical":canonical,"title":title,"description":description}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    template = template.replace("</head>", f'<script>window.__BOXOFFICEX_MOVIE_RANKINGS_PAGE__={config};</script>\n</head>', 1)
+    return template
+
+
+def _refresh_movie_rankings_html_cache(target_key):
+    try:
+        rendered = _render_movie_rankings_html(target_key)
+        with _movie_rankings_html_cache_lock:
+            _movie_rankings_html_cache[target_key] = {"html": rendered, "generated_at": time_module.time()}
+    except Exception as exc:
+        print("MOVIE RANKINGS SSR REFRESH WARNING:", target_key, exc, flush=True)
+    finally:
+        with _movie_rankings_html_cache_lock:
+            _movie_rankings_html_refreshing.discard(target_key)
+
+
+def _start_movie_rankings_html_refresh(target_key):
+    with _movie_rankings_html_cache_lock:
+        if target_key in _movie_rankings_html_refreshing:
+            return
+        _movie_rankings_html_refreshing.add(target_key)
+    threading.Thread(target=_refresh_movie_rankings_html_cache, args=(target_key,), daemon=True).start()
+
+
+def _movie_rankings_response(target_key):
+    target = _MOVIE_RANKING_TARGETS[target_key]
+    now = time_module.time()
+    with _movie_rankings_html_cache_lock:
+        entry = _movie_rankings_html_cache.get(target_key) or {}
+        cached = entry.get("html"); generated_at = float(entry.get("generated_at") or 0)
+        age = now - generated_at if generated_at else float("inf")
+    headers = {"X-BoxOfficeX-Movie-Rankings-CTR":"v3-industry-urls"}
+    if cached and age <= MOVIE_RANKINGS_HTML_CACHE_TTL:
+        headers.update({"Cache-Control": "public, max-age=300, stale-while-revalidate=3600","X-BoxOfficeX-Movie-Rankings-SSR":"HIT"})
+        return HTMLResponse(content=cached, headers=headers)
+    if cached and age <= MOVIE_RANKINGS_HTML_STALE_TTL:
+        _start_movie_rankings_html_refresh(target_key)
+        headers.update({"Cache-Control": "public, max-age=300, stale-while-revalidate=3600","X-BoxOfficeX-Movie-Rankings-SSR":"STALE"})
+        return HTMLResponse(content=cached, headers=headers)
+
+    _start_movie_rankings_html_refresh(target_key)
+    template = (BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8")
+    title, description, canonical = _movie_rankings_meta(target_key, [])
+    template = _movie_rankings_apply_meta(template, title, description, canonical)
+    config = json.dumps({"targetKey":target_key,"industry":target["industry"],"label":target["label"],"canonical":canonical,"title":title,"description":description}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    template = template.replace("</head>", f'<script>window.__BOXOFFICEX_MOVIE_RANKINGS_PAGE__={config};</script>\n</head>', 1)
+    headers.update({"Cache-Control": "public, max-age=300, stale-while-revalidate=3600","X-BoxOfficeX-Movie-Rankings-SSR":"WARMING"})
+    return HTMLResponse(content=template, headers=headers)
+
+
 @app.get("/movie-rankings.html")
 def movie_rankings_page():
-    return FileResponse(BASE_DIR / "movie-rankings.html")
+    return _movie_rankings_response("all")
+
+
+@app.get("/movie-rankings/{industry_slug}")
+def movie_rankings_industry_page(industry_slug: str):
+    key = str(industry_slug or "").strip().lower()
+    if key not in _MOVIE_RANKING_TARGETS or key == "all":
+        raise HTTPException(status_code=404, detail="Movie ranking industry not found")
+    return _movie_rankings_response(key)
 
 
 # ============================================================
@@ -3215,6 +3452,205 @@ def _movie_ssr_format_crore(value):
         return f"₹{value} Cr"
 
 
+def _movie_ssr_release_year(movie):
+    value = str(movie.get("release_date") or "").strip()
+    match = re.search(r"(\d{4})", value)
+    return match.group(1) if match else ""
+
+
+def _movie_ssr_has_number(value):
+    if value is None or value == "":
+        return False
+    try:
+        float(value)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _movie_ssr_plain_crore(value):
+    if not _movie_ssr_has_number(value):
+        return None
+    number = float(value)
+    return f"{number:,.2f}".rstrip("0").rstrip(".")
+
+
+def _movie_ssr_lead_cast(movie):
+    raw = (
+        movie.get("actors")
+        or movie.get("cast")
+        or movie.get("cast_names")
+        or movie.get("starring")
+    )
+
+    if isinstance(raw, list):
+        names = []
+        for item in raw:
+            if isinstance(item, dict):
+                value = item.get("name") or item.get("actor_name") or ""
+            else:
+                value = item
+            value = str(value or "").strip()
+            if value:
+                names.append(value)
+        return names[:3]
+
+    if isinstance(raw, str):
+        return [x.strip() for x in raw.split(",") if x.strip()][:3]
+
+    return []
+
+
+def _movie_ssr_natural_list(items):
+    clean = [str(x).strip() for x in items if str(x).strip()]
+    if not clean:
+        return ""
+    if len(clean) == 1:
+        return clean[0]
+    if len(clean) == 2:
+        return f"{clean[0]} and {clean[1]}"
+    return ", ".join(clean[:-1]) + f" and {clean[-1]}"
+
+
+def _movie_ssr_deck(movie):
+    title_text = str(movie.get("title") or "This movie").strip()
+    language = str(movie.get("language") or "").strip()
+    genre = str(movie.get("genre") or "").strip()
+    director = str(movie.get("director") or "").strip()
+    cast = _movie_ssr_lead_cast(movie)
+
+    budget = _movie_ssr_plain_crore(movie.get("budget_crore"))
+    india = _movie_ssr_plain_crore(movie.get("india_collection_crore"))
+    overseas = _movie_ssr_plain_crore(movie.get("overseas_collection_crore"))
+    worldwide = _movie_ssr_plain_crore(movie.get("worldwide_collection_crore"))
+    verdict = str(movie.get("verdict") or "").strip()
+
+    intro = title_text
+    intro += f" is a {language}" if language else " is an Indian"
+    if genre:
+        intro += f" {genre.lower()}"
+    intro += " film"
+
+    if director:
+        intro += f" directed by {director}"
+    if cast:
+        intro += ", starring " + _movie_ssr_natural_list(cast)
+
+    deck = intro + "."
+
+    if budget:
+        deck += f" Made on a reported ₹{budget} crore budget"
+        if india and overseas and worldwide:
+            deck += (
+                f", the film grossed ₹{india} crore in India and ₹{overseas} crore "
+                f"overseas for a worldwide total of ₹{worldwide} crore"
+            )
+        elif worldwide:
+            deck += f", the film grossed ₹{worldwide} crore worldwide"
+        else:
+            partial = []
+            if india:
+                partial.append(f"₹{india} crore in India")
+            if overseas:
+                partial.append(f"₹{overseas} crore overseas")
+            if partial:
+                deck += ", with " + " and ".join(partial) + " in theatrical gross"
+        deck += "."
+    elif india or overseas or worldwide:
+        if india and overseas and worldwide:
+            deck += (
+                f" The film grossed ₹{india} crore in India and ₹{overseas} crore "
+                f"overseas for a worldwide total of ₹{worldwide} crore."
+            )
+        elif worldwide:
+            deck += f" The film grossed ₹{worldwide} crore worldwide."
+        else:
+            partial = []
+            if india:
+                partial.append(f"₹{india} crore in India")
+            if overseas:
+                partial.append(f"₹{overseas} crore overseas")
+            if partial:
+                deck += " The film grossed " + " and ".join(partial) + "."
+
+    if (
+        _movie_ssr_has_number(movie.get("budget_crore"))
+        and float(movie.get("budget_crore")) > 0
+        and _movie_ssr_has_number(movie.get("worldwide_collection_crore"))
+    ):
+        multiple = (
+            float(movie.get("worldwide_collection_crore"))
+            / float(movie.get("budget_crore"))
+        )
+        deck += (
+            f" Its worldwide gross reached approximately {multiple:.1f}× "
+            "its reported production budget"
+        )
+        if verdict:
+            deck += f", with a BoxOfficeX verdict of {verdict}"
+        deck += "."
+    elif verdict:
+        deck += f" BoxOfficeX records its theatrical verdict as {verdict}."
+
+    return deck
+
+
+
+def _movie_ssr_ctr_description(movie):
+    """Build search-result copy from known movie data only. No visible-page changes."""
+    title_text = str(movie.get("title") or "Movie").strip()
+
+    budget = _movie_ssr_plain_crore(movie.get("budget_crore"))
+    india = _movie_ssr_plain_crore(movie.get("india_collection_crore"))
+    overseas = _movie_ssr_plain_crore(movie.get("overseas_collection_crore"))
+    worldwide = _movie_ssr_plain_crore(movie.get("worldwide_collection_crore"))
+    verdict = str(movie.get("verdict") or "").strip()
+
+    parts = []
+
+    if budget:
+        parts.append(f"₹{budget} Cr reported budget")
+    if india:
+        parts.append(f"₹{india} Cr India gross")
+    if overseas:
+        parts.append(f"₹{overseas} Cr overseas")
+    if worldwide:
+        parts.append(f"₹{worldwide} Cr worldwide")
+
+    description = f"{title_text} Box Office"
+    if parts:
+        description += ": " + ", ".join(parts) + "."
+
+    # Theatrical-performance signal: use a budget multiple only when both
+    # budget and worldwide gross are genuinely available and budget > 0.
+    multiple = None
+    if (
+        _movie_ssr_has_number(movie.get("budget_crore"))
+        and float(movie.get("budget_crore")) > 0
+        and _movie_ssr_has_number(movie.get("worldwide_collection_crore"))
+    ):
+        multiple = (
+            float(movie.get("worldwide_collection_crore"))
+            / float(movie.get("budget_crore"))
+        )
+
+    if multiple is not None and verdict:
+        description += (
+            f" Theatrical performance: {multiple:.1f}× its reported budget; "
+            f"BoxOfficeX verdict: {verdict}."
+        )
+    elif multiple is not None:
+        description += (
+            f" Theatrical performance: {multiple:.1f}× its reported budget."
+        )
+    elif verdict:
+        description += f" BoxOfficeX theatrical verdict: {verdict}."
+
+    description += " See complete theatrical performance."
+
+    return description
+
+
 def _movie_ssr_build(movie_slug: str):
     identity = resolve_movie_slug(movie_slug)
     if not identity:
@@ -3225,57 +3661,134 @@ def _movie_ssr_build(movie_slug: str):
     if not movie or movie.get("error"):
         return None
 
-    # Always keep the canonical slug returned by the database slug map.
     canonical_slug = str(movie.get("slug") or movie_slug)
     canonical_path = f"/movie/{canonical_slug}"
     canonical = "https://boxofficex.in" + canonical_path
-    title_text = str(movie.get("title") or "Movie")
-    title = f"{title_text} Box Office Collection, Budget & Verdict | BoxOfficeX"
+    title_text = str(movie.get("title") or "Movie").strip()
+    year = _movie_ssr_release_year(movie)
 
-    description_parts = [f"{title_text} box office collection"]
-    if movie.get("language"):
-        description_parts.append(f"{movie['language']} movie")
-    if movie.get("worldwide_collection_crore") is not None:
-        description_parts.append("worldwide collection " + _movie_ssr_format_crore(movie.get("worldwide_collection_crore")))
-    if movie.get("budget_crore") is not None:
-        description_parts.append("budget " + _movie_ssr_format_crore(movie.get("budget_crore")))
-    if movie.get("verdict"):
-        description_parts.append(f"verdict {movie['verdict']}")
-    if movie.get("director"):
-        description_parts.append(f"directed by {movie['director']}")
-    description = ", ".join(description_parts) + ". View day-wise and state-wise box office details on BoxOfficeX."
+    # CTR metadata only. The visible movie H1/deck/layout remain unchanged.
+    title = (
+        f"{title_text} Budget, Box Office Collection & Verdict | BoxOfficeX"
+    )
+    description = _movie_ssr_ctr_description(movie)
+
+    h1 = title_text + (f" ({year})" if year else "")
+    deck = _movie_ssr_deck(movie)
 
     # movie.html intentionally uses the generated BoxOfficeX placeholder on-page.
     poster = _home_movie_placeholder(movie)
     share_image = "https://boxofficex.in/images/boxofficex-share.jpg"
 
     template = (BASE_DIR / "movie.html").read_text(encoding="utf-8")
-    template = re.sub(r"<title>.*?</title>", f"<title>{html_escape(title)}</title>", template, count=1, flags=re.S)
-    template = re.sub(r'(<meta id="metaDescription" name="description" content=")[^"]*(")', lambda m: m.group(1)+html_escape(description, quote=True)+m.group(2), template, count=1)
-    template = re.sub(r'(<link id="canonicalUrl" rel="canonical" href=")[^"]*(")', lambda m: m.group(1)+canonical+m.group(2), template, count=1)
+    template = re.sub(
+        r"<title>.*?</title>",
+        f"<title>{html_escape(title)}</title>",
+        template,
+        count=1,
+        flags=re.S,
+    )
+    template = re.sub(
+        r'(<meta id="metaDescription" name="description" content=")[^"]*(")',
+        lambda m: m.group(1) + html_escape(description, quote=True) + m.group(2),
+        template,
+        count=1,
+    )
+    template = re.sub(
+        r'(<link id="canonicalUrl" rel="canonical" href=")[^"]*(")',
+        lambda m: m.group(1) + canonical + m.group(2),
+        template,
+        count=1,
+    )
     for element_id, value in (
-        ("ogTitle", title), ("ogDescription", description), ("ogUrl", canonical), ("ogImage", share_image),
-        ("twitterTitle", title), ("twitterDescription", description), ("twitterImage", share_image),
+        ("ogTitle", title),
+        ("ogDescription", description),
+        ("ogUrl", canonical),
+        ("ogImage", share_image),
+        ("twitterTitle", title),
+        ("twitterDescription", description),
+        ("twitterImage", share_image),
     ):
-        template = re.sub(r'(<meta id="'+re.escape(element_id)+r'"[^>]*content=")[^"]*(")', lambda m, v=value: m.group(1)+html_escape(v, quote=True)+m.group(2), template, count=1)
+        template = re.sub(
+            r'(<meta id="' + re.escape(element_id) + r'"[^>]*content=")[^"]*(")',
+            lambda m, v=value: m.group(1) + html_escape(v, quote=True) + m.group(2),
+            template,
+            count=1,
+        )
 
     structured = {
-        "@context": "https://schema.org", "@type": "Movie", "name": title_text,
-        "url": canonical, "image": share_image,
+        "@context": "https://schema.org",
+        "@type": "Movie",
+        "name": title_text,
+        "url": canonical,
+        "image": share_image,
         "dateCreated": movie.get("release_date") or None,
-        "genre": [x.strip() for x in str(movie.get("genre") or "").split(",") if x.strip()] or None,
+        "genre": [
+            x.strip()
+            for x in str(movie.get("genre") or "").split(",")
+            if x.strip()
+        ] or None,
         "inLanguage": movie.get("language") or None,
-        "director": {"@type":"Person", "name": movie.get("director")} if movie.get("director") else None,
+        "director": (
+            {"@type": "Person", "name": movie.get("director")}
+            if movie.get("director")
+            else None
+        ),
     }
-    structured = {k:v for k,v in structured.items() if v is not None}
-    template = re.sub(r'<script id="movieStructuredData" type="application/ld\+json">.*?</script>', '<script id="movieStructuredData" type="application/ld+json">'+json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")+'</script>', template, count=1, flags=re.S)
+    structured = {k: v for k, v in structured.items() if v is not None}
+    template = re.sub(
+        r'<script id="movieStructuredData" type="application/ld\+json">.*?</script>',
+        '<script id="movieStructuredData" type="application/ld+json">'
+        + json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")
+        + "</script>",
+        template,
+        count=1,
+        flags=re.S,
+    )
 
     # Mark this exact movie in the initial document. JS uses the ID and skips the slug resolver call.
-    template = template.replace('<div class="movie-card" data-ssr="0">', f'<div class="movie-card" data-ssr="1" data-movie-id="{movie_id}" data-movie-slug="{html_escape(canonical_slug, quote=True)}">', 1)
+    template = template.replace(
+        '<div class="movie-card" data-ssr="0">',
+        (
+            f'<div class="movie-card" data-ssr="1" data-movie-id="{movie_id}" '
+            f'data-movie-slug="{html_escape(canonical_slug, quote=True)}">'
+        ),
+        1,
+    )
 
-    # Preserve the existing design; only replace the loading shell with real initial values.
-    template = re.sub(r'(<img\s+id="moviePoster"\s+src=")[^"]*("\s+alt=")[^"]*("\s+class="movie-poster")', lambda m: m.group(1)+html_escape(poster, quote=True)+m.group(2)+html_escape(title_text+" poster", quote=True)+m.group(3), template, count=1, flags=re.S)
-    template = re.sub(r'<h1\s+id="movieTitle"\s+class="movie-title"\s*>.*?</h1>', f'<h1 id="movieTitle" class="movie-title">{html_escape(title_text)}</h1>', template, count=1, flags=re.S)
+    # Preserve the existing design; replace loading content with crawlable initial values.
+    template = re.sub(
+        r'(<img\s+id="moviePoster"\s+src=")[^"]*("\s+alt=")[^"]*("\s+class="movie-poster")',
+        lambda m: (
+            m.group(1)
+            + html_escape(poster, quote=True)
+            + m.group(2)
+            + html_escape(title_text + " poster", quote=True)
+            + m.group(3)
+        ),
+        template,
+        count=1,
+        flags=re.S,
+    )
+    template = re.sub(
+        r'<h1\s+id="movieTitle"\s+class="movie-title"\s*>.*?</h1>',
+        f'<h1 id="movieTitle" class="movie-title">{html_escape(h1)}</h1>',
+        template,
+        count=1,
+        flags=re.S,
+    )
+
+    # Works with both the old movie.html and the new V1 movie.html.
+    deck_pattern = (
+        r'<p(?:\s+id="movieDeck")?\s+class="hero-subtitle"\s*>.*?</p>'
+    )
+    template = re.sub(
+        deck_pattern,
+        f'<p id="movieDeck" class="hero-subtitle">{html_escape(deck)}</p>',
+        template,
+        count=1,
+        flags=re.S,
+    )
 
     values = {
         "language": movie.get("language") or "Indian Cinema",
@@ -3289,11 +3802,25 @@ def _movie_ssr_build(movie_slug: str):
         "verdict": movie.get("verdict") or "Box Office",
     }
     for element_id, value in values.items():
-        pattern = r'(<(?:span|div)\b[^>]*\bid="'+re.escape(element_id)+r'"[^>]*>).*?(</(?:span|div)>)'
-        template = re.sub(pattern, lambda m, v=str(value): m.group(1)+html_escape(v)+m.group(2), template, count=1, flags=re.S)
+        pattern = (
+            r'(<(?:span|div)\b[^>]*\bid="'
+            + re.escape(element_id)
+            + r'"[^>]*>).*?(</(?:span|div)>)'
+        )
+        template = re.sub(
+            pattern,
+            lambda m, v=str(value): m.group(1) + html_escape(v) + m.group(2),
+            template,
+            count=1,
+            flags=re.S,
+        )
 
-    # The worldwide shell alone carries the pulse class in the original HTML.
-    template = re.sub(r'(id="worldwide"\s+class=")worldwide-value\s+loading("\s*)', r'\1worldwide-value\2', template, count=1)
+    template = re.sub(
+        r'(id="worldwide"\s+class=")worldwide-value\s+loading("\s*)',
+        r'\1worldwide-value\2',
+        template,
+        count=1,
+    )
     return template
 
 
@@ -3335,6 +3862,27 @@ def _actor_ssr_money(value):
     return f"{number:.2f}".rstrip("0").rstrip(".")
 
 
+def _actor_ssr_money_known(value):
+    if value is None:
+        return "—"
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+    if number.is_integer():
+        return str(int(number))
+    return f"{number:.2f}".rstrip("0").rstrip(".")
+
+
+def _actor_ssr_pronoun(profession):
+    value = str(profession or "").strip().lower()
+    if "actress" in value:
+        return "her"
+    if value == "actor" or value.startswith("actor ") or " actor" in value:
+        return "his"
+    return "their"
+
+
 def _actor_ssr_movie_image(movie):
     # actor.html intentionally uses the generated BoxOfficeX movie placeholder.
     return _home_movie_placeholder(movie)
@@ -3372,19 +3920,66 @@ def _actor_ssr_build(actor_slug: str):
     overview = get_actor_overview(actor_id)
     top_movies = get_actor_top_movies(actor_id).get("movies", [])
 
+    movie_by_id = {movie.get("id"): movie for movie in movies}
     movie_slug_map = _unique_movie_slug_map()
     for movie in top_movies:
-        movie["slug"] = movie_slug_map.get(
-            movie.get("id"),
-            movie_seo_slug(movie.get("id"), movie.get("title"), movie.get("release_date"))
-        )
+        full_movie = movie_by_id.get(movie.get("id"), {})
+        for key in ("budget_crore", "india_collection_crore", "overseas_collection_crore"):
+            movie[key] = full_movie.get(key)
+        movie["slug"] = movie_slug_map.get(movie.get("id"), movie_seo_slug(movie.get("id"), movie.get("title"), movie.get("release_date")))
         movie["url"] = f'/movie/{movie["slug"]}'
 
     template = (BASE_DIR / "actor.html").read_text(encoding="utf-8")
     name, profession, bio = str(actor["name"]), str(actor["profession"]), str(actor["bio"])
     canonical = f"https://boxofficex.in/actor/{actor_slug}"
-    title = f"{name} Movies, Box Office Collection, Hits & Flops | BoxOfficeX"
-    description = f"Explore {name} movies, worldwide box office collections, highest-grossing films, career overview, blockbusters, hits, flops and verdicts on BoxOfficeX."
+    title = f"{name} Movies, Budget & Box Office Collection | BoxOfficeX"
+
+    # CTR-focused Google description: career scale + recent five-film performance.
+    # get_actor_movies() is already ordered newest release first. Future/unreleased
+    # titles are excluded, and missing worldwide values are never treated as zero.
+    today = date.today()
+    released_movies = []
+    for movie in movies:
+        try:
+            release_day = date.fromisoformat(str(movie.get("release_date") or "")[:10])
+        except (TypeError, ValueError):
+            continue
+        if release_day <= today:
+            released_movies.append(movie)
+
+    last_five = released_movies[:5]
+    last_five_worldwide = [
+        float(movie["worldwide_collection_crore"])
+        for movie in last_five
+        if movie.get("worldwide_collection_crore") is not None
+    ]
+    recent_avg = (
+        sum(last_five_worldwide) / len(last_five_worldwide)
+        if last_five_worldwide else None
+    )
+
+    movie_count = int(overview.get("total_movies") or len(movies) or 0)
+    blockbuster_count = int(overview.get("blockbusters") or 0)
+    hit_count = int(overview.get("hits") or 0)
+    known_worldwide_for_meta = [m for m in movies if m.get("worldwide_collection_crore") is not None]
+    career_worldwide = sum(float(m["worldwide_collection_crore"]) for m in known_worldwide_for_meta)
+
+    meta_parts = [f"{name} Box Office: {movie_count} movies tracked"]
+    if blockbuster_count:
+        meta_parts.append(f"{blockbuster_count} blockbusters")
+    elif hit_count:
+        meta_parts.append(f"{hit_count} hits")
+    if career_worldwide > 0:
+        meta_parts.append(f"₹{_actor_ssr_money(career_worldwide)} Cr worldwide gross")
+
+    description = ", ".join(meta_parts) + "."
+    if recent_avg is not None:
+        if len(last_five_worldwide) == 5:
+            description += f" Last 5 films averaged ₹{_actor_ssr_money(recent_avg)} Cr worldwide."
+        else:
+            description += f" His last {len(last_five_worldwide)} films averaged ₹{_actor_ssr_money(recent_avg)} Cr worldwide."
+    description += " See budgets & verdicts."
+
     profile_image = _actor_ssr_profile_image(actor)
 
     template = re.sub(r"<title>.*?</title>", f"<title>{html_escape(title)}</title>", template, count=1, flags=re.S)
@@ -3393,46 +3988,95 @@ def _actor_ssr_build(actor_slug: str):
     for element_id, value in (("ogTitle", title), ("ogDescription", description), ("ogUrl", canonical), ("ogImage", profile_image), ("twitterTitle", title), ("twitterDescription", description), ("twitterImage", profile_image)):
         template = re.sub(r'(<meta id="'+re.escape(element_id)+r'"[^>]*content=")[^"]*(")', lambda m, v=value: m.group(1)+html_escape(v, quote=True)+m.group(2), template, count=1)
 
-    structured = {"@context":"https://schema.org", "@type":"Person", "name":name, "url":canonical, "jobTitle":profession, "description":bio}
+    structured = {"@context":"https://schema.org", "@graph":[
+        {"@type":"Person", "name":name, "url":canonical, "jobTitle":profession, "description":bio},
+        {"@type":"BreadcrumbList", "itemListElement":[
+            {"@type":"ListItem", "position":1, "name":"Home", "item":"https://boxofficex.in/"},
+            {"@type":"ListItem", "position":2, "name":"Actors", "item":"https://boxofficex.in/actors.html"},
+            {"@type":"ListItem", "position":3, "name":name, "item":canonical}
+        ]}
+    ]}
     template = re.sub(r'<script id="actorStructuredData" type="application/ld\+json">.*?</script>', '<script id="actorStructuredData" type="application/ld+json">'+json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")+"</script>", template, count=1, flags=re.S)
 
-    hero = f'''<div class="actor" data-ssr="1" data-actor-id="{actor_id}">
+    known_budget=[m for m in movies if m.get("budget_crore") is not None]
+    known_india=[m for m in movies if m.get("india_collection_crore") is not None]
+    known_overseas=[m for m in movies if m.get("overseas_collection_crore") is not None]
+    known_worldwide=[m for m in movies if m.get("worldwide_collection_crore") is not None]
+    total_budget=sum(float(m["budget_crore"]) for m in known_budget)
+    total_india=sum(float(m["india_collection_crore"]) for m in known_india)
+    total_overseas=sum(float(m["overseas_collection_crore"]) for m in known_overseas)
+    total_worldwide=sum(float(m["worldwide_collection_crore"]) for m in known_worldwide)
+    avg_budget=total_budget/len(known_budget) if known_budget else None
+    avg_worldwide=total_worldwide/len(known_worldwide) if known_worldwide else None
+    highest_budget_movie=max(known_budget,key=lambda m:float(m["budget_crore"])) if known_budget else None
+    highest_worldwide_movie=max(known_worldwide,key=lambda m:float(m["worldwide_collection_crore"])) if known_worldwide else None
+
+    # Keep the visible actor hero profile-first (IMDb/Wikipedia-style).
+    # SEO targeting lives in metadata, descriptive section headings and crawlable data below.
+    hero=f'''<div class="actor" data-ssr="1" data-actor-id="{actor_id}">
         <img id="actorPhoto" src="{html_escape(profile_image, quote=True)}" alt="{html_escape(name, quote=True)} profile">
         <h1 id="actorName">{html_escape(name)}</h1>
         <div id="profession">{html_escape(profession)}</div>
         <div id="actorViewCount" class="actor-view-count">👁 0 Views</div>
         <p id="bio">{html_escape(bio)}</p>
     </div>'''
-    template = re.sub(r'<div class="actor">.*?</div>\s*<section id="bxActorPageAd"', hero+'\n\n    <section id="bxActorPageAd"', template, count=1, flags=re.S)
+    template=re.sub(r'<div class="actor">.*?</div>\s*<section id="bxActorPageAd"',hero+'\n\n    <section id="bxActorPageAd"',template,count=1,flags=re.S)
 
-    overview_html = f'''<div id="overviewGrid" data-ssr="1">
-        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openAllMoviesSection()" onkeydown="handleAllMoviesKey(event)"><div class="overview-label">🎬 Total Movies</div><div class="overview-value">{int(overview.get("movie_count") or 0)}</div></div>
-        <div class="overview-card"><div class="overview-label">🌍 Total Worldwide</div><div class="overview-value">₹{_actor_ssr_money(overview.get("total_worldwide"))} Cr</div></div>
-        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openHighestGrossingMovie()" onkeydown="handleHighestMovieKey(event)"><div class="overview-label">🏆 Highest Grossing Movie</div><div class="overview-value">{html_escape(str(overview.get("highest_movie") or "N/A"))}</div></div>
-        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openHighestGrossingMovie()" onkeydown="handleHighestMovieKey(event)"><div class="overview-label">💰 Highest Worldwide</div><div class="overview-value">₹{_actor_ssr_money(overview.get("highest_worldwide"))} Cr</div></div>
+    # Descriptive H2s carry the actor-specific search intent without keyword-stuffing the H1/bio.
+    template=template.replace('<h2>\n            📊 Career Overview\n        </h2>', f'<h2>📊 {html_escape(name)} Career Overview</h2>', 1)
+    template=template.replace('<h2>💰 Budget &amp; Box Office Overview</h2>', f'<h2>💰 {html_escape(name)} Budget &amp; Box Office Collection</h2>', 1)
+    template=template.replace('<h2>💰 Budget & Box Office Overview</h2>', f'<h2>💰 {html_escape(name)} Budget &amp; Box Office Collection</h2>', 1)
+    template=template.replace('<h2>\n            🏆 Top 5 Highest-Grossing Movies\n        </h2>', f'<h2>🏆 {html_escape(name)} Top 5 Highest-Grossing Movies</h2>', 1)
+
+    overview_html=f'''<div id="overviewGrid" data-ssr="1">
+        <div class="overview-card overview-highlight-card" role="button" tabindex="0" onclick="openAllMoviesSection()" onkeydown="handleAllMoviesKey(event)"><div class="overview-label">🎬 Movies Tracked</div><div class="overview-value">{len(movies)}</div></div>
         <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Blockbuster" onclick="openCareerVerdict('Blockbuster', this)" onkeydown="handleCareerVerdictKey(event, 'Blockbuster', this)"><div class="overview-label">🔥 Blockbusters</div><div class="overview-value">{int(overview.get("blockbusters") or 0)}</div></div>
         <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Hit" onclick="openCareerVerdict('Hit', this)" onkeydown="handleCareerVerdictKey(event, 'Hit', this)"><div class="overview-label">⭐ Hits</div><div class="overview-value">{int(overview.get("hits") or 0)}</div></div>
-        <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Average" onclick="openCareerVerdict('Average', this)" onkeydown="handleCareerVerdictKey(event, 'Average', this)"><div class="overview-label">📊 Average Movies</div><div class="overview-value">{int(overview.get("average_movies") or 0)}</div></div>
+        <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Average" onclick="openCareerVerdict('Average', this)" onkeydown="handleCareerVerdictKey(event, 'Average', this)"><div class="overview-label">📊 Average</div><div class="overview-value">{int(overview.get("average_movies") or 0)}</div></div>
         <div class="overview-card overview-verdict-card" role="button" tabindex="0" data-verdict="Flop" onclick="openCareerVerdict('Flop', this)" onkeydown="handleCareerVerdictKey(event, 'Flop', this)"><div class="overview-label">❌ Flops</div><div class="overview-value">{int(overview.get("flops") or 0)}</div></div>
     </div>'''
-    template = re.sub(r'<div id="overviewGrid">.*?</div>\s*</section>', overview_html+'\n\n    </section>', template, count=1, flags=re.S)
+    template=re.sub(r'<div id="overviewGrid">.*?</div>\s*</section>',overview_html+'\n\n    </section>',template,count=1,flags=re.S)
+
+    def stat_card(label,value):
+        return f'<div class="overview-card"><div class="overview-label">{label}</div><div class="overview-value">{value}</div></div>'
+    budget_grid="".join([
+        stat_card("Movies With Budget Data",str(len(known_budget))),
+        stat_card("Combined Reported Budget",f"₹{_actor_ssr_money_known(total_budget)} Cr" if known_budget else "—"),
+        stat_card("Average Reported Budget",f"₹{_actor_ssr_money_known(avg_budget)} Cr" if avg_budget is not None else "—"),
+        stat_card("Movies With Worldwide Data",str(len(known_worldwide))),
+        stat_card("Total India Gross",f"₹{_actor_ssr_money_known(total_india)} Cr" if known_india else "—"),
+        stat_card("Total Overseas Gross",f"₹{_actor_ssr_money_known(total_overseas)} Cr" if known_overseas else "—"),
+        stat_card("Total Worldwide Gross",f"₹{_actor_ssr_money_known(total_worldwide)} Cr" if known_worldwide else "—"),
+        stat_card("Average Worldwide Gross",f"₹{_actor_ssr_money_known(avg_worldwide)} Cr" if avg_worldwide is not None else "—"),
+        stat_card("Highest-Grossing Movie",html_escape(str((highest_worldwide_movie or {}).get("title") or "—"))),
+        stat_card("Highest-Budget Movie",(html_escape(str(highest_budget_movie.get("title")))+f" · ₹{_actor_ssr_money_known(highest_budget_movie.get('budget_crore'))} Cr") if highest_budget_movie else "—")
+    ])
+    budget_note=f"Averages use only movies with the relevant data available. Worldwide average is based on {len(known_worldwide)} tracked movies; budget average is based on {len(known_budget)} tracked movies. Missing values are not treated as zero."
+    template=re.sub(
+        r'<div id="boxOfficeOverviewGrid">.*?</div>\s*<p class="actor-data-note" id="boxOfficeOverviewNote">.*?</p>',
+        f'<div id="boxOfficeOverviewGrid" data-ssr="1">{budget_grid}</div><p class="actor-data-note" id="boxOfficeOverviewNote">{html_escape(budget_note)}</p>',
+        template,count=1,flags=re.S
+    )
 
     top_cards=[]
-    for index, movie in enumerate(top_movies):
+    for index,movie in enumerate(top_movies):
         url=movie.get("url") or "#"; image=_actor_ssr_movie_image(movie); movie_title=str(movie.get("title") or "Movie")
-        top_cards.append(f'<a class="top-movie-card" href="{html_escape(url, quote=True)}"><img src="{html_escape(image, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy" decoding="async"><div class="top-movie-title">#{index+1} {html_escape(movie_title)}</div><div class="top-movie-collection">🌍 ₹{_actor_ssr_money(movie.get("worldwide_collection"))} Cr</div></a>')
+        budget=_actor_ssr_money_known(movie.get("budget_crore")); india=_actor_ssr_money_known(movie.get("india_collection_crore")); overseas=_actor_ssr_money_known(movie.get("overseas_collection_crore")); worldwide=_actor_ssr_money_known(movie.get("worldwide_collection"))
+        top_cards.append(f'<a class="top-movie-card" href="{html_escape(url, quote=True)}"><img src="{html_escape(image, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy" decoding="async"><div class="top-movie-title">#{index+1} {html_escape(movie_title)}</div><div class="top-movie-collection">🌍 {"₹"+worldwide+" Cr" if worldwide != "—" else "—"}</div><div class="top-movie-financials">Budget: {"₹"+budget+" Cr" if budget != "—" else "—"}<br>India: {"₹"+india+" Cr" if india != "—" else "—"} · Overseas: {"₹"+overseas+" Cr" if overseas != "—" else "—"}<br>Verdict: {html_escape(str(movie.get("verdict") or "—"))}</div></a>')
     highest_url=top_movies[0].get("url") if top_movies else ""
     top_html=f'<div id="topMovies" data-ssr="1" data-ssr-highest-url="{html_escape(highest_url or "", quote=True)}">'+("".join(top_cards) if top_cards else "<p>No top movies found.</p>")+"</div>"
-    template = re.sub(r'<div id="topMovies">.*?</div>\s*</section>', top_html+'\n\n    </section>', template, count=1, flags=re.S)
+    template=re.sub(r'<div id="topMovies">.*?</div>\s*</section>',top_html+'\n\n    </section>',template,count=1,flags=re.S)
 
     movie_cards=[]
-    for index, movie in enumerate(movies):
+    for index,movie in enumerate(movies):
         url=movie.get("url") or "#"; image=_actor_ssr_movie_image(movie); movie_title=str(movie.get("title") or "Movie")
-        movie_cards.append(f'<a class="movie-item" href="{html_escape(url, quote=True)}"><img src="{html_escape(image, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy" decoding="async"><div class="movie-details"><div class="movie-title">{html_escape(movie_title)}</div><div class="movie-info">📅 Release: {html_escape(str(movie.get("release_date") or "N/A"))}</div><div class="movie-info">🌍 Worldwide: ₹{_actor_ssr_money(movie.get("worldwide_collection_crore"))} Cr</div><div class="movie-verdict">🎬 Verdict: {html_escape(str(movie.get("verdict") or "N/A"))}</div></div></a>')
+        budget=_actor_ssr_money_known(movie.get("budget_crore")); india=_actor_ssr_money_known(movie.get("india_collection_crore")); overseas=_actor_ssr_money_known(movie.get("overseas_collection_crore")); worldwide=_actor_ssr_money_known(movie.get("worldwide_collection_crore"))
+        financials=f'<div class="movie-financials"><span>Budget: {"₹"+budget+" Cr" if budget != "—" else "—"}</span><span>India: {"₹"+india+" Cr" if india != "—" else "—"}</span><span>Overseas: {"₹"+overseas+" Cr" if overseas != "—" else "—"}</span><span>Worldwide: {"₹"+worldwide+" Cr" if worldwide != "—" else "—"}</span></div>'
+        movie_cards.append(f'<a class="movie-item" href="{html_escape(url, quote=True)}"><img src="{html_escape(image, quote=True)}" alt="{html_escape(movie_title, quote=True)}" loading="lazy" decoding="async"><div class="movie-details"><div class="movie-title">{html_escape(movie_title)}</div><div class="movie-info">📅 Release: {html_escape(str(movie.get("release_date") or "N/A"))}</div>{financials}<div class="movie-verdict">🎬 Verdict: {html_escape(str(movie.get("verdict") or "—"))}</div></div></a>')
         if index==7 and len(movies)>=12:
             movie_cards.append('<section id="bxSmartAdSlot3" class="bx-smart-ad-slot" aria-label="Advertisement slot 3"></section>')
     movie_html='<div id="movieList" data-ssr="1">'+("".join(movie_cards) if movie_cards else "<p>No movies found.</p>")+"</div>"
-    template = re.sub(r'<div id="movieList">.*?</div>\s*</section>', movie_html+'\n\n    </section>', template, count=1, flags=re.S)
+    template=re.sub(r'<div id="movieList">.*?</div>\s*</section>',movie_html+'\n\n    </section>',template,count=1,flags=re.S)
     return template
 
 
@@ -3835,11 +4479,74 @@ def _render_actor_comparison_html(comparison):
     actor1_url = f"/actor/{actor1['slug']}"
     actor2_url = f"/actor/{actor2['slug']}"
     canonical_url = f"https://boxofficex.in{comparison['canonical_url']}"
-    title = f"{name1} vs {name2} Box Office Comparison | BoxOfficeX"
-    description = (
-        f"Compare {name1} vs {name2} by total movies, worldwide box office collections, "
-        f"averages, blockbusters, hits, flops and highest-grossing films on BoxOfficeX."
-    )
+    # CTR metadata only. Keep the visible actor-comparison UI unchanged.
+    title = f"{name1} vs {name2}: Box Office, Movies & Verdicts | BoxOfficeX"
+
+    def ctr_money(value):
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(number):
+            return None
+        if abs(number - round(number)) < 0.05:
+            return f"{int(round(number)):,}"
+        return f"{number:,.1f}".rstrip("0").rstrip(".")
+
+    def recent_theatrical_average(actor_id):
+        # Filmographies are already newest-first. Exclude future/unreleased titles
+        # and missing/non-positive worldwide values; never convert missing data to zero.
+        today = date.today()
+        usable = []
+        for movie in (payload.get("movies") or {}).get(str(actor_id), []):
+            release_raw = movie.get("release_date")
+            gross = movie.get("worldwide_collection_crore")
+            if not release_raw or gross is None:
+                continue
+            try:
+                release_day = date.fromisoformat(str(release_raw)[:10])
+                gross_value = float(gross)
+            except (TypeError, ValueError):
+                continue
+            if release_day > today or gross_value <= 0 or not math.isfinite(gross_value):
+                continue
+            usable.append(gross_value)
+            if len(usable) == 5:
+                break
+
+        if not usable:
+            return None, 0
+        return sum(usable) / len(usable), len(usable)
+
+    total1 = ctr_money(s1.get("total_worldwide"))
+    total2 = ctr_money(s2.get("total_worldwide"))
+    recent1, recent_count1 = recent_theatrical_average(actor1["id"])
+    recent2, recent_count2 = recent_theatrical_average(actor2["id"])
+    recent1_text = ctr_money(recent1)
+    recent2_text = ctr_money(recent2)
+
+    description_parts = [f"{name1} vs {name2} Box Office:"]
+
+    if total1 is not None and total2 is not None:
+        description_parts.append(
+            f"₹{total1} Cr vs ₹{total2} Cr worldwide."
+        )
+
+    if recent1_text is not None and recent2_text is not None:
+        if recent_count1 == 5 and recent_count2 == 5:
+            recent_label = "Last 5 films averaged"
+        elif recent_count1 == recent_count2:
+            recent_label = f"Last {recent_count1} films with data averaged"
+        else:
+            recent_label = (
+                f"Recent theatrical averages ({recent_count1} vs {recent_count2} films)"
+            )
+        description_parts.append(
+            f"{recent_label} ₹{recent1_text} Cr vs ₹{recent2_text} Cr worldwide."
+        )
+
+    description_parts.append("Compare biggest grossers & verdicts.")
+    description = " ".join(description_parts)
 
     def actor_card(actor, name, url):
         image = _home_actor_placeholder(name)
@@ -4454,18 +5161,112 @@ def new_movies_page():
 
 
 # ============================================================
-# ACTOR RANKINGS - NON-BLOCKING CACHED SSR
+# ACTOR RANKINGS - CACHED SSR + INDUSTRY/LANGUAGE SEO URLS
 # ============================================================
 
-ACTOR_RANKINGS_HTML_CACHE_TTL = 300
-_actor_rankings_html_cache = {"html": None, "expires_at": 0.0}
+ACTOR_RANKINGS_HTML_CACHE_TTL = 3600
+
+_ACTOR_RANKING_TARGETS = {
+    "all": {
+        "label": "Indian",
+        "language": "All",
+        "path": "/rankings.html",
+    },
+    "tamil": {
+        "label": "Tamil",
+        "language": "Tamil",
+        "path": "/actor-rankings/tamil",
+    },
+    "telugu": {
+        "label": "Telugu",
+        "language": "Telugu",
+        "path": "/actor-rankings/telugu",
+    },
+    "hindi": {
+        "label": "Hindi",
+        "language": "Hindi",
+        "path": "/actor-rankings/hindi",
+    },
+    "kannada": {
+        "label": "Kannada",
+        "language": "Kannada",
+        "path": "/actor-rankings/kannada",
+    },
+    "malayalam": {
+        "label": "Malayalam",
+        "language": "Malayalam",
+        "path": "/actor-rankings/malayalam",
+    },
+}
+
+_actor_rankings_html_cache = {}
 _actor_rankings_html_cache_lock = threading.Lock()
-_actor_rankings_html_refreshing = False
+_actor_rankings_html_refreshing = set()
 
 
-def _render_actor_rankings_html():
+def _actor_rankings_number(value):
+    try:
+        number = float(value or 0)
+    except (TypeError, ValueError):
+        number = 0.0
+    return f"{number:,.2f}".rstrip("0").rstrip(".")
+
+
+def _actor_rankings_meta(target_key, rankings):
+    target = _ACTOR_RANKING_TARGETS[target_key]
+    label = target["label"]
+    canonical = "https://boxofficex.in" + target["path"]
+
+    if target_key == "all":
+        page_title = "Indian Actors Box Office Rankings | BoxOfficeX"
+        fallback = (
+            "Explore Indian actors box office rankings by tracked worldwide gross, "
+            "movie count and blockbusters across Tamil, Telugu, Hindi, Kannada and Malayalam cinema."
+        )
+    else:
+        page_title = f"{label} Actors Box Office Rankings | BoxOfficeX"
+        fallback = (
+            f"Explore {label} actors box office rankings by tracked worldwide gross, "
+            "movie count and theatrical performance on BoxOfficeX."
+        )
+
+    leaders = []
+    for actor in rankings[:2]:
+        name = str(actor.get("name") or "").strip()
+        total = actor.get("total_worldwide")
+        if name and total is not None:
+            leaders.append(
+                f"{name} ₹{_actor_rankings_number(total)} Cr"
+            )
+
+    if len(leaders) >= 2:
+        if target_key == "all":
+            description = (
+                f"{leaders[0]}, {leaders[1]} tracked worldwide gross — "
+                "explore Indian actors box office rankings across Tamil, Telugu, Hindi, "
+                "Kannada and Malayalam cinema."
+            )
+        else:
+            description = (
+                f"{leaders[0]}, {leaders[1]} tracked worldwide gross — "
+                f"explore {label} actors box office rankings, movie totals and "
+                "theatrical performance on BoxOfficeX."
+            )
+    else:
+        description = fallback
+
+    return {
+        "title": page_title,
+        "description": description,
+        "canonical": canonical,
+    }
+
+
+def _render_actor_rankings_html(target_key="all"):
+    target = _ACTOR_RANKING_TARGETS[target_key]
     template = (BASE_DIR / "rankings.html").read_text(encoding="utf-8")
-    data = actor_rankings("All")
+
+    data = actor_rankings(target["language"])
     rankings = list(data.get("rankings") or [])
     cards = []
     total_rows = len(rankings)
@@ -4480,88 +5281,357 @@ def _render_actor_rankings_html():
         movie_count = actor.get("movie_count") or 0
         total_worldwide = actor.get("total_worldwide") or 0
         blockbusters = actor.get("blockbusters") or 0
-        total_text = f"{float(total_worldwide):,.2f}".rstrip("0").rstrip(".")
+        total_text = _actor_rankings_number(total_worldwide)
+
         cards.append(
-            f'<a class="rank" href="{html_escape(url, quote=True)}" aria-label="{html_escape(name, quote=True)} profile">'
+            f'<a class="rank" href="{html_escape(url, quote=True)}" '
+            f'aria-label="{html_escape(name, quote=True)} profile">'
             f'<div class="rank-number">#{html_escape(str(rank))}</div>'
             f'<img src="{html_escape(image, quote=True)}" alt="{html_escape(name, quote=True)}">'
             f'<div><div class="name">{html_escape(name)}</div>'
-            f'<div class="stats">{html_escape(str(movie_count))} movies | ₹{html_escape(total_text)} Cr | {html_escape(str(blockbusters))} Blockbusters</div></div></a>'
+            f'<div class="stats">{html_escape(str(movie_count))} movies | '
+            f'₹{html_escape(total_text)} Cr | '
+            f'{html_escape(str(blockbusters))} Blockbusters</div></div></a>'
         )
+
         if index == slot1_after and total_rows > 1:
-            cards.append('<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>')
+            cards.append(
+                '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" '
+                'aria-label="Advertisement slot 1"></section>'
+            )
         if index == slot2_after and total_rows > 2:
-            cards.append('<section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>')
+            cards.append(
+                '<section id="bxSmartAdSlot2" class="bx-smart-ad-slot" '
+                'aria-label="Advertisement slot 2"></section>'
+            )
 
-    ranking_html = '<div id="rankings" data-ssr="1">' + ("".join(cards) if cards else "No actors found for All") + "</div>"
-    template = re.sub(r'<div id="rankings"(?:\s+data-ssr="[01]")?\s*>.*?</div>', ranking_html, template, count=1, flags=re.S)
+    empty_label = target["label"] if target_key != "all" else "Indian"
+    ranking_html = (
+        '<div id="rankings" data-ssr="1">'
+        + ("".join(cards) if cards else f"No actors found for {html_escape(empty_label)}")
+        + "</div>"
+    )
+    template = re.sub(
+        r'<div id="rankings"(?:\s+data-ssr="[01]")?\s*>.*?</div>',
+        ranking_html,
+        template,
+        count=1,
+        flags=re.S,
+    )
 
-    canonical = "https://boxofficex.in/rankings.html"
-    template = template.replace('<link id="canonicalUrl" rel="canonical" href="">', f'<link id="canonicalUrl" rel="canonical" href="{canonical}">', 1)
-    template = template.replace('<meta id="ogUrl" property="og:url" content="">', f'<meta id="ogUrl" property="og:url" content="{canonical}">', 1)
+    meta = _actor_rankings_meta(target_key, rankings)
+    page_title = meta["title"]
+    description = meta["description"]
+    canonical = meta["canonical"]
+
+    escaped_title = html_escape(page_title)
+    escaped_description = html_escape(description, quote=True)
+
+    template = re.sub(
+        r"<title\b[^>]*>.*?</title>",
+        f"<title>{escaped_title}</title>",
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']description["\'])[^>]*>',
+        f'<meta id="metaDescription" name="description" content="{escaped_description}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<link\b(?=[^>]*\brel=["\']canonical["\'])[^>]*>',
+        f'<link id="canonicalUrl" rel="canonical" href="{canonical}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bproperty=["\']og:title["\'])[^>]*>',
+        f'<meta property="og:title" content="{html_escape(page_title, quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bproperty=["\']og:description["\'])[^>]*>',
+        f'<meta property="og:description" content="{escaped_description}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bproperty=["\']og:url["\'])[^>]*>',
+        f'<meta id="ogUrl" property="og:url" content="{canonical}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']twitter:title["\'])[^>]*>',
+        f'<meta name="twitter:title" content="{html_escape(page_title, quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']twitter:description["\'])[^>]*>',
+        f'<meta name="twitter:description" content="{escaped_description}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
 
     item_list = []
     for actor in rankings:
         if actor.get("url"):
-            item_list.append({"@type":"ListItem", "position":int(actor.get("rank") or len(item_list)+1), "name":str(actor.get("name") or "Actor"), "url":"https://boxofficex.in" + str(actor["url"])})
-    structured = {"@context":"https://schema.org", "@type":"CollectionPage", "name":"Actor Box Office Rankings | BoxOfficeX", "url":canonical, "description":"Explore BoxOfficeX actor rankings by worldwide box office collections, movie count and blockbusters across Tamil, Telugu, Hindi, Kannada, Malayalam and English cinema.", "mainEntity":{"@type":"ItemList", "itemListElement":item_list}}
-    template = re.sub(r'<script\s+id="actorRankingsStructuredData"\s+type="application/ld\+json"\s*>.*?</script>', '<script id="actorRankingsStructuredData" type="application/ld+json">' + json.dumps(structured, ensure_ascii=False).replace("</", "<\\/") + "</script>", template, count=1, flags=re.S)
+            item_list.append({
+                "@type": "ListItem",
+                "position": int(actor.get("rank") or len(item_list) + 1),
+                "name": str(actor.get("name") or "Actor"),
+                "url": "https://boxofficex.in" + str(actor["url"]),
+            })
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": page_title.replace(" | BoxOfficeX", ""),
+        "url": canonical,
+        "description": description,
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": item_list,
+        },
+    }
+    structured_json = json.dumps(
+        structured, ensure_ascii=False, separators=(",", ":")
+    ).replace("</", "<\\/")
+
+    template = re.sub(
+        r'<script\s+id="actorRankingsStructuredData"\s+type="application/ld\+json"\s*>.*?</script>',
+        f'<script id="actorRankingsStructuredData" type="application/ld+json">{structured_json}</script>',
+        template,
+        count=1,
+        flags=re.S | re.I,
+    )
+
+    page_config = {
+        "targetKey": target_key,
+        "language": target["language"],
+        "label": target["label"],
+        "canonical": canonical,
+        "title": page_title,
+        "description": description,
+    }
+    config_script = (
+        "<script>window.__BOXOFFICEX_ACTOR_RANKINGS_PAGE__="
+        + json.dumps(page_config, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        + ";</script>"
+    )
+    template = template.replace("</head>", config_script + "\n</head>", 1)
+
     return template
 
 
-def _refresh_actor_rankings_cache():
-    global _actor_rankings_html_refreshing
+def _refresh_actor_rankings_cache(target_key):
     try:
-        rendered = _render_actor_rankings_html()
+        rendered = _render_actor_rankings_html(target_key)
         with _actor_rankings_html_cache_lock:
-            _actor_rankings_html_cache["html"] = rendered
-            _actor_rankings_html_cache["expires_at"] = time_module.monotonic() + ACTOR_RANKINGS_HTML_CACHE_TTL
+            _actor_rankings_html_cache[target_key] = {
+                "html": rendered,
+                "expires_at": time_module.monotonic() + ACTOR_RANKINGS_HTML_CACHE_TTL,
+            }
     except Exception as exc:
-        print("Actor Rankings SSR refresh failed:", type(exc).__name__, exc, flush=True)
+        print(
+            f"Actor Rankings SSR refresh failed ({target_key}):",
+            type(exc).__name__,
+            exc,
+            flush=True,
+        )
     finally:
         with _actor_rankings_html_cache_lock:
-            _actor_rankings_html_refreshing = False
+            _actor_rankings_html_refreshing.discard(target_key)
 
 
-def _start_actor_rankings_refresh():
-    global _actor_rankings_html_refreshing
+def _start_actor_rankings_refresh(target_key):
     with _actor_rankings_html_cache_lock:
-        if _actor_rankings_html_refreshing:
+        if target_key in _actor_rankings_html_refreshing:
             return False
-        _actor_rankings_html_refreshing = True
-    threading.Thread(target=_refresh_actor_rankings_cache, daemon=True).start()
+        _actor_rankings_html_refreshing.add(target_key)
+
+    threading.Thread(
+        target=_refresh_actor_rankings_cache,
+        args=(target_key,),
+        name=f"boxofficex-actor-rankings-{target_key}",
+        daemon=True,
+    ).start()
     return True
 
 
-def _get_actor_rankings_cached_html():
+def _get_actor_rankings_cached_html(target_key):
     now = time_module.monotonic()
+
     with _actor_rankings_html_cache_lock:
-        cached_html = _actor_rankings_html_cache.get("html")
-        expires_at = float(_actor_rankings_html_cache.get("expires_at") or 0.0)
+        entry = _actor_rankings_html_cache.get(target_key) or {}
+        cached_html = entry.get("html")
+        expires_at = float(entry.get("expires_at") or 0.0)
+
     if cached_html and expires_at > now:
         return cached_html, "HIT"
-    _start_actor_rankings_refresh()
+
+    _start_actor_rankings_refresh(target_key)
+
     if cached_html:
         return cached_html, "STALE"
+
     return None, "WARMING"
+
+
+def _actor_rankings_warming_html(target_key):
+    target = _ACTOR_RANKING_TARGETS[target_key]
+    template = (BASE_DIR / "rankings.html").read_text(encoding="utf-8")
+    meta = _actor_rankings_meta(target_key, [])
+
+    template = re.sub(
+        r"<title\b[^>]*>.*?</title>",
+        f"<title>{html_escape(meta['title'])}</title>",
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']description["\'])[^>]*>',
+        f'<meta id="metaDescription" name="description" content="{html_escape(meta["description"], quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<link\b(?=[^>]*\brel=["\']canonical["\'])[^>]*>',
+        f'<link id="canonicalUrl" rel="canonical" href="{meta["canonical"]}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bproperty=["\']og:title["\'])[^>]*>',
+        f'<meta property="og:title" content="{html_escape(meta["title"], quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bproperty=["\']og:description["\'])[^>]*>',
+        f'<meta property="og:description" content="{html_escape(meta["description"], quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bproperty=["\']og:url["\'])[^>]*>',
+        f'<meta id="ogUrl" property="og:url" content="{meta["canonical"]}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']twitter:title["\'])[^>]*>',
+        f'<meta name="twitter:title" content="{html_escape(meta["title"], quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']twitter:description["\'])[^>]*>',
+        f'<meta name="twitter:description" content="{html_escape(meta["description"], quote=True)}">',
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+
+    page_config = {
+        "targetKey": target_key,
+        "language": target["language"],
+        "label": target["label"],
+        "canonical": meta["canonical"],
+        "title": meta["title"],
+        "description": meta["description"],
+    }
+    config_script = (
+        "<script>window.__BOXOFFICEX_ACTOR_RANKINGS_PAGE__="
+        + json.dumps(page_config, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        + ";</script>"
+    )
+    template = template.replace("</head>", config_script + "\n</head>", 1)
+    return template
+
+
+def _actor_rankings_response(target_key):
+    try:
+        html, cache_state = _get_actor_rankings_cached_html(target_key)
+
+        if html is None:
+            html = _actor_rankings_warming_html(target_key)
+            return HTMLResponse(
+                content=html,
+                headers={
+                    "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
+                    "X-BoxOfficeX-Actor-Rankings": "warming",
+                    "X-BoxOfficeX-Cache": cache_state,
+                    "X-BoxOfficeX-Rankings-CTR": "v2-industry-urls",
+                },
+            )
+
+        return HTMLResponse(
+            content=html,
+            headers={
+                "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
+                "X-BoxOfficeX-Actor-Rankings": "cached-ssr",
+                "X-BoxOfficeX-Cache": cache_state,
+                "X-BoxOfficeX-Rankings-CTR": "v2-industry-urls",
+            },
+        )
+    except Exception as exc:
+        print(
+            f"Actor Rankings SSR fallback ({target_key}):",
+            type(exc).__name__,
+            exc,
+            flush=True,
+        )
+        _start_actor_rankings_refresh(target_key)
+        return HTMLResponse(
+            content=_actor_rankings_warming_html(target_key),
+            headers={
+                "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
+                "X-BoxOfficeX-Actor-Rankings": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+                "X-BoxOfficeX-Rankings-CTR": "v2-industry-urls",
+            },
+        )
 
 
 @app.on_event("startup")
 def warm_actor_rankings_ssr_cache():
-    _start_actor_rankings_refresh()
+    # Keep startup non-blocking. Warm all crawlable actor ranking targets in background.
+    for target_key in _ACTOR_RANKING_TARGETS:
+        _start_actor_rankings_refresh(target_key)
 
 
 @app.get("/rankings.html")
 def actor_rankings_page():
-    try:
-        html, cache_state = _get_actor_rankings_cached_html()
-        if html is None:
-            return FileResponse(BASE_DIR / "rankings.html", headers={"Cache-Control":"no-store", "X-BoxOfficeX-Actor-Rankings":"warming", "X-BoxOfficeX-Cache":cache_state})
-        return HTMLResponse(content=html, headers={"Cache-Control":"public, max-age=60, stale-while-revalidate=240", "X-BoxOfficeX-Actor-Rankings":"cached-ssr", "X-BoxOfficeX-Cache":cache_state})
-    except Exception as exc:
-        print("Actor Rankings SSR fallback:", type(exc).__name__, exc, flush=True)
-        _start_actor_rankings_refresh()
-        return FileResponse(BASE_DIR / "rankings.html", headers={"Cache-Control":"no-store", "X-BoxOfficeX-Actor-Rankings":"ssr-fallback", "X-BoxOfficeX-SSR-Error":type(exc).__name__})
+    return _actor_rankings_response("all")
+
+
+@app.get("/actor-rankings/{language_slug}")
+def actor_rankings_industry_page(language_slug: str):
+    target_key = (language_slug or "").strip().lower()
+
+    if target_key not in _ACTOR_RANKING_TARGETS or target_key == "all":
+        raise HTTPException(status_code=404, detail="Actor ranking page not found")
+
+    return _actor_rankings_response(target_key)
 
 
 @app.get("/disclaimer.html")
@@ -6261,7 +7331,9 @@ def get_actor_movies(actor_id: int):
                     movies.release_date,
                     movies.worldwide_collection_crore,
                     movies.verdict,
-                    movies.budget_crore
+                    movies.budget_crore,
+                    movies.india_collection_crore,
+                    movies.overseas_collection_crore
                 FROM actor_movies
                 JOIN movies
                     ON actor_movies.movie_id = movies.id
@@ -6290,6 +7362,8 @@ def get_actor_movies(actor_id: int):
             "worldwide_collection_crore": float(row[4]) if row[4] is not None else None,
             "verdict": row[5],
             "budget_crore": float(row[6]) if row[6] is not None else None,
+            "india_collection_crore": float(row[7]) if row[7] is not None else None,
+            "overseas_collection_crore": float(row[8]) if row[8] is not None else None,
             "slug": movie_slug,
             "url": f"/movie/{movie_slug}"
         })
@@ -8213,8 +9287,66 @@ def _article_ssr_money(value):
         return html_escape(str(value or ""))
 
 
-def _article_ssr_live_tracker(data):
+def _article_ssr_live_tracker(data, release_date=None):
     data = data or {}
+
+    # Linked movie release_date is the ONLY Day-N authority.
+    # The public Live Tracker's legacy start_date is intentionally ignored.
+    ist = ZoneInfo("Asia/Kolkata")
+    now_ist = datetime.now(ist)
+    boxoffice_date = (now_ist - timedelta(hours=6)).date()
+
+    movie_release_date = None
+    try:
+        raw_release = str(release_date or "").strip()
+        if raw_release:
+            movie_release_date = date.fromisoformat(raw_release[:10])
+    except Exception:
+        movie_release_date = None
+
+    if movie_release_date is None:
+        return (
+            '<section class="live-tracker lt-shell" data-release-date-required="1">'
+            '<div class="lt-head"><div><div class="lt-kicker">BOXOFFICEX LIVE TRACKER</div>'
+            '<h2>Movie release date required</h2>'
+            '<div class="lt-subtitle">Link a movie with a valid release date to calculate the current box-office day.</div>'
+            '</div></div></section>'
+        )
+
+    day_number = (boxoffice_date - movie_release_date).days + 1
+
+    # Before release, do not invent Day 0/negative Day N.
+    if day_number < 1:
+        return (
+            '<section class="live-tracker lt-shell" data-before-release="1">'
+            '<div class="lt-head"><div><div class="lt-kicker">BOXOFFICEX LIVE TRACKER</div>'
+            '<h2>Box Office Tracking</h2>'
+            '<div class="lt-subtitle">Tracking begins from the linked movie release date at the BoxOfficeX 6 AM IST day boundary.</div>'
+            '</div></div></section>'
+        )
+
+    # At every 6 AM IST rollover, yesterday's temporary tracker values must not
+    # remain in server-rendered HTML. Only values saved in the current tracking
+    # day are rendered. The data itself is not persisted/reset here.
+    tracker_is_current = False
+    stamp = str(data.get("updated_at") or "").strip()
+    if stamp:
+        try:
+            dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=ist)
+            dt_ist = dt.astimezone(ist)
+            tracker_is_current = (dt_ist - timedelta(hours=6)).date() == boxoffice_date
+        except Exception:
+            tracker_is_current = False
+
+    if not tracker_is_current:
+        preserved = {
+            "status": data.get("status") or "live",
+            "updated_at": data.get("updated_at"),
+        }
+        data = preserved
+
     status = str(data.get("status") or "live").lower()
     labels = {
         "live": "LIVE",
@@ -8223,6 +9355,8 @@ def _article_ssr_live_tracker(data):
         "closed": "TRACKER ENDED",
     }
     active = status in {"live", "update"}
+    tracking_day_label = f"DAY {day_number}"
+    tracking_date_label = boxoffice_date.strftime("%d %b %Y").upper()
     cards = []
 
     def add(key, label, money=False, suffix=""):
@@ -8299,45 +9433,196 @@ def _article_ssr_live_tracker(data):
     )
 
 
-def _article_ssr_boxoffice(data):
-    data = data or {}
-    days = data.get("days") if isinstance(data.get("days"), list) else []
-    if days:
-        rows = []
-        for index, day in enumerate(days, 1):
-            label = html_escape(str(day.get("label") or f"Day {day.get('number') or index}"))
-            india = sum(float(day.get(k) or 0) for k in ("tamil_nadu","kerala","karnataka","telugu_states","rest_of_india"))
-            overseas = float(day.get("overseas") or 0)
-            rows.append(
-                "<tr>"
-                f"<td>{label}</td><td>{html_escape(str(day.get('date') or ''))}</td>"
-                f"<td>{_article_ssr_money(india)}</td><td>{_article_ssr_money(overseas)}</td>"
-                f"<td>{_article_ssr_money(india + overseas)}</td></tr>"
-            )
+
+def _article_ssr_theatrical_performance(data):
+    """Server-render the same stored theatrical analysis that the public JS enhances."""
+    analysis = data.get("analysis") if isinstance(data, dict) else None
+    tp = analysis.get("theatrical_performance") if isinstance(analysis, dict) else None
+    if not isinstance(tp, dict):
+        return ""
+
+    def money(v):
+        return _article_ssr_money(v)
+
+    def level_class(value):
+        return re.sub(r"[^a-z0-9-]+", "-", str(value or "flop").lower().replace("_", "-")).strip("-")
+
+    def next_html(item):
+        nxt = item.get("next_level") if isinstance(item, dict) else None
+        if not isinstance(nxt, dict):
+            return '<div class="bx-tp-next"><div class="bx-tp-next-row"><strong>Highest performance level achieved</strong></div></div>'
         return (
-            '<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>'
-            '<div class="bo-detail-wrap"><table class="bo-detail-table"><thead><tr>'
-            '<th>Day</th><th>Date</th><th>India</th><th>Overseas</th><th>Worldwide</th>'
-            f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div></div>'
+            '<div class="bx-tp-next"><div class="bx-tp-next-row bx-tp-next-simple">'
+            f'<span><strong>{money(nxt.get("remaining"))}</strong> more gross collection needed to reach '
+            f'<strong>{html_escape(str(nxt.get("label") or "").upper())}</strong></span>'
+            '</div></div>'
         )
 
-    pairs = []
-    for key, label in (
-        ("budget", "Budget"), ("india", "India Gross"), ("india_gross", "India Gross"),
-        ("overseas", "Overseas"), ("overseas_gross", "Overseas"),
-        ("worldwide", "Worldwide"), ("worldwide_gross", "Worldwide"),
-        ("verdict", "Verdict"),
-    ):
-        value = data.get(key)
-        if value is None or str(value).strip() == "":
-            continue
-        shown = html_escape(str(value)) if key == "verdict" else _article_ssr_money(value)
-        pairs.append(f'<div class="bo-card"><div class="bo-label">{label}</div><div class="bo-value">{shown}</div></div>')
-    return (
-        '<div class="boxoffice-block"><div class="boxoffice-title">Box Office Collection Report</div>'
-        f'<div class="boxoffice-grid">{"".join(pairs)}</div></div>'
-    ) if pairs else ""
+    combined = tp.get("combined") if isinstance(tp.get("combined"), dict) else None
+    combined_html = ""
+    if combined and int(combined.get("market_count") or 0) >= 2:
+        level = combined.get("current_level") or {}
+        combined_html = (
+            '<div class="bx-tp-combined">'
+            '<div class="bx-tp-kicker">Combined tracker</div>'
+            '<div class="bx-tp-combined-title">Calculated Theatrical Value — Available Markets</div>'
+            '<div class="bx-tp-stats">'
+            f'<div class="bx-tp-stat"><span>Theatrical Rights</span><strong>{money(combined.get("theatrical_value"))}</strong></div>'
+            f'<div class="bx-tp-stat"><span>Current Gross</span><strong>{money(combined.get("gross"))}</strong></div>'
+            f'<div class="bx-tp-stat"><span>Estimated Net</span><strong>{money(combined.get("estimated_net"))}</strong></div>'
+            f'<div class="bx-tp-stat"><span>Estimated Theatrical Share</span><strong>{money(combined.get("estimated_theatrical_share"))}</strong></div>'
+            f'<div class="bx-tp-stat"><span>Performance</span><strong>{float(combined.get("multiple") or 0):.2f}×</strong></div>'
+            f'<div class="bx-tp-stat level"><span>Estimated Level</span><strong class="bx-tp-level-big bx-tp-level-{level_class(level.get("key"))}">{html_escape(str(level.get("label") or "—"))}</strong></div>'
+            '</div>' + next_html(combined) + '</div>'
+        )
 
+    region_order = ("tamil_nadu", "kerala", "karnataka", "telugu_states", "rest_of_india", "overseas")
+    regions = tp.get("regions") if isinstance(tp.get("regions"), dict) else {}
+    region_html = []
+    for key in region_order:
+        r = regions.get(key)
+        if not isinstance(r, dict):
+            continue
+        level = r.get("current_level") or {}
+        net = "" if key == "overseas" else f'<div class="bx-tp-mini"><span>Estimated Net</span><strong>{money(r.get("estimated_net"))}</strong></div>'
+        region_html.append(
+            '<article class="bx-tp-region">'
+            '<div class="bx-tp-region-head">'
+            f'<div class="bx-tp-region-name">{html_escape(str(r.get("label") or key))}</div>'
+            f'<span class="bx-tp-badge level-{level_class(level.get("key"))}">{html_escape(str(level.get("label") or "Estimated"))}</span>'
+            '</div><div class="bx-tp-region-values">'
+            f'<div class="bx-tp-mini"><span>Theatrical Rights</span><strong>{money(r.get("theatrical_value"))}</strong></div>'
+            f'<div class="bx-tp-mini"><span>Current Gross</span><strong>{money(r.get("gross"))}</strong></div>'
+            + net +
+            f'<div class="bx-tp-mini"><span>Estimated Theatrical Share</span><strong>{money(r.get("estimated_theatrical_share"))}</strong></div>'
+            f'<div class="bx-tp-mini"><span>Multiple</span><strong>{float(r.get("multiple") or 0):.2f}×</strong></div>'
+            '</div>' + next_html(r) + '</article>'
+        )
+
+    if not combined_html and not region_html:
+        return ""
+
+    disclaimer = html_escape(str(tp.get("disclaimer") or ""))
+    note = html_escape(str(tp.get("performance_note") or ""))
+    return (
+        '<section class="bx-tp" aria-label="Estimated theatrical performance">'
+        '<div class="bx-tp-head"><div><div class="bx-tp-title">🎯 Estimated Theatrical Performance</div>'
+        '<div class="bx-tp-sub">Reported theatrical values compared with matching earned box-office gross</div></div></div>'
+        + combined_html
+        + ('<div class="bx-tp-section-title">Area-wise Theatrical Value Tracker</div><div class="bx-tp-regions">' + "".join(region_html) + '</div>' if region_html else '')
+        + f'<div class="bx-tp-notes"><p><strong>BoxOfficeX Note:</strong> {disclaimer}</p><p><strong>Performance Note:</strong> {note}</p></div>'
+        '</section>'
+    )
+
+
+def _article_ssr_boxoffice(data):
+    """
+    Server-render the complete persistent Box Office Report.
+
+    Important:
+    - This uses only the stored Box Office Report block.
+    - Temporary Live Tracker values are NOT folded into this report.
+    - Territory collections and theatrical analysis are visible in initial HTML
+      so users and crawlers receive the same meaningful data without JS.
+    """
+    data = data or {}
+    days = list(data.get("days") or [])
+
+    def num(value):
+        try:
+            if value is None or str(value).strip() == "":
+                return 0.0
+            return float(str(value).replace(",", "").strip())
+        except Exception:
+            return 0.0
+
+    def money(value):
+        return _article_ssr_money(value)
+
+    def day_type(day):
+        return str((day or {}).get("type") or "REGULAR").upper()
+
+    def day_label(day):
+        if day_type(day) == "PREVIEW":
+            return str((day or {}).get("label") or "Preview / Premiere")
+        number = (day or {}).get("number")
+        return f"Day {number}" if number not in (None, "") else "Day"
+
+    def day_totals(day):
+        india = sum(num((day or {}).get(k)) for k in (
+            "tamil_nadu", "kerala", "karnataka",
+            "telugu_states", "rest_of_india"
+        ))
+        overseas = num((day or {}).get("overseas"))
+        return india, overseas, india + overseas
+
+    # Persistent day-wise + territory-wise collection report.
+    report_html = ""
+    if days:
+        rows = []
+        for day in days:
+            india, overseas, worldwide = day_totals(day)
+            date = str((day or {}).get("date") or "").strip()
+            status = str((day or {}).get("status") or "").strip().upper()
+            rows.append(
+                "<tr>"
+                f"<th scope=\"row\">{html_escape(day_label(day))}</th>"
+                f"<td>{html_escape(date)}</td>"
+                f"<td>{money((day or {}).get('tamil_nadu'))}</td>"
+                f"<td>{money((day or {}).get('kerala'))}</td>"
+                f"<td>{money((day or {}).get('karnataka'))}</td>"
+                f"<td>{money((day or {}).get('telugu_states'))}</td>"
+                f"<td>{money((day or {}).get('rest_of_india'))}</td>"
+                f"<td>{money(india)}</td>"
+                f"<td>{money(overseas)}</td>"
+                f"<td>{money(worldwide)}</td>"
+                f"<td>{html_escape(status)}</td>"
+                "</tr>"
+            )
+
+        report_html = (
+            '<div class="boxoffice-block">'
+            '<div class="boxoffice-title">Box Office Collection Report</div>'
+            '<div class="table-wrap"><table class="bo-table">'
+            '<thead><tr>'
+            '<th>Day</th><th>Date</th><th>Tamil Nadu</th><th>Kerala</th>'
+            '<th>Karnataka</th><th>AP &amp; Telangana</th><th>Rest of India</th>'
+            '<th>India Gross</th><th>Overseas</th><th>Worldwide</th><th>Status</th>'
+            '</tr></thead><tbody>'
+            + "".join(rows) +
+            '</tbody></table></div></div>'
+        )
+
+    # Backward-compatible simple report when an old block has no days.
+    if not report_html:
+        pairs = []
+        for key, label in (
+            ("budget", "Budget"),
+            ("india", "India Gross"), ("india_gross", "India Gross"),
+            ("overseas", "Overseas"), ("overseas_gross", "Overseas"),
+            ("worldwide", "Worldwide"), ("worldwide_gross", "Worldwide"),
+            ("verdict", "Verdict"),
+        ):
+            value = data.get(key)
+            if value is None or str(value).strip() == "":
+                continue
+            shown = html_escape(str(value)) if key == "verdict" else money(value)
+            pairs.append(
+                f'<div class="bo-card"><div class="bo-label">{html_escape(label)}</div>'
+                f'<div class="bo-value">{shown}</div></div>'
+            )
+        if pairs:
+            report_html = (
+                '<div class="boxoffice-block">'
+                '<div class="boxoffice-title">Box Office Collection Report</div>'
+                f'<div class="boxoffice-grid">{"".join(pairs)}</div></div>'
+            )
+
+    # The backend already calculates theatrical analysis from this same stored
+    # Box Office Report. Render that exact analysis into initial HTML.
+    theatrical_html = _article_ssr_theatrical_performance(data)
+
+    return report_html + theatrical_html
 
 def _article_ssr_related_entity(block_type, data):
     entity_id = data.get(f"{block_type}_id")
@@ -8384,7 +9669,7 @@ def _article_ssr_related_entity(block_type, data):
         return ""
 
 
-def _article_ssr_block(block):
+def _article_ssr_block(block, article=None):
     block_type = str(block.get("block_type") or "").lower()
     data = block.get("extra_data") or {}
     content = block.get("content") or ""
@@ -8439,7 +9724,9 @@ def _article_ssr_block(block):
             if url else ""
         )
     if block_type == "live_tracker":
-        return _article_ssr_live_tracker(data)
+        linked_movie = ((article or {}).get("movies") or [None])[0]
+        release_date = (linked_movie or {}).get("release_date")
+        return _article_ssr_live_tracker(data, release_date=release_date)
     if block_type == "boxoffice":
         return _article_ssr_boxoffice(data)
     if block_type in {"movie", "actor"}:
@@ -8506,11 +9793,310 @@ def _article_ssr_explore_more(article):
     )
 
 
+
+def _article_tracking_ctr(article):
+    """
+    Automatic CTR metadata for Box Office Tracking articles only.
+
+    Activation is deliberately structural: the article must contain BOTH a
+    Live Tracker block and a stored Box Office Report block. Normal articles
+    therefore keep their admin/SQL title and metadata untouched.
+
+    The stored Box Office Report is the source of truth for collection and
+    theatrical-performance numbers. The public Live Tracker is never used as
+    the permanent theatrical-analysis source.
+    """
+    blocks = list(article.get("blocks") or [])
+    live_blocks = [b for b in blocks if str(b.get("block_type") or "").lower() == "live_tracker"]
+    bo_blocks = [b for b in blocks if str(b.get("block_type") or "").lower() == "boxoffice"]
+    if not live_blocks or not bo_blocks:
+        return None
+
+    movie = (article.get("movies") or [None])[0]
+    movie_title = str((movie or {}).get("title") or "").strip()
+    if not movie_title:
+        # Do not guess a movie name from an editorial headline.
+        return None
+
+    # Use the first Box Office Report with regular day rows.
+    bo = None
+    for block in bo_blocks:
+        extra = block.get("extra_data") or {}
+        days = extra.get("days") if isinstance(extra, dict) else None
+        if isinstance(days, list) and any(
+            isinstance(d, dict) and str(d.get("type") or "REGULAR").upper() != "PREVIEW"
+            for d in days
+        ):
+            bo = block
+            break
+    if not bo:
+        return None
+
+    extra = bo.get("extra_data") or {}
+    regular_days = [
+        d for d in (extra.get("days") or [])
+        if isinstance(d, dict) and str(d.get("type") or "REGULAR").upper() != "PREVIEW"
+    ]
+
+    # The site's existing tracking convention is 06:00 IST -> next-day 06:00 IST.
+    now_ist = datetime.now(ZoneInfo("Asia/Kolkata"))
+    boxoffice_date = (now_ist - timedelta(hours=6)).date()
+
+    current_day = None
+    for d in regular_days:
+        try:
+            if date.fromisoformat(str(d.get("date") or "")) == boxoffice_date:
+                current_day = d
+                break
+        except ValueError:
+            continue
+
+    # Temporary Live Tracker state for the active public tracking cycle.
+    live_extra = (live_blocks[0].get("extra_data") or {}) if live_blocks else {}
+
+    # DAY-NUMBER AUTHORITY
+    # --------------------
+    # The linked movie's RELEASE DATE is the single authority for automatic
+    # Day 1..7 tracking. BoxOfficeX's active box-office date already follows
+    # the existing 06:00 IST -> 06:00 IST boundary.
+    #
+    # Preview / premiere report rows and Live Tracker start_date do NOT decide
+    # Day N. If the linked movie has no valid release date, we do not guess.
+    day_number = None
+    release_date_missing = False
+
+    movie_release_raw = str((movie or {}).get("release_date") or "").strip()
+    if movie_release_raw:
+        try:
+            movie_release_date = date.fromisoformat(movie_release_raw[:10])
+            candidate = (boxoffice_date - movie_release_date).days + 1
+            if candidate >= 1:
+                day_number = candidate
+        except Exception:
+            release_date_missing = True
+    else:
+        release_date_missing = True
+
+    analysis = ((extra.get("analysis") or {}).get("theatrical_performance")
+                if isinstance(extra.get("analysis"), dict) else None) or {}
+    combined = analysis.get("combined") if isinstance(analysis, dict) else None
+    combined = combined if isinstance(combined, dict) else {}
+
+    def money(v):
+        try:
+            n = float(v)
+        except Exception:
+            return None
+        if n <= 0:
+            return None
+        shown = f"{n:,.2f}".rstrip("0").rstrip(".")
+        return f"₹{shown} Cr"
+
+    def day_worldwide(d):
+        if not isinstance(d, dict):
+            return 0.0
+        india = sum(_bo_number(d.get(k)) for k in (
+            "tamil_nadu", "kerala", "karnataka", "telugu_states", "rest_of_india"
+        ))
+        return india + _bo_number(d.get("overseas"))
+
+    # Temporary public Live Tracker drives ONLY the current live headline amount.
+    # It is considered current only when its last save belongs to the active
+    # BoxOfficeX 06:00 IST -> 06:00 IST tracking day. This prevents yesterday's
+    # temporary number from leaking into a new day's H1.
+    def live_tracker_is_current(data):
+        stamp = str((data or {}).get("updated_at") or "").strip()
+        if not stamp:
+            return False
+        try:
+            dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            dt_ist = dt.astimezone(ZoneInfo("Asia/Kolkata"))
+            return (dt_ist - timedelta(hours=6)).date() == boxoffice_date
+        except Exception:
+            return False
+
+    def live_tracker_headline_amount(data):
+        if not live_tracker_is_current(data):
+            return 0.0, ""
+
+        day_gross = _bo_number((data or {}).get("day_gross"))
+        if day_gross > 0:
+            return day_gross, "Gross So Far"
+
+        india = _bo_number((data or {}).get("india_gross"))
+        overseas = _bo_number((data or {}).get("overseas_gross"))
+
+        if india > 0 and overseas > 0:
+            return india + overseas, "Worldwide Gross So Far"
+        if india > 0:
+            return india, "India Gross So Far"
+        if overseas > 0:
+            return overseas, "Overseas Gross So Far"
+        return 0.0, ""
+
+    current_day_gross, current_day_gross_label = live_tracker_headline_amount(live_extra)
+
+    # Stored cumulative totals. ADVANCE is excluded exactly like the theatrical model.
+    earned_rows = [
+        d for d in regular_days
+        if str(d.get("status") or "").upper() != "ADVANCE"
+    ]
+    earned = _bo_sum_rows(earned_rows)
+    cumulative_worldwide = _bo_number(earned.get("worldwide"))
+
+    # FINAL/FROZEN worldwide authority: use the same complete stored Box Office
+    # Report gross used by the V9 theatrical-performance model. This prevents a
+    # Day 1 subtotal from being frozen when preview/premiere + regular stored
+    # report rows produce a larger cumulative worldwide total.
+    report_worldwide_total = _bo_number(combined.get("gross"))
+    if report_worldwide_total <= 0:
+        report_worldwide_total = cumulative_worldwide
+
+    tracking_enabled = bool(article.get("tracking_enabled", True))
+    live_mode = tracking_enabled and day_number is not None and day_number >= 1
+
+    if not tracking_enabled:
+        # FINAL/FROZEN mode. Prefer the persistent snapshot created when Admin
+        # switches tracking OFF. The fallback below is deterministic and uses
+        # only the permanent stored Box Office Report, never temporary tracker data.
+        frozen_h1 = str(article.get("final_h1") or "").strip()
+        frozen_title = str(article.get("final_meta_title") or "").strip()
+        frozen_description = str(article.get("final_meta_description") or "").strip()
+        frozen_subtitle = str(article.get("final_subtitle") or frozen_description).strip()
+        if frozen_h1 and frozen_title and frozen_description:
+            return {
+                "mode": "FINAL / FROZEN", "day": day_number,
+                "h1": frozen_h1, "seo_title": frozen_title,
+                "meta_description": frozen_description, "subtitle": frozen_subtitle,
+                "source": "frozen_stored_boxoffice_report", "frozen": True,
+                "finalized_at": article.get("tracking_finalized_at"),
+            }
+
+    if live_mode:
+        h1 = f"{movie_title} Day {day_number} Box Office Collection Live"
+        if current_day_gross > 0:
+            h1 += f": {money(current_day_gross)} {current_day_gross_label}"
+    elif tracking_enabled:
+        # Before release / missing release date: never guess Day N.
+        return None
+    else:
+        final_worldwide = money(report_worldwide_total)
+        h1 = (
+            f"{movie_title} Box Office Collection: {final_worldwide} Worldwide, Complete Day-Wise Report"
+            if final_worldwide else
+            f"{movie_title} Box Office Collection: Complete Day-Wise & Worldwide Report"
+        )
+
+    # CTR description is built from the STORED Box Office Report/theatrical analysis.
+    parts = []
+    rights = money(combined.get("theatrical_value"))
+    share = money(combined.get("estimated_theatrical_share"))
+    gross = money(combined.get("gross"))
+    level = str((combined.get("current_level") or {}).get("label") or "").strip()
+    next_level = combined.get("next_level") if isinstance(combined.get("next_level"), dict) else {}
+    remaining = money(next_level.get("remaining"))
+    next_label = str(next_level.get("label") or "").strip()
+
+    if live_mode and current_day_gross > 0:
+        parts.append(f"{movie_title} reaches {money(current_day_gross)} {current_day_gross_label.lower()} on Day {day_number}.")
+    elif live_mode:
+        parts.append(f"{movie_title} Day {day_number} box office collection live.")
+    elif report_worldwide_total > 0:
+        if rights:
+            sentence = f"{movie_title} has collected {money(report_worldwide_total)} worldwide against {rights} reported theatrical rights"
+            if share:
+                sentence += f", with an estimated theatrical share of {share}"
+            sentence += "."
+            parts.append(sentence)
+        else:
+            parts.append(f"{movie_title} has collected {money(report_worldwide_total)} worldwide.")
+    else:
+        parts.append(f"{movie_title} complete day-wise box office collection report.")
+
+    if rights and (live_mode or report_worldwide_total <= 0):
+        sentence = f"Against {rights} reported theatrical rights"
+        if share:
+            sentence += f", with an estimated theatrical share of {share}"
+        sentence += "."
+        parts.append(sentence)
+
+    if live_mode:
+        if remaining and next_label:
+            parts.append(f"{remaining} more gross is needed to reach {next_label}.")
+        elif level:
+            parts.append(f"Current estimated performance level: {level}.")
+        parts.append("See area-wise theatrical value, recovery and performance tracking.")
+    else:
+        parts.append("Explore the complete day-wise collection, India and overseas totals, area-wise theatrical value and recovery report.")
+    description = " ".join(parts)
+
+    # Do not hard-cut generated copy mid-sentence. Search engines may choose a
+    # shorter snippet themselves; the SSR source should keep every metric
+    # understandable and preserve the next-target label/value together.
+
+    if live_mode:
+        seo_title = h1
+        if len(seo_title) <= 62 and "boxofficex" not in seo_title.lower():
+            seo_title += " | BoxOfficeX"
+    else:
+        final_worldwide = money(report_worldwide_total)
+        seo_title = (
+            f"{movie_title} Box Office Collection: {final_worldwide} Worldwide | BoxOfficeX"
+            if final_worldwide else
+            f"{movie_title} Box Office Collection | BoxOfficeX"
+        )
+
+    return {
+        "mode": "LIVE" if live_mode else "FINAL / FROZEN",
+        "day": day_number,
+        "h1": h1,
+        "seo_title": seo_title,
+        "meta_description": description,
+        "source": "stored_boxoffice_report",
+        "current_day_gross": round(current_day_gross, 2) if current_day_gross > 0 else None,
+        "cumulative_worldwide": round(cumulative_worldwide, 2) if cumulative_worldwide > 0 else None,
+        "report_worldwide_total": round(report_worldwide_total, 2) if report_worldwide_total > 0 else None,
+        "theatrical_rights": combined.get("theatrical_value"),
+        "estimated_theatrical_share": combined.get("estimated_theatrical_share"),
+        "performance_level": level or None,
+        "next_target_label": next_label or None,
+        "next_target_remaining": next_level.get("remaining") if next_level else None,
+    }
+
+
+def _article_apply_tracking_ctr(article):
+    generated = _article_tracking_ctr(article)
+    if not generated:
+        return article, None
+
+    # V10: for structurally recognized Box Office Tracking articles, the
+    # explicit lifecycle switch is authoritative. ON = AUTO for unlimited Day N;
+    # OFF = FINAL/FROZEN. Normal articles never reach this function because
+    # _article_tracking_ctr() requires both Live Tracker + Box Office Report.
+    article = dict(article)
+    article["title"] = generated["h1"]
+    article["meta_title"] = generated["seo_title"]
+    article["meta_description"] = generated["meta_description"]
+    article["subtitle"] = generated.get("subtitle") or generated["meta_description"]
+
+    generated = dict(generated)
+    generated["priority"] = "AUTO" if bool(article.get("tracking_enabled", True)) else "FINAL"
+    generated["automatic_applied"] = bool(article.get("tracking_enabled", True))
+    article["generated_tracking_seo"] = generated
+    return article, generated
+
+
 def _render_article_detail_html(slug):
     response = get_article(slug)
     article = response.get("article") if isinstance(response, dict) else None
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
+
+    # Box Office Tracking articles get generated H1/search metadata from the same
+    # stored report + theatrical calculations rendered on this page.
+    article, _generated_tracking_seo = _article_apply_tracking_ctr(article)
 
     article_file = BASE_DIR / "article.html"
     if not article_file.is_file():
@@ -8595,7 +10181,18 @@ def _render_article_detail_html(slug):
         template, count=1, flags=re.S | re.I,
     )
 
-    block_html = [_article_ssr_block(block) for block in (article.get("blocks") or [])]
+    # Tracking OFF means the temporary Live Tracker is no longer public.
+    # Keep the block stored in Admin/DB so it can be turned back ON later.
+    # The permanent Box Office Report and FINAL/FROZEN SEO snapshot remain intact.
+    public_blocks = [
+        block for block in (article.get("blocks") or [])
+        if not (
+            not bool(article.get("tracking_enabled", True))
+            and str(block.get("block_type") or "").strip().lower() == "live_tracker"
+        )
+    ]
+
+    block_html = [_article_ssr_block(block, article=article) for block in public_blocks]
     if block_html:
         length = len(block_html)
         for slot, fraction in ((3, .82), (2, .55), (1, .25)):
@@ -8649,6 +10246,9 @@ By <strong>{html_escape(author)}</strong>
         raise RuntimeError("Article SSR app-shell injection failed")
 
     payload = dict(article)
+    # Client enhancement must receive the same public block set as SSR.
+    # Otherwise JS could re-insert a Live Tracker that SSR intentionally hid.
+    payload["blocks"] = public_blocks
     for key in ("published_at", "created_at", "updated_at"):
         value = payload.get(key)
         if hasattr(value, "isoformat"):
@@ -8963,6 +10563,569 @@ def get_actor_articles(actor_id: int):
 
 
 
+
+# ============================================================
+# ARTICLE BOX-OFFICE MILESTONE ANALYSIS
+# Source of truth: article block_type="boxoffice" extra_data only.
+# The public Live Tracker is intentionally NOT used here.
+# ============================================================
+
+BOXOFFICEX_MILESTONE_STEP = 50
+BOXOFFICEX_MILESTONE_AREAS = (
+    "tamil_nadu",
+    "kerala",
+    "karnataka",
+    "telugu_states",
+    "rest_of_india",
+    "overseas",
+)
+
+
+@app.on_event("startup")
+def initialize_article_boxoffice_milestones():
+    """Idempotent storage for first-crossing milestone snapshots."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS article_boxoffice_milestones (
+                    id BIGSERIAL PRIMARY KEY,
+                    article_id BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+                    block_id BIGINT NOT NULL REFERENCES article_blocks(id) ON DELETE CASCADE,
+                    movie_id BIGINT REFERENCES movies(id) ON DELETE SET NULL,
+                    milestone_amount NUMERIC(12,2) NOT NULL,
+                    detected_gross NUMERIC(12,2) NOT NULL,
+                    stage TEXT NOT NULL,
+                    stage_label TEXT,
+                    tamil_nadu NUMERIC(12,2),
+                    kerala NUMERIC(12,2),
+                    karnataka NUMERIC(12,2),
+                    telugu_states NUMERIC(12,2),
+                    rest_of_india NUMERIC(12,2),
+                    india NUMERIC(12,2),
+                    overseas NUMERIC(12,2),
+                    worldwide NUMERIC(12,2),
+                    is_historical_initialization BOOLEAN NOT NULL DEFAULT FALSE,
+                    detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (article_id, block_id, milestone_amount)
+                )
+            """)
+            # Safe migration for databases created before historical/genuine
+            # milestone snapshots were separated.
+            cur.execute("""
+                ALTER TABLE article_boxoffice_milestones
+                ADD COLUMN IF NOT EXISTS is_historical_initialization
+                BOOLEAN NOT NULL DEFAULT FALSE
+            """)
+
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_article_boxoffice_milestones_article
+                ON article_boxoffice_milestones(article_id, block_id, milestone_amount)
+            """)
+        conn.commit()
+
+
+def _bo_number(value):
+    """Return a non-negative float or 0. Missing regional data stays distinguishable elsewhere."""
+    try:
+        if value is None or value == "":
+            return 0.0
+        number = float(str(value).replace(",", "").strip())
+        return number if math.isfinite(number) and number >= 0 else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _bo_has_positive(value):
+    return _bo_number(value) > 0
+
+
+def _bo_sum_rows(rows):
+    totals = {key: 0.0 for key in BOXOFFICEX_MILESTONE_AREAS}
+    present = {key: False for key in BOXOFFICEX_MILESTONE_AREAS}
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for key in BOXOFFICEX_MILESTONE_AREAS:
+            # Missing/null/blank is not converted into a reported zero territory.
+            raw = row.get(key)
+            if raw is not None and str(raw).strip() != "":
+                value = _bo_number(raw)
+                totals[key] += value
+                if value > 0:
+                    present[key] = True
+
+    totals["india"] = sum(totals[k] for k in (
+        "tamil_nadu", "kerala", "karnataka", "telugu_states", "rest_of_india"
+    ))
+    totals["worldwide"] = totals["india"] + totals["overseas"]
+    totals["present"] = present
+    return totals
+
+
+def _bo_stage_for_rows(rows, *, advance=False):
+    if advance:
+        day_numbers = [
+            int(_bo_number(row.get("number")))
+            for row in rows if isinstance(row, dict) and _bo_number(row.get("number")) > 0
+        ]
+        if day_numbers:
+            n = max(day_numbers)
+            return "ADVANCE", f"DAY {n} ADVANCE"
+        return "ADVANCE", "ADVANCE BOOKING"
+
+    regular = [
+        int(_bo_number(row.get("number")))
+        for row in rows
+        if isinstance(row, dict)
+        and str(row.get("type") or "REGULAR").upper() != "PREVIEW"
+        and str(row.get("status") or "").upper() != "ADVANCE"
+        and _bo_number(row.get("number")) > 0
+    ]
+    if regular:
+        n = max(regular)
+        return f"DAY_{n}", f"DAY {n}"
+
+    if any(
+        isinstance(row, dict)
+        and str(row.get("type") or "REGULAR").upper() == "PREVIEW"
+        for row in rows
+    ):
+        return "PREMIERE", "PREVIEW / PREMIERE"
+
+    return "BOX_OFFICE", "BOX OFFICE"
+
+
+def _capture_article_boxoffice_milestones(cur, article_id: int):
+    """Rebuild ₹50 Cr milestone snapshots from CURRENT admin box-office data.
+
+    article_blocks.extra_data is the only source of truth. Every admin add/edit/delete
+    rebuilds this derived table, so corrected or removed values cannot leave stale
+    milestones behind.
+    """
+    cur.execute("""
+        SELECT movie_id
+        FROM article_movies
+        WHERE article_id=%s
+        ORDER BY movie_id
+    """, (article_id,))
+    movie_ids = [int(r[0]) for r in cur.fetchall()]
+    movie_id = movie_ids[0] if len(movie_ids) == 1 else None
+
+    cur.execute("""
+        SELECT id, extra_data
+        FROM article_blocks
+        WHERE article_id=%s AND block_type='boxoffice'
+        ORDER BY block_order, id
+    """, (article_id,))
+    blocks = cur.fetchall()
+
+    # Milestones are derived/cache data. Remove the previous derivation first.
+    cur.execute("""
+        DELETE FROM article_boxoffice_milestones
+        WHERE article_id=%s
+    """, (article_id,))
+
+    def snapshot_values(totals):
+        return (
+            totals["tamil_nadu"] if totals["present"]["tamil_nadu"] else None,
+            totals["kerala"] if totals["present"]["kerala"] else None,
+            totals["karnataka"] if totals["present"]["karnataka"] else None,
+            totals["telugu_states"] if totals["present"]["telugu_states"] else None,
+            totals["rest_of_india"] if totals["present"]["rest_of_india"] else None,
+            totals["india"] if totals["india"] > 0 else None,
+            totals["overseas"] if totals["present"]["overseas"] else None,
+            totals["worldwide"] if totals["worldwide"] > 0 else None,
+        )
+
+    def insert_crossings(block_id, rows, *, advance, already_saved):
+        # Rebuild progression one currently-saved admin row at a time. This lets
+        # ₹50, ₹100, ... keep the values of the first CURRENT row that crosses them.
+        running_rows = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            running_rows.append(row)
+            totals = _bo_sum_rows(running_rows)
+            gross = float(totals["worldwide"] or 0)
+            if gross < BOXOFFICEX_MILESTONE_STEP:
+                continue
+
+            highest = int(gross // BOXOFFICEX_MILESTONE_STEP) * BOXOFFICEX_MILESTONE_STEP
+            stage, stage_label = _bo_stage_for_rows(running_rows, advance=advance)
+
+            for milestone in range(BOXOFFICEX_MILESTONE_STEP, highest + 1, BOXOFFICEX_MILESTONE_STEP):
+                if milestone in already_saved:
+                    continue
+                areas = snapshot_values(totals)
+                cur.execute("""
+                    INSERT INTO article_boxoffice_milestones (
+                        article_id, block_id, movie_id,
+                        milestone_amount, detected_gross,
+                        stage, stage_label,
+                        tamil_nadu, kerala, karnataka, telugu_states,
+                        rest_of_india, india, overseas, worldwide,
+                        is_historical_initialization
+                    )
+                    VALUES (
+                        %s,%s,%s,%s,%s,%s,%s,
+                        %s,%s,%s,%s,%s,%s,%s,%s,FALSE
+                    )
+                    ON CONFLICT (article_id, block_id, milestone_amount) DO UPDATE SET
+                        movie_id=EXCLUDED.movie_id,
+                        detected_gross=EXCLUDED.detected_gross,
+                        stage=EXCLUDED.stage,
+                        stage_label=EXCLUDED.stage_label,
+                        tamil_nadu=EXCLUDED.tamil_nadu,
+                        kerala=EXCLUDED.kerala,
+                        karnataka=EXCLUDED.karnataka,
+                        telugu_states=EXCLUDED.telugu_states,
+                        rest_of_india=EXCLUDED.rest_of_india,
+                        india=EXCLUDED.india,
+                        overseas=EXCLUDED.overseas,
+                        worldwide=EXCLUDED.worldwide,
+                        is_historical_initialization=FALSE,
+                        detected_at=NOW()
+                """, (
+                    article_id, int(block_id), movie_id,
+                    milestone, gross, stage, stage_label,
+                    *areas,
+                ))
+                already_saved.add(milestone)
+
+    for block_id, extra in blocks:
+        extra = extra or {}
+        days = extra.get("days") if isinstance(extra, dict) else None
+        if not isinstance(days, list) or not days:
+            continue
+
+        # Status decides whether a row is ADVANCE, regardless of PREVIEW/REGULAR type.
+        # A future Preview/Premiere row can therefore be ADVANCE without being
+        # misclassified as earned premiere gross.
+        advance_rows = [
+            d for d in days
+            if isinstance(d, dict)
+            and str(d.get("status") or "").upper() == "ADVANCE"
+        ]
+        earned_rows = [
+            d for d in days
+            if isinstance(d, dict)
+            and str(d.get("status") or "").upper() != "ADVANCE"
+        ]
+
+        saved = set()
+        # Advance is its own progression and is never added to earned gross.
+        insert_crossings(block_id, advance_rows, advance=True, already_saved=saved)
+        # Earned/premiere progression is independently cumulative. Milestones
+        # already reached during advance are not duplicated.
+        insert_crossings(block_id, earned_rows, advance=False, already_saved=saved)
+
+# ============================================================
+# BOXOFFICEX ESTIMATED THEATRICAL PERFORMANCE
+# Gross-based editorial model. Advance booking is excluded.
+# ============================================================
+
+BOXOFFICEX_THEATRICAL_LEVELS = (
+    ("AVERAGE", "Average", 1.50),
+    ("ABOVE_AVERAGE", "Above Average", 1.75),
+    ("BREAK_EVEN", "Break-even", 2.00),
+    ("HIT", "Hit", 2.25),
+    ("SUPER_HIT", "Super Hit", 2.75),
+    ("BLOCKBUSTER", "Blockbuster", 3.50),
+    ("ATB", "ATB", 5.00),
+)
+
+BOXOFFICEX_THEATRICAL_REGIONS = (
+    ("tamil_nadu", "theatrical_tamil_nadu", "Tamil Nadu"),
+    ("kerala", "theatrical_kerala", "Kerala"),
+    ("karnataka", "theatrical_karnataka", "Karnataka"),
+    ("telugu_states", "theatrical_telugu_states", "AP & Telangana"),
+    ("rest_of_india", "theatrical_rest_of_india", "Rest of India"),
+    ("overseas", "theatrical_overseas", "Overseas"),
+)
+
+# Editorial estimation assumptions used only for the public explanatory metrics.
+# India: tax-inclusive gross -> estimated net using 18% GST assumption, then
+# estimated theatrical/distributor share at 50% of net.
+# Overseas: tax/settlement structures vary by country, so BoxOfficeX uses a
+# simplified 100% gross-to-net display basis and 40% estimated theatrical share.
+BOXOFFICEX_INDIA_GST_RATE = 0.18
+BOXOFFICEX_INDIA_SHARE_OF_NET = 0.50
+BOXOFFICEX_OVERSEAS_NET_FACTOR = 1.00
+BOXOFFICEX_OVERSEAS_SHARE_OF_NET = 0.40
+
+
+def _bo_estimated_net_share(gross: float, region_key: str):
+    current_gross = _bo_number(gross)
+    if current_gross <= 0:
+        return {
+            "estimated_net": 0.0,
+            "estimated_theatrical_share": 0.0,
+        }
+
+    if region_key == "overseas":
+        estimated_net = current_gross * BOXOFFICEX_OVERSEAS_NET_FACTOR
+        share_rate = BOXOFFICEX_OVERSEAS_SHARE_OF_NET
+    else:
+        estimated_net = current_gross / (1.0 + BOXOFFICEX_INDIA_GST_RATE)
+        share_rate = BOXOFFICEX_INDIA_SHARE_OF_NET
+
+    return {
+        "estimated_net": round(estimated_net, 2),
+        "estimated_theatrical_share": round(estimated_net * share_rate, 2),
+    }
+
+
+def _bo_theatrical_level(gross: float, theatrical_value: float):
+    """Calculate the locked BoxOfficeX estimated gross/theatrical-value level."""
+    value = _bo_number(theatrical_value)
+    current_gross = _bo_number(gross)
+
+    if value <= 0:
+        return None
+
+    multiple = current_gross / value
+
+    current_key = "FLOP"
+    current_label = "Flop"
+    current_threshold = 0.0
+
+    for key, label, threshold in BOXOFFICEX_THEATRICAL_LEVELS:
+        if multiple >= threshold:
+            current_key = key
+            current_label = label
+            current_threshold = threshold
+        else:
+            break
+
+    next_level = None
+    for key, label, threshold in BOXOFFICEX_THEATRICAL_LEVELS:
+        if threshold > multiple:
+            target_gross = value * threshold
+            remaining = max(0.0, target_gross - current_gross)
+            progress = (current_gross / target_gross * 100.0) if target_gross > 0 else 0.0
+            next_level = {
+                "key": key,
+                "label": label,
+                "multiple": threshold,
+                "target_gross": round(target_gross, 2),
+                "remaining": round(remaining, 2),
+                "progress_percent": round(min(100.0, max(0.0, progress)), 2),
+            }
+            break
+
+    return {
+        "gross": round(current_gross, 2),
+        "theatrical_value": round(value, 2),
+        "multiple": round(multiple, 2),
+        "current_level": {
+            "key": current_key,
+            "label": current_label,
+            "minimum_multiple": current_threshold,
+        },
+        "next_level": next_level,
+        "atb_achieved": multiple >= 4.0,
+    }
+
+
+def _bo_theatrical_performance(extra):
+    """Build current estimated performance from CURRENT admin Box Office extra_data.
+
+    Rules:
+    - ADVANCE rows never count as earned gross.
+    - Each region is calculated only when that region has a positive reported
+      theatrical value.
+    - Combined available-markets performance appears only when 2+ regions have
+      theatrical values.
+    - Combined gross uses exactly the same markets as the combined theatrical value.
+    - No historical values are retained here; edits/deletes recalculate immediately.
+    """
+    if not isinstance(extra, dict):
+        return None
+
+    days = extra.get("days")
+    if not isinstance(days, list):
+        days = []
+
+    earned_rows = [
+        row for row in days
+        if isinstance(row, dict)
+        and str(row.get("status") or "").upper() != "ADVANCE"
+    ]
+    earned = _bo_sum_rows(earned_rows)
+
+    regions = {}
+    available_keys = []
+
+    for gross_key, value_key, label in BOXOFFICEX_THEATRICAL_REGIONS:
+        theatrical_value = _bo_number(extra.get(value_key))
+        if theatrical_value <= 0:
+            continue
+
+        gross = _bo_number(earned.get(gross_key))
+        regions[gross_key] = {
+            "key": gross_key,
+            "label": label,
+            **_bo_theatrical_level(gross, theatrical_value),
+            **_bo_estimated_net_share(gross, gross_key),
+        }
+        available_keys.append((gross_key, value_key))
+
+    combined = None
+    if len(available_keys) >= 2:
+        combined_value = sum(_bo_number(extra.get(value_key)) for _, value_key in available_keys)
+
+        # IMPORTANT: Combined/current gross must come from the permanent
+        # in-content Box Office Report WORLDWIDE TOTAL, not from summing only
+        # territories that have a theatrical-rights value. A missing territory
+        # rights value must not remove that territory's earned gross from the
+        # movie's total performance gross.
+        combined_gross = _bo_number(earned.get("worldwide"))
+
+        # Estimate combined net/share from the complete Box Office Report totals:
+        # India gross uses the existing India assumption; Overseas uses the
+        # existing overseas assumption. This prevents missing rights fields from
+        # silently dropping gross/share from the combined movie-level tracker.
+        india_estimate = _bo_estimated_net_share(
+            _bo_number(earned.get("india")),
+            "india",
+        )
+        overseas_estimate = _bo_estimated_net_share(
+            _bo_number(earned.get("overseas")),
+            "overseas",
+        )
+        combined_net = (
+            india_estimate["estimated_net"]
+            + overseas_estimate["estimated_net"]
+        )
+        combined_share = (
+            india_estimate["estimated_theatrical_share"]
+            + overseas_estimate["estimated_theatrical_share"]
+        )
+
+        combined = {
+            "label": "Available Markets",
+            "market_count": len(available_keys),
+            "markets": [gross_key for gross_key, _ in available_keys],
+            **_bo_theatrical_level(combined_gross, combined_value),
+            "estimated_net": round(combined_net, 2),
+            "estimated_theatrical_share": round(combined_share, 2),
+        }
+
+    budget = _bo_number(extra.get("budget"))
+    budget_tracker = None
+    if budget > 0:
+        current_worldwide = _bo_number(earned.get("worldwide"))
+        budget_tracker = {
+            "reported_budget": round(budget, 2),
+            "worldwide_gross": round(current_worldwide, 2),
+            "gross_budget_multiple": round(current_worldwide / budget, 2),
+            "gross_budget_percent": round(current_worldwide / budget * 100.0, 2),
+        }
+
+    if not regions and not budget_tracker:
+        return None
+
+    return {
+        "model": "BOXOFFICEX_ESTIMATED_THEATRICAL_PERFORMANCE_V1",
+        "earned_worldwide_gross": round(_bo_number(earned.get("worldwide")), 2),
+        "advance_excluded": True,
+        "budget": budget_tracker,
+        "combined": combined,
+        "regions": regions,
+        "disclaimer": (
+            "Theatrical values, distribution rights, distributor shares and territory-wise "
+            "recovery figures are based on available industry reports and estimates. Actual "
+            "commercial agreements, revenue shares and final settlements are private financial "
+            "information known fully only to the producers, distributors, exhibitors/theatre "
+            "owners and other parties involved."
+        ),
+        "performance_note": (
+            "BoxOfficeX performance labels are estimates based on reported theatrical values "
+            "and available box-office gross. Estimated net and theatrical share are editorial "
+            "calculations, not official settlements. India net uses an 18% GST assumption and "
+            "theatrical share uses 50% of estimated net. Overseas uses a simplified 40% share "
+            "assumption because taxes and settlement structures vary by market."
+        ),
+        "estimation_assumptions": {
+            "india_gst_rate_percent": 18.0,
+            "india_share_of_net_percent": 50.0,
+            "overseas_net_factor_percent": 100.0,
+            "overseas_share_of_net_percent": 40.0,
+        },
+    }
+
+
+def _article_boxoffice_analysis_map(cur, article_id: int, movie_rows):
+    """Return milestone + current theatrical analysis keyed by boxoffice block id."""
+    movie_budget = None
+    if len(movie_rows) == 1:
+        cur.execute("SELECT budget_crore FROM movies WHERE id=%s", (movie_rows[0][0],))
+        budget_row = cur.fetchone()
+        if budget_row and budget_row[0] is not None and _bo_number(budget_row[0]) > 0:
+            movie_budget = _bo_number(budget_row[0])
+
+    # Initialize every current Box Office block, even when it has no ₹50 milestone yet.
+    cur.execute("""
+        SELECT id, extra_data
+        FROM article_blocks
+        WHERE article_id=%s AND block_type='boxoffice'
+        ORDER BY block_order, id
+    """, (article_id,))
+
+    result = {}
+    for block_id, extra in cur.fetchall():
+        block_id = int(block_id)
+        extra = extra or {}
+        block_budget = _bo_number(extra.get("budget")) if isinstance(extra, dict) else 0.0
+        result[block_id] = {
+            "milestone_step": BOXOFFICEX_MILESTONE_STEP,
+            "budget_crore": block_budget if block_budget > 0 else movie_budget,
+            "milestones": [],
+            "theatrical_performance": _bo_theatrical_performance(extra),
+        }
+
+    cur.execute("""
+        SELECT
+            block_id, milestone_amount, detected_gross, stage, stage_label,
+            tamil_nadu, kerala, karnataka, telugu_states, rest_of_india,
+            india, overseas, worldwide, detected_at,
+            is_historical_initialization
+        FROM article_boxoffice_milestones
+        WHERE article_id=%s
+        ORDER BY block_id, milestone_amount
+    """, (article_id,))
+
+    for row in cur.fetchall():
+        block_id = int(row[0])
+        item = result.setdefault(block_id, {
+            "milestone_step": BOXOFFICEX_MILESTONE_STEP,
+            "budget_crore": movie_budget,
+            "milestones": [],
+            "theatrical_performance": None,
+        })
+        item["milestones"].append({
+            "milestone": float(row[1]),
+            "detected_gross": float(row[2]),
+            "stage": row[3],
+            "stage_label": row[4],
+            "areas": {
+                "tamil_nadu": float(row[5]) if row[5] is not None else None,
+                "kerala": float(row[6]) if row[6] is not None else None,
+                "karnataka": float(row[7]) if row[7] is not None else None,
+                "telugu_states": float(row[8]) if row[8] is not None else None,
+                "rest_of_india": float(row[9]) if row[9] is not None else None,
+                "india": float(row[10]) if row[10] is not None else None,
+                "overseas": float(row[11]) if row[11] is not None else None,
+                "worldwide": float(row[12]) if row[12] is not None else None,
+            },
+            "detected_at": row[13].isoformat() if row[13] else None,
+            "is_historical_initialization": bool(row[14]),
+        })
+
+    return result
+
+
 def _public_article_boxoffice_extra(extra):
     """
     Return Box Office extra_data with time-derived ADVANCE -> LIVE -> ESTIMATED_FINAL
@@ -9026,7 +11189,9 @@ def get_article(slug: str):
             cur.execute("""
                 SELECT id,title,slug,subtitle,category,author,hero_image,
                        hero_caption,hero_credit,status,meta_title,meta_description,
-                       views,published_at,created_at,updated_at
+                       views,published_at,created_at,updated_at,
+                       tracking_enabled,final_h1,final_subtitle,final_meta_title,
+                       final_meta_description,tracking_finalized_at
                 FROM articles
                 WHERE slug=%s AND status='published'
                 LIMIT 1
@@ -9065,6 +11230,8 @@ def get_article(slug: str):
             actor_rows = cur.fetchall()
             actor_ids = [r[0] for r in actor_rows]
 
+            boxoffice_analysis = _article_boxoffice_analysis_map(cur, a[0], movie_rows)
+
     movie_slug_map = _unique_movie_slug_map()
     actor_slug_map = _unique_actor_slug_map()
 
@@ -9094,12 +11261,18 @@ def get_article(slug: str):
         "hero_caption":a[7],"hero_credit":a[8],"status":a[9],
         "meta_title":a[10],"meta_description":a[11],"views":a[12],
         "published_at":a[13],"created_at":a[14],"updated_at":a[15],
+        "tracking_enabled":bool(a[16]),"final_h1":a[17],"final_subtitle":a[18],
+        "final_meta_title":a[19],"final_meta_description":a[20],
+        "tracking_finalized_at":a[21],
         "movie_ids":movie_ids,"actor_ids":actor_ids,
         "movies":linked_movies,"actors":linked_actors,
         "blocks":[
             {"id":r[0],"block_order":r[1],"block_type":r[2],"content":r[3],
              "image":r[4],"image_caption":r[5],"image_credit":r[6],
-             "extra_data":_public_article_boxoffice_extra(r[7] or {}) if r[2]=="boxoffice" else (r[7] or {})}
+             "extra_data":(
+                 {**_public_article_boxoffice_extra(r[7] or {}), "analysis": boxoffice_analysis.get(int(r[0]), {"milestone_step": BOXOFFICEX_MILESTONE_STEP, "budget_crore": None, "milestones": []})}
+                 if r[2]=="boxoffice" else (r[7] or {})
+             )}
             for r in blocks
         ]
     }}
@@ -9129,6 +11302,8 @@ class AdminArticleCreate(BaseModel):
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
     published_at: Optional[datetime] = None
+    # Box-office tracking lifecycle. Normal articles ignore this field.
+    tracking_enabled: bool = True
 
 
 class AdminArticleBlock(BaseModel):
@@ -9209,6 +11384,22 @@ def _invalidate_article_detail_cache(*slugs):
             _article_detail_html_cache.pop(slug, None)
 
 
+def _invalidate_article_detail_cache_by_id(article_id: int):
+    """Resolve an article's current slug and invalidate its SSR detail cache."""
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT slug FROM articles WHERE id=%s", (article_id,))
+                row = cur.fetchone()
+        if row and row[0]:
+            _invalidate_article_detail_cache(row[0])
+    except Exception:
+        # Cache invalidation must never turn a successful committed admin save
+        # into an apparent content-save failure. At worst the normal cache TTL
+        # remains the fallback.
+        pass
+
+
 def validate_article_status(value: str) -> str:
     allowed = {"draft", "published", "archived"}
     value = (value or "draft").lower().strip()
@@ -9226,6 +11417,25 @@ def validate_block_type(value: str) -> str:
     if value not in allowed:
         raise HTTPException(status_code=400, detail="Invalid article block type")
     return value
+
+
+@app.on_event("startup")
+def ensure_article_tracking_lifecycle_columns():
+    """Idempotent V10 storage for explicit AUTO vs FINAL/FROZEN article tracking."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('public.articles')")
+            row = cur.fetchone()
+            if not row or row[0] is None:
+                return
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS tracking_enabled BOOLEAN NOT NULL DEFAULT TRUE")
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS final_h1 TEXT")
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS final_subtitle TEXT")
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS final_meta_title TEXT")
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS final_meta_description TEXT")
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS tracking_finalized_at TIMESTAMPTZ")
+        conn.commit()
+    print("ARTICLE TRACKING LIFECYCLE V10: READY", flush=True)
 
 
 @app.on_event("startup")
@@ -9644,7 +11854,9 @@ def admin_get_article(article_id: int):
                     id, title, slug, subtitle, category, author,
                     hero_image, hero_caption, hero_credit,
                     status, meta_title, meta_description,
-                    views, published_at, created_at, updated_at
+                    views, published_at, created_at, updated_at,
+                    tracking_enabled, final_h1, final_subtitle, final_meta_title,
+                    final_meta_description, tracking_finalized_at
                 FROM articles
                 WHERE id = %s
             """, (article_id,))
@@ -9697,6 +11909,12 @@ def admin_get_article(article_id: int):
             "published_at": a[13],
             "created_at": a[14],
             "updated_at": a[15],
+            "tracking_enabled": bool(a[16]),
+            "final_h1": a[17],
+            "final_subtitle": a[18],
+            "final_meta_title": a[19],
+            "final_meta_description": a[20],
+            "tracking_finalized_at": a[21],
             "movie_ids": movie_ids,
             "actor_ids": actor_ids,
             "blocks": [
@@ -9713,6 +11931,220 @@ def admin_get_article(article_id: int):
                 for r in blocks
             ],
         }
+    }
+
+
+
+@app.get("/admin/articles/{article_id}/generated-seo-preview", dependencies=[Depends(require_admin)])
+def admin_article_generated_seo_preview(article_id: int):
+    """
+    Return the FINAL public SSR search-layer values for this article.
+
+    This endpoint deliberately runs the same article enrichment and
+    _article_apply_tracking_ctr() priority logic used by public SSR, so Admin
+    preview cannot disagree with the rendered public page.
+    """
+    admin_response = admin_get_article(article_id)
+    article = admin_response.get("article") if isinstance(admin_response, dict) else None
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT m.id, m.title, m.release_date, m.language, m.industry
+                FROM article_movies am
+                JOIN movies m ON m.id=am.movie_id
+                WHERE am.article_id=%s
+                ORDER BY m.id
+            """, (article_id,))
+            movie_rows = cur.fetchall()
+            analysis_map = _article_boxoffice_analysis_map(cur, article_id, movie_rows)
+
+    article["movies"] = [
+        {
+            "id": r[0],
+            "title": r[1],
+            "release_date": r[2],
+            "language": r[3],
+            "industry": r[4],
+        }
+        for r in movie_rows
+    ]
+
+    for block in article.get("blocks") or []:
+        if str(block.get("block_type") or "").lower() == "boxoffice":
+            extra = dict(_public_article_boxoffice_extra(block.get("extra_data") or {}))
+            extra["analysis"] = analysis_map.get(int(block.get("id") or 0), {
+                "milestone_step": BOXOFFICEX_MILESTONE_STEP,
+                "budget_crore": None,
+                "milestones": [],
+                "theatrical_performance": None,
+            })
+            block["extra_data"] = extra
+
+    final_article, generated = _article_apply_tracking_ctr(article)
+
+    title = str(final_article.get("title") or "BoxOfficeX Article").strip()
+    seo_title = str(final_article.get("meta_title") or title).strip()
+    public_title = seo_title
+    if "boxofficex" not in public_title.lower():
+        public_title += " | BoxOfficeX"
+
+    description = str(
+        final_article.get("meta_description")
+        or final_article.get("subtitle")
+        or "Read the latest movie, box office and entertainment stories on BoxOfficeX."
+    ).strip()
+    canonical = f"https://boxofficex.in/article/{final_article.get('slug') or article.get('slug') or ''}"
+
+    priority = (generated or {}).get("priority") or "ADMIN"
+    automatic_applied = bool((generated or {}).get("automatic_applied"))
+
+    if not generated:
+        mode = "NORMAL"
+    elif automatic_applied:
+        mode = str(generated.get("mode") or "AUTO")
+    else:
+        mode = "ADMIN"
+
+    sources = []
+    if generated:
+        if movie_rows:
+            sources.append("Linked movie release date")
+        sources.append("Live Tracker (temporary current-cycle values)")
+        sources.append("Stored Box Office Report / theatrical analysis")
+    else:
+        sources.append("Admin article fields")
+
+    return {
+        "automatic": automatic_applied,
+        "priority": priority,
+        "mode": mode,
+        "h1": title,
+        "seo_title": public_title,
+        "meta_description": description,
+        "canonical": canonical,
+        "generated_at": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(),
+        "sources": sources,
+        "checks": {
+            "h1_ready": bool(title),
+            "seo_title_ready": bool(public_title),
+            "description_ready": bool(description),
+            "canonical_ready": bool(canonical),
+            "linked_movie_release_date": bool(
+                movie_rows and movie_rows[0][2]
+            ),
+            "public_ssr_priority_logic": True,
+        },
+    }
+
+
+class AdminArticleTrackingModeData(BaseModel):
+    enabled: bool
+
+
+@app.put("/admin/articles/{article_id}/tracking-mode", dependencies=[Depends(require_admin)])
+def admin_set_article_tracking_mode(article_id: int, data: AdminArticleTrackingModeData):
+    """
+    Switch a tracking article between unlimited AUTO and persistent FINAL/FROZEN.
+
+    OFF is atomic from the public article's point of view:
+    1) build the final package in memory from the latest permanent Box Office Report;
+    2) only if generation succeeds, persist tracking_enabled=FALSE + the full snapshot
+       in one UPDATE;
+    3) invalidate SSR cache after commit.
+
+    This prevents a failed freeze from leaving the article OFF with empty final fields.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT slug FROM articles WHERE id=%s", (article_id,))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Article not found")
+            slug = row[0]
+
+    if data.enabled:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE articles
+                    SET tracking_enabled=TRUE,
+                        updated_at=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                    WHERE id=%s
+                """, (article_id,))
+            conn.commit()
+        # Frozen snapshot is deliberately retained for audit/reuse, but AUTO ignores it.
+        _invalidate_article_detail_cache(slug)
+        return {"success": True, "tracking_enabled": True, "mode": "AUTO"}
+
+    # Build the exact FINAL package BEFORE changing persistent mode.
+    public = get_article(slug).get("article")
+    if not public:
+        raise HTTPException(
+            status_code=400,
+            detail="Published tracking article is required before freezing",
+        )
+
+    final_candidate = dict(public)
+    final_candidate["tracking_enabled"] = False
+    # Force regeneration from the latest permanent stored report, not an older snapshot.
+    final_candidate["final_h1"] = None
+    final_candidate["final_subtitle"] = None
+    final_candidate["final_meta_title"] = None
+    final_candidate["final_meta_description"] = None
+    final_candidate["tracking_finalized_at"] = None
+
+    generated = _article_tracking_ctr(final_candidate)
+    if not generated or generated.get("mode") != "FINAL / FROZEN":
+        raise HTTPException(
+            status_code=400,
+            detail="Tracking article requires a linked movie, Live Tracker and stored Box Office Report",
+        )
+
+    final_h1 = str(generated.get("h1") or "").strip()
+    final_title = str(generated.get("seo_title") or "").strip()
+    final_description = str(generated.get("meta_description") or "").strip()
+    final_subtitle = str(generated.get("subtitle") or final_description).strip()
+
+    if not (final_h1 and final_title and final_description):
+        raise HTTPException(
+            status_code=400,
+            detail="Final tracking snapshot could not be generated from the stored Box Office Report",
+        )
+
+    # Persist OFF + the complete frozen search/public package together.
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE articles SET
+                    tracking_enabled=FALSE,
+                    final_h1=%s,
+                    final_subtitle=%s,
+                    final_meta_title=%s,
+                    final_meta_description=%s,
+                    tracking_finalized_at=NOW(),
+                    updated_at=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                WHERE id=%s
+            """, (
+                final_h1,
+                final_subtitle,
+                final_title,
+                final_description,
+                article_id,
+            ))
+        conn.commit()
+
+    _invalidate_article_detail_cache(slug)
+
+    return {
+        "success": True,
+        "tracking_enabled": False,
+        "mode": "FINAL / FROZEN",
+        "final_h1": final_h1,
+        "final_meta_title": final_title,
+        "final_meta_description": final_description,
     }
 
 
@@ -9737,13 +12169,13 @@ def admin_create_article(data: AdminArticleCreate):
                         title, slug, subtitle, category, author,
                         hero_image, hero_caption, hero_credit,
                         status, meta_title, meta_description,
-                        published_at, updated_at
+                        published_at, tracking_enabled, updated_at
                     )
                     VALUES (
                         %s,%s,%s,%s,%s,
                         %s,%s,%s,
                         %s,%s,%s,
-                        %s,CURRENT_TIMESTAMP
+                        %s,%s,CURRENT_TIMESTAMP
                     )
                     RETURNING id
                 """, (
@@ -9759,6 +12191,7 @@ def admin_create_article(data: AdminArticleCreate):
                     effective_meta_title,
                     effective_meta_description,
                     published_at,
+                    bool(data.tracking_enabled),
                 ))
                 article_id = cur.fetchone()[0]
             except psycopg.errors.UniqueViolation:
@@ -9831,6 +12264,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
                         meta_title = %s,
                         meta_description = %s,
                         published_at = %s,
+                        tracking_enabled = %s,
                         updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                     WHERE id = %s
                 """, (
@@ -9846,6 +12280,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
                     effective_meta_title,
                     effective_meta_description,
                     published_at,
+                    bool(data.tracking_enabled),
                     article_id,
                 ))
             except psycopg.errors.UniqueViolation:
@@ -11826,6 +14261,12 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
                         raise HTTPException(status_code=409, detail="A block changed while saving. Reload and try again.")
                     saved_ids.append(int(row[0]))
 
+                # Derive and persist new ₹50 Cr milestone snapshots from the
+                # just-saved in-content box-office block. This runs inside the
+                # same transaction as the block save, so no second admin action
+                # or browser request is required.
+                _capture_article_boxoffice_milestones(cur, article_id)
+
                 cur.execute("""
                     UPDATE articles
                     SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
@@ -11839,6 +14280,8 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
         except Exception:
             conn.rollback()
             raise
+
+    _invalidate_article_detail_cache_by_id(article_id)
 
     return {
         "success": True,
@@ -11879,6 +14322,8 @@ def admin_add_article_block(article_id: int, data: AdminArticleBlock):
                 ))
                 block_id = cur.fetchone()[0]
 
+                _capture_article_boxoffice_milestones(cur, article_id)
+
                 # A block is part of the public article body, so adding one
                 # is a meaningful article modification. Keep published_at
                 # unchanged and refresh only updated_at.
@@ -11895,12 +14340,14 @@ def admin_add_article_block(article_id: int, data: AdminArticleBlock):
 
         conn.commit()
 
+    _invalidate_article_detail_cache_by_id(article_id)
     return {"success": True, "block_id": block_id}
 
 
 @app.put("/admin/article-blocks/{block_id}", dependencies=[Depends(require_admin)])
 def admin_update_article_block(block_id: int, data: AdminArticleBlock):
     block_type = validate_block_type(data.block_type)
+    parent_article_id = None
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -11945,14 +14392,18 @@ def admin_update_article_block(block_id: int, data: AdminArticleBlock):
             article_row = cur.fetchone()
 
             if article_row:
+                parent_article_id = int(article_row[0])
+                _capture_article_boxoffice_milestones(cur, parent_article_id)
                 cur.execute("""
                     UPDATE articles
                     SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                     WHERE id = %s
-                """, (article_row[0],))
+                """, (parent_article_id,))
 
         conn.commit()
 
+    if parent_article_id is not None:
+        _invalidate_article_detail_cache_by_id(parent_article_id)
     return {"success": True, "block_id": block_id}
 
 
@@ -11978,6 +14429,8 @@ def admin_delete_article_block(block_id: int):
                 WHERE id = %s
             """, (block_id,))
 
+            _capture_article_boxoffice_milestones(cur, int(article_id))
+
             cur.execute("""
                 UPDATE articles
                 SET updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
@@ -11986,6 +14439,7 @@ def admin_delete_article_block(block_id: int):
 
         conn.commit()
 
+    _invalidate_article_detail_cache_by_id(int(article_id))
     return {"success": True}
 
 
@@ -12714,11 +15168,63 @@ def _render_movie_comparison_html(comparison):
     canonical_path = comparison["canonical_url"]
     canonical_url = f"https://boxofficex.in{canonical_path}"
 
-    page_title = f"{title_a} vs {title_b} Box Office Comparison | BoxOfficeX"
-    description = (
-        f"Compare {title_a} vs {title_b}: budget, India gross, overseas gross, "
-        f"worldwide box office collection and verdict on BoxOfficeX."
+    # CTR metadata only. Keep the visible movie-comparison UI unchanged.
+    page_title = f"{title_a} vs {title_b}: Box Office, Budget & Verdict | BoxOfficeX"
+
+    def ctr_money(value):
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(number):
+            return None
+        if abs(number - round(number)) < 0.05:
+            return f"{int(round(number)):,}"
+        return f"{number:,.1f}".rstrip("0").rstrip(".")
+
+    def budget_multiple(movie):
+        try:
+            budget = float(movie.get("budget_crore"))
+            worldwide = float(movie.get("worldwide_collection_crore"))
+        except (TypeError, ValueError):
+            return None
+        if (
+            not math.isfinite(budget)
+            or not math.isfinite(worldwide)
+            or budget <= 0
+            or worldwide <= 0
+        ):
+            return None
+        return worldwide / budget
+
+    worldwide_a = ctr_money(a.get("worldwide_collection_crore"))
+    worldwide_b = ctr_money(b.get("worldwide_collection_crore"))
+    multiple_a = budget_multiple(a)
+    multiple_b = budget_multiple(b)
+    verdict_a = str(a.get("verdict") or "").strip()
+    verdict_b = str(b.get("verdict") or "").strip()
+
+    description_parts = [f"{title_a} vs {title_b} Box Office:"]
+
+    if worldwide_a is not None and worldwide_b is not None:
+        description_parts.append(
+            f"₹{worldwide_a} Cr vs ₹{worldwide_b} Cr worldwide."
+        )
+
+    if multiple_a is not None and multiple_b is not None:
+        description_parts.append(
+            f"Theatrical performance: {multiple_a:.1f}× vs {multiple_b:.1f}× reported budget."
+        )
+
+    if verdict_a and verdict_b:
+        description_parts.append(
+            f"Verdicts: {verdict_a} vs {verdict_b}."
+        )
+
+    description_parts.append(
+        "Compare budgets, India & overseas collections."
     )
+    description = " ".join(description_parts)
 
     poster_a = _movie_comparison_ssr_poster(a)
     poster_b = _movie_comparison_ssr_poster(b)
@@ -13111,13 +15617,54 @@ def movie_comparison_slug_page(comparison_slug: str):
                 },
             )
 
-        # Cold cache never waits for the comparison renderer.
-        # Existing JavaScript remains the immediate fallback while the cache warms.
-        return FileResponse(
-            BASE_DIR / "movie-compare.html",
+        # Cold cache never waits for the expensive comparison renderer.
+        # But do not expose generic SEO metadata while the cache warms:
+        # build a lightweight comparison-specific shell from the already-resolved
+        # movie references, then let the existing JavaScript render the page.
+        cold_template = (BASE_DIR / "movie-compare.html").read_text(encoding="utf-8")
+        cold_a = str(comparison["movie1"].get("title") or "Movie").strip()
+        cold_b = str(comparison["movie2"].get("title") or "Movie").strip()
+        cold_title = (
+            f"{cold_a} vs {cold_b}: Box Office, Budget & Verdict | BoxOfficeX"
+        )
+        cold_description = (
+            f"{cold_a} vs {cold_b} Box Office: compare budgets, India gross, "
+            f"overseas gross, worldwide collections, theatrical performance and verdicts."
+        )
+        cold_canonical = f"https://boxofficex.in{comparison['canonical_url']}"
+
+        safe_cold_title = html_escape(cold_title, quote=True)
+        safe_cold_description = html_escape(cold_description, quote=True)
+        safe_cold_canonical = html_escape(cold_canonical, quote=True)
+
+        cold_template = re.sub(
+            r'<title\b[^>]*>.*?</title>',
+            f'<title>{safe_cold_title}</title>',
+            cold_template,
+            count=1,
+            flags=re.S | re.I,
+        )
+        cold_template = re.sub(
+            r'<meta\b(?=[^>]*\bid=["\\\']metaDescription["\\\'])(?=[^>]*\bname=["\\\']description["\\\'])[^>]*>',
+            f'<meta id="metaDescription" name="description" content="{safe_cold_description}">',
+            cold_template,
+            count=1,
+            flags=re.I,
+        )
+        cold_template = re.sub(
+            r'<link\b(?=[^>]*\bid=["\\\']canonicalUrl["\\\'])(?=[^>]*\brel=["\\\']canonical["\\\'])[^>]*>',
+            f'<link id="canonicalUrl" rel="canonical" href="{safe_cold_canonical}">',
+            cold_template,
+            count=1,
+            flags=re.I,
+        )
+
+        return HTMLResponse(
+            content=cold_template,
+            status_code=200,
             headers={
                 "Cache-Control": "no-store",
-                "X-BoxOfficeX-Movie-Comparison": "warming",
+                "X-BoxOfficeX-Movie-Comparison": "warming-specific-seo",
                 "X-BoxOfficeX-Cache": "WARMING",
             },
         )

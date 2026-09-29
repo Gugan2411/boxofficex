@@ -4881,16 +4881,7 @@ html,body{scroll-padding-top:0!important}
                             Loading movie...
                         </span>
                     </h1>
-
-
-                    <p class="hero-subtitle">
-                        Complete movie details,
-                        box-office collections and
-                        verdict.
-                    </p>
-
-
-                    <div class="hero-tags">
+<div class="hero-tags">
 
                         <span id="language">
                             Loading...
@@ -7106,6 +7097,169 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
 
     /* =====================================================
+       MOVIE HERO + SEO V1
+       Clean H1 + data-rich theatrical-performance deck
+    ===================================================== */
+
+    function movieReleaseYear(movie) {
+        const value = String(movie?.release_date || "").trim();
+        const match = value.match(/(\d{4})/);
+        return match ? match[1] : "";
+    }
+
+    function movieHasNumber(value) {
+        return value !== null &&
+            value !== undefined &&
+            value !== "" &&
+            Number.isFinite(Number(value));
+    }
+
+    function moviePlainCrore(value) {
+        if (!movieHasNumber(value)) return null;
+        return Number(value).toLocaleString("en-IN", {
+            maximumFractionDigits: 2
+        });
+    }
+
+    function movieLeadCast(movie) {
+        const raw =
+            movie?.actors ??
+            movie?.cast ??
+            movie?.cast_names ??
+            movie?.starring ??
+            null;
+
+        if (Array.isArray(raw)) {
+            return raw
+                .map(item => typeof item === "object" ? (item.name || item.actor_name || "") : item)
+                .map(item => String(item || "").trim())
+                .filter(Boolean)
+                .slice(0, 3);
+        }
+
+        if (typeof raw === "string") {
+            return raw
+                .split(",")
+                .map(item => item.trim())
+                .filter(Boolean)
+                .slice(0, 3);
+        }
+
+        return [];
+    }
+
+    function movieNaturalList(items) {
+        const clean = (items || []).filter(Boolean);
+        if (!clean.length) return "";
+        if (clean.length === 1) return clean[0];
+        if (clean.length === 2) return clean[0] + " and " + clean[1];
+        return clean.slice(0, -1).join(", ") + " and " + clean[clean.length - 1];
+    }
+
+    function buildMovieDeck(movie) {
+        const title = String(movie?.title || "This movie").trim();
+        const language = String(movie?.language || "").trim();
+        const genre = String(movie?.genre || "").trim();
+        const director = String(movie?.director || "").trim();
+        const cast = movieLeadCast(movie);
+
+        const budget = moviePlainCrore(movie?.budget_crore);
+        const india = moviePlainCrore(movie?.india_collection_crore);
+        const overseas = moviePlainCrore(movie?.overseas_collection_crore);
+        const worldwide = moviePlainCrore(movie?.worldwide_collection_crore);
+        const verdict = String(movie?.verdict || "").trim();
+
+        let intro = title;
+        if (language) intro += " is a " + language;
+        else intro += " is an Indian";
+
+        if (genre) intro += " " + genre.toLowerCase();
+        intro += " film";
+
+        if (director) intro += " directed by " + director;
+        if (cast.length) intro += ", starring " + movieNaturalList(cast);
+
+        let deck = intro + ".";
+
+        if (budget) {
+            deck += " Made on a reported ₹" + budget + " crore budget";
+
+            if (india && overseas && worldwide) {
+                deck +=
+                    ", the film grossed ₹" + india + " crore in India and ₹" +
+                    overseas + " crore overseas for a worldwide total of ₹" +
+                    worldwide + " crore";
+            } else if (worldwide) {
+                deck += ", the film grossed ₹" + worldwide + " crore worldwide";
+            } else {
+                const partial = [];
+                if (india) partial.push("₹" + india + " crore in India");
+                if (overseas) partial.push("₹" + overseas + " crore overseas");
+                if (partial.length) {
+                    deck += ", with " + partial.join(" and ") + " in theatrical gross";
+                }
+            }
+
+            deck += ".";
+        } else if (india || overseas || worldwide) {
+            if (india && overseas && worldwide) {
+                deck +=
+                    " The film grossed ₹" + india + " crore in India and ₹" +
+                    overseas + " crore overseas for a worldwide total of ₹" +
+                    worldwide + " crore.";
+            } else if (worldwide) {
+                deck += " The film grossed ₹" + worldwide + " crore worldwide.";
+            } else {
+                const partial = [];
+                if (india) partial.push("₹" + india + " crore in India");
+                if (overseas) partial.push("₹" + overseas + " crore overseas");
+                deck += " The film grossed " + partial.join(" and ") + ".";
+            }
+        }
+
+        if (
+            movieHasNumber(movie?.budget_crore) &&
+            Number(movie.budget_crore) > 0 &&
+            movieHasNumber(movie?.worldwide_collection_crore)
+        ) {
+            const multiple =
+                Number(movie.worldwide_collection_crore) /
+                Number(movie.budget_crore);
+
+            deck +=
+                " Its worldwide gross reached approximately " +
+                multiple.toFixed(1) +
+                "× its reported production budget";
+            if (verdict) {
+                deck += ", with a BoxOfficeX verdict of " + verdict;
+            }
+            deck += ".";
+        } else if (verdict) {
+            deck += " BoxOfficeX records its theatrical verdict as " + verdict + ".";
+        }
+
+        return deck;
+    }
+
+
+    function updateMovieHero(movie) {
+        if (!movie || !movie.title) return;
+
+        const year = movieReleaseYear(movie);
+        setText(
+            "movieTitle",
+            movie.title + (year ? " (" + year + ")" : ""),
+            "Movie"
+        );
+
+        const deck = document.getElementById("movieDeck");
+        if (deck) {
+            deck.textContent = buildMovieDeck(movie);
+        }
+    }
+
+
+    /* =====================================================
        DYNAMIC MOVIE SEO
     ===================================================== */
 
@@ -7117,29 +7271,12 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
         const title =
             movie.title +
-            " Box Office Collection, Budget & Verdict | BoxOfficeX";
-
-        const worldwide =
-            movie.worldwide_collection_crore !== null &&
-            movie.worldwide_collection_crore !== undefined
-                ? formatCrore(movie.worldwide_collection_crore)
-                : null;
-
-        const descriptionParts = [
-            movie.title + " box office collection",
-            movie.language ? movie.language + " movie" : null,
-            worldwide ? "worldwide collection " + worldwide : null,
-            movie.budget_crore !== null &&
-            movie.budget_crore !== undefined
-                ? "budget " + formatCrore(movie.budget_crore)
-                : null,
-            movie.verdict ? "verdict " + movie.verdict : null,
-            movie.director ? "directed by " + movie.director : null
-        ].filter(Boolean);
+            " Budget & Box Office Collection, Verdict | BoxOfficeX";
 
         const description =
-            descriptionParts.join(", ") +
-            ". View day-wise and state-wise box office details on BoxOfficeX.";
+            movie.title +
+            " budget, India and overseas box office collection, worldwide gross and verdict. " +
+            "Check the complete theatrical performance, cast and release details.";
 
         const canonicalPath =
             movie.url ||
@@ -7768,11 +7905,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                    MOVIE DETAILS
                 ===================================== */
 
-                setText(
-                    "movieTitle",
-                    movie.title,
-                    "Movie"
-                );
+                updateMovieHero(movie);
 
 
                 setText(

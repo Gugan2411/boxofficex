@@ -3412,32 +3412,32 @@ html,body{scroll-padding-top:0!important}
     <div class="buttons">
 
 
-        <button onclick="loadRankings('All')">
+        <button onclick="window.location.href='/rankings.html'">
             🌍 Global
         </button>
 
 
-        <button onclick="loadRankings('Tamil')">
+        <button onclick="window.location.href='/actor-rankings/tamil'">
             Tamil
         </button>
 
 
-        <button onclick="loadRankings('Telugu')">
+        <button onclick="window.location.href='/actor-rankings/telugu'">
             Telugu
         </button>
 
 
-        <button onclick="loadRankings('Hindi')">
+        <button onclick="window.location.href='/actor-rankings/hindi'">
             Hindi
         </button>
 
 
-        <button onclick="loadRankings('Kannada')">
+        <button onclick="window.location.href='/actor-rankings/kannada'">
             Kannada
         </button>
 
 
-        <button onclick="loadRankings('Malayalam')">
+        <button onclick="window.location.href='/actor-rankings/malayalam'">
             Malayalam
         </button>
 
@@ -3589,6 +3589,13 @@ function boxOfficeXActorImageUrl(photo, actorName) {
 
 (function setupActorRankingsSEO() {
 
+    const serverPage = window.__BOXOFFICEX_ACTOR_RANKINGS_PAGE__;
+
+    if (serverPage) {
+        // SSR already supplied the canonical metadata + ItemList schema.
+        return;
+    }
+
     const canonical =
         window.location.origin +
         window.location.pathname;
@@ -3617,10 +3624,10 @@ function boxOfficeXActorImageUrl(photo, actorName) {
     const structuredData = {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
-        "name": "Actor Box Office Rankings | BoxOfficeX",
+        "name": "Indian Actors Box Office Rankings | BoxOfficeX",
         "url": canonical,
         "description":
-            "Explore BoxOfficeX actor rankings by worldwide box office collections, movie count and blockbusters across Tamil, Telugu, Hindi, Kannada, Malayalam and English cinema."
+            "Explore Indian actors box office rankings across Tamil, Telugu, Hindi, Kannada and Malayalam cinema."
     };
 
     const jsonLd =
@@ -3751,12 +3758,20 @@ function loadRankings(language) {
 }
 
 const bxInitialActorRankings = document.getElementById("rankings");
+const bxActorRankingPage = window.__BOXOFFICEX_ACTOR_RANKINGS_PAGE__;
+const bxInitialActorLanguage = bxActorRankingPage
+    ? (bxActorRankingPage.language || "All")
+    : "All";
+const bxInitialActorIndustry = bxInitialActorLanguage === "All"
+    ? "Global"
+    : bxInitialActorLanguage;
+
 if (!(bxInitialActorRankings && bxInitialActorRankings.dataset.ssr === "1")) {
-    loadRankings("All");
+    loadRankings(bxInitialActorLanguage);
 } else {
-    window.__bxCurrentActorRankingIndustry = "Global";
+    window.__bxCurrentActorRankingIndustry = bxInitialActorIndustry;
     if (window.BoxOfficeXLoadRankingInContentAds) {
-        window.BoxOfficeXLoadRankingInContentAds("Global");
+        window.BoxOfficeXLoadRankingInContentAds(bxInitialActorIndustry);
     }
 }
 
