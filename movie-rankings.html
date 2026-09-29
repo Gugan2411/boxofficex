@@ -4601,12 +4601,28 @@ async function loadMovies(
 const bxInitialRankingList = document.getElementById("movies");
 const bxRankingPage = window.__BOXOFFICEX_MOVIE_RANKINGS_PAGE__ || {};
 const bxInitialIndustry = bxRankingPage.industry || "All";
+
+function bxNormalizeSSRRankingPosters(container) {
+    if (!container || !BOXOFFICEX_USE_MOVIE_PLACEHOLDERS) return;
+
+    container.querySelectorAll(".movie-card img").forEach(function(img) {
+        const title = String(img.getAttribute("alt") || "Movie").trim() || "Movie";
+        img.src = boxOfficeXMoviePlaceholder({ title: title });
+        img.onerror = null;
+    });
+}
+
 if (!(bxInitialRankingList && bxInitialRankingList.dataset.ssr === "1")) {
     loadMovies(bxInitialIndustry);
 } else {
     window.__bxCurrentMovieRankingIndustry = bxInitialIndustry === "All" ? "Global" : bxInitialIndustry;
     updateActiveIndustry(bxInitialIndustry);
     updateRankingHeading(bxInitialIndustry);
+
+    // SSR ranking pages (Global/Tamil/Telugu/etc.) must use the exact same
+    // BoxOfficeX placeholder renderer as client-loaded rankings.
+    bxNormalizeSSRRankingPosters(bxInitialRankingList);
+
     const bxCount = document.getElementById("resultsCount");
     if (bxCount) bxCount.innerText = bxInitialRankingList.querySelectorAll(".movie-card").length + " movies";
 }
