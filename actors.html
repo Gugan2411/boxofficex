@@ -27,7 +27,7 @@
 
     <meta
         name="robots"
-        content="index, follow"
+        content="index, follow, max-image-preview:large"
     >
 
     <link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/actors.html">
@@ -3010,6 +3010,115 @@ a.bx-unified-brand.bx-footer-brand strong > span.bx-unified-x {
 }
 </style>
 
+
+<style id="bx-actors-seo-content">
+.bx-actors-intro{
+    max-width:860px;
+    margin:-8px auto 26px;
+    padding:15px 18px;
+    border:1px solid #dfe5ee;
+    border-radius:14px;
+    background:rgba(255,255,255,.78);
+    box-shadow:0 6px 18px rgba(24,39,75,.05);
+}
+.bx-actors-intro p{
+    margin:0;
+    color:#526074;
+    font-size:13px;
+    line-height:1.7;
+    text-align:center;
+}
+.bx-actors-faq{
+    max-width:900px;
+    margin:38px auto 8px;
+}
+.bx-actors-faq h2{
+    margin:0 0 14px;
+    color:#172033;
+    font-size:22px;
+    font-weight:900;
+}
+.bx-actors-faq details{
+    margin-bottom:9px;
+    border:1px solid #dfe5ee;
+    border-radius:12px;
+    background:#fff;
+    overflow:hidden;
+}
+.bx-actors-faq summary{
+    padding:14px 16px;
+    color:#172033;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+}
+.bx-actors-faq details p{
+    padding:0 16px 15px;
+    color:#667085;
+    font-size:12px;
+    line-height:1.65;
+}
+@media(max-width:700px){
+    .bx-actors-intro{
+        margin:-4px 0 20px;
+        padding:13px 14px;
+    }
+    .bx-actors-intro p{
+        text-align:left;
+        font-size:12px;
+    }
+    .bx-actors-faq{
+        margin-top:28px;
+    }
+    .bx-actors-faq h2{
+        font-size:19px;
+    }
+}
+</style>
+
+
+<style id="bx-actors-h3-content">
+.bx-actors-explore{
+    max-width:900px;
+    margin:36px auto 8px;
+}
+.bx-actors-explore > h2{
+    margin:0 0 14px;
+    color:#172033;
+    font-size:22px;
+    font-weight:900;
+}
+.bx-actors-explore-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+}
+.bx-actors-explore article{
+    padding:15px;
+    border:1px solid #dfe5ee;
+    border-radius:13px;
+    background:#fff;
+    box-shadow:0 5px 16px rgba(24,39,75,.05);
+}
+.bx-actors-explore h3{
+    margin:0 0 7px;
+    color:#172033;
+    font-size:14px;
+    font-weight:900;
+}
+.bx-actors-explore p{
+    margin:0;
+    color:#667085;
+    font-size:11px;
+    line-height:1.65;
+}
+@media(max-width:700px){
+    .bx-actors-explore{margin-top:28px}
+    .bx-actors-explore > h2{font-size:19px}
+    .bx-actors-explore-grid{grid-template-columns:1fr}
+}
+</style>
+
 </head>
 
 
@@ -3071,9 +3180,15 @@ a.bx-unified-brand.bx-footer-brand strong > span.bx-unified-x {
 
 <main>
 
-    <h1>
-        🎭 Popular Actors
-    </h1>
+    <h1>Indian Actors, Movies &amp; Box Office Careers</h1>
+
+    <section class="bx-actors-intro" aria-label="About BoxOfficeX actor profiles">
+        <p>
+            Explore popular actors across Tamil, Telugu, Hindi, Malayalam and Kannada cinema.
+            BoxOfficeX actor profiles bring together movie filmographies, worldwide box office
+            collections, career statistics, verdicts and highest-grossing films in one place.
+        </p>
+    </section>
 
 
     <div class="global-search">
@@ -3129,6 +3244,45 @@ a.bx-unified-brand.bx-footer-brand strong > span.bx-unified-x {
             <a class="bx-popular-comparisons-all" href="/compare-select.html">Choose actors →</a>
         </div>
         <div class="bx-popular-comparisons-grid" id="bxPopularActorComparisonsGrid"></div>
+    </section>
+
+
+
+    <section class="bx-actors-explore" aria-labelledby="bxActorsExploreTitle">
+        <h2 id="bxActorsExploreTitle">Explore Indian Actor Box Office Careers</h2>
+        <div class="bx-actors-explore-grid">
+            <article>
+                <h3>Career Statistics</h3>
+                <p>Explore tracked movie counts, box office performance and career-level statistics for supported actors.</p>
+            </article>
+            <article>
+                <h3>Highest-Grossing Movies</h3>
+                <p>Find an actor’s biggest worldwide grossers and follow the box office performance of their filmography.</p>
+            </article>
+            <article>
+                <h3>Actor Comparisons</h3>
+                <p>Compare supported actors using BoxOfficeX career and box office data across Indian cinema.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="bx-actors-faq" id="bxActorsFaq" aria-labelledby="bxActorsFaqTitle">
+        <h2 id="bxActorsFaqTitle">Indian Actors &amp; Box Office FAQ</h2>
+
+        <details>
+            <summary>Which Indian film industries are covered on BoxOfficeX?</summary>
+            <p>BoxOfficeX currently highlights actors from Tamil, Telugu, Hindi, Malayalam and Kannada cinema.</p>
+        </details>
+
+        <details>
+            <summary>What information is available on an actor profile?</summary>
+            <p>Actor profiles can include filmography, worldwide box office collections, career statistics, movie verdicts and highest-grossing films based on the data tracked by BoxOfficeX.</p>
+        </details>
+
+        <details>
+            <summary>Can I compare two actors on BoxOfficeX?</summary>
+            <p>Yes. Use Actor Comparison to compare tracked career and box office data for supported actors.</p>
+        </details>
     </section>
 
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
@@ -3319,7 +3473,7 @@ function setupActorsSEO() {
             "actorsStructuredData"
         );
 
-    if (jsonLd) {
+    if (jsonLd && !jsonLd.textContent.trim()) {
         jsonLd.textContent =
             JSON.stringify(
                 structuredData

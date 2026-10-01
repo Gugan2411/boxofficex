@@ -22,7 +22,7 @@
 
     <meta id="metaDescription" name="description" content="Movie box office collection, budget, India and overseas collection, worldwide gross, verdict, release date and complete details on BoxOfficeX.">
 
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-image-preview:large">
 
     <!-- Dynamic SEO / Social Sharing -->
     <link id="canonicalUrl" rel="canonical" href="">
@@ -4881,6 +4881,11 @@ html,body{scroll-padding-top:0!important}
                             Loading movie...
                         </span>
                     </h1>
+
+                    <p id="movieDeck" class="hero-subtitle">
+                        Movie box office collection, budget, verdict and theatrical performance details.
+                    </p>
+
 <div class="hero-tags">
 
                         <span id="language">
@@ -4901,6 +4906,20 @@ html,body{scroll-padding-top:0!important}
 
                 </div>
 
+            </section>
+
+
+            <!-- =================================================
+                 MOVIE DETAILS / CAST
+            ================================================= -->
+            <section class="movie-seo-card" id="movieCastDetails" data-ssr="0">
+                <h2 id="movieCastHeading">Movie Cast &amp; Details</h2>
+                <div class="movie-seo-details-grid" id="movieSeoDetailsGrid">
+                    <div><span>Language</span><strong>Loading...</strong></div>
+                    <div><span>Release Date</span><strong>Loading...</strong></div>
+                    <div><span>Director</span><strong>Loading...</strong></div>
+                    <div><span>Cast</span><strong>Loading...</strong></div>
+                </div>
             </section>
 
 
@@ -4928,9 +4947,9 @@ html,body{scroll-padding-top:0!important}
                  BOX OFFICE DETAILS
             ================================================= -->
 
-            <div class="section-heading">
-                BOX OFFICE DETAILS
-            </div>
+            <h2 class="section-heading movie-seo-heading" id="movieBoxOfficeHeading">
+                Movie Box Office Collection &amp; Budget
+            </h2>
 
 
             <section class="movie-info">
@@ -4986,11 +5005,11 @@ html,body{scroll-padding-top:0!important}
                 <div class="info-box">
 
                     <span class="info-label">
-                        Director
+                        Worldwide Collection
                     </span>
 
                     <span
-                        id="director"
+                        id="worldwideBoxOffice"
                         class="info-value"
                     >
                         Loading...
@@ -5004,6 +5023,8 @@ html,body{scroll-padding-top:0!important}
             <!-- =================================================
                  VERDICT
             ================================================= -->
+
+            <h2 class="movie-seo-section-title" id="movieBudgetVerdictHeading">Movie Budget, Recovery &amp; Verdict</h2>
 
             <section class="verdict">
 
@@ -5115,9 +5136,9 @@ html,body{scroll-padding-top:0!important}
 
             <section class="day-state-section">
 
-                <div class="section-heading">
-                    📊 DAY-WISE STATE BOX OFFICE COLLECTION
-                </div>
+                <h2 class="section-heading movie-seo-heading" id="movieDailyHeading">
+                    Day-Wise &amp; State Box Office Collection
+                </h2>
 
                 <div class="mobile-scroll-hint" aria-hidden="true">
                     <span>↔</span>
@@ -5165,7 +5186,6 @@ html,body{scroll-padding-top:0!important}
 
             <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
 
-
             <!-- =================================================
                  RELATED CONTENT
             ================================================= -->
@@ -5208,6 +5228,17 @@ html,body{scroll-padding-top:0!important}
                 </div>
                 <div class="bx-movie-compare-grid" id="bxMovieCompareGrid"></div>
             </section>
+
+            <!-- =================================================
+                 BOX OFFICE FAQ
+            ================================================= -->
+            <section class="movie-seo-card movie-faq" id="movieFaq" data-ssr="0">
+                <h2 id="movieFaqHeading">Movie Box Office FAQ</h2>
+                <div class="movie-faq-items">
+                    <details><summary>What is this movie's worldwide box office collection?</summary><p>Collection data will appear when available.</p></details>
+                </div>
+            </section>
+
 
             <!-- =================================================
                  FAN ENGAGEMENT
@@ -5846,7 +5877,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
             value === ""
         ) {
 
-            return "—";
+            return "N/A";
 
         }
 
@@ -7248,7 +7279,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
         const year = movieReleaseYear(movie);
         setText(
             "movieTitle",
-            movie.title + (year ? " (" + year + ")" : ""),
+            movie.title + " Box Office Collection, Budget & Verdict",
             "Movie"
         );
 
@@ -7271,7 +7302,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
         const title =
             movie.title +
-            " Budget & Box Office Collection, Verdict | BoxOfficeX";
+            " Box Office Collection, Budget & Verdict | BoxOfficeX";
 
         const description =
             movie.title +
@@ -7379,7 +7410,7 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
                 "movieStructuredData"
             );
 
-        if (jsonLd) {
+        if (jsonLd && !jsonLd.textContent.trim()) {
             jsonLd.textContent =
                 JSON.stringify(structuredData);
         }
@@ -7969,6 +8000,13 @@ function boxOfficeXMoviePosterUrl(movie, absolute = false) {
 
                 setText(
                     "worldwide",
+                    formatCrore(
+                        movie.worldwide_collection_crore
+                    )
+                );
+
+                setText(
+                    "worldwideBoxOffice",
                     formatCrore(
                         movie.worldwide_collection_crore
                     )
@@ -9418,6 +9456,57 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{min-height:28px!important;d
 @media (min-width:701px) and (max-width:1000px){html body #bxSponsoredLinkAd{width:360px!important;max-width:calc(100vw - 28px)!important}html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:180px!important;min-height:180px!important;max-height:180px!important}}
 @media (max-width:700px){html body #bxSponsoredLinkAd{width:320px!important;max-width:calc(100vw - 20px)!important;margin:12px auto!important}html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:160px!important;min-height:160px!important;max-height:160px!important}html body #bxSponsoredLinkAd .bx-sponsored-story-body{padding:8px 9px 7px!important}html body #bxSponsoredLinkAd .bx-sponsored-story-body h3{font-size:14px!important}html body #bxSponsoredLinkAd .bx-sponsored-story-body p{font-size:10.5px!important}}
 @media (max-width:340px){html body #bxSponsoredLinkAd{width:calc(100vw - 16px)!important;max-width:none!important}html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:2/1!important}}
+
+        /* =====================================================
+           MOVIE SEO / SSR CONTENT - LIGHT BOXOFFICEX UI
+        ===================================================== */
+        .movie-seo-heading,
+        .movie-seo-section-title{
+            margin:30px 0 14px!important;
+            color:#172033!important;
+            font-size:20px!important;
+            font-weight:900!important;
+            letter-spacing:-.02em!important;
+            text-transform:none!important;
+            line-height:1.3!important;
+        }
+        .movie-seo-card{
+            margin:22px 0 0;
+            padding:20px;
+            border:1px solid #e2e8f0;
+            border-radius:18px;
+            background:#fff;
+            box-shadow:0 8px 24px rgba(15,23,42,.05);
+        }
+        #movieCastDetails{margin:20px 0 24px}
+        .movie-seo-card h2{
+            margin:0 0 15px;
+            color:#172033;
+            font-size:19px;
+            font-weight:900;
+            line-height:1.3;
+        }
+        .movie-seo-details-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+        .movie-seo-details-grid>div{padding:14px;border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc}
+        .movie-seo-details-grid span{display:block;margin-bottom:6px;color:#64748b;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+        .movie-seo-details-grid strong{display:block;color:#172033;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+        .movie-seo-cast-links a{color:#2563eb;text-decoration:none;font-weight:800}
+        .movie-seo-cast-links a:hover{text-decoration:underline}
+        .movie-faq{margin-top:28px;margin-bottom:28px}
+        .movie-faq .movie-faq-items{display:grid;gap:10px}
+        .movie-faq details{border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc;overflow:hidden}
+        .movie-faq details:first-child{border-top:1px solid #e2e8f0}
+        .movie-faq summary{padding:14px 16px;cursor:pointer;color:#172033;font-size:13px;font-weight:900;list-style:none}
+        .movie-faq summary::-webkit-details-marker{display:none}
+        .movie-faq summary::after{content:'+';float:right;color:#2563eb;font-size:18px;line-height:1}
+        .movie-faq details[open] summary::after{content:'−'}
+        .movie-faq p{margin:0;padding:0 16px 15px;color:#64748b;font-size:12px;line-height:1.65}
+        @media(max-width:700px){
+            .movie-seo-details-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+            .movie-seo-card{padding:14px;border-radius:15px}
+            .movie-seo-card h2,.movie-seo-section-title,.movie-seo-heading{font-size:17px!important}
+            #movieCastDetails{margin:16px 0 20px}
+        }
 </style>
 
 </body>

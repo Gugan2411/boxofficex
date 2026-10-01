@@ -122,7 +122,8 @@
             margin: 0 auto 18px;
         }
 
-        .hero-card h2 {
+        .hero-card h2,
+        .hero-card h3 {
             font-size: 28px;
             margin: 0 0 8px;
         }
@@ -577,7 +578,7 @@ main{width:min(980px,calc(100% - 36px));padding:28px 0 55px}
 .comparison-header{margin-bottom:24px}.comparison-header h1{margin:0;font-size:clamp(31px,5vw,43px);letter-spacing:-.8px}.comparison-header p{max-width:620px;margin:9px auto 0;font-size:12px;line-height:1.55}
 .heroes{grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);gap:14px}
 .hero-card{padding:16px;border-radius:15px;background:linear-gradient(145deg,#111a31,#0d1528)}
-.comparison-photo{width:105px;height:135px;margin:0 auto 10px;border-radius:10px}.hero-card h2{font-size:17px;margin-bottom:5px}.hero-card p{font-size:9.5px}.vs{width:52px;height:52px;margin:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#ff4655,#d92e3d);font-size:14px;box-shadow:0 10px 25px rgba(255,70,85,.22)}
+.comparison-photo{width:105px;height:135px;margin:0 auto 10px;border-radius:10px}.hero-card h2,.hero-card h3{font-size:17px;margin:0 0 5px}.hero-card p{font-size:9.5px}.vs{width:52px;height:52px;margin:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#ff4655,#d92e3d);font-size:14px;box-shadow:0 10px 25px rgba(255,70,85,.22)}
 .stats{margin-top:18px}.stat-row{grid-template-columns:1fr 160px 1fr;min-height:58px;margin-bottom:7px;border:1px solid rgba(255,255,255,.06);border-radius:11px}.stat-value{padding:12px;font-size:14px}.stat-label{padding:12px 8px;font-size:10px}.clickable-stat:hover{transform:none;background:rgba(77,141,255,.10);color:#79adff}
 .highest-section{margin-top:28px}.highest-section-title{font-size:20px;margin-bottom:13px}.highest-grid{gap:12px}.highest-card{padding:14px;border-radius:14px;background:linear-gradient(145deg,#111a31,#0d1528)}.highest-card img{width:92px;height:138px;margin:10px auto;border-radius:9px}.highest-card h3{font-size:13px}.highest-card h2{font-size:16px;margin:7px 0}.highest-card p{font-size:9.5px;margin:5px 0}.highest-card:hover{transform:translateY(-2px)}
 .winner-card{margin-top:20px;padding:18px;border-radius:15px;background:linear-gradient(145deg,#111a31,#0d1528)}.winner-card h2{font-size:20px}.winner-photo{width:88px;height:112px;margin:10px auto;border-radius:10px}.winner-name{font-size:22px}.winner-score{font-size:10px}.tie-message{font-size:20px}
@@ -590,7 +591,7 @@ main{width:min(980px,calc(100% - 36px));padding:28px 0 55px}
 @media(max-width:700px){
 body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}.navbar{min-height:58px;justify-content:center}.logo{font-size:18px}.logo-icon{width:31px;height:31px}header nav{display:none}
 main{width:100%;padding:20px 9px 38px}.comparison-header{margin-bottom:18px}.comparison-header h1{font-size:27px}.comparison-header p{font-size:10px}
-.heroes{grid-template-columns:1fr 38px 1fr;gap:6px}.hero-card{padding:9px 5px;border-radius:11px}.comparison-photo{width:70px;height:90px;margin-bottom:7px}.hero-card h2{font-size:12px;overflow-wrap:anywhere}.hero-card p{font-size:7.5px}.vs{width:34px;height:34px;font-size:9px}
+.heroes{grid-template-columns:1fr 38px 1fr;gap:6px}.hero-card{padding:9px 5px;border-radius:11px}.comparison-photo{width:70px;height:90px;margin-bottom:7px}.hero-card h2,.hero-card h3{font-size:12px;overflow-wrap:anywhere}.hero-card p{font-size:7.5px}.vs{width:34px;height:34px;font-size:9px}
 .stats{margin-top:12px}.stat-row{grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);min-height:53px;margin-bottom:5px}.stat-value{padding:9px 4px;font-size:10px;overflow-wrap:anywhere}.stat-label{padding:9px 3px;font-size:7px}
 .highest-section{margin-top:21px}.highest-section-title{font-size:17px}.highest-grid{grid-template-columns:1fr 1fr;gap:7px}.highest-card{padding:9px 5px}.highest-card img{width:67px;height:100px}.highest-card h3{font-size:9px}.highest-card h2{font-size:12px}.highest-card p{font-size:7.5px}
 .winner-card{padding:14px 8px}.winner-card h2{font-size:17px}.winner-photo{width:70px;height:90px}.winner-name{font-size:18px}.winner-score{font-size:9px}.tie-message{font-size:16px}
@@ -755,7 +756,8 @@ main{width:100%;padding:20px 9px 38px}.comparison-header{margin-bottom:18px}.com
         margin-bottom:7px !important;
     }
 
-    .hero-card h2{
+    .hero-card h2,
+    .hero-card h3{
         font-size:12px !important;
         overflow-wrap:anywhere !important;
     }
@@ -1471,6 +1473,18 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
     .bx-ott-actor-sub{font-size:6px;margin-top:2px}
     .bx-ott-actor-cta{min-height:29px;border-radius:7px;font-size:7px}
 }
+
+/* BOXOFFICEX ACTOR COMPARISON SEO CONTENT */
+.bx-compare-seo{margin:0 0 22px;padding:20px;border:1px solid #dbe3ef;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(15,23,42,.05);color:#475569;font-family:Arial,sans-serif}
+.bx-compare-seo h2{margin:0 0 11px;color:#102a56;font-size:21px;line-height:1.3;font-weight:900}
+.bx-compare-seo h3{margin:20px 0 8px;color:#102a56;font-size:15px;line-height:1.35;font-weight:900}
+.bx-compare-seo p{margin:0 0 10px;color:#64748b;font-size:12px;line-height:1.75}
+.bx-compare-seo strong{color:#102a56}
+.bx-section-intro{margin:0 auto 14px;max-width:760px;text-align:center;color:#64748b;font-size:11px;line-height:1.6}
+.bx-compare-faq details{margin:7px 0;border:1px solid #e2e8f0;border-radius:11px;background:#f8fafc}
+.bx-compare-faq summary{padding:11px 13px;cursor:pointer;color:#1e3a5f;font-size:11px;font-weight:800}
+.bx-compare-faq details p{padding:0 13px 12px;margin:0;font-size:11px}
+@media(max-width:700px){.bx-compare-seo{padding:15px 13px;border-radius:14px}.bx-compare-seo h2{font-size:17px}.bx-compare-seo h3{font-size:13px}.bx-compare-seo p{font-size:10.5px;line-height:1.65}}
 </style>
 
 
@@ -2567,12 +2581,78 @@ function bxRelatedActorComparisonsHTML(actor1,actor2,actors){
     return `
         <section class="bx-related-comparisons" aria-labelledby="bxRelatedComparisonsTitle">
             <div class="bx-related-comparisons-head">
-                <h2 id="bxRelatedComparisonsTitle">🔥 More Related Actor Comparisons</h2>
+                <h2 id="bxRelatedComparisonsTitle">🔥 Related Actor Comparisons for ${bxRelatedComparisonEscape(actor1.name)} &amp; ${bxRelatedComparisonEscape(actor2.name)}</h2>
                 <p>Keep exploring ${bxRelatedComparisonEscape(actor1.name)} and ${bxRelatedComparisonEscape(actor2.name)} against other actors.</p>
             </div>
             <div class="bx-related-comparisons-grid">${links}</div>
         </section>
     `;
+}
+
+function bxActorComparisonSEOContent(actor1,actor2,stats1,stats2,highest1,highest2,recordedAverage1,recordedAverage2,canonicalUrl){
+    const esc=bxRelatedComparisonEscape;
+    const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+    const money=v=>{const n=Number(v);if(!Number.isFinite(n))return "N/A";return "₹"+n.toLocaleString("en-IN",{maximumFractionDigits:2})+" Cr"};
+    const name1=String(actor1?.name||"Actor").trim();
+    const name2=String(actor2?.name||"Actor").trim();
+    const movieCount1=Math.max(0,num(stats1?.movie_count));
+    const movieCount2=Math.max(0,num(stats2?.movie_count));
+    const bb1=Math.max(0,num(stats1?.blockbusters)), bb2=Math.max(0,num(stats2?.blockbusters));
+    const hits1=Math.max(0,num(stats1?.hits)), hits2=Math.max(0,num(stats2?.hits));
+    const flops1=Math.max(0,num(stats1?.flops)), flops2=Math.max(0,num(stats2?.flops));
+    const total1=money(stats1?.total_worldwide), total2=money(stats2?.total_worldwide);
+    const recent1=recordedAverage1?.average==null?"N/A":money(recordedAverage1.average);
+    const recent2=recordedAverage2?.average==null?"N/A":money(recordedAverage2.average);
+    const hm1=highest1?.movie||null, hm2=highest2?.movie||null;
+    const high1=hm1 ? `${hm1.title} (${money(hm1.worldwide_collection_crore)})` : "N/A";
+    const high2=hm2 ? `${hm2.title} (${money(hm2.worldwide_collection_crore)})` : "N/A";
+    const faq=[
+        [`How many movies have ${name1} and ${name2} acted in?`,`BoxOfficeX currently tracks ${movieCount1} movies for ${name1} and ${movieCount2} movies for ${name2} in this comparison.`],
+        [`What are ${name1} and ${name2}'s total worldwide box office collections?`,`The currently recorded worldwide totals are ${total1} for ${name1} and ${total2} for ${name2}.`],
+        [`What are the highest-grossing movies of ${name1} and ${name2}?`,`The highest-grossing movies currently recorded by BoxOfficeX are ${high1} for ${name1} and ${high2} for ${name2}.`],
+        [`How many blockbusters and hits do ${name1} and ${name2} have?`,`BoxOfficeX currently records ${bb1} blockbusters and ${hits1} hits for ${name1}, compared with ${bb2} blockbusters and ${hits2} hits for ${name2}.`]
+    ];
+
+    const header=document.querySelector('.comparison-header');
+    if(header){
+        const h1=header.querySelector('h1');
+        const p=header.querySelector('p');
+        if(h1)h1.textContent=`${name1} vs ${name2} Box Office Comparison`;
+        if(p)p.textContent=`Compare movies, worldwide collections, recent box-office performance, blockbusters, hits, flops and highest-grossing films for ${name1} and ${name2}.`;
+    }
+
+    const jsonLd=document.getElementById('compareStructuredData');
+    if(jsonLd){
+        const canonical=canonicalUrl ? `https://boxofficex.in${canonicalUrl}` : window.location.href;
+        jsonLd.textContent=JSON.stringify({"@context":"https://schema.org","@graph":[
+            {"@type":"WebPage","name":`${name1} vs ${name2} Box Office Comparison`,"url":canonical,"about":[{"@type":"Person","name":name1},{"@type":"Person","name":name2}]},
+            {"@type":"FAQPage","mainEntity":faq.map(([q,a])=>({"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}}))}
+        ]});
+    }
+
+    return `<section class="bx-compare-seo" aria-label="${esc(name1)} vs ${esc(name2)} career box office comparison">
+        <h2>${esc(name1)} vs ${esc(name2)} Career Box Office Comparison</h2>
+        <p><strong>${esc(name1)} vs ${esc(name2)} Box Office Comparison:</strong> ${esc(name1)} has <strong>${movieCount1} tracked movies</strong> with <strong>${esc(total1)}</strong> worldwide, while ${esc(name2)} has <strong>${movieCount2} tracked movies</strong> with <strong>${esc(total2)}</strong> worldwide. Their recent theatrical averages are <strong>${esc(recent1)}</strong> and <strong>${esc(recent2)}</strong> respectively, based only on recent released movies with recorded worldwide collection data.</p>
+        <h3>${esc(name1)} vs ${esc(name2)} Hits, Blockbusters &amp; Career Record</h3>
+        <p>${esc(name1)} currently has <strong>${bb1} blockbusters</strong>, <strong>${hits1} hits</strong> and <strong>${flops1} flops</strong> in the BoxOfficeX database. ${esc(name2)} currently has <strong>${bb2} blockbusters</strong>, <strong>${hits2} hits</strong> and <strong>${flops2} flops</strong>. Missing verdict data is excluded rather than treated as a flop.</p>
+    </section>`;
+}
+
+function bxActorComparisonFAQHTML(actor1,actor2,stats1,stats2,highest1,highest2){
+    const esc=bxRelatedComparisonEscape;
+    const n=v=>{const x=Number(v);return Number.isFinite(x)?Math.max(0,x):0};
+    const money=v=>{const x=Number(v);return Number.isFinite(x)?"₹"+x.toLocaleString("en-IN",{maximumFractionDigits:2})+" Cr":"N/A"};
+    const name1=String(actor1?.name||"Actor").trim(), name2=String(actor2?.name||"Actor").trim();
+    const hm1=highest1?.movie||null, hm2=highest2?.movie||null;
+    const high1=hm1?`${hm1.title} (${money(hm1.worldwide_collection_crore)})`:"N/A";
+    const high2=hm2?`${hm2.title} (${money(hm2.worldwide_collection_crore)})`:"N/A";
+    const faq=[
+        [`How many movies have ${name1} and ${name2} acted in?`,`BoxOfficeX currently tracks ${n(stats1?.movie_count)} movies for ${name1} and ${n(stats2?.movie_count)} movies for ${name2} in this comparison.`],
+        [`What are ${name1} and ${name2}'s total worldwide box office collections?`,`The currently recorded worldwide totals are ${money(stats1?.total_worldwide)} for ${name1} and ${money(stats2?.total_worldwide)} for ${name2}.`],
+        [`What are the highest-grossing movies of ${name1} and ${name2}?`,`The highest-grossing movies currently recorded by BoxOfficeX are ${high1} for ${name1} and ${high2} for ${name2}.`],
+        [`How many blockbusters and hits do ${name1} and ${name2} have?`,`BoxOfficeX currently records ${n(stats1?.blockbusters)} blockbusters and ${n(stats1?.hits)} hits for ${name1}, compared with ${n(stats2?.blockbusters)} blockbusters and ${n(stats2?.hits)} hits for ${name2}.`]
+    ];
+    return `<section class="bx-compare-seo bx-compare-faq-section" aria-label="${esc(name1)} vs ${esc(name2)} box office frequently asked questions"><h2>${esc(name1)} vs ${esc(name2)} Box Office FAQ</h2><div class="bx-compare-faq">${faq.map(([q,a])=>`<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div></section>`;
 }
 
 // ==========================================
@@ -3222,7 +3302,7 @@ async function loadComparison() {
             return `
                 <section class="bx-last5-roi-section">
                     <div class="bx-last5-roi-head">
-                        <h2>🎞 Last 5 Movies Theatrical ROI</h2>
+                        <h2>🎞 ${actor1.name} vs ${actor2.name} Last 5 Movies Theatrical ROI</h2>
                         <p>Recent gross-to-budget theatrical efficiency using each actor's latest five released movies.</p>
                     </div>
                     <div class="bx-last5-roi-grid">
@@ -3494,6 +3574,11 @@ async function loadComparison() {
         `;
 
 
+        const comparisonSEOHTML = bxActorComparisonSEOContent(
+            actor1, actor2, stats1, stats2, highest1, highest2,
+            recordedAverage1, recordedAverage2, actorComparisonCanonicalUrl
+        );
+
         // ==================================
         // ==================================
         // DISPLAY EVERYTHING
@@ -3503,6 +3588,7 @@ async function loadComparison() {
             "comparisonContent"
         ).innerHTML = `
 
+            ${comparisonSEOHTML}
 
             <!-- ==========================
                  HEROES
@@ -3521,9 +3607,9 @@ async function loadComparison() {
                         onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)"
                     >
 
-                    <h2>
+                    <h3>
                         ${actor1.name}
-                    </h2>
+                    </h3>
 
                     <p>
                         ${actor1.profession || "Actor"}
@@ -3547,9 +3633,9 @@ async function loadComparison() {
                         onerror="this.onerror=null;this.src=boxOfficeXActorPlaceholder(this.alt)"
                     >
 
-                    <h2>
+                    <h3>
                         ${actor2.name}
-                    </h2>
+                    </h3>
 
                     <p>
                         ${actor2.profession || "Actor"}
@@ -3689,9 +3775,10 @@ async function loadComparison() {
 
                 <h2 class="highest-section-title">
 
-                    🏆 Highest-Grossing Movies
+                    🏆 ${actor1.name} vs ${actor2.name} Highest-Grossing Movies
 
                 </h2>
+                <p class="bx-section-intro">Compare the highest-grossing movie currently recorded for ${actor1.name} and ${actor2.name}, including worldwide collection and verdict data.</p>
 
 
                 <div class="highest-grid">
@@ -3724,10 +3811,12 @@ async function loadComparison() {
 
             ${bxRelatedActorComparisonsHTML(actor1, actor2, actors)}
 
+            ${bxActorComparisonFAQHTML(actor1, actor2, stats1, stats2, highest1, highest2)}
+
             <section id="bxSmartAdSlot3" class="bx-smart-ad-slot" aria-label="Advertisement slot 3"></section>
 
             <section class="compare-engagement" id="heroComparisonEngagement">
-                <h2>🎉 Fan Zone</h2>
+                <h2>🎉 ${actor1.name} vs ${actor2.name} Fan Zone</h2>
                 <p class="compare-engagement-sub">React to ${actor1.name} vs ${actor2.name}</p>
                 <div class="compare-engagement-actions">
                     <button type="button" class="compare-action" id="comparisonLikeBtn">❤️ Like <span id="comparisonLikeCount">Be among the first!</span></button>

@@ -29,7 +29,7 @@
 
 <meta
     name="description"
-    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada and Malayalam cinema on BoxOfficeX."
 >
 
 <meta
@@ -55,7 +55,7 @@
 <meta
     id="ogDescription"
     property="og:description"
-    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada and Malayalam cinema on BoxOfficeX."
 >
 <meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta property="og:image:alt" content="Highest-Grossing Movies & Box Office Rankings | BoxOfficeX">
@@ -73,7 +73,7 @@
 <meta
     id="twitterDescription"
     name="twitter:description"
-    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+    content="Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada and Malayalam cinema on BoxOfficeX."
 >
 <meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="Highest-Grossing Movies & Box Office Rankings | BoxOfficeX">
@@ -3841,6 +3841,270 @@ html,body{scroll-padding-top:0!important}
 </style>
 
 
+
+<style id="bx-movie-top10-styles">
+/* Lower rankings content: compact, readable and mobile-first */
+.movie-top10-section,
+.movie-rankings-info,
+.movie-rankings-faq{
+    margin:28px 0 0;
+    padding:24px;
+    border:1px solid #dfe6f1;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:0 10px 30px rgba(15,23,42,.06);
+    color:#0f172a;
+}
+.movie-top10-section h2,
+.movie-rankings-info h2,
+.movie-rankings-faq h2{
+    margin:0;
+    color:#0f172a;
+    font-size:23px;
+    line-height:1.25;
+    letter-spacing:-.25px;
+}
+.movie-rankings-section-kicker{
+    display:inline-flex;
+    align-items:center;
+    min-height:24px;
+    margin:0 0 9px;
+    padding:0 9px;
+    border:1px solid #dbeafe;
+    border-radius:999px;
+    background:#eff6ff;
+    color:#2563eb;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.65px;
+}
+.movie-rankings-section-copy{
+    margin:8px 0 18px;
+    color:#64748b;
+    font-size:12px;
+    line-height:1.65;
+}
+
+/* Top 10: table-like layout without giant empty rows */
+.movie-top10-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    border:1px solid #e5eaf2;
+    border-radius:14px;
+    overflow:hidden;
+}
+.movie-top10-item{
+    display:grid;
+    grid-template-columns:54px minmax(0,1fr) 175px 135px;
+    align-items:center;
+    gap:12px;
+    min-height:58px;
+    padding:9px 14px;
+    border:0;
+    border-bottom:1px solid #e8edf4;
+    border-radius:0;
+    background:#fff;
+}
+.movie-top10-item:last-child{border-bottom:0}
+.movie-top10-item:nth-child(even){background:#f8fafc}
+.movie-top10-item:hover{background:#f1f5f9}
+.movie-top10-rank{
+    width:34px;
+    height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:#fff7d6;
+    color:#a16207;
+    font-size:13px;
+    font-weight:900;
+}
+.movie-top10-item:nth-child(1) .movie-top10-rank{background:#facc15;color:#422006}
+.movie-top10-item:nth-child(2) .movie-top10-rank{background:#e2e8f0;color:#334155}
+.movie-top10-item:nth-child(3) .movie-top10-rank{background:#fed7aa;color:#9a3412}
+.movie-top10-title{
+    min-width:0;
+    overflow:hidden;
+    color:#0f172a;
+    font-size:14px;
+    font-weight:850;
+    text-decoration:none;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.movie-top10-title:hover{color:#2563eb}
+.movie-top10-numbers{
+    grid-column:3 / 5;
+    display:grid;
+    grid-template-columns:175px 135px;
+    align-items:center;
+    gap:12px;
+    color:#64748b;
+    font-size:11px;
+}
+.movie-top10-numbers strong{
+    color:#2563eb;
+    font-size:12px;
+    font-weight:900;
+}
+.movie-top10-numbers span{
+    display:inline-flex;
+    justify-content:center;
+    padding:6px 9px;
+    border:1px solid #e2e8f0;
+    border-radius:999px;
+    background:#f8fafc;
+    color:#475569;
+    font-weight:750;
+}
+
+/* Methodology */
+.movie-rankings-info-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+    margin-top:18px;
+}
+.movie-rankings-info-grid>div{
+    position:relative;
+    min-height:128px;
+    padding:18px;
+    overflow:hidden;
+    border:1px solid #e5eaf2;
+    border-radius:14px;
+    background:linear-gradient(145deg,#f8fafc,#fff);
+}
+.movie-rankings-info-grid>div:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    background:#2563eb;
+}
+.movie-rankings-info h3{
+    margin:0 0 8px;
+    color:#0f172a;
+    font-size:14px;
+    line-height:1.35;
+}
+.movie-rankings-info p{
+    margin:0;
+    color:#64748b;
+    font-size:11px;
+    line-height:1.7;
+}
+
+/* FAQ */
+.movie-faq-list{
+    overflow:hidden;
+    border:1px solid #e5eaf2;
+    border-radius:14px;
+}
+.movie-rankings-faq details{
+    padding:0;
+    border:0;
+    border-bottom:1px solid #e8edf4;
+    background:#fff;
+}
+.movie-rankings-faq details:last-child{border-bottom:0}
+.movie-rankings-faq summary{
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:13px 15px;
+    cursor:pointer;
+    list-style:none;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:850;
+}
+.movie-rankings-faq summary::-webkit-details-marker{display:none}
+.movie-rankings-faq details[open] summary{
+    background:#f8fafc;
+    color:#1d4ed8;
+}
+.movie-faq-plus{
+    width:26px;
+    height:26px;
+    flex:0 0 26px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #dbe3ef;
+    border-radius:50%;
+    background:#fff;
+    color:#2563eb;
+    font-size:17px;
+    line-height:1;
+    transition:transform .2s ease;
+}
+.movie-rankings-faq details[open] .movie-faq-plus{transform:rotate(45deg)}
+.movie-faq-answer{
+    padding:0 48px 15px 15px;
+    background:#f8fafc;
+}
+.movie-rankings-faq .movie-faq-answer p{
+    margin:0;
+    color:#64748b;
+    font-size:11px;
+    line-height:1.7;
+}
+
+/* Keep the industry chooser useful for the rankings list, but not over SEO sections */
+.movie-top10-section,
+.movie-rankings-info,
+.movie-rankings-faq{
+    scroll-margin-top:85px;
+}
+
+@media(max-width:700px){
+    .movie-top10-section,
+    .movie-rankings-info,
+    .movie-rankings-faq{
+        margin-top:18px;
+        padding:15px 11px;
+        border-radius:14px;
+    }
+    .movie-top10-section h2,
+    .movie-rankings-info h2,
+    .movie-rankings-faq h2{font-size:18px}
+    .movie-rankings-section-copy{margin-bottom:13px;font-size:10px}
+
+    .movie-top10-item{
+        grid-template-columns:38px minmax(0,1fr);
+        gap:5px 9px;
+        min-height:72px;
+        padding:9px 10px;
+    }
+    .movie-top10-rank{width:30px;height:30px;font-size:11px}
+    .movie-top10-title{font-size:12px}
+    .movie-top10-numbers{
+        grid-column:2;
+        display:flex;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:6px;
+        font-size:9px;
+    }
+    .movie-top10-numbers strong{font-size:10px}
+    .movie-top10-numbers span{padding:4px 7px;font-size:9px}
+
+    .movie-rankings-info-grid{grid-template-columns:1fr;gap:8px;margin-top:13px}
+    .movie-rankings-info-grid>div{min-height:0;padding:13px 14px}
+    .movie-rankings-info h3{font-size:12px}
+    .movie-rankings-info p{font-size:10px}
+
+    .movie-rankings-faq summary{min-height:52px;padding:12px;font-size:11px}
+    .movie-faq-answer{padding:0 42px 13px 12px}
+    .movie-rankings-faq .movie-faq-answer p{font-size:10px}
+}
+</style>
 </head>
 
 <body>
@@ -4005,13 +4269,7 @@ html,body{scroll-padding-top:0!important}
         </button>
 
 
-        <button
-            class="industry-btn"
-            data-industry="Hollywood"
-            onclick="loadMovies('Hollywood')"
-        >
-            🎬 Hollywood
-        </button>
+        
 
     </div>
 
@@ -4226,7 +4484,7 @@ function setupMovieRankingsSEO() {
             "@type": "CollectionPage",
             "name": "Highest-Grossing Movies & Box Office Rankings | BoxOfficeX",
             "url": canonical,
-            "description": "Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada, Malayalam and Hollywood cinema on BoxOfficeX."
+            "description": "Discover highest-grossing movies and box office rankings worldwide, including Tamil, Telugu, Hindi, Kannada and Malayalam cinema on BoxOfficeX."
         };
         const jsonLd = document.getElementById("rankingsStructuredData");
         if (jsonLd) jsonLd.textContent = JSON.stringify(structuredData);
@@ -4239,6 +4497,12 @@ setupMovieRankingsSEO();
 /* ==========================================
    HTML ESCAPE
 ========================================== */
+
+function formatRankingCrore(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) return "";
+    return number.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
 
 function escapeHTML(value) {
 
@@ -4512,10 +4776,14 @@ async function loadMovies(
                             &nbsp; | &nbsp;
 
                             🌍 ₹${
-                                Number(
-                                    (movie.worldwide_collection ?? movie.worldwide_collection_crore)
-                                ) || 0
-                            } Cr
+                                formatRankingCrore(movie.worldwide_collection ?? movie.worldwide_collection_crore) || "0"
+                            } Cr Worldwide
+
+                            ${
+                                formatRankingCrore(movie.budget_crore)
+                                    ? `&nbsp; | &nbsp; 💰 ₹${formatRankingCrore(movie.budget_crore)} Cr Budget`
+                                    : ""
+                            }
 
                         </div>
 
@@ -4617,7 +4885,6 @@ if (!(bxInitialRankingList && bxInitialRankingList.dataset.ssr === "1")) {
 } else {
     window.__bxCurrentMovieRankingIndustry = bxInitialIndustry === "All" ? "Global" : bxInitialIndustry;
     updateActiveIndustry(bxInitialIndustry);
-    updateRankingHeading(bxInitialIndustry);
 
     // SSR ranking pages (Global/Tamil/Telugu/etc.) must use the exact same
     // BoxOfficeX placeholder renderer as client-loaded rankings.
@@ -5498,6 +5765,28 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{min-height:28px!important;d
 @media (max-width:700px){html body #bxSponsoredLinkAd{width:320px!important;max-width:calc(100vw - 20px)!important;margin:12px auto!important}html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:160px!important;min-height:160px!important;max-height:160px!important}html body #bxSponsoredLinkAd .bx-sponsored-story-body{padding:8px 9px 7px!important}html body #bxSponsoredLinkAd .bx-sponsored-story-body h3{font-size:14px!important}html body #bxSponsoredLinkAd .bx-sponsored-story-body p{font-size:10.5px!important}}
 @media (max-width:340px){html body #bxSponsoredLinkAd{width:calc(100vw - 16px)!important;max-width:none!important}html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:2/1!important}}
 </style>
+
+
+<script id="bx-ranking-filter-sticky-scope">
+(function(){
+    const wrapper = document.querySelector(".industry-wrapper");
+    if (!wrapper) return;
+
+    function updateStickyScope(){
+        const top10 = document.getElementById("movieRankingsTop10");
+        if (!top10) return;
+        const stopAt = top10.getBoundingClientRect().top;
+        const headerOffset = window.innerWidth <= 700 ? 62 : 68;
+        wrapper.style.position = stopAt <= headerOffset + 8 ? "relative" : "sticky";
+        if (wrapper.style.position === "relative") wrapper.style.top = "auto";
+        else wrapper.style.top = headerOffset + "px";
+    }
+
+    window.addEventListener("scroll", updateStickyScope, {passive:true});
+    window.addEventListener("resize", updateStickyScope);
+    updateStickyScope();
+})();
+</script>
 
 </body>
 

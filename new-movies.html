@@ -27,7 +27,7 @@
 
     <meta
         name="robots"
-        content="index, follow"
+        content="index, follow, max-image-preview:large"
     >
 
     <meta
@@ -1979,6 +1979,7 @@ body.bx-bottom-ad-visible{
     }
 }
 
+
 </style>
 
 
@@ -3263,6 +3264,7 @@ html,body{scroll-padding-top:0!important}
         <div class="bx-new-movie-comparisons-grid" id="bxNewMovieComparisonsGrid"></div>
     </section>
 
+
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
 </main>
 
@@ -3415,7 +3417,9 @@ function boxOfficeXActorPhotoUrl(photo) {
             "newMoviesStructuredData"
         );
 
-    if (jsonLd) {
+    // Keep the richer server-rendered CollectionPage / ItemList /
+    // Breadcrumb / FAQ graph. Only create client JSON-LD when SSR did not.
+    if (jsonLd && !jsonLd.textContent.trim()) {
         jsonLd.textContent =
             JSON.stringify(
                 structuredData

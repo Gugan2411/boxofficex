@@ -628,6 +628,8 @@ body.bx-bottom-ad-visible{
     }
 }
 
+
+.bx-mc-top-intro{max-width:820px;margin:14px auto 0;text-align:center;color:#475569;font-size:13px;line-height:1.7}.bx-mc-top-intro p{margin:0}.bx-mc-top-intro strong{color:#111827}@media(max-width:700px){.bx-mc-top-intro{margin-top:12px;padding:0 7px;font-size:11px;line-height:1.6}}
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -2164,6 +2166,17 @@ margin-top:6px;text-align:center;color:#7a8699;font-size:8px
   #bxTopBannerAd img,#bxTopBannerAd video{height:100px!important;max-height:100px!important;aspect-ratio:320/100!important;object-fit:cover!important;object-position:center!important;}
 }
 </style>
+
+<style id="bx-movie-comparison-seo-style">
+.bx-mc-seo{margin:18px 0;padding:18px;border:1px solid #dfe5ee;border-radius:15px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+.bx-mc-seo h2{margin:0 0 9px;color:#102a56;font-size:20px;line-height:1.3;font-weight:900}
+.bx-mc-seo h3{margin:16px 0 7px;color:#102a56;font-size:15px;line-height:1.35;font-weight:900}
+.bx-mc-seo p{margin:0 0 9px;color:#667085;font-size:12px;line-height:1.7}.bx-mc-seo strong{color:#102a56}
+.bx-mc-section-title{margin:20px 0 10px;color:#102a56;font-size:20px;line-height:1.3;font-weight:900}
+.bx-mc-faq details{border-top:1px solid #e7ebf1;padding:11px 0}.bx-mc-faq summary{cursor:pointer;color:#1e293b;font-size:12px;font-weight:900}.bx-mc-faq details p{margin:7px 0 0}
+.movie-card .bx-movie-card-title{margin-top:13px;font-size:17px;font-weight:900;line-height:1.25}
+@media(max-width:700px){.bx-mc-seo{padding:13px 10px}.bx-mc-seo h2,.bx-mc-section-title{font-size:16px}.bx-mc-seo h3{font-size:13px}.bx-mc-seo p,.bx-mc-faq summary{font-size:10px}.movie-card .bx-movie-card-title{font-size:12px}}
+</style>
 </head>
 <body>
 <div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
@@ -2862,6 +2875,24 @@ if((!aId||!bId) && cleanMatch){
 }
 
 if(!aId||!bId||aId===bId){document.getElementById("app").innerHTML=`<div class="error">Choose two different eligible movies first.<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`;return}
+function bxMovieCompareIntro(a,b){
+ const m=v=>v===null||v===undefined||v===""?null:`₹${Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+ const wa=m(a.worldwide_collection_crore), wb=m(b.worldwide_collection_crore), ba=m(a.budget_crore), bb=m(b.budget_crore);
+ const ia=m(a.india_collection_crore), ib=m(b.india_collection_crore);
+ const parts=[];
+ if(wa&&wb) parts.push(`<strong>${esc(a.title)}</strong> has ${wa} worldwide gross, while <strong>${esc(b.title)}</strong> has ${wb}.`);
+ if(ba&&bb) parts.push(`Their reported budgets are ${ba} and ${bb}.`);
+ if(ia&&ib) parts.push(`India gross stands at ${ia} versus ${ib}.`);
+ return `<div class="bx-mc-top-intro"><p>${parts.join(" ")||`Compare ${esc(a.title)} and ${esc(b.title)} across budget, India gross, overseas gross, worldwide collection and verdict.`}</p></div>`;
+}
+function bxMovieCompareSeo(a,b){
+ return `<section class="bx-mc-seo"><h2>${esc(a.title)} vs ${esc(b.title)} Box Office &amp; Budget Comparison</h2><h3>${esc(a.title)} vs ${esc(b.title)} Collection &amp; Verdict Details</h3><p>The comparison table below shows release details, budget, India and overseas gross, worldwide collection and reported verdict for both movies.</p></section>`;
+}
+function bxMovieCompareFaq(a,b){
+ const m=v=>v===null||v===undefined||v===""?"not available":`₹${Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+ return `<section class="bx-mc-seo bx-mc-faq"><h2>${esc(a.title)} vs ${esc(b.title)} Box Office FAQ</h2><details><summary>What is the worldwide collection of ${esc(a.title)} and ${esc(b.title)}?</summary><p>${esc(a.title)} has ${m(a.worldwide_collection_crore)} worldwide gross, while ${esc(b.title)} has ${m(b.worldwide_collection_crore)}.</p></details><details><summary>What is the budget of ${esc(a.title)} and ${esc(b.title)}?</summary><p>The reported budgets are ${m(a.budget_crore)} for ${esc(a.title)} and ${m(b.budget_crore)} for ${esc(b.title)}.</p></details><details><summary>What are the India and overseas collections?</summary><p>${esc(a.title)} has ${m(a.india_collection_crore)} India gross and ${m(a.overseas_collection_crore)} overseas gross. ${esc(b.title)} has ${m(b.india_collection_crore)} India gross and ${m(b.overseas_collection_crore)} overseas gross.</p></details><details><summary>What are the verdicts of ${esc(a.title)} and ${esc(b.title)}?</summary><p>${esc(a.title)} is listed as <strong>${text(a.verdict)}</strong>, while ${esc(b.title)} is listed as <strong>${text(b.verdict)}</strong>.</p></details></section>`;
+}
+
 try{
 const r=await fetch(`/compare/movies/${encodeURIComponent(aId)}/${encodeURIComponent(bId)}`);
 const d=await r.json();
@@ -2876,12 +2907,14 @@ if(!r.ok){
 const a=d.movie1,b=d.movie2,w=d.winners||{};
 updateComparisonSEO(a,b,d?.seo?.canonical_url||null);
 document.getElementById("app").innerHTML=`
-<div class="top"><div class="eyebrow">BoxOfficeX Movie Comparison</div><h1>${esc(a.title)} vs ${esc(b.title)}</h1><a class="change" href="/movie-compare-select.html">↔ Change Movies</a></div>
+<div class="top"><div class="eyebrow">BoxOfficeX Movie Comparison</div><h1>${esc(a.title)} vs ${esc(b.title)} Box Office Comparison</h1><a class="change" href="/movie-compare-select.html">↔ Change Movies</a></div>
+${bxMovieCompareIntro(a,b)}
 <section class="movie-heads">
-<div class="movie-card"><img src="${poster(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><h2>${esc(a.title)}</h2><p>${text(a.language)} • ${date(a.release_date)}</p></div>
+<div class="movie-card"><img src="${poster(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div class="bx-movie-card-title">${esc(a.title)}</div><p>${text(a.language)} • ${date(a.release_date)}</p></div>
 <div class="vs">VS</div>
-<div class="movie-card"><img src="${poster(b)}" alt="${esc(b.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><h2>${esc(b.title)}</h2><p>${text(b.language)} • ${date(b.release_date)}</p></div>
+<div class="movie-card"><img src="${poster(b)}" alt="${esc(b.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div class="bx-movie-card-title">${esc(b.title)}</div><p>${text(b.language)} • ${date(b.release_date)}</p></div>
 </section>
+${bxMovieCompareSeo(a,b)}
 
 <section class="bx-ott-movie-compare-wrap" id="bxOttMovieCompareWrap" hidden>
   <div class="bx-ott-movie-compare-slot" id="bxOttMovie1Slot"></div>
@@ -2901,13 +2934,15 @@ ${row("Worldwide Gross",a,b,money,w.worldwide_collection,"worldwide_collection_c
 ${row("Verdict",a,b,text,null,"verdict")}
 </section>
 <section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>
+<h2 class="bx-mc-section-title">${esc(a.title)} vs ${esc(b.title)} Box Office Performance</h2>
 ${overallWinnerHTML(a,b)}
 ${commercialPerformanceWinnerHTML(a,b)}
 <section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>
 ${theatricalEfficiencyWinnerHTML(a,b)}
 <section id="bxSmartAdSlot3" class="bx-smart-ad-slot" aria-label="Advertisement slot 3"></section>
+${bxMovieCompareFaq(a,b)}
 <section class="fan-zone">
-  <h2>🎟️ Fan Zone</h2>
+  <h2>${esc(a.title)} vs ${esc(b.title)} Fan Zone</h2>
   <div class="fan-actions">
     <button class="fan-btn" id="comparisonLikeBtn" type="button">❤️ Like <span id="comparisonLikeCount">Be among the first!</span></button>
     <button class="fan-btn" id="comparisonHypeBtn" type="button">🔥 Hype <span id="comparisonHypeCount">Be among the first!</span></button>
@@ -2951,7 +2986,7 @@ ${theatricalEfficiencyWinnerHTML(a,b)}
 </section>
 <section class="more-movie-comparisons" id="moreMovieComparisons" aria-labelledby="moreMovieComparisonsTitle">
   <div class="more-movie-head">
-    <div><h2 class="more-movie-title" id="moreMovieComparisonsTitle">🎬 More Movie Comparisons</h2><p class="more-movie-sub">Keep comparing ${esc(a.title)} and ${esc(b.title)} with related movies.</p></div>
+    <div><h2 class="more-movie-title" id="moreMovieComparisonsTitle">${esc(a.title)} vs ${esc(b.title)} Related Movie Comparisons</h2><p class="more-movie-sub">Keep comparing ${esc(a.title)} and ${esc(b.title)} with related movies.</p></div>
     <a class="more-movie-all" href="/movie-compare-select.html">Choose movies →</a>
   </div>
   <div class="more-movie-grid" id="moreMovieComparisonsGrid"><div class="more-movie-empty">Finding related movie comparisons...</div></div>
