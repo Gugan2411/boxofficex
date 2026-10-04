@@ -2907,10 +2907,14 @@ def _sitemap_url_entry(path, changefreq=None, priority=None, lastmod=None):
     parts = ["  <url>", f"    <loc>{loc}</loc>"]
 
     if lastmod:
-        if hasattr(lastmod, "isoformat"):
+        # Google sitemap <lastmod>: use a stable W3C calendar date (YYYY-MM-DD).
+        if isinstance(lastmod, datetime):
+            lastmod_value = lastmod.date().isoformat()
+        elif isinstance(lastmod, date):
             lastmod_value = lastmod.isoformat()
         else:
-            lastmod_value = str(lastmod)
+            raw_lastmod = str(lastmod).strip()
+            lastmod_value = raw_lastmod.split("T", 1)[0].split(" ", 1)[0]
 
         parts.append(
             f"    <lastmod>{xml_escape(lastmod_value)}</lastmod>"
