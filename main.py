@@ -6331,8 +6331,8 @@ def actor_comparison_slug_page(comparison_slug: str):
 
         # Cold cache must never block on the expensive comparison payload.
         # Serve the existing page immediately; its current JS remains the fallback.
-        return FileResponse(
-            BASE_DIR / "compare.html",
+        return _boxofficex_html_file(
+            "compare.html",
             headers={
                 "Cache-Control": "no-store",
                 "X-BoxOfficeX-Actor-Comparison": "warming",
@@ -6342,8 +6342,8 @@ def actor_comparison_slug_page(comparison_slug: str):
     except Exception as exc:
         print("Actor Comparison SSR fallback:", comparison_slug, type(exc).__name__, exc, flush=True)
         _start_actor_comparison_refresh(comparison_slug, comparison)
-        return FileResponse(
-            BASE_DIR / "compare.html",
+        return _boxofficex_html_file(
+            "compare.html",
             headers={
                 "Cache-Control": "no-store",
                 "X-BoxOfficeX-Actor-Comparison": "ssr-fallback",
@@ -12164,7 +12164,7 @@ def _render_article_detail_html(slug):
     article_file = BASE_DIR / "article.html"
     if not article_file.is_file():
         raise HTTPException(status_code=500, detail="article.html not found")
-    template = article_file.read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons(article_file.read_text(encoding="utf-8"))
 
     title = str(article.get("title") or "BoxOfficeX Article")
     seo_title = str(article.get("meta_title") or title).strip()
