@@ -3299,6 +3299,14 @@ line-height:1.75;
     }
 }
 
+
+/* TEMP: hide public article views from the very first paint.
+   Remove this rule when public view counts are enabled again. */
+#articleViewCount,
+.article-view-count{
+    display:none !important;
+}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4706,7 +4714,7 @@ html,body{scroll-padding-top:0!important}
 By <strong>BoxOfficeX</strong>
  • Published 25 Sep 2026
 <span class="article-updated-time"> • Updated 01 Oct 2026</span>
-<span class="article-view-count" id="articleViewCount">👁 230 Views</span>
+<span class="article-view-count" id="articleViewCount" hidden aria-hidden="true">👁 230 Views</span>
 </div></div>
 <figure class="hero-wrap">
 <img src="/images/boxofficex-og.png" alt="Toxic: A Fairy Tale for Grown-Ups Day 7 Box Office Collection Live: ₹22 Cr India Gross So Far" loading="lazy">
@@ -6611,6 +6619,7 @@ async function loadArticleRelatedContent(id){
     }
 }
 
+const SHOW_PUBLIC_ARTICLE_VIEWS = false;
 const ARTICLE_VISITOR_KEY="boxofficex_visitor_id";
 function articleVisitorId(){
  let id=localStorage.getItem(ARTICLE_VISITOR_KEY);
@@ -6626,6 +6635,16 @@ async function articleJSON(url,options={}){
 function renderArticleViews(views){
  const el=document.getElementById("articleViewCount");
  if(!el)return;
+
+ if(!SHOW_PUBLIC_ARTICLE_VIEWS){
+  el.hidden=true;
+  el.setAttribute("aria-hidden","true");
+  el.textContent="";
+  return;
+ }
+
+ el.hidden=false;
+ el.removeAttribute("aria-hidden");
  const count=Number(views)||0;
  el.textContent=`👁 ${count.toLocaleString()} View${count===1?"":"s"}`;
 }

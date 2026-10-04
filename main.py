@@ -1,3 +1,4 @@
+import html
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Depends
 from fastapi.responses import FileResponse, Response, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -1741,6 +1742,73 @@ app.mount(
 
 
 
+
+
+# Temporary public-display switch.
+# View tracking and stored article view totals remain active.
+SHOW_PUBLIC_ARTICLE_VIEWS = False
+
+
+BOXOFFICEX_GLOBAL_HEAD_ICONS = """
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#031123">
+""".strip()
+
+
+def _inject_boxofficex_global_icons(document: str) -> str:
+    """Add BoxOfficeX favicon/PWA discovery tags once, without touching page SEO."""
+    if not document or "</head>" not in document.lower():
+        return document
+
+    # If this document has already been upgraded, do nothing.
+    if 'href="/site.webmanifest"' in document:
+        return document
+
+    return re.sub(
+        r"</head\s*>",
+        BOXOFFICEX_GLOBAL_HEAD_ICONS + "\n</head>",
+        document,
+        count=1,
+        flags=re.I,
+    )
+
+
+def _boxofficex_html_file(filename: str, *, headers=None):
+    """Serve a static HTML file with the same global icon tags as SSR pages."""
+    path = BASE_DIR / filename
+    document = path.read_text(encoding="utf-8")
+    return HTMLResponse(
+        content=_inject_boxofficex_global_icons(document),
+        headers=headers or {},
+    )
+
+
+# ============================================================
+# BOXOFFICEX GLOBAL BRAND ICONS
+# ============================================================
+
+@app.get("/favicon.ico", include_in_schema=False)
+def boxofficex_favicon():
+    return FileResponse(
+        IMAGES_DIR / "favicon.ico",
+        media_type="image/x-icon",
+        headers={"Cache-Control": "public, max-age=604800"}
+    )
+
+
+@app.get("/site.webmanifest", include_in_schema=False)
+def boxofficex_webmanifest():
+    return FileResponse(
+        IMAGES_DIR / "site.webmanifest",
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "public, max-age=86400"}
+    )
+
+
 # ============================================================
 # ADMIN MOVIE / ACTOR IMAGE UPLOADS
 # Cloudinary-backed permanent storage
@@ -2715,7 +2783,7 @@ def _build_homepage_ssr_sections():
 
 
 def _render_homepage_html():
-    template = (BASE_DIR / "index.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "index.html").read_text(encoding="utf-8"))
     sections = _build_homepage_ssr_sections()
 
     replacements = {
@@ -2839,14 +2907,18 @@ def _sitemap_url_entry(path, changefreq=None, priority=None, lastmod=None):
     parts = ["  <url>", f"    <loc>{loc}</loc>"]
 
     if lastmod:
-        if hasattr(lastmod, "date"):
-            lastmod_value = lastmod.date().isoformat()
+        if hasattr(lastmod, "isoformat"):
+            lastmod_value = lastmod.isoformat()
         else:
-            lastmod_value = str(lastmod)[:10]
-        parts.append(f"    <lastmod>{xml_escape(lastmod_value)}</lastmod>")
+            lastmod_value = str(lastmod)
+
+        parts.append(
+            f"    <lastmod>{xml_escape(lastmod_value)}</lastmod>"
+        )
 
     if changefreq:
         parts.append(f"    <changefreq>{changefreq}</changefreq>")
+
     if priority:
         parts.append(f"    <priority>{priority}</priority>")
 
@@ -2857,239 +2929,46 @@ def _sitemap_url_entry(path, changefreq=None, priority=None, lastmod=None):
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap_xml():
     """
-    BoxOfficeX focused sitemap V1:
-    - important public/static pages
-    - Top 50 movies by worldwide box office
-    - 25 selected major Indian actors
-    - all published articles
-    - maximum 50 actor comparison pages
-    - maximum 50 movie comparison pages
+    BoxOfficeX master sitemap index.
 
-    Movie detail pages and movie comparisons use the same Top 50 pool.
+    Connects Google and other search engines to all specialized
+    BoxOfficeX sitemaps through one stable sitemap.xml endpoint.
     """
-    cached = _sitemap_cache.get("core")
-    if cached is not None:
-        return _xml_response(cached)
 
-    static_pages = [
-        ("/", "daily", "1.0"),
-        ("/new-movies.html", "daily", "0.9"),
-        ("/movie-rankings.html", "daily", "0.9"),
-        ("/movie-rankings/tamil", "daily", "0.9"),
-        ("/movie-rankings/telugu", "daily", "0.9"),
-        ("/movie-rankings/hindi", "daily", "0.9"),
-        ("/movie-rankings/kannada", "daily", "0.9"),
-        ("/movie-rankings/malayalam", "daily", "0.9"),
-        ("/rankings.html", "daily", "0.9"),
-        ("/actor-rankings/tamil", "daily", "0.9"),
-        ("/actor-rankings/telugu", "daily", "0.9"),
-        ("/actor-rankings/hindi", "daily", "0.9"),
-        ("/actor-rankings/kannada", "daily", "0.9"),
-        ("/actor-rankings/malayalam", "daily", "0.9"),
-        ("/actors.html", "weekly", "0.8"),
-        ("/articles.html", "daily", "0.9"),
-        ("/compare-select.html", "weekly", "0.7"),
-        ("/movie-compare-select.html", "weekly", "0.7"),
-        ("/about.html", "monthly", "0.5"),
-        ("/contact.html", "monthly", "0.5"),
+    sitemap_paths = [
+        "/sitemap-movies.xml",
+        "/sitemap-actors.xml",
+        "/sitemap-movie-compare.xml",
+        "/sitemap-actor-compare.xml",
+        "/sitemap-articles.xml",
+        "/sitemap-movie-rankings.xml",
+        "/sitemap-actor-rankings.xml",
+        "/sitemap-pages.xml",
+        "/news-sitemap.xml",
     ]
 
-    selected_actor_names = [
-        # Tamil
-        "Rajinikanth",
-        "Vijay",
-        "Ajith Kumar",
-        "Kamal Haasan",
-        "Suriya",
+    sitemap_entries = []
 
-        # Telugu
-        "Prabhas",
-        "Allu Arjun",
-        "Ram Charan",
-        "N. T. Rama Rao Jr.",
-        "Mahesh Babu",
-
-        # Hindi
-        "Shah Rukh Khan",
-        "Salman Khan",
-        "Aamir Khan",
-        "Ranbir Kapoor",
-        "Hrithik Roshan",
-
-        # Malayalam
-        "Mohanlal",
-        "Mammootty",
-        "Dulquer Salmaan",
-        "Fahadh Faasil",
-        "Prithviraj Sukumaran",
-
-        # Kannada
-        "Yash",
-        "Kichcha Sudeep",
-        "Darshan",
-        "Shiva Rajkumar",
-        "Rishab Shetty",
-    ]
-
-    selected_actor_names_lower = [
-        name.lower() for name in selected_actor_names
-    ]
-
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            # Top 50 movies. This exact pool is also used for movie comparisons.
-            cur.execute("""
-                SELECT
-                    id,
-                    release_date,
-                    worldwide_collection_crore
-                FROM movies
-                WHERE worldwide_collection_crore IS NOT NULL
-                  AND worldwide_collection_crore > 0
-                ORDER BY
-                    worldwide_collection_crore DESC,
-                    id ASC
-                LIMIT 50
-            """)
-            movie_rows = cur.fetchall()
-
-            # Exact selected 25 actors, matched case-insensitively.
-            cur.execute("""
-                SELECT
-                    id,
-                    name
-                FROM actors
-                WHERE LOWER(TRIM(name)) = ANY(%s)
-                ORDER BY id ASC
-            """, (selected_actor_names_lower,))
-            actor_rows = cur.fetchall()
-
-            # Keep all quality published article URLs in the main sitemap.
-            cur.execute("""
-                SELECT
-                    slug,
-                    COALESCE(updated_at, published_at, created_at) AS last_modified
-                FROM articles
-                WHERE status = 'published'
-                  AND slug IS NOT NULL
-                  AND TRIM(slug) <> ''
-                ORDER BY id ASC
-            """)
-            article_rows = cur.fetchall()
-
-    movie_slug_map = _unique_movie_slug_map()
-    actor_slug_map = _unique_actor_slug_map()
-    urls = []
-
-    # Important static pages.
-    for path, changefreq, priority in static_pages:
-        urls.append(_sitemap_url_entry(path, changefreq, priority))
-
-    # Top 50 movie detail pages.
-    top_movie_ids = []
-    for movie_id, release_date, worldwide_collection in movie_rows:
-        movie_slug = movie_slug_map.get(movie_id)
-        if not movie_slug:
-            continue
-
-        top_movie_ids.append(movie_id)
-        urls.append(_sitemap_url_entry(
-            f"/movie/{movie_slug}",
-            "weekly",
-            "0.8",
-            release_date
-        ))
-
-    # Selected actor detail pages.
-    selected_actor_ids = []
-    for actor_id, actor_name in actor_rows:
-        actor_slug = actor_slug_map.get(actor_id)
-        if not actor_slug:
-            continue
-
-        selected_actor_ids.append(actor_id)
-        urls.append(_sitemap_url_entry(
-            f"/actor/{actor_slug}",
-            "weekly",
-            "0.8"
-        ))
-
-    # All published article pages.
-    for slug, last_modified in article_rows:
-        clean_slug = str(slug).strip()
-        if not clean_slug:
-            continue
-
-        urls.append(_sitemap_url_entry(
-            f"/article/{clean_slug}",
-            "daily",
-            "0.9",
-            last_modified
-        ))
-
-    # Maximum 50 canonical actor comparisons from the selected actor pool.
-    actor_comparison_count = 0
-    selected_actor_ids = sorted(set(selected_actor_ids))
-
-    for index, first_id in enumerate(selected_actor_ids):
-        if actor_comparison_count >= 50:
-            break
-
-        first_slug = actor_slug_map.get(first_id)
-        if not first_slug:
-            continue
-
-        for second_id in selected_actor_ids[index + 1:]:
-            if actor_comparison_count >= 50:
-                break
-
-            second_slug = actor_slug_map.get(second_id)
-            if not second_slug:
-                continue
-
-            urls.append(_sitemap_url_entry(
-                f"/compare/{first_slug}-vs-{second_slug}",
-                "weekly",
-                "0.7"
-            ))
-            actor_comparison_count += 1
-
-    # Maximum 50 canonical movie comparisons using the SAME Top 50 movie pool.
-    movie_comparison_count = 0
-    top_movie_ids = sorted(set(top_movie_ids))
-
-    for index, first_id in enumerate(top_movie_ids):
-        if movie_comparison_count >= 50:
-            break
-
-        first_slug = movie_slug_map.get(first_id)
-        if not first_slug:
-            continue
-
-        for second_id in top_movie_ids[index + 1:]:
-            if movie_comparison_count >= 50:
-                break
-
-            second_slug = movie_slug_map.get(second_id)
-            if not second_slug:
-                continue
-
-            urls.append(_sitemap_url_entry(
-                f"/compare/movies/{first_slug}-vs-{second_slug}",
-                "weekly",
-                "0.7"
-            ))
-            movie_comparison_count += 1
+    for path in sitemap_paths:
+        loc = xml_escape(SITEMAP_SITE_URL + path)
+        sitemap_entries.append(
+            "  <sitemap>\n"
+            f"    <loc>{loc}</loc>\n"
+            "  </sitemap>"
+        )
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        + "\n".join(urls)
-        + '\n</urlset>\n'
+        '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(sitemap_entries)
+        + '\n</sitemapindex>\n'
     )
 
-    _sitemap_cache["core"] = xml
-    return _xml_response(xml)
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=300"}
+    )
 
 
 # ============================================================
@@ -3183,6 +3062,753 @@ def news_sitemap_xml():
     )
 
 
+# ============================================================
+# MOVIE SITEMAP
+# Top 25 important BoxOfficeX movie pages
+# ============================================================
+
+@app.get("/sitemap-movies.xml", include_in_schema=False)
+def sitemap_movies_xml():
+    """
+    BoxOfficeX movie sitemap.
+
+    Contains the Top 25 movie detail pages ranked by
+    worldwide box-office collection.
+    """
+
+    cached = _sitemap_cache.get("movies")
+    if cached is not None:
+        return _xml_response(cached)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id,
+                    release_date,
+                    worldwide_collection_crore
+                FROM movies
+                WHERE worldwide_collection_crore IS NOT NULL
+                  AND worldwide_collection_crore > 0
+                ORDER BY
+                    worldwide_collection_crore DESC,
+                    id ASC
+                LIMIT 25
+            """)
+
+            movie_rows = cur.fetchall()
+
+    movie_slug_map = _unique_movie_slug_map()
+
+    urls = []
+
+    for movie_id, release_date, worldwide_collection in movie_rows:
+        movie_slug = movie_slug_map.get(movie_id)
+
+        if not movie_slug:
+            continue
+
+        urls.append(
+            _sitemap_url_entry(
+                f"/movie/{movie_slug}",
+                "weekly",
+                "0.8",
+                release_date
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    _sitemap_cache["movies"] = xml
+
+    return _xml_response(xml)
+
+# ============================================================
+# ACTOR SITEMAP
+# 25 important BoxOfficeX actor pages
+# ============================================================
+
+@app.get("/sitemap-actors.xml", include_in_schema=False)
+def sitemap_actors_xml():
+    """
+    BoxOfficeX actor sitemap.
+
+    Contains 25 selected major Indian actors across
+    Tamil, Telugu, Hindi, Malayalam and Kannada cinema.
+    """
+
+    cached = _sitemap_cache.get("actors")
+    if cached is not None:
+        return _xml_response(cached)
+
+    selected_actor_names = [
+        # Tamil
+        "Rajinikanth",
+        "Vijay",
+        "Ajith Kumar",
+        "Kamal Haasan",
+        "Suriya",
+
+        # Telugu
+        "Prabhas",
+        "Allu Arjun",
+        "Ram Charan",
+        "N. T. Rama Rao Jr.",
+        "Mahesh Babu",
+
+        # Hindi
+        "Shah Rukh Khan",
+        "Salman Khan",
+        "Aamir Khan",
+        "Ranbir Kapoor",
+        "Hrithik Roshan",
+
+        # Malayalam
+        "Mohanlal",
+        "Mammootty",
+        "Dulquer Salmaan",
+        "Fahadh Faasil",
+        "Prithviraj Sukumaran",
+
+        # Kannada
+        "Yash",
+        "Kichcha Sudeep",
+        "Darshan",
+        "Shiva Rajkumar",
+        "Rishab Shetty",
+    ]
+
+    selected_actor_names_lower = [
+        name.strip().lower()
+        for name in selected_actor_names
+    ]
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id,
+                    name
+                FROM actors
+                WHERE LOWER(TRIM(name)) = ANY(%s)
+            """, (selected_actor_names_lower,))
+
+            actor_rows = cur.fetchall()
+
+    actor_slug_map = _unique_actor_slug_map()
+
+    # Keep sitemap order identical to our selected actor list.
+    actors_by_name = {
+        str(actor_name).strip().lower(): actor_id
+        for actor_id, actor_name in actor_rows
+    }
+
+    urls = []
+
+    for actor_name in selected_actor_names:
+        actor_id = actors_by_name.get(actor_name.lower())
+
+        if not actor_id:
+            continue
+
+        actor_slug = actor_slug_map.get(actor_id)
+
+        if not actor_slug:
+            continue
+
+        urls.append(
+            _sitemap_url_entry(
+                f"/actor/{actor_slug}",
+                "weekly",
+                "0.8"
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    _sitemap_cache["actors"] = xml
+
+    return _xml_response(xml)
+
+
+# ============================================================
+# ACTOR COMPARISON SITEMAP
+# 25 important BoxOfficeX actor comparison pages
+# ============================================================
+
+@app.get("/sitemap-actor-compare.xml", include_in_schema=False)
+def sitemap_actor_compare_xml():
+    """
+    BoxOfficeX actor comparison sitemap.
+
+    Contains 25 selected high-value actor comparison pages.
+    """
+
+    cached = _sitemap_cache.get("actor_compare")
+    if cached is not None:
+        return _xml_response(cached)
+
+    comparison_pairs = [
+        # Tamil
+        ("Vijay", "Ajith Kumar"),
+        ("Rajinikanth", "Kamal Haasan"),
+        ("Vijay", "Rajinikanth"),
+        ("Vijay", "Suriya"),
+        ("Ajith Kumar", "Suriya"),
+
+        # Telugu
+        ("Prabhas", "Allu Arjun"),
+        ("Prabhas", "Ram Charan"),
+        ("Prabhas", "N. T. Rama Rao Jr."),
+        ("Allu Arjun", "Ram Charan"),
+        ("Mahesh Babu", "N. T. Rama Rao Jr."),
+
+        # Hindi
+        ("Shah Rukh Khan", "Salman Khan"),
+        ("Shah Rukh Khan", "Aamir Khan"),
+        ("Salman Khan", "Aamir Khan"),
+        ("Ranbir Kapoor", "Hrithik Roshan"),
+        ("Shah Rukh Khan", "Ranbir Kapoor"),
+
+        # Malayalam
+        ("Mohanlal", "Mammootty"),
+        ("Dulquer Salmaan", "Fahadh Faasil"),
+        ("Mohanlal", "Prithviraj Sukumaran"),
+        ("Mammootty", "Dulquer Salmaan"),
+        ("Fahadh Faasil", "Prithviraj Sukumaran"),
+
+        # Kannada
+        ("Yash", "Kichcha Sudeep"),
+        ("Yash", "Darshan"),
+        ("Yash", "Rishab Shetty"),
+        ("Kichcha Sudeep", "Darshan"),
+        ("Shiva Rajkumar", "Rishab Shetty"),
+    ]
+
+    # Get every actor needed for the selected comparisons.
+    required_names = {
+        name.strip().lower()
+        for pair in comparison_pairs
+        for name in pair
+    }
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    id,
+                    name
+                FROM actors
+                WHERE LOWER(TRIM(name)) = ANY(%s)
+            """, (list(required_names),))
+
+            actor_rows = cur.fetchall()
+
+    actor_slug_map = _unique_actor_slug_map()
+
+    actors_by_name = {
+        str(actor_name).strip().lower(): actor_id
+        for actor_id, actor_name in actor_rows
+    }
+
+    urls = []
+    seen_urls = set()
+
+    for first_name, second_name in comparison_pairs:
+        first_id = actors_by_name.get(first_name.lower())
+        second_id = actors_by_name.get(second_name.lower())
+
+        if not first_id or not second_id:
+            continue
+
+        first_slug = actor_slug_map.get(first_id)
+        second_slug = actor_slug_map.get(second_id)
+
+        if not first_slug or not second_slug:
+            continue
+
+        # Keep the canonical ordering used by the comparison system.
+        if first_id > second_id:
+            first_slug, second_slug = second_slug, first_slug
+
+        path = f"/compare/{first_slug}-vs-{second_slug}"
+
+        # Prevent accidental duplicate canonical URLs.
+        if path in seen_urls:
+            continue
+
+        seen_urls.add(path)
+
+        urls.append(
+            _sitemap_url_entry(
+                path,
+                "weekly",
+                "0.8"
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    _sitemap_cache["actor_compare"] = xml
+
+    return _xml_response(xml)
+
+
+# ============================================================
+# MOVIE COMPARISON SITEMAP
+# 25 curated high-value BoxOfficeX movie comparison pages
+# ============================================================
+
+@app.get("/sitemap-movie-compare.xml", include_in_schema=False)
+def sitemap_movie_compare_xml():
+    """
+    BoxOfficeX movie comparison sitemap.
+
+    Contains 25 manually selected high-value movie
+    comparison pages.
+
+    Uses BoxOfficeX's existing canonical movie slug map
+    and canonical ID ordering.
+    """
+
+    cached = _sitemap_cache.get("movie_compare")
+    if cached is not None:
+        return _xml_response(cached)
+
+    # --------------------------------------------------------
+    # 25 curated high-value comparison pairs
+    # --------------------------------------------------------
+
+    comparison_pairs = [
+        # Major all-time / pan-India comparisons
+        ("dangal-2016", "baahubali-2-the-conclusion-2017"),
+        ("dangal-2016", "pushpa-2-the-rule-2024"),
+        ("baahubali-2-the-conclusion-2017", "pushpa-2-the-rule-2024"),
+
+        # Telugu / pan-India
+        ("rrr-2022", "kgf-chapter-2-2022-3"),
+        ("rrr-2022", "baahubali-2-the-conclusion-2017"),
+        ("pushpa-2-the-rule-2024", "rrr-2022"),
+        ("kalki-2898-ad-2024", "rrr-2022"),
+        ("kalki-2898-ad-2024", "pushpa-2-the-rule-2024"),
+
+        # KGF / pan-India
+        ("kgf-chapter-2-2022-3", "pushpa-2-the-rule-2024"),
+        ("kgf-chapter-2-2022-3", "baahubali-2-the-conclusion-2017"),
+
+        # Hindi
+        ("jawan-2023", "pathaan-2023"),
+        ("jawan-2023", "animal-2023"),
+        ("pathaan-2023", "animal-2023"),
+        ("stree-2-2024", "animal-2023"),
+        ("stree-2-2024", "jawan-2023"),
+        ("pk-2014", "dangal-2016"),
+        ("bajrangi-bhaijaan-2015", "dangal-2016"),
+        ("sultan-2016", "bajrangi-bhaijaan-2015"),
+
+        # Baahubali franchise
+        (
+            "baahubali-the-beginning-2015",
+            "baahubali-2-the-conclusion-2017"
+        ),
+
+        # Tamil
+        ("jailer-2023", "leo-2023"),
+        ("jailer-2023", "2-0-2018"),
+        ("leo-2023", "2-0-2018"),
+
+        # Salaar / KGF / RRR
+        (
+            "salaar-cease-fire-part-1-2023",
+            "kgf-chapter-2-2022-3"
+        ),
+        (
+            "salaar-cease-fire-part-1-2023",
+            "rrr-2022"
+        ),
+
+        # Kannada
+        (
+            "kantara-chapter-1-2025",
+            "kgf-chapter-2-2022-3"
+        ),
+    ]
+
+    # --------------------------------------------------------
+    # Get BoxOfficeX canonical movie slugs
+    #
+    # Existing helper format:
+    # {
+    #     movie_id: "movie-slug",
+    #     ...
+    # }
+    # --------------------------------------------------------
+
+    movie_slug_map = _unique_movie_slug_map()
+
+    # Reverse it so we can find movie ID from canonical slug.
+    slug_to_movie_id = {
+        movie_slug: movie_id
+        for movie_id, movie_slug in movie_slug_map.items()
+    }
+
+    urls = []
+    seen_urls = set()
+
+    # --------------------------------------------------------
+    # Build comparison URLs
+    # --------------------------------------------------------
+
+    for requested_first_slug, requested_second_slug in comparison_pairs:
+
+        first_id = slug_to_movie_id.get(requested_first_slug)
+        second_id = slug_to_movie_id.get(requested_second_slug)
+
+        # Movie not available in this database.
+        if first_id is None or second_id is None:
+            continue
+
+        first_slug = movie_slug_map.get(first_id)
+        second_slug = movie_slug_map.get(second_id)
+
+        if not first_slug or not second_slug:
+            continue
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        # Follow the same canonical ordering used by
+        # BoxOfficeX comparison URLs.
+        # ----------------------------------------------------
+
+        if first_id > second_id:
+            first_id, second_id = second_id, first_id
+            first_slug, second_slug = second_slug, first_slug
+
+        path = (
+            f"/compare/movies/"
+            f"{first_slug}-vs-{second_slug}"
+        )
+
+        # Avoid duplicate comparison URLs.
+        if path in seen_urls:
+            continue
+
+        seen_urls.add(path)
+
+        urls.append(
+            _sitemap_url_entry(
+                path,
+                "weekly",
+                "0.8"
+            )
+        )
+
+    # --------------------------------------------------------
+    # Generate sitemap XML
+    # --------------------------------------------------------
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset '
+        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    # Cache generated sitemap.
+    _sitemap_cache["movie_compare"] = xml
+
+    return _xml_response(xml)
+
+
+# ============================================================
+# ARTICLES SITEMAP
+# All published BoxOfficeX articles
+# ============================================================
+
+# ============================================================
+# ARTICLES SITEMAP
+# All published BoxOfficeX articles
+# Short cache for live box-office updates
+# ============================================================
+
+@app.get("/sitemap-articles.xml", include_in_schema=False)
+def sitemap_articles_xml():
+    """
+    BoxOfficeX article sitemap.
+
+    Contains ALL published articles.
+
+    lastmod priority:
+    1. updated_at
+    2. published_at
+    3. created_at
+
+    No in-memory sitemap cache because live box-office
+    articles may be updated frequently.
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    slug,
+                    COALESCE(
+                        updated_at,
+                        published_at,
+                        created_at
+                    ) AS last_modified
+                FROM articles
+                WHERE status = 'published'
+                  AND slug IS NOT NULL
+                  AND TRIM(slug) <> ''
+                ORDER BY id ASC
+            """)
+
+            article_rows = cur.fetchall()
+
+    urls = []
+    seen_slugs = set()
+
+    for slug, last_modified in article_rows:
+
+        slug = str(slug).strip()
+
+        if not slug:
+            continue
+
+        # Prevent accidental duplicate article URLs.
+        if slug in seen_slugs:
+            continue
+
+        seen_slugs.add(slug)
+
+        urls.append(
+            _sitemap_url_entry(
+                f"/article/{slug}",
+                "daily",
+                "0.8",
+                last_modified
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset '
+        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={
+            "Cache-Control": "public, max-age=300"
+        }
+    )
+
+
+# ============================================================
+# MOVIE RANKINGS SITEMAP
+# BoxOfficeX movie ranking pages
+# ============================================================
+
+@app.get("/sitemap-movie-rankings.xml", include_in_schema=False)
+def sitemap_movie_rankings_xml():
+    """
+    BoxOfficeX movie rankings sitemap.
+
+    Contains the main movie rankings page and
+    major Indian language/industry ranking pages.
+    """
+
+    cached = _sitemap_cache.get("movie_rankings")
+    if cached is not None:
+        return _xml_response(cached)
+
+    ranking_pages = [
+        "/movie-rankings.html",
+        "/movie-rankings/tamil",
+        "/movie-rankings/telugu",
+        "/movie-rankings/hindi",
+        "/movie-rankings/kannada",
+        "/movie-rankings/malayalam",
+    ]
+
+    urls = []
+
+    for path in ranking_pages:
+        urls.append(
+            _sitemap_url_entry(
+                path,
+                "daily",
+                "0.9"
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset '
+        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    _sitemap_cache["movie_rankings"] = xml
+
+    return _xml_response(xml)
+
+
+# ============================================================
+# ACTOR RANKINGS SITEMAP
+# BoxOfficeX actor ranking pages
+# ============================================================
+
+@app.get("/sitemap-actor-rankings.xml", include_in_schema=False)
+def sitemap_actor_rankings_xml():
+    """
+    BoxOfficeX actor rankings sitemap.
+
+    Contains the main actor rankings page and
+    major Indian language/industry ranking pages.
+    """
+
+    cached = _sitemap_cache.get("actor_rankings")
+    if cached is not None:
+        return _xml_response(cached)
+
+    ranking_pages = [
+        "/rankings.html",
+        "/actor-rankings/tamil",
+        "/actor-rankings/telugu",
+        "/actor-rankings/hindi",
+        "/actor-rankings/kannada",
+        "/actor-rankings/malayalam",
+    ]
+
+    urls = []
+
+    for path in ranking_pages:
+        urls.append(
+            _sitemap_url_entry(
+                path,
+                "daily",
+                "0.9"
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset '
+        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    _sitemap_cache["actor_rankings"] = xml
+
+    return _xml_response(xml)
+
+
+
+# ============================================================
+# PUBLIC PAGES SITEMAP
+# Important BoxOfficeX general, trust and legal pages
+# ============================================================
+
+@app.get("/sitemap-pages.xml", include_in_schema=False)
+def sitemap_pages_xml():
+    """
+    BoxOfficeX public pages sitemap.
+
+    Contains important general/public pages that are not
+    already covered by movie, actor, article, comparison
+    or ranking sitemaps.
+    """
+
+    cached = _sitemap_cache.get("pages")
+    if cached is not None:
+        return _xml_response(cached)
+
+    pages = [
+        # ----------------------------------------------------
+        # Homepage
+        # ----------------------------------------------------
+        ("/", "daily", "1.0"),
+
+        # ----------------------------------------------------
+        # Discovery pages
+        # ----------------------------------------------------
+        ("/new-movies.html", "daily", "0.9"),
+        ("/actors.html", "weekly", "0.8"),
+        ("/articles.html", "daily", "0.9"),
+
+        # ----------------------------------------------------
+        # Comparison discovery pages
+        # ----------------------------------------------------
+        ("/compare-select.html", "weekly", "0.7"),
+        ("/movie-compare-select.html", "weekly", "0.7"),
+
+        # ----------------------------------------------------
+        # Company / trust pages
+        # ----------------------------------------------------
+        ("/about.html", "monthly", "0.5"),
+        ("/contact.html", "monthly", "0.5"),
+
+        # ----------------------------------------------------
+        # Legal pages
+        # ----------------------------------------------------
+        ("/privacy.html", "monthly", "0.4"),
+        ("/terms.html", "monthly", "0.4"),
+        ("/disclaimer.html", "monthly", "0.4"),
+
+        # ----------------------------------------------------
+        # Advertising / business
+        # ----------------------------------------------------
+        ("/advertise.html", "monthly", "0.6"),
+    ]
+
+    urls = []
+
+    for path, changefreq, priority in pages:
+        urls.append(
+            _sitemap_url_entry(
+                path,
+                changefreq,
+                priority
+            )
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset '
+        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + '\n</urlset>\n'
+    )
+
+    _sitemap_cache["pages"] = xml
+
+    return _xml_response(xml)
+
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     robots_file = BASE_DIR / "robots.txt"
@@ -3205,7 +3831,7 @@ def robots_txt():
 
 @app.get("/index.html")
 def index_page():
-    return FileResponse(BASE_DIR / "index.html")
+    return _boxofficex_html_file("index.html")
 
 @app.get("/boxofficex-placeholders.js", include_in_schema=False)
 def boxofficex_placeholders_script():
@@ -3576,7 +4202,7 @@ def _movie_rankings_breadcrumb_schema(target_key, canonical):
 
 def _render_movie_rankings_html(target_key="all"):
     target = _MOVIE_RANKING_TARGETS[target_key]
-    template = (BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8"))
     movies = _movie_rankings_fetch_rows()
 
     # Build the complete movie slug map ONCE for this SSR render.
@@ -3742,7 +4368,7 @@ def _movie_rankings_response(target_key):
 
     headers = {
         "X-BoxOfficeX-Movie-Rankings-CTR": "v4-top10-budget-ssr",
-        "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
+        "Cache-Control": "public, max-age=900, stale-while-revalidate=21600",
     }
 
     if cached and age <= MOVIE_RANKINGS_HTML_CACHE_TTL:
@@ -3777,7 +4403,7 @@ def _movie_rankings_response(target_key):
         )
 
         target = _MOVIE_RANKING_TARGETS[target_key]
-        template = (BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8")
+        template = _inject_boxofficex_global_icons((BASE_DIR / "movie-rankings.html").read_text(encoding="utf-8"))
         title, description, canonical = _movie_rankings_meta(target_key, [])
         template = _movie_rankings_apply_meta(
             template,
@@ -4096,7 +4722,7 @@ def _movie_ssr_build(movie_slug: str):
     poster = _home_movie_placeholder(movie)
     share_image = "https://boxofficex.in/images/boxofficex-share.jpg"
 
-    template = (BASE_DIR / "movie.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "movie.html").read_text(encoding="utf-8"))
     template = re.sub(
         r"<title>.*?</title>",
         f"<title>{html_escape(title)}</title>",
@@ -4534,7 +5160,7 @@ def _actor_ssr_build(actor_slug: str):
         movie["slug"] = movie_slug_map.get(movie.get("id"), movie_seo_slug(movie.get("id"), movie.get("title"), movie.get("release_date")))
         movie["url"] = f'/movie/{movie["slug"]}'
 
-    template = (BASE_DIR / "actor.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "actor.html").read_text(encoding="utf-8"))
     name, profession, bio = str(actor["name"]), str(actor["profession"]), str(actor["bio"])
     canonical = f"https://boxofficex.in/actor/{actor_slug}"
     title = f"{name} Movies, Box Office Collection & Career Statistics | BoxOfficeX"
@@ -4966,7 +5592,7 @@ def _actors_list_ssr_card(actor):
 
 
 def _render_actors_list_html():
-    template = (BASE_DIR / "actors.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "actors.html").read_text(encoding="utf-8"))
     data = get_actors()
     actors = list(data.get("actors") or [])
     by_id = {int(actor["id"]): actor for actor in actors if actor.get("id") is not None}
@@ -5236,7 +5862,7 @@ def _actor_comparison_ssr_movie_url(movie):
 
 
 def _render_actor_comparison_html(comparison):
-    template = (BASE_DIR / "compare.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "compare.html").read_text(encoding="utf-8"))
     actor1 = comparison["actor1"]
     actor2 = comparison["actor2"]
     payload = compare_actors(int(actor1["id"]), int(actor2["id"]))
@@ -5730,15 +6356,17 @@ def seo_resolve_actor_comparison(comparison_slug: str):
     return comparison
 
 
-@app.get("/compare-select.html")
-def compare_select_page():
-    return FileResponse(
-        BASE_DIR / "compare-select.html",
-        headers={
-            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
-            "X-BoxOfficeX-Compare-Select": "long-cache",
-        },
-    )
+@app.get("/compare-select.html", response_class=HTMLResponse)
+def actor_compare_select_page():
+    try:
+        rendered = _get_actor_compare_select_html()
+        return HTMLResponse(
+            content=rendered,
+            headers={"Cache-Control": "public, max-age=300, stale-while-revalidate=3600"},
+        )
+    except Exception as exc:
+        print("Actor Compare Select SSR failed:", type(exc).__name__, exc, flush=True)
+        return FileResponse(os.path.join(BASE_DIR, "compare-select.html"))
 
 
 @app.get("/compare.html", include_in_schema=False)
@@ -5869,7 +6497,7 @@ def _new_movies_ssr_grid(movies, status, slug_map):
 
 
 def _render_new_movies_html():
-    template = (BASE_DIR / "new-movies.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "new-movies.html").read_text(encoding="utf-8"))
     payload = get_new_movie_system()
     running = list(payload.get("running") or [])
     upcoming = list(payload.get("upcoming") or [])
@@ -6187,7 +6815,7 @@ def _actor_rankings_meta(target_key, rankings):
 
 def _render_actor_rankings_html(target_key="all"):
     target = _ACTOR_RANKING_TARGETS[target_key]
-    template = (BASE_DIR / "rankings.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "rankings.html").read_text(encoding="utf-8"))
 
     # The site shell uses a global `header` selector for the fixed mobile navbar
     # (including a fixed height). The rankings hero used a semantic <header> tag,
@@ -6597,7 +7225,7 @@ def _get_actor_rankings_cached_html(target_key):
 
 def _actor_rankings_warming_html(target_key):
     target = _ACTOR_RANKING_TARGETS[target_key]
-    template = (BASE_DIR / "rankings.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "rankings.html").read_text(encoding="utf-8"))
 
     # Keep the fallback/warming page safe from the global mobile `header` rules too.
     template = re.sub(
@@ -6752,46 +7380,34 @@ def actor_rankings_industry_page(language_slug: str):
 
 @app.get("/disclaimer.html")
 def disclaimer_page():
-    return FileResponse(
-        BASE_DIR / "disclaimer.html"
-    )
+    return _boxofficex_html_file("disclaimer.html")
 
 
 @app.get("/privacy.html")
 def privacy_page():
 
-    return FileResponse(
-        BASE_DIR / "privacy.html"
-    )
+    return _boxofficex_html_file("privacy.html")
 
 
 @app.get("/terms.html")
 def terms_page():
 
-    return FileResponse(
-        BASE_DIR / "terms.html"
-    )
+    return _boxofficex_html_file("terms.html")
 
 @app.get("/about.html")
 def about_page():
 
-    return FileResponse(
-        BASE_DIR / "about.html"
-    )
+    return _boxofficex_html_file("about.html")
 
 @app.get("/contact.html")
 def contact_page():
 
-    return FileResponse(
-        BASE_DIR / "contact.html"
-    )
+    return _boxofficex_html_file("contact.html")
 
 
 @app.get("/advertise.html")
 def advertise_page():
-    return FileResponse(
-        BASE_DIR / "advertise.html"
-    )
+    return _boxofficex_html_file("advertise.html")
 
 
 # ============================================================
@@ -11748,7 +12364,11 @@ def _render_article_detail_html(slug):
 By <strong>{html_escape(author)}</strong>
 {f' • Published {_article_ssr_format_date(published)}' if published else ''}
 {f'<span class="article-updated-time"> • Updated {_article_ssr_format_date(modified)}</span>' if modified else ''}
-<span class="article-view-count" id="articleViewCount">👁 {int(article.get("views") or 0):,} Views</span>
+{(
+    f'<span class="article-view-count" id="articleViewCount">👁 {int(article.get("views") or 0):,} Views</span>'
+    if SHOW_PUBLIC_ARTICLE_VIEWS
+    else '<span class="article-view-count" id="articleViewCount" hidden aria-hidden="true"></span>'
+)}
 </div></div>
 <figure class="hero-wrap">
 <img src="{html_escape(hero, quote=True)}" alt="{html_escape(caption or title, quote=True)}" loading="lazy">
@@ -16519,17 +17139,22 @@ def _articles_list_trend(article, index):
     title = str(article.get("title") or "BoxOfficeX Article").strip()
     category = str(article.get("category") or "News")
     views = int(article.get("views") or 0)
+    views_html = (
+        f'<div class="meta">{views:,} views</div>'
+        if SHOW_PUBLIC_ARTICLE_VIEWS
+        else ""
+    )
     return (
         f'<a class="trend-card" href="/article/{slug}">'
         f'<div class="trend-num">{index:02d}</div><div>'
         f'<span class="badge">{html_escape(category)}</span>'
         f'<h3>{html_escape(title)}</h3>'
-        f'<div class="meta">{views:,} views</div></div></a>'
+        f'{views_html}</div></a>'
     )
 
 
 def _render_articles_list_html():
-    template = (BASE_DIR / "articles.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "articles.html").read_text(encoding="utf-8"))
     data = get_articles()
     articles = list(data.get("articles") or [])
 
@@ -17014,7 +17639,7 @@ def _movie_comparison_ssr_poster(movie):
 
 
 def _render_movie_comparison_html(comparison):
-    template = (BASE_DIR / "movie-compare.html").read_text(encoding="utf-8")
+    template = _inject_boxofficex_global_icons((BASE_DIR / "movie-compare.html").read_text(encoding="utf-8"))
 
     movie1_ref = comparison["movie1"]
     movie2_ref = comparison["movie2"]
@@ -17540,7 +18165,7 @@ def movie_comparison_slug_page(comparison_slug: str):
         # But do not expose generic SEO metadata while the cache warms:
         # build a lightweight comparison-specific shell from the already-resolved
         # movie references, then let the existing JavaScript render the page.
-        cold_template = (BASE_DIR / "movie-compare.html").read_text(encoding="utf-8")
+        cold_template = _inject_boxofficex_global_icons((BASE_DIR / "movie-compare.html").read_text(encoding="utf-8"))
         cold_a = str(comparison["movie1"].get("title") or "Movie").strip()
         cold_b = str(comparison["movie2"].get("title") or "Movie").strip()
         cold_title = (
@@ -17672,15 +18297,496 @@ def seo_resolve_movie_comparison_by_ids(movie1_id: int, movie2_id: int):
     }
 
 
+MOVIE_COMPARE_SELECT_CACHE_TTL = 300
+_movie_compare_select_html_cache = {"html": None, "expires_at": 0.0}
+_movie_compare_select_html_cache_lock = threading.Lock()
+
+
+
+# ============================================================
+# ACTOR COMPARE SELECT — SSR TRENDING + FAQ
+# ============================================================
+ACTOR_COMPARE_SELECT_CACHE_TTL = 21600
+_actor_compare_select_html_cache = {"html": None, "built_at": 0.0}
+_actor_compare_select_cache_lock = threading.Lock()
+
+
+def _actor_compare_select_trending_rows(limit: int = 5):
+    """
+    Fast Actor Compare Select rotation.
+
+    Deliberately avoids the four engagement-table UNION query and the
+    actor_movies/movies aggregation on every page render. Uses the same
+    curated high-value comparison pool already used by the actor comparison
+    sitemap, then rotates five pairs every six hours.
+    """
+    limit = max(1, min(int(limit or 5), 10))
+
+    comparison_pairs = [
+        ("Vijay", "Ajith Kumar"),
+        ("Rajinikanth", "Kamal Haasan"),
+        ("Vijay", "Rajinikanth"),
+        ("Vijay", "Suriya"),
+        ("Ajith Kumar", "Suriya"),
+        ("Prabhas", "Allu Arjun"),
+        ("Prabhas", "Ram Charan"),
+        ("Prabhas", "N. T. Rama Rao Jr."),
+        ("Allu Arjun", "Ram Charan"),
+        ("Mahesh Babu", "N. T. Rama Rao Jr."),
+        ("Shah Rukh Khan", "Salman Khan"),
+        ("Shah Rukh Khan", "Aamir Khan"),
+        ("Salman Khan", "Aamir Khan"),
+        ("Ranbir Kapoor", "Hrithik Roshan"),
+        ("Shah Rukh Khan", "Ranbir Kapoor"),
+        ("Mohanlal", "Mammootty"),
+        ("Dulquer Salmaan", "Fahadh Faasil"),
+        ("Mohanlal", "Prithviraj Sukumaran"),
+        ("Mammootty", "Dulquer Salmaan"),
+        ("Fahadh Faasil", "Prithviraj Sukumaran"),
+        ("Yash", "Kichcha Sudeep"),
+        ("Yash", "Darshan"),
+        ("Yash", "Rishab Shetty"),
+        ("Kichcha Sudeep", "Darshan"),
+        ("Shiva Rajkumar", "Rishab Shetty"),
+    ]
+
+    required_names = sorted({
+        name.strip().lower()
+        for pair in comparison_pairs
+        for name in pair
+    })
+
+    try:
+        # ONE lightweight DB query only.
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, name
+                    FROM actors
+                    WHERE LOWER(TRIM(name)) = ANY(%s)
+                """, (required_names,))
+                actor_rows = list(cur.fetchall())
+    except Exception as exc:
+        print("Actor Compare Select fast pool failed:",
+              type(exc).__name__, exc, flush=True)
+        return []
+
+    if len(actor_rows) < 2:
+        return []
+
+    actors_by_name = {
+        str(actor_name).strip().lower(): (int(actor_id), str(actor_name))
+        for actor_id, actor_name in actor_rows
+    }
+
+    # Important performance fix: build slugs from the rows already fetched.
+    # This prevents public_actor_comparison_url() from rebuilding the full
+    # actor slug map five separate times.
+    actor_slug_map = _unique_actor_slug_map(actor_rows)
+
+    prepared = []
+    for first_name, second_name in comparison_pairs:
+        first = actors_by_name.get(first_name.lower())
+        second = actors_by_name.get(second_name.lower())
+        if not first or not second:
+            continue
+
+        first_id, first_db_name = first
+        second_id, second_db_name = second
+        first_slug = actor_slug_map.get(first_id)
+        second_slug = actor_slug_map.get(second_id)
+        if not first_slug or not second_slug:
+            continue
+
+        if first_id > second_id:
+            first_id, second_id = second_id, first_id
+            first_db_name, second_db_name = second_db_name, first_db_name
+            first_slug, second_slug = second_slug, first_slug
+
+        public_url = f"/compare/{first_slug}-vs-{second_slug}"
+        prepared.append((
+            first_id, second_id,
+            first_db_name, second_db_name,
+            0, None, "featured", public_url
+        ))
+
+    if not prepared:
+        return []
+
+    rotation_slot = int(datetime.now(timezone.utc).timestamp() // (6 * 60 * 60))
+    start_index = (rotation_slot * limit) % len(prepared)
+    rotated = prepared[start_index:] + prepared[:start_index]
+    return rotated[:limit]
+
+def _render_actor_compare_select_html():
+    template_path = os.path.join(BASE_DIR, "compare-select.html")
+    with open(template_path, "r", encoding="utf-8") as fh:
+        template = _inject_boxofficex_global_icons(fh.read())
+
+    rows = _actor_compare_select_trending_rows(5)
+    cards = []
+    item_list = []
+
+    for index, row in enumerate(rows, start=1):
+        actor1_id, actor2_id, name1, name2, activity_count, _last_activity, source_type, url = row
+
+        if source_type == "trending":
+            meta = f"{int(activity_count or 0)} recent interaction" + ("" if int(activity_count or 0) == 1 else "s")
+        else:
+            meta = "Featured comparison • rotates automatically"
+
+        safe_name1 = html.escape(str(name1))
+        safe_name2 = html.escape(str(name2))
+        safe_meta = html.escape(meta)
+
+        cards.append(
+            f'<a class="trending-actor-card" href="{url}">'
+            f'<span class="trending-actor-rank">{index}</span>'
+            f'<span><span class="trending-actor-title">{safe_name1} vs {safe_name2}</span>'
+            f'<span class="trending-actor-meta">{safe_meta}</span></span>'
+            f'<span class="trending-actor-arrow" aria-hidden="true">→</span>'
+            f'</a>'
+        )
+        item_list.append({
+            "@type": "ListItem",
+            "position": index,
+            "name": f"{name1} vs {name2}",
+            "url": url if str(url).startswith("http") else f"https://boxofficex.in{url}",
+        })
+
+    cards_html = "".join(cards) if cards else (
+        '<div class="trending-actor-empty">Select two actors above to start comparing.</div>'
+    )
+
+    template = re.sub(
+        r'(<div\s+id=["\']trendingActorComparisonsList["\'][^>]*>).*?(</div>\s*</section>)',
+        lambda m: m.group(1) + cards_html + m.group(2),
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+
+    faq_entities = [
+        {
+            "@type": "Question",
+            "name": "How does BoxOfficeX compare two actors?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "BoxOfficeX compares available career data such as movies, box-office collections, hits, blockbusters and overall career performance."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can I compare actors from different Indian film industries?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. You can select any two available actors in the BoxOfficeX database and open their comparison page."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What information is shown in an actor comparison?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Comparison pages can include movie totals, worldwide box office, verdict performance, highest-grossing films and other available career statistics."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How are trending actor comparisons selected?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Recent audience comparison activity is prioritized. When activity is limited, BoxOfficeX automatically features rotating actor matchups."
+            }
+        }
+    ]
+
+    graph = [
+        {
+            "@type": "WebPage",
+            "@id": "https://boxofficex.in/compare-select.html#webpage",
+            "url": "https://boxofficex.in/compare-select.html",
+            "name": "Compare Indian Actors – Movies, Box Office & Career | BoxOfficeX",
+            "description": "Compare two actors on BoxOfficeX by movies, box office collections, hits, blockbusters and career performance."
+        },
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://boxofficex.in/"},
+                {"@type": "ListItem", "position": 2, "name": "Actor Comparison", "item": "https://boxofficex.in/compare-select.html"}
+            ]
+        },
+        {
+            "@type": "ItemList",
+            "name": "Trending Actor Comparisons",
+            "itemListElement": item_list
+        },
+        {
+            "@type": "FAQPage",
+            "mainEntity": faq_entities
+        }
+    ]
+
+    schema = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False)
+    schema_tag = (
+        '<script id="compareSelectStructuredData" type="application/ld+json" '
+        'data-ssr="1">' + schema.replace("</", "<\\/") + "</script>"
+    )
+    template = re.sub(
+        r'<script\s+id=["\']compareSelectStructuredData["\'][^>]*>.*?</script>',
+        schema_tag,
+        template,
+        count=1,
+        flags=re.I | re.S,
+    )
+
+    return template
+
+
+def _get_actor_compare_select_html():
+    now = time_module.time()
+    cached = _actor_compare_select_html_cache.get("html")
+    built_at = float(_actor_compare_select_html_cache.get("built_at") or 0)
+
+    if cached and now - built_at < ACTOR_COMPARE_SELECT_CACHE_TTL:
+        return cached
+
+    with _actor_compare_select_cache_lock:
+        now = time_module.time()
+        cached = _actor_compare_select_html_cache.get("html")
+        built_at = float(_actor_compare_select_html_cache.get("built_at") or 0)
+        if cached and now - built_at < ACTOR_COMPARE_SELECT_CACHE_TTL:
+            return cached
+
+        rendered = _render_actor_compare_select_html()
+        _actor_compare_select_html_cache["html"] = rendered
+        _actor_compare_select_html_cache["built_at"] = now
+        return rendered
+
+
+def _movie_compare_select_trending_rows(limit: int = 5):
+    """
+    Always return up to `limit` useful movie comparisons.
+
+    Real 7-day engagement is preferred when the engagement tables are available.
+    If those tables are empty, missing, or have an older schema, the selector
+    still works by using automatically rotating high-grossing movie matchups.
+    """
+    limit = max(1, min(int(limit or 5), 10))
+    recent_rows = []
+
+    # Recent engagement is optional. It must never be allowed to break the page.
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    WITH recent_activity AS (
+                        SELECT movie1_id, movie2_id, created_at FROM movie_comparison_likes
+                        UNION ALL
+                        SELECT movie1_id, movie2_id, created_at FROM movie_comparison_hype
+                        UNION ALL
+                        SELECT movie1_id, movie2_id, created_at FROM movie_comparison_votes
+                        UNION ALL
+                        SELECT movie1_id, movie2_id, created_at FROM movie_comparison_comments
+                    )
+                    SELECT
+                        ra.movie1_id,
+                        ra.movie2_id,
+                        m1.title,
+                        m2.title,
+                        COUNT(*)::bigint AS activity_count,
+                        MAX(ra.created_at) AS last_activity,
+                        'trending'::text AS source_type
+                    FROM recent_activity ra
+                    JOIN movies m1 ON m1.id = ra.movie1_id
+                    JOIN movies m2 ON m2.id = ra.movie2_id
+                    WHERE ra.created_at >= NOW() - INTERVAL '7 days'
+                      AND COALESCE(m1.worldwide_collection_crore, 0) >= 25
+                      AND COALESCE(m2.worldwide_collection_crore, 0) >= 25
+                    GROUP BY ra.movie1_id, ra.movie2_id, m1.title, m2.title
+                    ORDER BY activity_count DESC, last_activity DESC
+                    LIMIT %s
+                """, (limit,))
+                recent_rows = list(cur.fetchall())
+    except Exception as exc:
+        print(
+            "Movie Compare Select recent activity unavailable; using rotating fallback:",
+            type(exc).__name__,
+            exc,
+            flush=True,
+        )
+        recent_rows = []
+
+    if len(recent_rows) >= limit:
+        return recent_rows[:limit]
+
+    # IMPORTANT: use a fresh DB connection here. If the optional activity query
+    # failed, its PostgreSQL transaction is aborted; a fresh connection keeps
+    # the fallback independent and guarantees the page can still render.
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, title
+                    FROM movies
+                    WHERE COALESCE(worldwide_collection_crore, 0) >= 25
+                    ORDER BY worldwide_collection_crore DESC NULLS LAST, id ASC
+                    LIMIT 20
+                """)
+                movie_pool = list(cur.fetchall())
+    except Exception as exc:
+        print(
+            "Movie Compare Select fallback movie pool failed:",
+            type(exc).__name__,
+            exc,
+            flush=True,
+        )
+        return recent_rows
+
+    if len(movie_pool) < 2:
+        return recent_rows
+
+    used_pairs = {
+        tuple(sorted((int(row[0]), int(row[1]))))
+        for row in recent_rows
+    }
+
+    # Deterministic 6-hour rotation: all visitors see the same five pairs
+    # during a slot, then the featured matchups change automatically.
+    rotation_slot = int(datetime.now(timezone.utc).timestamp() // (6 * 60 * 60))
+    pool_size = len(movie_pool)
+    start_index = rotation_slot % pool_size
+    rotated = movie_pool[start_index:] + movie_pool[:start_index]
+
+    fallback_rows = []
+    for gap in (1, 3, 5, 7, 9):
+        for i in range(pool_size):
+            left = rotated[i]
+            right = rotated[(i + gap) % pool_size]
+
+            if int(left[0]) == int(right[0]):
+                continue
+
+            pair = tuple(sorted((int(left[0]), int(right[0]))))
+            if pair in used_pairs:
+                continue
+
+            used_pairs.add(pair)
+            fallback_rows.append((
+                left[0],
+                right[0],
+                left[1],
+                right[1],
+                0,
+                None,
+                "featured",
+            ))
+
+            if len(recent_rows) + len(fallback_rows) >= limit:
+                return recent_rows + fallback_rows
+
+    return recent_rows + fallback_rows
+
+def _render_movie_compare_select_html():
+    template = _inject_boxofficex_global_icons((BASE_DIR / "movie-compare-select.html").read_text(encoding="utf-8"))
+    rows = _movie_compare_select_trending_rows(5)
+    slug_map = _unique_movie_slug_map()
+
+    cards = []
+    schema_items = []
+    for rank, row in enumerate(rows, start=1):
+        movie1_id, movie2_id, title1, title2, activity_count, _last_activity, source_type = row
+        first_id, second_id = _movie_comparison_pair(movie1_id, movie2_id)
+        first_slug = slug_map.get(first_id)
+        second_slug = slug_map.get(second_id)
+        if not first_slug or not second_slug:
+            continue
+
+        url = f"/compare/movies/{first_slug}-vs-{second_slug}"
+        label = f"{title1} vs {title2}"
+        safe_url = html_escape(url, quote=True)
+        safe_label = html_escape(label)
+        if source_type == "trending":
+            activity_text = f"{int(activity_count or 0)} recent interaction" + ("" if int(activity_count or 0) == 1 else "s")
+        else:
+            activity_text = "Featured comparison • rotates automatically"
+        cards.append(
+            f'<a class="trending-card" href="{safe_url}">'
+            f'<span class="trending-rank">#{rank}</span>'
+            f'<span><span class="trending-title">{safe_label}</span>'
+            f'<span class="trending-meta">{html_escape(activity_text)}</span></span>'
+            f'<span class="trending-arrow" aria-hidden="true">›</span>'
+            f'</a>'
+        )
+        schema_items.append({
+            "@type": "ListItem",
+            "position": rank,
+            "name": label,
+            "url": f"https://boxofficex.in{url}",
+        })
+
+    trending_html = "\n".join(cards)
+    if not trending_html:
+        trending_html = (
+            '<div class="trending-empty">Trending movie comparisons will appear here '
+            'as visitors compare and interact with movie matchups.</div>'
+        )
+    template = template.replace("<!-- BOXOFFICEX_TRENDING_COMPARISONS -->", trending_html, 1)
+
+    if schema_items:
+        schema_json = json.dumps({
+            "@type": "ItemList",
+            "name": "Trending Movie Comparisons",
+            "itemListElement": schema_items,
+        }, ensure_ascii=False).replace("</", "<\\/")
+        template = template.replace(
+            "<!-- BOXOFFICEX_TRENDING_SCHEMA -->",
+            "," + schema_json,
+            1,
+        )
+    else:
+        template = template.replace("<!-- BOXOFFICEX_TRENDING_SCHEMA -->", "", 1)
+
+    return template
+
+
+def _get_movie_compare_select_html():
+    now = time_module.monotonic()
+    with _movie_compare_select_html_cache_lock:
+        cached = _movie_compare_select_html_cache.get("html")
+        expires_at = float(_movie_compare_select_html_cache.get("expires_at") or 0)
+        if cached and expires_at > now:
+            return cached, "HIT"
+
+    rendered = _render_movie_compare_select_html()
+    with _movie_compare_select_html_cache_lock:
+        _movie_compare_select_html_cache["html"] = rendered
+        _movie_compare_select_html_cache["expires_at"] = now + MOVIE_COMPARE_SELECT_CACHE_TTL
+    return rendered, "MISS"
+
+
 @app.get("/movie-compare-select.html")
 def movie_compare_select_page():
-    return FileResponse(
-        BASE_DIR / "movie-compare-select.html",
-        headers={
-            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
-            "X-BoxOfficeX-Movie-Compare-Select": "long-cache",
-        },
-    )
+    try:
+        rendered, cache_state = _get_movie_compare_select_html()
+        return HTMLResponse(
+            content=rendered,
+            headers={
+                "Cache-Control": "public, max-age=300, stale-while-revalidate=600",
+                "X-BoxOfficeX-Movie-Compare-Select": "ssr",
+                "X-BoxOfficeX-Cache": cache_state,
+            },
+        )
+    except Exception as exc:
+        print("Movie Compare Select SSR fallback:", type(exc).__name__, exc, flush=True)
+        return FileResponse(
+            BASE_DIR / "movie-compare-select.html",
+            headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Movie-Compare-Select": "ssr-fallback",
+                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
+            },
+        )
 
 
 @app.get("/movie-compare.html", include_in_schema=False)

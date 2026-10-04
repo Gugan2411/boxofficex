@@ -16,27 +16,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f5f7fb">
 <meta name="description" content="Compare any two movies on BoxOfficeX by budget, India gross, overseas gross, worldwide box office collection and verdict.">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="index, follow, max-image-preview:large">
 
 <link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/movie-compare-select.html">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BoxOfficeX">
-<meta property="og:title" content="Compare Movies - Box Office, Budget & Verdict | BoxOfficeX">
+<meta property="og:title" content="Compare Movies – Box Office, Budget & Verdict | BoxOfficeX">
 <meta property="og:description" content="Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.">
 <meta property="og:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
-<meta property="og:image:alt" content="Compare Movies - Box Office, Budget & Verdict | BoxOfficeX">
+<meta property="og:image:alt" content="Compare Movies – Box Office, Budget & Verdict | BoxOfficeX">
 <meta id="ogUrl" property="og:url" content="https://boxofficex.in/movie-compare-select.html">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Compare Movies - Box Office, Budget & Verdict | BoxOfficeX">
+<meta name="twitter:title" content="Compare Movies – Box Office, Budget & Verdict | BoxOfficeX">
 <meta name="twitter:description" content="Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.">
 <meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
-<meta name="twitter:image:alt" content="Compare Movies - Box Office, Budget & Verdict | BoxOfficeX">
+<meta name="twitter:image:alt" content="Compare Movies – Box Office, Budget & Verdict | BoxOfficeX">
 
-<script id="compareSelectStructuredData" type="application/ld+json"></script>
+<script id="compareSelectStructuredData" type="application/ld+json">{
+  "@context":"https://schema.org",
+  "@graph":[
+    {"@type":"WebPage","@id":"https://boxofficex.in/movie-compare-select.html#webpage","url":"https://boxofficex.in/movie-compare-select.html","name":"Compare Movies – Box Office, Budget & Verdict | BoxOfficeX","description":"Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.","isPartOf":{"@type":"WebSite","name":"BoxOfficeX","url":"https://boxofficex.in/"}},
+    {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://boxofficex.in/"},{"@type":"ListItem","position":2,"name":"Movie Comparison","item":"https://boxofficex.in/movie-compare-select.html"}]},
+    {"@type":"FAQPage","mainEntity":[
+      {"@type":"Question","name":"How does BoxOfficeX compare two movies?","acceptedAnswer":{"@type":"Answer","text":"BoxOfficeX compares available movie data including budget, India gross, overseas gross, worldwide box office collection and verdict."}},
+      {"@type":"Question","name":"Can I compare movies from different industries?","acceptedAnswer":{"@type":"Answer","text":"Yes. You can select two eligible movies available in the BoxOfficeX comparison search, including movies from different industries."}},
+      {"@type":"Question","name":"Which box office numbers are compared?","acceptedAnswer":{"@type":"Answer","text":"The comparison includes available budget, India gross, overseas gross, worldwide box office collection and verdict data."}},
+      {"@type":"Question","name":"What movies are available for comparison?","acceptedAnswer":{"@type":"Answer","text":"The selector currently includes movies with at least ₹25 crore in worldwide box office gross."}}
+    ]}
+    <!-- BOXOFFICEX_TRENDING_SCHEMA -->
+  ]
+}</script>
 
-<title>Compare Movies - Box Office, Budget & Verdict | BoxOfficeX</title>
+<title>Compare Movies – Box Office, Budget & Verdict | BoxOfficeX</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:rgba(255,255,255,.08);--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--blue-light:#79adff;--purple:#795cff;--gold:#ffcc33;--red:#ff4655;--content-width:1180px}
@@ -57,6 +70,23 @@ nav .nav-compare.active{box-shadow:0 0 0 1px rgba(255,255,255,.16),0 9px 24px rg
 .nav-item-with-badge{position:relative}
 .nav-new-badge{position:absolute;top:-5px;right:-1px;display:none;align-items:center;justify-content:center;min-width:25px;height:13px;padding:0 4px;border-radius:999px;background:#ff4655;color:#fff;font-size:6.5px;font-weight:1000;letter-spacing:.35px;pointer-events:none}
 .nav-new-badge.show{display:inline-flex}
+
+.trending-comparisons,.compare-faq{margin-top:34px;padding:24px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,rgba(16,23,37,.96),rgba(12,18,31,.96));box-shadow:0 18px 44px rgba(0,0,0,.18)}
+.trending-comparisons h2,.compare-faq h2{font-size:22px;line-height:1.25;margin-bottom:8px;color:#fff}
+.section-copy{color:var(--muted);font-size:13px;line-height:1.65;margin-bottom:17px}
+.trending-list{display:grid;gap:10px}
+.trending-card{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:rgba(255,255,255,.025);transition:.18s ease}
+.trending-card:hover{border-color:rgba(77,141,255,.35);background:rgba(77,141,255,.07);transform:translateY(-1px)}
+.trending-rank{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(77,141,255,.12);color:var(--blue-light);font-size:12px;font-weight:900}
+.trending-title{font-size:14px;font-weight:900;color:#f6f8ff;line-height:1.35}
+.trending-meta{margin-top:4px;color:var(--muted);font-size:10px;font-weight:700}
+.trending-arrow{color:var(--blue-light);font-weight:900;font-size:18px}
+.trending-empty{padding:15px;border:1px dashed rgba(255,255,255,.12);border-radius:12px;color:var(--muted);font-size:12px;text-align:center}
+.faq-list{display:grid;gap:10px;margin-top:14px}
+.faq-item{padding:15px 16px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:rgba(255,255,255,.025)}
+.faq-item h3{font-size:14px;line-height:1.4;color:#fff;margin-bottom:7px}
+.faq-item p{font-size:12px;line-height:1.65;color:var(--muted)}
+@media(max-width:640px){.trending-comparisons,.compare-faq{padding:18px 15px;border-radius:15px}.trending-comparisons h2,.compare-faq h2{font-size:19px}.trending-card{grid-template-columns:36px minmax(0,1fr) auto;padding:12px 10px}.trending-rank{width:30px;height:30px}.trending-title{font-size:12px}}
 main{width:min(980px,calc(100% - 36px));margin:auto;padding:28px 0 58px}
 .page-header{text-align:center;margin-bottom:25px}
 .eyebrow{display:inline-flex;padding:6px 10px;border:1px solid rgba(77,141,255,.25);border-radius:999px;background:rgba(77,141,255,.08);color:var(--blue-light);font-size:8px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
@@ -180,6 +210,71 @@ header{background:#fff!important;border-bottom:1px solid #dce3eb!important}
 header nav{background:#fff!important;border:1px solid #dce3eb!important;box-shadow:0 18px 40px rgba(15,23,42,.14)!important}
 header nav.mobile-menu-open{display:flex!important}
 .footer-links{flex-wrap:wrap!important;white-space:normal!important}
+}
+
+
+
+/* BOXOFFICEX LIGHT UI — TRENDING COMPARISONS + FAQ */
+.trending-comparisons{
+    background:linear-gradient(135deg,#ffffff 0%,#f3f7ff 100%)!important;
+    border:1px solid #cdddf8!important;
+    box-shadow:0 14px 34px rgba(37,99,235,.08)!important;
+}
+.trending-comparisons h2{
+    color:#1d4ed8!important;
+}
+.trending-comparisons .section-copy{
+    color:#64748b!important;
+}
+.trending-card{
+    background:#ffffff!important;
+    border:1px solid #dbe5f3!important;
+    box-shadow:0 5px 16px rgba(15,23,42,.04)!important;
+}
+.trending-card:hover{
+    background:#eff6ff!important;
+    border-color:#93b4ee!important;
+}
+.trending-rank{
+    background:#e8f0ff!important;
+    color:#1d4ed8!important;
+}
+.trending-title{
+    color:#172033!important;
+}
+.trending-meta{
+    color:#64748b!important;
+}
+.trending-arrow{
+    color:#2563eb!important;
+}
+.trending-empty{
+    background:#ffffff!important;
+    border-color:#cbd5e1!important;
+    color:#64748b!important;
+}
+
+.compare-faq{
+    background:linear-gradient(135deg,#fffdf7 0%,#fff8e8 100%)!important;
+    border:1px solid #ead9ae!important;
+    box-shadow:0 14px 34px rgba(183,121,0,.07)!important;
+}
+.compare-faq h2{
+    color:#9a6700!important;
+}
+.compare-faq .section-copy{
+    color:#6b7280!important;
+}
+.faq-item{
+    background:#ffffff!important;
+    border:1px solid #eadfca!important;
+    box-shadow:0 4px 14px rgba(15,23,42,.035)!important;
+}
+.faq-item h3{
+    color:#1f2937!important;
+}
+.faq-item p{
+    color:#64748b!important;
 }
 
 
@@ -1671,7 +1766,7 @@ html,body{scroll-padding-top:0!important}
 <main>
 <div class="page-header">
 <div class="eyebrow">BoxOfficeX Compare</div>
-<h1>🎬 Movies vs Movies</h1>
+<h1>Compare Movies – Box Office, Budget &amp; Verdict</h1>
 <p class="intro">Search any two movies and compare their budget, India gross, overseas gross, worldwide collection and verdict.</p>
 </div>
 
@@ -1697,6 +1792,22 @@ html,body{scroll-padding-top:0!important}
 <div class="note">Choose two different movies to continue. Only movies with at least ₹25 crore worldwide gross are available for comparison.</div>
 <section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
+
+<section class="trending-comparisons" aria-labelledby="trendingMovieComparisonsTitle">
+<h2 id="trendingMovieComparisonsTitle">Trending Movie Comparisons</h2>
+<p class="section-copy">Popular movie matchups based on recent BoxOfficeX comparison activity.</p>
+<div class="trending-list" data-ssr="1"><!-- BOXOFFICEX_TRENDING_COMPARISONS --></div>
+</section>
+
+<section class="compare-faq" aria-labelledby="movieComparisonFaqTitle">
+<h2 id="movieComparisonFaqTitle">Movie Comparison FAQ</h2>
+<div class="faq-list">
+<article class="faq-item"><h3>How does BoxOfficeX compare two movies?</h3><p>BoxOfficeX compares available movie data including budget, India gross, overseas gross, worldwide box office collection and verdict.</p></article>
+<article class="faq-item"><h3>Can I compare movies from different industries?</h3><p>Yes. You can select two eligible movies available in the BoxOfficeX comparison search, including movies from different industries.</p></article>
+<article class="faq-item"><h3>Which box office numbers are compared?</h3><p>The comparison includes available budget, India gross, overseas gross, worldwide box office collection and verdict data.</p></article>
+<article class="faq-item"><h3>What movies are available for comparison?</h3><p>The selector currently includes movies with at least ₹25 crore in worldwide box office gross.</p></article>
+</div>
+</section>
 </main>
 
 <div id="bxTopStickyAd" aria-label="Top sticky sponsored advertisement"></div>
@@ -1728,30 +1839,12 @@ html,body{scroll-padding-top:0!important}
 
 
 <script>
-(function setupMovieCompareSelectSEO(){
+(function setupMovieCompareSelectCanonical(){
     const canonical = window.location.origin + window.location.pathname;
-
     const canonicalTag = document.getElementById("canonicalUrl");
     if(canonicalTag) canonicalTag.href = canonical;
-
     const ogUrl = document.getElementById("ogUrl");
     if(ogUrl) ogUrl.setAttribute("content", canonical);
-
-    const schema = {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "name": "Compare Movies - Box Office, Budget & Verdict | BoxOfficeX",
-        "url": canonical,
-        "description": "Compare any two movies by budget, India gross, overseas gross, worldwide box office collection and verdict on BoxOfficeX.",
-        "isPartOf": {
-            "@type": "WebSite",
-            "name": "BoxOfficeX",
-            "url": window.location.origin + "/"
-        }
-    };
-
-    const jsonLd = document.getElementById("compareSelectStructuredData");
-    if(jsonLd) jsonLd.textContent = JSON.stringify(schema);
 })();
 </script>
 

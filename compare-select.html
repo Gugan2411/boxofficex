@@ -29,7 +29,7 @@
 
     <meta
         name="robots"
-        content="index, follow"
+        content="index, follow, max-image-preview:large"
     >
 
     <link id="canonicalUrl" rel="canonical" href="https://boxofficex.in/compare-select.html">
@@ -1224,6 +1224,131 @@ body.bx-bottom-ad-visible{
     #bxInContentVideoAds{
         padding:0 13px;
     }
+}
+
+
+/* =========================================================
+   BOXOFFICEX ACTOR COMPARE SELECT — TRENDING + FAQ
+========================================================= */
+.trending-actor-comparisons,
+.actor-compare-faq{
+    margin-top:34px;
+    padding:22px;
+    border-radius:18px;
+}
+.trending-actor-comparisons{
+    background:linear-gradient(135deg,#ffffff 0%,#f3f7ff 100%);
+    border:1px solid #cdddf8;
+    box-shadow:0 14px 34px rgba(37,99,235,.08);
+}
+.actor-compare-faq{
+    background:linear-gradient(135deg,#fffdf7 0%,#fff8e8 100%);
+    border:1px solid #ead9ae;
+    box-shadow:0 14px 34px rgba(183,121,0,.07);
+}
+.trending-actor-comparisons h2,
+.actor-compare-faq h2{
+    margin:0 0 7px;
+    font-size:23px;
+    line-height:1.25;
+}
+.trending-actor-comparisons h2{color:#1d4ed8}
+.actor-compare-faq h2{color:#9a6700}
+.actor-section-copy{
+    margin:0 0 16px;
+    color:#64748b;
+    font-size:12px;
+    line-height:1.55;
+}
+#trendingActorComparisonsList{
+    display:grid;
+    gap:10px;
+}
+.trending-actor-card{
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr) auto;
+    align-items:center;
+    gap:11px;
+    padding:12px 13px;
+    border:1px solid #dbe5f3;
+    border-radius:12px;
+    background:#fff;
+    color:#172033;
+    text-decoration:none;
+    box-shadow:0 5px 16px rgba(15,23,42,.04);
+    transition:transform .15s ease,border-color .15s ease,background .15s ease;
+}
+.trending-actor-card:hover{
+    transform:translateY(-1px);
+    background:#eff6ff;
+    border-color:#93b4ee;
+}
+.trending-actor-rank{
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:#e8f0ff;
+    color:#1d4ed8;
+    font-size:11px;
+    font-weight:900;
+}
+.trending-actor-title{
+    color:#172033;
+    font-size:13px;
+    line-height:1.35;
+    font-weight:900;
+}
+.trending-actor-meta{
+    margin-top:3px;
+    color:#64748b;
+    font-size:9px;
+    line-height:1.35;
+}
+.trending-actor-arrow{
+    color:#2563eb;
+    font-size:17px;
+    font-weight:900;
+}
+.trending-actor-empty{
+    padding:15px;
+    border:1px dashed #cbd5e1;
+    border-radius:12px;
+    background:#fff;
+    color:#64748b;
+    text-align:center;
+    font-size:11px;
+}
+.actor-faq-list{display:grid;gap:10px}
+.actor-faq-item{
+    padding:14px 15px;
+    border:1px solid #eadfca;
+    border-radius:12px;
+    background:#fff;
+    box-shadow:0 4px 14px rgba(15,23,42,.035);
+}
+.actor-faq-item h3{
+    margin:0 0 6px;
+    color:#1f2937;
+    font-size:14px;
+    line-height:1.4;
+}
+.actor-faq-item p{
+    margin:0;
+    color:#64748b;
+    font-size:11px;
+    line-height:1.6;
+}
+@media(max-width:700px){
+    .trending-actor-comparisons,.actor-compare-faq{
+        margin-top:24px;padding:15px;border-radius:14px;
+    }
+    .trending-actor-comparisons h2,.actor-compare-faq h2{font-size:18px}
+    .trending-actor-card{grid-template-columns:30px minmax(0,1fr) auto;padding:10px;gap:8px}
+    .trending-actor-rank{width:25px;height:25px;font-size:9px}
+    .trending-actor-title{font-size:11px}
+    .trending-actor-meta{font-size:8px}
+    .actor-faq-item h3{font-size:12px}
+    .actor-faq-item p{font-size:10px}
 }
 
 </style>
@@ -2452,9 +2577,7 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{
 
     <div class="page-header">
 
-        <h1>
-            ⚔️ Hero vs Hero
-        </h1>
+        <h1>⚔️ Compare Indian Actors – Movies, Box Office & Career</h1>
 
         <p>
             Compare your favourite heroes and discover
@@ -2556,6 +2679,38 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{
         </div>
 
     </div>
+
+
+<section class="trending-actor-comparisons" aria-labelledby="trendingActorComparisonsTitle">
+    <h2 id="trendingActorComparisonsTitle">🔥 Trending Actor Comparisons</h2>
+    <p class="actor-section-copy">Explore popular BoxOfficeX actor matchups. Featured comparisons rotate automatically while real audience activity takes priority.</p>
+    <div id="trendingActorComparisonsList">
+        <div class="trending-actor-empty">Trending actor comparisons are loading.</div>
+    </div>
+</section>
+
+<section class="actor-compare-faq" aria-labelledby="actorCompareFaqTitle">
+    <h2 id="actorCompareFaqTitle">Actor Comparison FAQ</h2>
+    <p class="actor-section-copy">Quick answers about comparing actor careers and box-office performance on BoxOfficeX.</p>
+    <div class="actor-faq-list">
+        <article class="actor-faq-item">
+            <h3>How does BoxOfficeX compare two actors?</h3>
+            <p>BoxOfficeX compares available career data such as movies, box-office collections, hits, blockbusters and overall career performance.</p>
+        </article>
+        <article class="actor-faq-item">
+            <h3>Can I compare actors from different Indian film industries?</h3>
+            <p>Yes. You can select any two available actors in the BoxOfficeX database and open their comparison page.</p>
+        </article>
+        <article class="actor-faq-item">
+            <h3>What information is shown in an actor comparison?</h3>
+            <p>Comparison pages can include movie totals, worldwide box office, verdict performance, highest-grossing films and other available career statistics.</p>
+        </article>
+        <article class="actor-faq-item">
+            <h3>How are trending actor comparisons selected?</h3>
+            <p>Recent audience comparison activity is prioritized. When activity is limited, BoxOfficeX automatically features rotating actor matchups.</p>
+        </article>
+    </div>
+</section>
 
 <section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>
 
@@ -2713,7 +2868,7 @@ function setupCompareSelectSEO() {
             "compareSelectStructuredData"
         );
 
-    if (jsonLd) {
+    if (jsonLd && jsonLd.dataset.ssr !== "1") {
         jsonLd.textContent =
             JSON.stringify(
                 structuredData
