@@ -3405,15 +3405,15 @@ def sitemap_movie_compare_xml():
         ("baahubali-2-the-conclusion-2017", "pushpa-2-the-rule-2024"),
 
         # Telugu / pan-India
-        ("rrr-2022", "kgf-chapter-2-2022-3"),
+        ("rrr-2022", "kgf-chapter-2-2022"),
         ("rrr-2022", "baahubali-2-the-conclusion-2017"),
         ("pushpa-2-the-rule-2024", "rrr-2022"),
         ("kalki-2898-ad-2024", "rrr-2022"),
         ("kalki-2898-ad-2024", "pushpa-2-the-rule-2024"),
 
         # KGF / pan-India
-        ("kgf-chapter-2-2022-3", "pushpa-2-the-rule-2024"),
-        ("kgf-chapter-2-2022-3", "baahubali-2-the-conclusion-2017"),
+        ("kgf-chapter-2-2022", "pushpa-2-the-rule-2024"),
+        ("kgf-chapter-2-2022", "baahubali-2-the-conclusion-2017"),
 
         # Hindi
         ("jawan-2023", "pathaan-2023"),
@@ -3439,7 +3439,7 @@ def sitemap_movie_compare_xml():
         # Salaar / KGF / RRR
         (
             "salaar-cease-fire-part-1-2023",
-            "kgf-chapter-2-2022-3"
+            "kgf-chapter-2-2022"
         ),
         (
             "salaar-cease-fire-part-1-2023",
@@ -3449,7 +3449,7 @@ def sitemap_movie_compare_xml():
         # Kannada
         (
             "kantara-chapter-1-2025",
-            "kgf-chapter-2-2022-3"
+            "kgf-chapter-2-2022"
         ),
     ]
 
