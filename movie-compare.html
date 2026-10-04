@@ -2855,10 +2855,15 @@ async function bxOttLoadMovieCompare(a,b){
 
 async function load(){
 const p=new URLSearchParams(location.search);
-let aId=p.get("a"),bId=p.get("b");
+const comparisonRoot=document.getElementById("app");
+const hasSSRComparison=comparisonRoot?.dataset.ssr==="1";
+let aId=hasSSRComparison ? comparisonRoot.dataset.movie1Id : p.get("a");
+let bId=hasSSRComparison ? comparisonRoot.dataset.movie2Id : p.get("b");
 
 const cleanMatch=location.pathname.match(/^\/compare\/movies\/([^/?#]+)\/?$/i);
 
+// Clean SSR URLs already carry both movie IDs in the server-rendered HTML.
+// Resolve the slug only for non-SSR fallback pages.
 if((!aId||!bId) && cleanMatch){
   try{
     const rr=await fetch(
@@ -2999,7 +3004,12 @@ bxInitMovieFanShare(a.title,b.title);
 bxOttLoadMovieCompare(a,b);
 loadMovieComparisonEngagement(a.id,b.id);
 loadMovieComparisonComments(a.id,b.id);
-loadMoreMovieComparisons(a,b);
+const loadRelatedComparisons = () => loadMoreMovieComparisons(a,b);
+if("requestIdleCallback" in window){
+  requestIdleCallback(loadRelatedComparisons,{timeout:2500});
+}else{
+  setTimeout(loadRelatedComparisons,900);
+}
 }catch(e){console.error(e);document.getElementById("app").innerHTML=`<div class="error">${esc(e.message)}<br><br><a class="change" href="/movie-compare-select.html">Choose Movies</a></div>`}
 }
 
@@ -3633,7 +3643,36 @@ function bxInitMovieFanShare(movie1Title,movie2Title){
         return selected.length;
     }
 
-    async function loadMovieComparisonAds(){
+    // Share one movie_compare_results response across every renderer on this page.
+    // The page has both the general ad system and the direct in-content renderer;
+    // without this shared promise they request the exact same payload twice.
+    if (typeof window.BoxOfficeXGetMovieCompareAds !== "function") {
+        let sharedMovieCompareAdsPromise = null;
+        window.BoxOfficeXGetMovieCompareAds = function(force=false){
+            if(force || !sharedMovieCompareAdsPromise){
+                sharedMovieCompareAdsPromise = fetch(
+                    `/ads/active?placement=movie_compare_results&page=${encodeURIComponent(location.pathname)}`,
+                    {cache:"no-store"}
+                ).then(response => {
+                    if(!response.ok) throw new Error(`Movie comparison ads HTTP ${response.status}`);
+                    return response.json();
+                }).catch(error => {
+                    sharedMovieCompareAdsPromise = null;
+                    throw error;
+                });
+            }
+            return sharedMovieCompareAdsPromise;
+        };
+    }
+
+    let movieComparisonAdsPromise = null;
+    let movieComparisonAdsLoaded = false;
+
+    async function loadMovieComparisonAds(force=false){
+        if(!force && movieComparisonAdsLoaded) return;
+        if(!force && movieComparisonAdsPromise) return movieComparisonAdsPromise;
+
+        movieComparisonAdsPromise = (async () => {
         try{
             // BOXOFFICEX AD CLEANUP: remove stale/deleted/disabled/expired creatives first.
             [
@@ -3658,14 +3697,7 @@ function bxInitMovieFanShare(movie1Title,movie2Title){
             document.body.classList.remove("bx-bottom-ad-visible", "bx-top-ad-visible");
             document.documentElement.style.removeProperty("--bx-top-sticky-space");
 
-            const response = await fetch(
-                `/ads/active?placement=movie_compare_results&page=${encodeURIComponent(AD_PAGE)}`,
-                {cache:"no-store"}
-            );
-
-            if(!response.ok) return;
-
-            const data = await response.json();
+            const data = await window.BoxOfficeXGetMovieCompareAds(force);
             const ads = (Array.isArray(data.advertisements) ? data.advertisements : []).filter(ad => ad.is_active !== false);
 
             const fullscreen = pickOne(ads, "full_screen");
@@ -3692,10 +3724,18 @@ function bxInitMovieFanShare(movie1Title,movie2Title){
                 showFloatingSlots();
             }
 
+            movieComparisonAdsLoaded = true;
         }catch(error){
             console.warn("BoxOfficeX advertisements unavailable:", error);
+        }finally{
+            movieComparisonAdsPromise = null;
         }
+        })();
+
+        return movieComparisonAdsPromise;
     }
+
+    window.BoxOfficeXLoadMovieComparisonAds = () => loadMovieComparisonAds(false);
 
     if(document.readyState === "loading"){
         document.addEventListener("DOMContentLoaded", loadMovieComparisonAds);
@@ -3814,9 +3854,8 @@ function bxInitMovieFanShare(movie1Title,movie2Title){
      }catch{}
    }
    try{
-     const r=await fetch(`/ads/active?placement=${BX_PLACEMENT}&page=${encodeURIComponent(location.pathname)}`,{cache:"no-store"});
-     if(!r.ok||my!==generation)return;
-     const d=await r.json();
+     const d=await window.BoxOfficeXGetMovieCompareAds();
+     if(my!==generation)return;
      const pool=(Array.isArray(d?.advertisements)?d.advertisements:[]).filter(a=>String(a?.ad_type||"").toLowerCase()==="in_content"&&a?.is_active!==false&&freqOK(a));
      for(let n=1;n<=BX_MAX;n++){
        const candidates=pool.filter(a=>{const s=Number(a?.ad_slot??1);return s===0||s===n});
@@ -3824,12 +3863,21 @@ function bxInitMovieFanShare(movie1Title,movie2Title){
      }
    }catch(e){console.warn("Movie compare in-content ads unavailable",e)}
  }
+ let autoStarted=false;
+ function autoRun(){
+   if(autoStarted)return;
+   // On SSR comparison URLs, load() replaces the SSR app with the interactive
+   // version and explicitly calls the exported loader afterward. Avoid fetching
+   // ads into SSR slots that are about to be replaced.
+   if(document.getElementById("app")?.dataset.ssr==="1")return;
+   if(!(document.getElementById("bxSmartAdSlot1")||document.getElementById("bxSmartAdSlot2")||document.getElementById("bxSmartAdSlot3")))return;
+   autoStarted=true;
+   run();
+ }
  window.BoxOfficeXLoadMovieCompareInContentAds=run;
- if(document.getElementById("bxSmartAdSlot1")||document.getElementById("bxSmartAdSlot2")||document.getElementById("bxSmartAdSlot3"))run();
+ autoRun();
  if(document.readyState==="loading"){
-   document.addEventListener("DOMContentLoaded",()=>{
-     if(document.getElementById("bxSmartAdSlot1")||document.getElementById("bxSmartAdSlot2")||document.getElementById("bxSmartAdSlot3"))run();
-   },{once:true});
+   document.addEventListener("DOMContentLoaded",autoRun,{once:true});
  }
 })();
 </script>

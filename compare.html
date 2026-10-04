@@ -2669,10 +2669,20 @@ loadComparison();
 // ==========================================
 
 async function loadComparison() {
-    try {
-        await resolveActorComparisonIdentity();
-    } catch (error) {
-        console.error("Actor comparison identity error:", error);
+    const comparisonRoot = document.getElementById("comparisonContent");
+    const hasSSRComparison = comparisonRoot?.dataset.ssr === "1";
+
+    // SSR already knows both actors. Reuse that identity instead of calling
+    // /seo/resolve/actor-comparison/{slug} again.
+    if (hasSSRComparison) {
+        hero1 = comparisonRoot.dataset.actor1Name || hero1;
+        hero2 = comparisonRoot.dataset.actor2Name || hero2;
+    } else {
+        try {
+            await resolveActorComparisonIdentity();
+        } catch (error) {
+            console.error("Actor comparison identity error:", error);
+        }
     }
 
     if (!hero1 || !hero2) {
@@ -2696,326 +2706,67 @@ async function loadComparison() {
 
 
         // ==================================
-        // GET ACTORS
+        // FAST SINGLE-PAYLOAD COMPARISON LOAD
         // ==================================
+        // SSR pages already contain actor IDs, so they skip actor lookup.
+        // Non-SSR fallback pages resolve IDs once through /actors.
+        // After that, ONE optimized endpoint supplies stats, filmographies,
+        // era-universe data, highest grossers and the related actor catalogue.
 
-        const actorsResponse =
-            await fetch(
-                "/actors"
-            );
+        let actor1Id = Number(comparisonRoot?.dataset.actor1Id);
+        let actor2Id = Number(comparisonRoot?.dataset.actor2Id);
 
+        if (!Number.isFinite(actor1Id) || !Number.isFinite(actor2Id)) {
+            const actorsResponse = await fetch("/actors");
+            if (!actorsResponse.ok) throw new Error("Actors API failed");
 
-        if (!actorsResponse.ok) {
-
-            throw new Error(
-                "Actors API failed"
-            );
-
+            const actorsData = await actorsResponse.json();
+            const actorList = actorsData.actors || [];
+            const normalizeActorName = value => String(value || "")
+                .trim().toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ");
+            const findActorByName = (list, requestedName) => {
+                const requested = normalizeActorName(requestedName);
+                return list.find(a => normalizeActorName(a.name) === requested)
+                    || list.find(a => normalizeActorName(a.name).startsWith(requested + " ")
+                        || requested.startsWith(normalizeActorName(a.name) + " "))
+                    || list.find(a => requested.split(" ").every(w => normalizeActorName(a.name).split(" ").includes(w)))
+                    || list.find(a => normalizeActorName(a.name).includes(requested)
+                        || requested.includes(normalizeActorName(a.name)))
+                    || null;
+            };
+            const fallbackActor1 = findActorByName(actorList, hero1);
+            const fallbackActor2 = findActorByName(actorList, hero2);
+            if (!fallbackActor1 || !fallbackActor2) throw new Error("Actor not found");
+            actor1Id = Number(fallbackActor1.id);
+            actor2Id = Number(fallbackActor2.id);
         }
 
-
-        const actorsData =
-            await actorsResponse.json();
-
-
-        const actors =
-            actorsData.actors || [];
-
-
-
-        // ==================================
-        // FLEXIBLE ACTOR NAME MATCHING
-        // ==================================
-
-        function normalizeActorName(value) {
-
-            return String(value || "")
-                .trim()
-                .toLowerCase()
-                .replace(/[^a-z0-9\s]/g, "")
-                .replace(/\s+/g, " ");
-        }
-
-
-        function findActorByName(
-            actorList,
-            requestedName
-        ) {
-
-            const requested =
-                normalizeActorName(
-                    requestedName
-                );
-
-
-            // 1) Exact normalized match
-            const exact =
-                actorList.find(actor =>
-                    normalizeActorName(
-                        actor.name
-                    ) === requested
-                );
-
-            if (exact) {
-                return exact;
-            }
-
-
-            // 2) Actor name starts with requested name
-            const startsWith =
-                actorList.find(actor => {
-
-                    const actorName =
-                        normalizeActorName(
-                            actor.name
-                        );
-
-                    return (
-                        actorName.startsWith(
-                            requested + " "
-                        ) ||
-                        requested.startsWith(
-                            actorName + " "
-                        )
-                    );
-                });
-
-            if (startsWith) {
-                return startsWith;
-            }
-
-
-            // 3) Whole-word match
-            const wordMatch =
-                actorList.find(actor => {
-
-                    const actorName =
-                        normalizeActorName(
-                            actor.name
-                        );
-
-                    const actorWords =
-                        actorName.split(" ");
-
-                    const requestedWords =
-                        requested.split(" ");
-
-                    return requestedWords.every(
-                        word =>
-                            actorWords.includes(
-                                word
-                            )
-                    );
-                });
-
-            if (wordMatch) {
-                return wordMatch;
-            }
-
-
-            // 4) Partial fallback
-            return actorList.find(actor => {
-
-                const actorName =
-                    normalizeActorName(
-                        actor.name
-                    );
-
-                return (
-                    actorName.includes(
-                        requested
-                    ) ||
-                    requested.includes(
-                        actorName
-                    )
-                );
-            }) || null;
-        }
-
-
-        // ==================================
-        // FIND HERO 1
-        // ==================================
-
-        const actor1 =
-            findActorByName(
-                actors,
-                hero1
-            );
-
-
-        // ==================================
-        // FIND HERO 2
-        // ==================================
-
-        const actor2 =
-            findActorByName(
-                actors,
-                hero2
-            );
-
-
-        if (!actor1 || !actor2) {
-
-            const missingActors = [];
-
-            if (!actor1) {
-                missingActors.push(
-                    hero1
-                );
-            }
-
-            if (!actor2) {
-                missingActors.push(
-                    hero2
-                );
-            }
-
-            document.getElementById(
-                "comparisonContent"
-            ).innerHTML = `
-
-                <div class="error">
-
-                    Actor not found:
-                    <strong>
-                        ${missingActors.join(", ")}
-                    </strong>
-
-                    <br><br>
-
-                    Please choose actors from the
-                    Hero vs Hero selector.
-
-                </div>
-
-            `;
-
-            return;
-
-        }
-
-
-        updateComparisonSEO(
-            actor1,
-            actor2,
-            actorComparisonCanonicalUrl
+        const comparisonResponse = await fetch(
+            `/compare/actors/${encodeURIComponent(actor1Id)}/${encodeURIComponent(actor2Id)}`
         );
-
-
-        // ==================================
-        // GET STATS
-        // ==================================
-
-        const stats1Response =
-            await fetch(
-                "/actors/" +
-                actor1.id +
-                "/stats"
-            );
-
-
-        const stats2Response =
-            await fetch(
-                "/actors/" +
-                actor2.id +
-                "/stats"
-            );
-
-
-        if (
-            !stats1Response.ok ||
-            !stats2Response.ok
-        ) {
-
-            throw new Error(
-                "Statistics API failed"
-            );
-
+        if (!comparisonResponse.ok) {
+            throw new Error("Comparison API failed: " + comparisonResponse.status);
         }
 
+        const comparisonPayload = await comparisonResponse.json();
+        const comparisonActors = Array.isArray(comparisonPayload.comparison)
+            ? comparisonPayload.comparison : [];
+        const actorById = new Map(comparisonActors.map(actor => [Number(actor.id), actor]));
+        const actor1 = actorById.get(actor1Id);
+        const actor2 = actorById.get(actor2Id);
+        if (!actor1 || !actor2) throw new Error("Comparison actors missing");
 
-        const stats1 =
-            await stats1Response.json();
+        actorComparisonCanonicalUrl = comparisonPayload.seo?.canonical_url || actorComparisonCanonicalUrl;
+        updateComparisonSEO(actor1, actor2, actorComparisonCanonicalUrl);
 
-
-        const stats2 =
-            await stats2Response.json();
-
-
-        // ==================================
-        // GET ACTOR MOVIES FOR ERA-ADJUSTED POWER
-        // ==================================
-        // This uses BoxOfficeX's own movie records. Each actor's movie is compared
-        // with movies released in the same five-year era. We keep raw worldwide
-        // averages visible, but the winner engine can now judge historical films
-        // relative to the box-office environment of their time.
-
-        const [actorMovies1Response, actorMovies2Response, eraUniverseResponse] =
-            await Promise.all([
-                fetch("/actors/" + actor1.id + "/movies"),
-                fetch("/actors/" + actor2.id + "/movies"),
-                fetch("/movies")
-            ]);
-
-        const actorMovies1Data = actorMovies1Response.ok
-            ? await actorMovies1Response.json()
-            : {};
-        const actorMovies2Data = actorMovies2Response.ok
-            ? await actorMovies2Response.json()
-            : {};
-        const eraUniverseData = eraUniverseResponse.ok
-            ? await eraUniverseResponse.json()
-            : {};
-
-        const bxArrayFrom = data =>
-            Array.isArray(data) ? data :
-            Array.isArray(data.movies) ? data.movies : [];
-
-        const actorMovies1 = bxArrayFrom(actorMovies1Data);
-        const actorMovies2 = bxArrayFrom(actorMovies2Data);
-        const eraUniverseMovies = bxArrayFrom(eraUniverseData);
-
-
-        // ==================================
-        // GET HIGHEST GROSSING MOVIES
-        // ==================================
-
-        const highest1Response =
-            await fetch(
-                "/actors/" +
-                actor1.id +
-                "/highest-grossing"
-            );
-
-
-        const highest2Response =
-            await fetch(
-                "/actors/" +
-                actor2.id +
-                "/highest-grossing"
-            );
-
-
-        if (
-            !highest1Response.ok ||
-            !highest2Response.ok
-        ) {
-
-            throw new Error(
-                "Highest grossing API failed"
-            );
-
-        }
-
-
-        const highest1 =
-            await highest1Response.json();
-
-
-        const highest2 =
-            await highest2Response.json();
-
+        const stats1 = comparisonPayload.stats?.[String(actor1Id)] || {};
+        const stats2 = comparisonPayload.stats?.[String(actor2Id)] || {};
+        const actorMovies1 = comparisonPayload.movies?.[String(actor1Id)] || [];
+        const actorMovies2 = comparisonPayload.movies?.[String(actor2Id)] || [];
+        const eraUniverseMovies = comparisonPayload.era_universe_movies || [];
+        const highest1 = comparisonPayload.highest_grossing?.[String(actor1Id)] || {movie:null};
+        const highest2 = comparisonPayload.highest_grossing?.[String(actor2Id)] || {movie:null};
+        const actors = comparisonPayload.actors_catalog || comparisonActors;
 
         // ==================================
         // ACTOR COMPARISON RESULT BLUEPRINT
@@ -4351,7 +4102,13 @@ if(mr.ok){const d=await mr.json(),all=[...(d.running||[]),...(d.upcoming||[]),..
 if(ar.ok){const d=await ar.json(),now=Date.now(),seven=7*86400000;const fresh=(d.articles||[]).some(article=>{const ts=new Date(article.published_at).getTime();return Number.isFinite(ts)&&ts<=now&&(now-ts)<=seven});setSiteNewBadge(["articlesBadge","mobileArticlesBadge"],fresh)}
 }catch(error){console.warn("Site NEW badge check failed:",error)}
 }
-updateSiteNewBadges();
+// NEW badges are non-critical navigation decoration. Run them only after
+// the initial comparison UI has had a chance to paint.
+if ("requestIdleCallback" in window) {
+    requestIdleCallback(updateSiteNewBadges, { timeout: 2500 });
+} else {
+    setTimeout(updateSiteNewBadges, 1200);
+}
 
 </script>
 
@@ -4957,7 +4714,7 @@ document.addEventListener("DOMContentLoaded",function(){
 /* BoxOfficeX Actor Compare Results — V1 direct 2-slot In-Content renderer */
 (function(){
  const BX_PLACEMENT="actor_compare_results", BX_MAX=3;
- let generation=0;
+ let generation=0, initialLoadDone=false, loadPromise=null;
  function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
  function sourceId(a){return Math.abs(Number(a?.source_advertisement_id ?? a?.id ?? 0))}
  function media(a){return matchMedia("(max-width:700px)").matches&&a?.mobile_media_url?a.mobile_media_url:a?.media_url}
@@ -5034,8 +4791,15 @@ document.addEventListener("DOMContentLoaded",function(){
    return true;
  }
 
- async function run(){
+ async function run(force=false){
    if(!document.getElementById("bxSmartAdSlot1")&&!document.getElementById("bxSmartAdSlot2")&&!document.getElementById("bxSmartAdSlot3"))return;
+
+   // SSR pages can reach this initializer from more than one lifecycle path.
+   // Keep automatic startup to one request and share any in-flight request.
+   if(!force && initialLoadDone) return;
+   if(loadPromise) return loadPromise;
+
+   loadPromise=(async()=>{
    const my=++generation;clear();
    const q=new URLSearchParams(location.search);
    if(q.get("bx_ad_preview")==="1"){
@@ -5059,8 +4823,17 @@ document.addEventListener("DOMContentLoaded",function(){
        const a=pick(candidates);if(a)render(a,n,false);
      }
    }catch(e){console.warn("Actor compare in-content ads unavailable",e)}
+   finally{ initialLoadDone=true; }
+   })();
+
+   try{
+     return await loadPromise;
+   }finally{
+     loadPromise=null;
+   }
  }
- window.BoxOfficeXLoadActorCompareInContentAds=run;
+ // Explicit callers may intentionally refresh the placement later.
+ window.BoxOfficeXLoadActorCompareInContentAds=()=>run(true);
 
  // The comparison content is rendered before this script is parsed.
  // Run immediately when the physical slots already exist; also keep a

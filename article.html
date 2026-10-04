@@ -3307,6 +3307,47 @@ line-height:1.75;
     display:none !important;
 }
 
+
+        /* PRE-RELEASE BUSINESS — structured all-in-one movie business block */
+        .prb-block{margin:38px 0;padding:22px;border:1px solid #dbe3ef;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(15,23,42,.07);color:#111827}
+        .article-content .prb-block h2{margin:0 0 10px;color:#111827;font-family:Arial,Helvetica,sans-serif;font-size:clamp(25px,4vw,34px);line-height:1.18}
+        .article-content .prb-block h3{margin:26px 0 10px;color:#111827;font-family:Arial,Helvetica,sans-serif;font-size:19px;line-height:1.25}
+        .article-content .prb-summary-text{margin:0 0 16px;color:#475569;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.65}
+        .prb-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:15px 0 8px}
+        .prb-stat{padding:13px;border:1px solid #e3e8f0;border-radius:12px;background:#f8fafc}
+        .prb-stat span{display:block;color:#64748b;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.45px}
+        .prb-stat strong{display:block;margin-top:4px;color:#111827;font-size:18px}
+        .prb-stat.prb-total{background:#eef6ff;border-color:#cfe0ff}.prb-stat.prb-total strong{color:#1d4ed8}
+        .prb-table-wrap{overflow-x:auto;border:1px solid #e3e8f0;border-radius:12px}
+        .prb-table{width:100%;border-collapse:collapse;font-family:Arial,Helvetica,sans-serif}
+        .prb-table th,.prb-table td{padding:11px 12px;border-bottom:1px solid #edf0f4;text-align:left;font-size:12px}
+        .prb-table th{background:#f8fafc;color:#64748b;font-size:9px;text-transform:uppercase;letter-spacing:.4px}
+        .prb-table td:nth-child(2),.prb-table th:nth-child(2){text-align:right;font-weight:900}
+        .prb-table tr:last-child td{border-bottom:0}.prb-table .prb-total-row td{background:#f8fafc;font-weight:900}
+        .prb-status{display:inline-flex;margin-top:14px;padding:5px 8px;border-radius:999px;background:#fff7e6;color:#9a6700;font:900 9px Arial,sans-serif;text-transform:uppercase}
+        .article-content .prb-note{margin:12px 0 0;padding:11px 12px;border-left:3px solid #d6a900;background:#fffaf0;color:#64748b;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:1.55}
+        @media(max-width:700px){.prb-block{padding:15px 10px}.prb-quick-grid{grid-template-columns:1fr 1fr}.prb-stat strong{font-size:15px}.prb-table th,.prb-table td{padding:9px 8px;font-size:10px}}
+
+
+/* BOXOFFICEX COMPACT ARTICLE SECTION NAV */
+.bx-section-nav{width:min(100%,700px);margin:12px auto 2px;padding:5px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;border:1px solid rgba(148,163,184,.22);border-radius:12px;background:rgba(15,23,42,.92);box-shadow:0 8px 22px rgba(15,23,42,.08);font-family:Arial,Helvetica,sans-serif}
+.bx-section-nav-btn{min-width:0;min-height:36px;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 9px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.035);color:#cbd5e1;font-size:10px;font-weight:900;letter-spacing:.25px;text-decoration:none;white-space:nowrap;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+.bx-section-nav-btn:hover{background:rgba(77,141,255,.13);border-color:rgba(77,141,255,.34);color:#fff;transform:translateY(-1px)}
+.bx-section-nav-icon{color:#8fb8ff;font-size:12px;font-weight:1000;line-height:1}
+.bx-section-nav-dot{width:7px;height:7px;border-radius:50%;background:#94a3b8;box-shadow:none;flex:0 0 auto}
+.bx-section-nav-live.is-live{color:#fff;border-color:rgba(239,68,68,.30);background:rgba(239,68,68,.09)}
+.bx-section-nav-live.is-live .bx-section-nav-dot{background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.45);animation:bxSectionLivePulse 1.35s ease-in-out infinite}
+@keyframes bxSectionLivePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,.38)}50%{opacity:.45;box-shadow:0 0 0 5px rgba(239,68,68,0)}}
+@media(max-width:700px){.bx-section-nav{margin-top:9px;padding:4px;gap:4px;border-radius:10px}.bx-section-nav-btn{min-height:33px;padding:6px 5px;border-radius:8px;font-size:8.5px;gap:5px}.bx-section-nav-icon{font-size:10px}.bx-section-nav-dot{width:6px;height:6px}}
+@media(prefers-reduced-motion:reduce){.bx-section-nav-live.is-live .bx-section-nav-dot{animation:none}}
+
+/* V3.1 navigation cue + stronger share panel */
+.bx-section-nav-wrap{margin:10px 0 14px}.bx-section-nav-hint{text-align:center;font-size:10px;font-weight:900;letter-spacing:.02em;color:#334155;margin:0 0 6px}.bx-section-nav-hint span{display:inline-block;animation:bxHintDown 1.2s ease-in-out infinite}@keyframes bxHintDown{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.article-share-boost{background:linear-gradient(135deg,#0f172a,#172554)!important;border:1px solid rgba(96,165,250,.28)!important;border-radius:14px!important;padding:14px!important;margin-top:15px!important}.article-share-boost h3{color:#fff!important;font-size:15px!important}.article-share-boost p{color:#dbeafe!important;font-size:11px!important;margin:4px 0 10px!important}.article-share-boost .article-social-btn{font-weight:800!important;box-shadow:0 2px 8px rgba(0,0,0,.14)}
+@media(max-width:700px){.bx-section-nav-wrap{margin:7px 0 10px}.bx-section-nav-hint{font-size:9px;margin-bottom:5px}.article-share-boost{padding:11px!important;border-radius:12px!important}}
+
+/* Article SEO + full SSR V1: compact visible answer passages */
+.bx-seo-section-head{margin:22px 0 12px;padding:0 2px}.bx-seo-section-head h2{margin:0 0 7px;font-size:clamp(1.2rem,3.4vw,1.55rem);line-height:1.25;color:#111827}.bx-seo-section-head p,.prb-seo-answer{margin:0;color:#4b5563;font-size:.94rem;line-height:1.65}.bx-seo-section-head strong,.prb-seo-answer strong{color:#111827}.bx-seo-theatrical-head{margin-top:26px}.prb-seo-answer{margin:12px 0 14px;padding:11px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}@media(max-width:520px){.bx-seo-section-head{margin:17px 0 10px}.bx-seo-section-head h2{font-size:1.08rem}.bx-seo-section-head p,.prb-seo-answer{font-size:.88rem;line-height:1.55}.prb-seo-answer{padding:10px}}
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4636,9 +4677,190 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+
+<style id="bx-article-mobile-header-fixed-v1">
+/* Article mobile header: keep BOTH logo row + comparison row fixed together. */
+@media (max-width:700px){
+  body > .bx-master-mobile-header{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    z-index:100500!important;
+    transform:none!important;
+    will-change:auto!important;
+  }
+
+  /* 61px logo row + 52px feature row = 113px fixed header. */
+  body{
+    padding-top:113px!important;
+  }
+
+  /* The hidden legacy header must not add another offset. */
+  body > .bx-master-mobile-header + header{
+    display:none!important;
+  }
+
+  /* Menu opens directly below the complete fixed header. */
+  body > .bx-master-mobile-header .bx-master-mobile-menu{
+    position:fixed!important;
+    top:113px!important;
+    left:10px!important;
+    right:10px!important;
+    z-index:100510!important;
+    max-height:calc(100dvh - 125px)!important;
+  }
+
+  /* Keep page-level sticky controls below the site header. */
+  .bx-section-nav{
+    scroll-margin-top:122px!important;
+  }
+
+  #live-tracker,
+  #day-wise,
+  #box-office-report,
+  #pre-release-business,
+  #business{
+    scroll-margin-top:126px!important;
+  }
+}
+</style>
+
+
+<style id="bx-business-mobile-ui-v2">
+/* BoxOfficeX V2: denser business + theatrical UI. Presentation only. */
+@media(max-width:700px){
+  .prb-block{margin:24px 0!important;padding:14px 11px!important;border-radius:15px!important;box-shadow:0 7px 20px rgba(15,23,42,.055)!important}
+  .article-content .prb-block h2{font-size:21px!important;line-height:1.2!important;margin-bottom:7px!important}
+  .article-content .prb-block h3{font-size:15px!important;line-height:1.25!important;margin:18px 0 7px!important;padding-top:2px!important}
+  .article-content .prb-summary-text{font-size:11px!important;line-height:1.5!important;margin-bottom:10px!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .prb-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin:10px 0 5px!important}
+  .prb-stat{min-width:0!important;padding:9px 9px!important;border-radius:10px!important}
+  .prb-stat span{font-size:7.5px!important;letter-spacing:.28px!important;white-space:normal!important;line-height:1.25!important}
+  .prb-stat strong{font-size:14px!important;line-height:1.2!important;margin-top:3px!important;overflow-wrap:anywhere!important}
+  .prb-table-wrap{border-radius:10px!important}
+  .prb-table{table-layout:auto!important}
+  .prb-table th,.prb-table td{padding:8px 7px!important;font-size:9.5px!important;line-height:1.3!important}
+  .prb-table th{font-size:7.5px!important;letter-spacing:.25px!important}
+  .prb-status{margin-top:10px!important;font-size:7.5px!important;padding:4px 7px!important}
+  .article-content .prb-note{margin-top:9px!important;padding:9px 10px!important;font-size:8.5px!important;line-height:1.45!important}
+
+  .bx-tp{margin-top:18px!important;padding:13px 10px!important;border-radius:15px!important;box-shadow:0 7px 20px rgba(15,23,42,.045)!important}
+  .bx-tp-head{margin-bottom:10px!important}
+  .bx-tp-title{font-size:16px!important;line-height:1.2!important}
+  .bx-tp-sub{font-size:9px!important;line-height:1.35!important;margin-top:3px!important}
+  .bx-tp-combined{padding:11px!important;border-radius:11px!important}
+  .bx-tp-kicker{font-size:7.5px!important}
+  .bx-tp-combined-title{font-size:13px!important;line-height:1.25!important}
+  .bx-tp-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin-top:9px!important}
+  .bx-tp-stat{min-width:0!important;padding:8px 7px!important;border-radius:9px!important}
+  .bx-tp-stat span{font-size:6.8px!important;line-height:1.25!important;letter-spacing:.15px!important}
+  .bx-tp-stat strong{font-size:12.5px!important;line-height:1.2!important;margin-top:3px!important;overflow-wrap:anywhere!important}
+  .bx-tp-stat.level{display:flex!important;flex-direction:column!important;align-items:flex-start!important;overflow:hidden!important}
+  .bx-tp-level-big{display:inline-flex!important;width:auto!important;max-width:100%!important;min-width:0!important;margin-top:4px!important;padding:5px 7px!important;font-size:9px!important;line-height:1.15!important;white-space:normal!important;overflow-wrap:anywhere!important;text-align:left!important}
+  .bx-tp-next{margin-top:8px!important;padding:9px!important;border-radius:9px!important;background:#f5f9ff!important;border-color:#cfe0f8!important}
+  .bx-tp-next-row{font-size:9.5px!important;line-height:1.4!important}
+  .bx-tp-next-row strong{font-size:10.5px!important}
+  .bx-tp-next-simple strong:first-child{font-size:11.5px!important}
+  .bx-tp-next-row small{font-size:8px!important;line-height:1.35!important}
+  .bx-tp-progress{height:6px!important;margin-top:7px!important}
+  .bx-tp-achieved{font-size:8.5px!important;margin-top:6px!important}
+  .bx-tp-section-title{margin:14px 0 7px!important;font-size:11.5px!important}
+  .bx-tp-regions{gap:7px!important}
+  .bx-tp-region{padding:10px!important;border-radius:11px!important}
+  .bx-tp-region-head{gap:7px!important}
+  .bx-tp-region-name{font-size:11.5px!important}
+  .bx-tp-badge{max-width:46%;padding:3px 6px!important;font-size:6.8px!important;line-height:1.15!important;white-space:normal!important;text-align:center!important;overflow-wrap:anywhere!important}
+  .bx-tp-region-values{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important;margin-top:7px!important}
+  .bx-tp-mini{min-width:0!important;padding:7px!important;border-radius:8px!important}
+  .bx-tp-mini span{font-size:6.5px!important;line-height:1.2!important}
+  .bx-tp-mini strong{font-size:10.5px!important;line-height:1.2!important;overflow-wrap:anywhere!important}
+  .bx-tp-region .bx-tp-next{margin-top:7px!important;padding:8px!important}
+  .bx-tp-notes{margin-top:11px!important;padding:9px 10px!important;font-size:8px!important;line-height:1.45!important}
+  .bx-tp-notes p{font-size:8px!important;line-height:1.45!important}
+  .bx-tp-seo{margin-top:18px!important}
+}
+@media(max-width:360px){
+  .prb-stat strong{font-size:13px!important}
+  .bx-tp-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .bx-tp-region-values{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .bx-tp-level-big{font-size:8.5px!important;padding:5px 6px!important}
+}
+</style>
+\n<style id="bx-prb-color-ui-v3">
+/* Colorful pre-release business + clearer animated article navigation */
+.bx-section-nav-btn{position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.015)}
+.bx-section-nav-btn .bx-nav-arrow{margin-left:auto;font-size:16px;font-weight:1000;line-height:1;color:#8fb8ff;animation:bxNavArrowNudge 1.35s ease-in-out infinite}
+.bx-section-nav-live.is-live .bx-nav-arrow{color:#ff8585}
+@keyframes bxNavArrowNudge{0%,100%{transform:translateX(0);opacity:.55}50%{transform:translateX(4px);opacity:1}}
+@media(prefers-reduced-motion:reduce){.bx-section-nav-btn .bx-nav-arrow{animation:none}}
+
+.prb-block{overflow:hidden!important;padding:0!important;border:1px solid #d9e3f2!important;border-radius:20px!important;background:#fff!important;box-shadow:0 12px 34px rgba(15,23,42,.09)!important}
+.prb-hero{display:flex;align-items:center;gap:12px;padding:18px 20px;background:linear-gradient(120deg,#0f3f99,#2859d8 58%,#7047e8);color:#fff}
+.prb-hero-icon{display:grid;place-items:center;width:46px;height:46px;flex:0 0 46px;border-radius:14px;background:rgba(255,255,255,.16);font-size:25px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.article-content .prb-hero h2{margin:0!important;color:#fff!important;font-size:24px!important;line-height:1.15!important}.prb-hero p{margin:4px 0 0!important;color:#dbeafe!important;font:700 11px/1.35 Arial,sans-serif!important}
+.prb-quick-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:12px!important}
+.prb-stat{min-width:0!important;display:flex!important;align-items:center!important;gap:8px!important;padding:11px!important;border-radius:13px!important;box-shadow:none!important}
+.prb-stat-icon{font-size:20px;line-height:1}.prb-stat small{display:block;font:900 8px/1.2 Arial,sans-serif;text-transform:uppercase;letter-spacing:.25px}.prb-stat strong{display:block!important;margin-top:4px!important;font:1000 16px/1.1 Arial,sans-serif!important;white-space:nowrap}
+.prb-stat.prb-budget{background:#eaf4ff!important;border-color:#b9d8ff!important}.prb-budget small,.prb-budget strong{color:#124ca3!important}
+.prb-stat.prb-theatrical{background:#fff0f0!important;border-color:#ffc8c8!important}.prb-theatrical small,.prb-theatrical strong{color:#c71f1f!important}
+.prb-stat.prb-nontheatrical{background:#ecfbf1!important;border-color:#b9edca!important}.prb-nontheatrical small,.prb-nontheatrical strong{color:#147333!important}
+.prb-stat.prb-total{background:#f3edff!important;border-color:#d7c4ff!important}.prb-total small,.prb-total strong{color:#6222b8!important}
+.prb-section-head{display:flex;align-items:center;gap:8px;margin:18px 14px 7px!important}.prb-section-head>span{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;color:#fff;font:1000 12px Arial,sans-serif}.article-content .prb-section-head h3{margin:0!important;font-size:16px!important;color:#15233c!important}.prb-section-head.budget>span{background:#2367d1}.prb-section-head.theatrical>span{background:#e3242b}.prb-section-head.non>span{background:#159447}
+.prb-panel{margin:0 12px 12px;padding:7px;border-radius:14px}.prb-panel-budget{background:#f4f9ff;border:1px solid #d4e7ff}.prb-panel-theatrical{background:#fff5f5;border:1px solid #ffd5d7}.prb-panel-non{background:#f1fcf5;border:1px solid #cdeed8}.prb-table-wrap{border-radius:10px!important;background:#fff!important}.prb-table th{background:#f8fafc!important}.prb-panel-budget .prb-total-row td{background:#eaf4ff!important;color:#124ca3}.prb-panel-theatrical .prb-total-row td{background:#fff0f0!important;color:#c71f1f}.prb-panel-non .prb-total-row td{background:#ecfbf1!important;color:#147333}
+.prb-final{margin:15px 12px 10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d8c4ff;border-radius:15px;background:linear-gradient(120deg,#f5efff,#eee5ff)}.prb-final small{display:block;color:#6b21a8;font:900 9px Arial,sans-serif;text-transform:uppercase}.prb-final strong{display:block;margin-top:3px;color:#5815ad;font:1000 25px Arial,sans-serif}.prb-final>span{color:#6b21a8;font:800 10px/1.4 Arial,sans-serif;text-align:right}
+.prb-flow-title{width:max-content;margin:15px auto 7px;padding:5px 13px;border-radius:999px;background:#102b55;color:#fff;font:900 9px Arial,sans-serif}.prb-flow{margin:0 12px 12px;padding:10px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:13px;background:#f6f9fd}.prb-flow span{min-width:0;flex:1;text-align:center}.prb-flow b{display:block;font:1000 12px Arial,sans-serif}.prb-flow small{display:block;margin-top:2px;color:#64748b;font:800 7px Arial,sans-serif}.prb-flow i{color:#64748b;font:1000 20px Arial,sans-serif;font-style:normal}.prb-flow .budget b{color:#2367d1}.prb-flow .theatrical b{color:#d9252b}.prb-flow .non b{color:#159447}.prb-flow .total b{color:#6d28d9}
+.prb-foot{padding:0 12px 13px}.article-content .prb-note{margin:7px 0 0!important;padding:10px 11px!important;border:1px solid #b9dcff!important;border-left:4px solid #2196f3!important;border-radius:11px!important;background:#eef7ff!important;color:#40556f!important;font-size:9.5px!important}.prb-note strong{color:#075bb5}.prb-status{margin-top:0!important}
+@media(max-width:700px){.bx-section-nav-btn{padding-left:7px!important;padding-right:5px!important}.bx-section-nav-btn .bx-nav-arrow{font-size:14px}.prb-hero{padding:13px 12px}.prb-hero-icon{width:38px;height:38px;flex-basis:38px;font-size:20px;border-radius:11px}.article-content .prb-hero h2{font-size:18px!important}.prb-hero p{font-size:9px!important}.prb-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:9px!important}.prb-stat{padding:9px!important;min-height:61px}.prb-stat-icon{font-size:17px}.prb-stat strong{font-size:14px!important}.prb-section-head{margin:14px 10px 6px!important}.article-content .prb-section-head h3{font-size:14px!important}.prb-panel{margin:0 9px 9px;padding:5px}.prb-table th,.prb-table td{padding:8px 6px!important;font-size:9px!important}.prb-final{margin:12px 9px 8px;padding:11px}.prb-final strong{font-size:20px}.prb-final>span{font-size:8px}.prb-flow{margin:0 9px 9px;gap:3px;padding:8px 5px}.prb-flow b{font-size:9px}.prb-flow small{font-size:6.5px}.prb-flow i{font-size:15px}.prb-foot{padding:0 9px 10px}}
+</style>\n
+<style id="bx-nav-light-v32">
+/* V3.2: navigation uses the same light surface as the article page. */
+.bx-section-nav{background:#fff!important;border-color:#dbe3ef!important;box-shadow:0 7px 20px rgba(15,23,42,.07)!important}
+.bx-section-nav-btn{background:#f8fafc!important;border-color:#e2e8f0!important;color:#334155!important;box-shadow:none!important}
+.bx-section-nav-btn:hover,.bx-section-nav-btn:focus-visible{background:#eef6ff!important;border-color:#bfdbfe!important;color:#0f172a!important}
+.bx-section-nav-icon,.bx-section-nav-btn .bx-nav-arrow{color:#2563eb!important}
+.bx-section-nav-live.is-live{background:#fff1f2!important;border-color:#fecdd3!important;color:#b91c1c!important}
+.bx-section-nav-live.is-live .bx-nav-arrow{color:#dc2626!important}
+.bx-section-nav-hint{color:#1e293b!important}
+</style>
+
+<style id="bx-article-anchor-offset-v2">
+/* Stable article anchor positioning. Keeps section headings below the site header. */
+:root{--bx-article-anchor-offset:88px}
+html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
+#live-boxoffice-tracker,
+#boxoffice-report,
+#pre-release-business,
+#budget-success-tracker,
+#articleSeoFaq,
+.bx-seo-theatrical-head,
+.bx-tp-seo{
+  scroll-margin-top:var(--bx-article-anchor-offset)!important;
+}
+@media(max-width:700px){
+  :root{--bx-article-anchor-offset:128px}
+  html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
+}
+</style>
+
 </head>
 
 <body>
+<script>
+/* Remove accidental escaped-newline text injected before the page header. */
+(function(){
+  function cleanEscapedNewlines(){
+    Array.from(document.body.childNodes).forEach(function(node){
+      if(node.nodeType===Node.TEXT_NODE && /\\n/.test(node.nodeValue||'')){
+        node.nodeValue=(node.nodeValue||'').replace(/(?:\\n)+/g,'').trim()? (node.nodeValue||'').replace(/(?:\\n)+/g,'') : '';
+      }
+    });
+  }
+  cleanEscapedNewlines();
+  document.addEventListener('DOMContentLoaded', cleanEscapedNewlines, {once:true});
+})();
+</script>
 <div class="bx-master-mobile-header" aria-label="BoxOfficeX mobile navigation"><div class="bx-master-mobile-bar"><button type="button" class="bx-master-mobile-toggle" aria-label="Open mobile menu" aria-expanded="false"><span></span><span></span><span></span></button><a href="/index.html" class="bx-master-mobile-logo"><span class="icon">🎬</span>BOXOFFICE<span class="x">X</span></a></div><nav class="bx-master-mobile-menu" aria-label="Mobile main navigation"><a href="/index.html">Home</a><a href="/new-movies.html">New Movies <span class="bx-master-new">NEW</span></a><a href="/movie-rankings.html">Movie Rankings</a><a href="/rankings.html">Actor Rankings</a><a href="/actors.html">Actors</a><a href="/articles.html">Articles <span class="bx-master-new">NEW</span></a></nav><nav class="bx-master-feature-row" aria-label="Primary mobile features"><a href="/compare-select.html"><span>⚔️</span>Actor Comparison</a><a href="/movie-compare-select.html"><span>🎬</span>Movie Comparison</a></nav></div>
 
 <header>
@@ -5441,6 +5663,14 @@ function renderTheatricalPerformance(analysis) {
     </section>${seoHtml}`;
 }
 
+function splitTheatricalPerformance(analysis) {
+    const full = renderTheatricalPerformance(analysis) || "";
+    const marker = '<section class="bx-tp-seo"';
+    const at = full.indexOf(marker);
+    if (at < 0) return { performance: full, recoveryFaq: "" };
+    return { performance: full.slice(0, at), recoveryFaq: full.slice(at) };
+}
+
 function renderBoxOffice(data) {
 const money=v=>{const n=Number(v);return Number.isFinite(n)?`₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`:"N/A"};
 const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
@@ -5669,7 +5899,7 @@ w.includesPreview
 }</td>${visibleTerritories.map(([key])=>`<td>${w[key]>0?money(w[key]):"—"}</td>`).join("")}<td class="bo-auto-total">${money(w.india)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">${esc(currentGrossHeading)}</div><div class="bo-final-grid">${visibleTerritories.filter(([key])=>actualTotal[key]>0).map(([key,label])=>`<div class="bo-final-item"><span>${esc(label)}</span><strong>${money(actualTotal[key])}</strong></div>`).join("")}<div class="bo-final-item total"><span>India Gross</span><strong>${money(actualTotal.india)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(actualTotal.worldwide)}</strong></div></div>
 ${hasAdvance?`<div class="bo-subtitle">${esc(advanceHeading)}</div><div class="bo-final-grid">${visibleTerritories.filter(([key])=>advanceTotal[key]>0).map(([key,label])=>`<div class="bo-final-item"><span>${esc(label)}</span><strong>${money(advanceTotal[key])}</strong></div>`).join("")}<div class="bo-final-item total"><span>India Advance</span><strong>${money(advanceTotal.india)}</strong></div><div class="bo-final-item total"><span>Worldwide Advance</span><strong>${money(advanceTotal.worldwide)}</strong></div></div>
-<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>${renderBoxOfficeAnalysis(data?.analysis, data)}${renderTheatricalPerformance(data?.analysis)}${renderBudgetSuccessTracker(data?.analysis)}`;
+<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>${renderBoxOfficeAnalysis(data?.analysis, data)}${splitTheatricalPerformance(data?.analysis).performance}`;
 }
 
 // =========================================================
@@ -6020,6 +6250,170 @@ function renderLiveTracker(data) {
     </section>`;
 }
 
+
+function prbNumber(value){
+const n=Number(value);
+return Number.isFinite(n)&&n>=0?n:null;
+}
+function prbMoney(value){
+const n=prbNumber(value);
+if(n===null)return "—";
+return `₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+}
+function prbRows(rows,withPartner=false){
+return (Array.isArray(rows)?rows:[]).map(row=>({
+label:String(row?.label||row?.territory||row?.type||"").trim(),
+value:prbNumber(row?.value),
+partner:withPartner?String(row?.partner||"").trim():""
+})).filter(row=>row.label&&row.value!==null);
+}
+function prbSum(rows){
+const valid=(rows||[]).map(row=>prbNumber(row.value)).filter(v=>v!==null);
+return valid.length?Number(valid.reduce((a,b)=>a+b,0).toFixed(2)):null;
+}
+function renderPreReleaseBusiness(data){
+data=data||{};
+const movie=String(data.movie_name||window.currentBoxOfficeXLiveMovieName||"Movie").trim();
+const budgetRows=prbRows(data.budget_components);
+const theatricalRows=prbRows(data.theatrical);
+const nonTheatricalRows=prbRows(data.non_theatrical,true);
+const budget=prbNumber(data.budget_total)??prbSum(budgetRows);
+const theatrical=prbNumber(data.theatrical_total)??prbSum(theatricalRows);
+const nonTheatrical=prbNumber(data.non_theatrical_total)??prbSum(nonTheatricalRows);
+const total=prbNumber(data.pre_release_total)??((theatrical!==null||nonTheatrical!==null)?Number(((theatrical||0)+(nonTheatrical||0)).toFixed(2)):null);
+const heading=String(data.heading||`${movie} Pre-Release Business`).trim();
+const status=String(data.status||"reported").trim();
+const customNote=String(data.note||"").trim();
+const autoNote="Budget, theatrical rights, non-theatrical rights and pre-release business figures are based on available official announcements and reported trade information. Values may vary by source, territory and deal structure. Pre-release business should not be interpreted as theatrical profit.";
+const note=(customNote.length >= 20 && !/^(ok|test|na|n\/a|none)$/i.test(customNote))?customNote:autoNote;
+const table=(rows,totalValue,totalLabel,withPartner=false,kind="")=>{
+if(!rows.length&&totalValue===null)return "";
+return `<div class="prb-panel prb-panel-${kind}"><div class="prb-table-wrap"><table class="prb-table"><thead><tr><th>${withPartner?"Rights":"Component / Territory"}</th><th>Value</th>${withPartner?"<th>Partner</th>":""}</tr></thead><tbody>
+${rows.map(row=>`<tr><td>${esc(row.label)}</td><td>${prbMoney(row.value)}</td>${withPartner?`<td>${esc(row.partner||"—")}</td>`:""}</tr>`).join("")}
+${totalValue!==null?`<tr class="prb-total-row"><td>${esc(totalLabel)}</td><td>${prbMoney(totalValue)}</td>${withPartner?"<td></td>":""}</tr>`:""}
+</tbody></table></div></div>`;
+};
+const quick=[];
+if(budget!==null)quick.push(`<div class="prb-stat prb-budget"><span class="prb-stat-icon">🎬</span><div><small>Budget</small><strong>${prbMoney(budget)}</strong></div></div>`);
+if(theatrical!==null)quick.push(`<div class="prb-stat prb-theatrical"><span class="prb-stat-icon">🎟️</span><div><small>Theatrical Rights</small><strong>${prbMoney(theatrical)}</strong></div></div>`);
+if(nonTheatrical!==null)quick.push(`<div class="prb-stat prb-nontheatrical"><span class="prb-stat-icon">📺</span><div><small>Non-Theatrical</small><strong>${prbMoney(nonTheatrical)}</strong></div></div>`);
+if(total!==null)quick.push(`<div class="prb-stat prb-total"><span class="prb-stat-icon">📈</span><div><small>Total Pre-Release</small><strong>${prbMoney(total)}</strong></div></div>`);
+const flow=[];
+if(budget!==null)flow.push(`<span class="budget"><b>${prbMoney(budget)}</b><small>Budget</small></span>`);
+if(theatrical!==null)flow.push(`<span class="theatrical"><b>${prbMoney(theatrical)}</b><small>Theatrical</small></span>`);
+if(nonTheatrical!==null)flow.push(`<span class="non"><b>${prbMoney(nonTheatrical)}</b><small>OTT & Other</small></span>`);
+if(total!==null)flow.push(`<span class="total"><b>${prbMoney(total)}</b><small>Pre-Release</small></span>`);
+return `<section id="pre-release-business" class="prb-block" aria-labelledby="preReleaseBusinessHeading">
+<div class="prb-hero"><span class="prb-hero-icon">💰</span><div><h2 id="preReleaseBusinessHeading">${esc(movie)} Pre-Release Business</h2><p>Budget, theatrical rights, OTT, satellite & other reported deals</p></div></div>
+<p class="prb-seo-answer">${esc(movie)}${budget!==null?` has a reported budget of <strong>${prbMoney(budget)}</strong>.`:""}${theatrical!==null?` Reported worldwide theatrical business is <strong>${prbMoney(theatrical)}</strong>.`:""}${nonTheatrical!==null?` Non-theatrical rights total <strong>${prbMoney(nonTheatrical)}</strong>.`:""}${total!==null?` Total pre-release business is <strong>${prbMoney(total)}</strong>.`:""}</p>
+<div class="prb-quick-grid">${quick.join("")}</div>
+${budgetRows.length||budget!==null?`<div class="prb-section-head budget"><span>1</span><h3>${esc(movie)} Budget</h3></div>${table(budgetRows,budget,"Total Reported Budget",false,"budget")}`:""}
+${theatricalRows.length||theatrical!==null?`<div class="prb-section-head theatrical"><span>2</span><h3>${esc(movie)} Area-Wise Theatrical Rights</h3></div>${table(theatricalRows,theatrical,"Worldwide Theatrical Business",false,"theatrical")}`:""}
+${nonTheatricalRows.length||nonTheatrical!==null?`<div class="prb-section-head non"><span>3</span><h3>${esc(movie)} OTT, Digital & Non-Theatrical Rights</h3></div>${table(nonTheatricalRows,nonTheatrical,"Total Non-Theatrical Business",true,"non")}`:""}
+${total!==null?`<div class="prb-final"><div><small>Total Pre-Release Business</small><strong>${prbMoney(total)}</strong></div><span>${theatrical!==null?prbMoney(theatrical):"—"} Theatrical ${nonTheatrical!==null?`+ ${prbMoney(nonTheatrical)} Non-Theatrical`:""}</span></div>`:""}
+${flow.length>1?`<div class="prb-flow-title">Pre-Release Business Flow</div><div class="prb-flow">${flow.map((x,i)=>`${i?'<i aria-hidden="true">›</i>':''}${x}`).join("")}</div>`:""}
+<div class="prb-foot"><span class="prb-status">${esc(status)} figures</span><p class="prb-note"><strong>BoxOfficeX Note:</strong> ${esc(note)}</p></div>
+</section>`;
+}
+function bxArticleOverviewData(article){
+    const blocks=Array.isArray(article?.blocks)?article.blocks:[];
+    const movie=(Array.isArray(article?.movies)&&article.movies[0])||{};
+    const movieName=String(movie.title||movie.name||window.currentBoxOfficeXLiveMovieName||"Movie").trim();
+    const live=blocks.find(b=>String(b?.block_type||"").toLowerCase()==="live_tracker")?.extra_data||null;
+    const bo=blocks.find(b=>String(b?.block_type||"").toLowerCase()==="boxoffice")?.extra_data||null;
+    const pr=blocks.find(b=>String(b?.block_type||"").toLowerCase()==="pre_release_business")?.extra_data||null;
+    const n=v=>{if(v===null||v===undefined||String(v).trim()==="")return null;const x=Number(String(v).replace(/,/g,""));return Number.isFinite(x)&&x>=0?x:null};
+    const sumRows=rows=>{const vals=(Array.isArray(rows)?rows:[]).map(r=>n(r?.value)).filter(v=>v!==null);return vals.length?Number(vals.reduce((a,b)=>a+b,0).toFixed(2)):null};
+    const money=v=>v===null?"":`₹${Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+
+    let budget=pr?(n(pr.budget_total)??sumRows(pr.budget_components)):null;
+    let theatrical=pr?(n(pr.theatrical_total)??sumRows(pr.theatrical)):null;
+    let nonTheatrical=pr?(n(pr.non_theatrical_total)??sumRows(pr.non_theatrical)):null;
+    let preRelease=pr?n(pr.pre_release_total):null;
+    if(preRelease===null&&(theatrical!==null||nonTheatrical!==null))preRelease=Number(((theatrical||0)+(nonTheatrical||0)).toFixed(2));
+    const ottRow=(Array.isArray(pr?.non_theatrical)?pr.non_theatrical:[]).find(r=>/ott|digital|stream/i.test(String(r?.label||r?.type||"")));
+    const ott=ottRow?n(ottRow.value):null;
+    const ottPartner=String(ottRow?.partner||"").trim();
+
+    let liveIndia=live?n(live.india_gross):null;
+    let liveOverseas=live?n(live.overseas_gross):null;
+    let liveWorldwide=(liveIndia!==null&&liveOverseas!==null)?Number((liveIndia+liveOverseas).toFixed(2)):null;
+
+    // Permanent box-office fallback: only non-ADVANCE rows are earned collection.
+    if(liveIndia===null&&bo&&Array.isArray(bo.days)){
+        const actual=bo.days.filter(d=>String(d?.status||"").toUpperCase()!=="ADVANCE");
+        const keys=["tamil_nadu","kerala","karnataka","telugu_states","rest_of_india"];
+        liveIndia=Number(actual.reduce((t,d)=>t+keys.reduce((s,k)=>s+(n(d?.[k])||0),0),0).toFixed(2));
+        if(!actual.some(d=>keys.some(k=>n(d?.[k])!==null)))liveIndia=null;
+        liveOverseas=Number(actual.reduce((t,d)=>t+(n(d?.overseas)||0),0).toFixed(2));
+        if(!actual.some(d=>n(d?.overseas)!==null))liveOverseas=null;
+        liveWorldwide=(liveIndia!==null&&liveOverseas!==null)?Number((liveIndia+liveOverseas).toFixed(2)):null;
+    }
+
+    const facts=[];
+    if(liveWorldwide!==null)facts.push({label:"Worldwide Gross",value:money(liveWorldwide),cls:"live"});
+    if(liveIndia!==null)facts.push({label:"India Gross",value:money(liveIndia),cls:"live"});
+    if(liveOverseas!==null)facts.push({label:"Overseas Gross",value:money(liveOverseas),cls:"live"});
+    if(budget!==null)facts.push({label:"Budget",value:money(budget),cls:"business"});
+    if(theatrical!==null)facts.push({label:"Theatrical Rights",value:money(theatrical),cls:"business"});
+    if(ott!==null)facts.push({label:"OTT / Digital Rights",value:`${money(ott)}${ottPartner?` • ${ottPartner}`:""}`,cls:"business"});
+    if(nonTheatrical!==null)facts.push({label:"Non-Theatrical Rights",value:money(nonTheatrical),cls:"business"});
+    if(preRelease!==null)facts.push({label:"Pre-Release Business",value:money(preRelease),cls:"business"});
+
+    const intro=[];
+    if(liveWorldwide!==null)intro.push(`${movieName} has collected ${money(liveWorldwide)} worldwide${liveIndia!==null?`, including ${money(liveIndia)} in India`:""}${liveOverseas!==null?` and ${money(liveOverseas)} overseas`:""}`);
+    if(budget!==null)intro.push(`The reported budget is ${money(budget)}`);
+    if(theatrical!==null)intro.push(`worldwide theatrical rights/business are ${money(theatrical)}`);
+    if(ott!==null)intro.push(`OTT/digital rights are reported at ${money(ott)}${ottPartner?` with ${ottPartner}`:""}`);
+    if(preRelease!==null)intro.push(`total pre-release business is ${money(preRelease)}`);
+    const introText=intro.length?`${intro.join(". ")}. Follow the latest live, day-wise and business updates below.`:"";
+
+    const types=new Set(blocks.map(b=>String(b?.block_type||"").toLowerCase()));
+    const jumps=[];
+    if(types.has("live_tracker"))jumps.push(["#live-boxoffice-tracker","Live"]);
+    if(types.has("boxoffice"))jumps.push(["#boxoffice-report","Day-Wise"]);
+    if(types.has("pre_release_business"))jumps.push(["#pre-release-business","Budget & Business"]);
+    if(document.getElementById("articleSeoFaq"))jumps.push(["#articleSeoFaq","FAQ"]);
+    return {movieName,facts,introText,jumps};
+}
+
+function renderArticleSeoOverview(article){
+    const blocks=Array.isArray(article?.blocks)?article.blocks:[];
+    const types=new Set(blocks.map(b=>String(b?.block_type||"").toLowerCase()));
+    const liveBlock=blocks.find(b=>String(b?.block_type||"").toLowerCase()==="live_tracker");
+    const liveStatus=String(liveBlock?.extra_data?.status||"live").toLowerCase();
+    const liveActive=Boolean(liveBlock) && article?.tracking_enabled!==false && (liveStatus==="live"||liveStatus==="update");
+
+    const links=[];
+    if(types.has("live_tracker") && article?.tracking_enabled!==false){
+        links.push(`<a class="bx-section-nav-btn bx-section-nav-live ${liveActive?"is-live":""}" href="#live-boxoffice-tracker"><span class="bx-section-nav-dot" aria-hidden="true"></span><span>LIVE</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
+    }
+    if(types.has("boxoffice")){
+        links.push(`<a class="bx-section-nav-btn" href="#boxoffice-report"><span class="bx-section-nav-icon" aria-hidden="true">▥</span><span>DAY-WISE</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
+    }
+    if(types.has("pre_release_business")){
+        links.push(`<a class="bx-section-nav-btn" href="#pre-release-business"><span class="bx-section-nav-icon" aria-hidden="true">₹</span><span>BUSINESS</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
+    }
+    if(!links.length)return "";
+
+    return `<div class="bx-section-nav-wrap"><div class="bx-section-nav-hint">Tap below to jump to details <span aria-hidden="true">↓</span></div><nav class="bx-section-nav" aria-label="Article sections">${links.join("")}</nav></div>`;
+}
+
+function renderLiveBusinessStrip(article){
+    const blocks=Array.isArray(article?.blocks)?article.blocks:[];
+    const hasLive=blocks.some(b=>String(b?.block_type||"").toLowerCase()==="live_tracker");
+    const hasBusiness=blocks.some(b=>String(b?.block_type||"").toLowerCase()==="pre_release_business");
+    if(!hasLive||!hasBusiness)return "";
+    const d=bxArticleOverviewData(article);
+    const wanted=new Set(["Budget","Theatrical Rights","OTT / Digital Rights","Pre-Release Business"]);
+    const facts=d.facts.filter(f=>wanted.has(f.label));
+    if(!facts.length)return "";
+    return `<aside class="bx-live-business-strip" aria-label="${esc(d.movieName)} budget and business quick facts">
+        <div class="bx-live-business-title"><span>Budget & Business</span><a href="#pre-release-business">Full breakdown ↓</a></div>
+        <div class="bx-live-business-values">${facts.map(f=>`<span><small>${esc(f.label.replace(" / Digital Rights",""))}</small><strong>${esc(f.value)}</strong></span>`).join("")}</div>
+    </aside>`;
+}
+
 async function renderBlock(block) {
     const type = block.block_type;
     const data = block.extra_data || {};
@@ -6058,11 +6452,19 @@ async function renderBlock(block) {
     }
 
     if (type === "live_tracker") {
-        return renderLiveTracker(data);
+        return `<section id="live-boxoffice-tracker">${renderLiveTracker(data)}</section>`;
     }
 
     if (type === "boxoffice") {
-        return renderBoxOffice(data);
+        const movie = String(window.currentBoxOfficeXLiveMovieName || "Movie").trim();
+        const safeMovie = esc(movie);
+        const dayHead = `<header class="bx-seo-section-head"><h2>${safeMovie} Day-Wise Box Office Collection</h2><p>Track ${safeMovie} day-wise India, overseas and worldwide box office collection with the latest reported figures in the table below.</p></header>`;
+        const tpHead = data?.analysis?.theatrical_performance ? `<header class="bx-seo-section-head bx-seo-theatrical-head"><h2>${safeMovie} Theatrical Performance</h2><p>Track ${safeMovie} area-wise theatrical performance, reported theatrical values, current gross and recovery milestones.</p></header>` : "";
+        return `<section id="boxoffice-report" class="bx-daywise-seo">${dayHead}${renderBoxOffice(data)}</section>${tpHead}`;
+    }
+
+    if (type === "pre_release_business") {
+        return renderPreReleaseBusiness(data);
     }
 
     if (type === "table") {
@@ -6249,7 +6651,7 @@ async function renderArticle(article) {
         window.currentBoxOfficeXLiveMovieReleaseDate = String(articleLinkedMovie.release_date || "").slice(0, 10);
     }
 
-    if (linkedMovieId) {
+    if (linkedMovieId && (!window.currentBoxOfficeXLiveMovieName || !window.currentBoxOfficeXLiveMovieReleaseDate)) {
         try {
             const movieResponse = await fetch(`${API_BASE}/movies/${encodeURIComponent(linkedMovieId)}`, {cache:"no-store"});
             const movieData = await movieResponse.json();
@@ -6271,9 +6673,26 @@ async function renderArticle(article) {
 
     // PERFORMANCE: render independent article blocks in parallel instead of
     // waiting for movie/actor API-backed blocks one by one.
-    const blockHTML = await Promise.all(
-        (article.blocks || []).map(block => renderBlock(block))
-    );
+    const sourceBlocks = [...(article.blocks || [])];
+    // Release-page priority: Live → Day-Wise/Theatrical Performance → Pre-Release Business.
+    // Other editorial blocks keep their relative order after these core tracking sections.
+    const priority = {live_tracker:0, boxoffice:1, pre_release_business:2};
+    const core = sourceBlocks.filter(b => Object.prototype.hasOwnProperty.call(priority, String(b?.block_type||"").toLowerCase()))
+        .sort((a,b)=>priority[String(a?.block_type||"").toLowerCase()]-priority[String(b?.block_type||"").toLowerCase()]);
+    const other = sourceBlocks.filter(b => !Object.prototype.hasOwnProperty.call(priority, String(b?.block_type||"").toLowerCase()));
+    const orderedBlocks = [...core, ...other];
+    const blockHTML = await Promise.all(orderedBlocks.map(block => renderBlock(block)));
+
+    // Final release-page order:
+    // LIVE → DAY-WISE → THEATRICAL PERFORMANCE → PRE-RELEASE BUSINESS → BUDGET TRACKER → FAQ.
+    const boxSourceIndex = orderedBlocks.findIndex(b => String(b?.block_type || "").toLowerCase() === "boxoffice");
+    const businessIndex = orderedBlocks.findIndex(b => String(b?.block_type || "").toLowerCase() === "pre_release_business");
+    if (boxSourceIndex >= 0 && businessIndex >= 0) {
+        const analysis = orderedBlocks[boxSourceIndex]?.extra_data?.analysis;
+        const afterBusiness = `${renderBudgetSuccessTracker(analysis)}${splitTheatricalPerformance(analysis).recoveryFaq}`;
+        if (afterBusiness) blockHTML[businessIndex] = `${blockHTML[businessIndex]}${afterBusiness}`;
+    }
+
 
     // Three deterministic In-Content positions inside the rendered article body.
     if (blockHTML.length) {
@@ -6300,7 +6719,7 @@ async function renderArticle(article) {
 
                 <span class="category">${esc(article.category || "News")}</span>
 
-                <h1>${esc(article.title || "")}</h1>
+                <h1>${esc(article.seo_h1 || article.title || "")}</h1>
 
                 ${article.subtitle ? `
                     <div class="subtitle">${esc(article.subtitle)}</div>
@@ -6331,6 +6750,8 @@ async function renderArticle(article) {
                     ` : ""}
                 </figure>
 
+                ${renderArticleSeoOverview(article)}
+
             </div>
 
             <section id="bxArticleDetailAd" aria-label="Sponsored advertisement"></section>
@@ -6350,8 +6771,8 @@ async function renderArticle(article) {
                             <button type="button" class="article-fan-btn" id="articleHypeBtn">🔥 Hype <span id="articleHypeCount">0</span></button>
                         </div>
                         <div class="article-share-boost">
-                            <h3>📣 Share this story</h3>
-                            <p>Share this BoxOfficeX article with your friends and family and invite them to join the discussion.</p>
+                            <h3>📣 Share this update</h3>
+                            <p>Tap a button below to share.</p>
                             <div class="article-social-share" aria-label="Share this article">
                                 <button type="button" class="article-social-btn whatsapp" data-article-share="whatsapp">WhatsApp</button>
                                 <button type="button" class="article-social-btn facebook" data-article-share="facebook">Facebook</button>
@@ -8226,6 +8647,119 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
     color:#102b55!important;
 }
 
+
+/* BOXOFFICEX ARTICLE SEO QUICK ANSWERS V1 */
+.bx-seo-overview{max-width:860px;margin:20px auto 0}
+.bx-seo-intro{margin:0 0 12px!important;padding:0;color:#cbd5e8!important;font-family:Arial,Helvetica,sans-serif!important;font-size:14px!important;line-height:1.65!important}
+.bx-quick-answers{padding:15px;border:1px solid rgba(77,141,255,.22);border-radius:15px;background:linear-gradient(180deg,rgba(18,27,47,.96),rgba(10,16,29,.96));box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.bx-quick-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.bx-quick-head strong{font-size:14px;color:#fff}.bx-quick-head span{font-size:8px;font-weight:900;letter-spacing:.6px;color:#7de2bb;text-transform:uppercase}
+.bx-quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.bx-quick-item{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.035)}.bx-quick-item span{display:block;color:#8793aa;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.35px}.bx-quick-item strong{display:block;margin-top:3px;color:#fff;font-size:14px;line-height:1.25}.bx-quick-item.live strong{color:#7de2bb}.bx-quick-item.business strong{color:#ffda68}
+.bx-article-jumps{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}.bx-article-jumps::-webkit-scrollbar{display:none}.bx-article-jumps a{flex:0 0 auto;padding:7px 9px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(255,255,255,.035);color:#a9c8ff;font-size:9px;font-weight:900;text-decoration:none;white-space:nowrap}.bx-article-jumps a:hover{background:rgba(77,141,255,.12);border-color:rgba(77,141,255,.35);color:#fff}
+@media(max-width:700px){.bx-seo-overview{margin-top:15px}.bx-seo-intro{font-size:12.5px!important;line-height:1.58!important}.bx-quick-answers{padding:11px;border-radius:12px}.bx-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.bx-quick-item{padding:9px}.bx-quick-item strong{font-size:13px}.bx-article-jumps a{font-size:8px;padding:6px 8px}}
+
+
+/* LIVE-FIRST ARTICLE SEO V1.1 */
+.bx-seo-overview-live{margin-top:12px}
+.bx-seo-overview-live .bx-seo-intro{margin-bottom:0!important;color:#64748b!important;font-size:12.5px!important;line-height:1.5!important}
+.bx-seo-overview-live .bx-seo-intro strong{color:#334155}
+.bx-live-business-strip{margin:22px 0;padding:12px 14px;border:1px solid rgba(77,141,255,.18);border-radius:13px;background:linear-gradient(180deg,rgba(18,27,47,.96),rgba(10,16,29,.96));font-family:Arial,Helvetica,sans-serif}
+.bx-live-business-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.bx-live-business-title span{color:#fff;font-size:12px;font-weight:900}.bx-live-business-title a{color:#9fc2ff;font-size:9px;font-weight:900;text-decoration:none}
+.bx-live-business-values{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}.bx-live-business-values::-webkit-scrollbar{display:none}.bx-live-business-values>span{flex:1 0 125px;padding:8px 9px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.035)}.bx-live-business-values small{display:block;color:#8793aa;font-size:7.5px;font-weight:900;text-transform:uppercase}.bx-live-business-values strong{display:block;margin-top:2px;color:#ffda68;font-size:12px;line-height:1.25}
+@media(max-width:700px){.bx-seo-overview-live{margin-top:9px}.bx-seo-overview-live .bx-seo-intro{font-size:11px!important;line-height:1.45!important}.bx-live-business-strip{margin:17px 0;padding:10px}.bx-live-business-values>span{flex-basis:108px}.bx-live-business-values strong{font-size:11px}}
+</style>
+
+<style id="bx-only-site-header-sticky-fix">
+/* Only the BoxOfficeX site header may stay on screen while scrolling.
+   SEO/article section <header> elements must behave as normal content. */
+.article-content .bx-seo-section-head,
+.article-layout .bx-seo-section-head {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    width: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: none !important;
+}
+
+/* Pre-release title/hero is also ordinary article content. */
+.article-content #pre-release-business,
+.article-content #pre-release-business .prb-hero,
+.article-content #pre-release-business h2 {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+    transform: none !important;
+}
 </style>
 </body>
 </html>
+<style id="bx-final-header-layout-fix-v4">
+/* Final authority for article header positioning. */
+@media (min-width:701px){
+  body > header{
+    position:sticky!important;
+    top:0!important;
+    z-index:100000!important;
+  }
+  html{scroll-padding-top:82px!important}
+  #live-boxoffice-tracker,
+  #boxoffice-report,
+  .bx-seo-theatrical-head,
+  #pre-release-business,
+  .bx-budget-success-tracker,
+  #articleSeoFaq{
+    scroll-margin-top:82px!important;
+  }
+}
+@media (max-width:700px){
+  /* One fixed two-row mobile header. Content gets exactly the same offset. */
+  body > .bx-master-mobile-header{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    height:113px!important;
+    min-height:113px!important;
+    z-index:100500!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  body > .bx-master-mobile-header + header{display:none!important}
+  body{
+    padding-top:113px!important;
+  }
+  body.bx-top-ad-visible{
+    padding-top:calc(113px + var(--bx-top-sticky-space,64px))!important;
+  }
+  body > main,
+  body > .bx-master-mobile-header + header + main,
+  body > .bx-master-mobile-header + main{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+  .article-shell{padding-top:20px!important}
+  html{scroll-padding-top:125px!important}
+  #live-boxoffice-tracker,
+  #boxoffice-report,
+  .bx-seo-theatrical-head,
+  #pre-release-business,
+  .bx-budget-success-tracker,
+  #articleSeoFaq{
+    scroll-margin-top:125px!important;
+  }
+  body > .bx-master-mobile-header .bx-master-mobile-menu{
+    position:fixed!important;
+    top:113px!important;
+    left:8px!important;
+    right:8px!important;
+    z-index:100510!important;
+  }
+}
+</style>

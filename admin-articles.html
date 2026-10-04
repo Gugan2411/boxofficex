@@ -1015,6 +1015,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button data-add="quote">Quote</button>
 <button data-add="boxoffice">Box Office</button>
 <button data-add="live_tracker">🔴 Live Tracker</button>
+<button data-add="pre_release_business">💰 Pre-Release Business</button>
 <button data-add="table">Table</button>
 <button data-add="gallery">Gallery</button>
 <button data-add="movie">Movie</button>
@@ -1450,6 +1451,35 @@ night_shows:"",
 night_occupancy:"",
 note:"",
 updated_at:""
+};
+if(type==="pre_release_business")base.extra_data={
+movie_id:selectedMovieLinkIds.length===1 ? Number(selectedMovieLinkIds[0]) : null,
+movie_name:selectedMovieLinkIds.length===1 ? movieNameById(selectedMovieLinkIds[0]) : "",
+heading:"",
+budget_components:[
+    {label:"Production Budget",value:null},
+    {label:"Prints & Promotion",value:null}
+],
+budget_total:null,
+theatrical:[
+    {label:"Tamil Nadu",value:null},
+    {label:"Telugu States",value:null},
+    {label:"Karnataka",value:null},
+    {label:"Kerala",value:null},
+    {label:"Hindi + Rest of India",value:null},
+    {label:"Overseas",value:null}
+],
+theatrical_total:null,
+non_theatrical:[
+    {label:"OTT / Digital",value:null,partner:""},
+    {label:"Satellite",value:null,partner:""},
+    {label:"Audio / Music",value:null,partner:""},
+    {label:"Other Rights",value:null,partner:""}
+],
+non_theatrical_total:null,
+pre_release_total:null,
+status:"reported",
+note:""
 };
 if(type==="table")base.extra_data={
 headers:[],
@@ -2130,6 +2160,79 @@ return `
 </div>`;
 }
 
+
+function prbNormalizeRows(rows,withPartner=false){
+return (Array.isArray(rows)?rows:[]).map(row=>({
+    label:String(row?.label||row?.territory||row?.type||"").trim(),
+    value:(row?.value===null||row?.value===undefined||row?.value==="")?null:Number(row.value),
+    ...(withPartner?{partner:String(row?.partner||"").trim()}:{})
+}));
+}
+function normalizePreReleaseBusinessExtra(extra){
+extra=extra||{};
+if(extra.movie_name===undefined)extra.movie_name="";
+if(extra.heading===undefined)extra.heading="";
+extra.budget_components=prbNormalizeRows(extra.budget_components||[],false);
+extra.theatrical=prbNormalizeRows(extra.theatrical||[],false);
+extra.non_theatrical=prbNormalizeRows(extra.non_theatrical||[],true);
+["budget_total","theatrical_total","non_theatrical_total","pre_release_total"].forEach(k=>{
+    if(extra[k]===undefined||extra[k]==="")extra[k]=null;
+    else if(extra[k]!==null)extra[k]=Number(extra[k]);
+});
+if(!extra.status)extra.status="reported";
+if(extra.note===undefined)extra.note="";
+return extra;
+}
+function prbRowsToText(rows,withPartner=false){
+return (rows||[]).map(row=>{
+    const value=(row?.value===null||row?.value===undefined)?"":row.value;
+    return withPartner
+        ? `${row?.label||""} | ${value} | ${row?.partner||""}`
+        : `${row?.label||""} | ${value}`;
+}).join("\n");
+}
+function prbTextToRows(value,withPartner=false){
+return String(value||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(line=>{
+    const parts=line.split("|").map(x=>x.trim());
+    const number=parts[1]===""?null:Number(parts[1]);
+    return withPartner
+        ? {label:parts[0]||"",value:Number.isFinite(number)?number:null,partner:parts[2]||""}
+        : {label:parts[0]||"",value:Number.isFinite(number)?number:null};
+}).filter(row=>row.label);
+}
+function prbAutoTotal(rows){
+const values=(rows||[]).map(row=>Number(row?.value)).filter(v=>Number.isFinite(v)&&v>=0);
+return values.length?Number(values.reduce((a,b)=>a+b,0).toFixed(2)):null;
+}
+
+function syncPreReleaseBusinessAutoValues(pr){
+pr=normalizePreReleaseBusinessExtra(pr||{});
+
+/* Article Linked Movies is the authority for this block. */
+if(selectedMovieLinkIds.length===1){
+    pr.movie_id=Number(selectedMovieLinkIds[0]);
+    pr.movie_name=movieNameById(pr.movie_id);
+}else{
+    pr.movie_id=null;
+    pr.movie_name="";
+}
+
+/* All totals are derived from detail rows. */
+pr.budget_total=prbAutoTotal(pr.budget_components);
+pr.theatrical_total=prbAutoTotal(pr.theatrical);
+pr.non_theatrical_total=prbAutoTotal(pr.non_theatrical);
+pr.pre_release_total=(pr.theatrical_total!==null||pr.non_theatrical_total!==null)
+    ? Number(((pr.theatrical_total||0)+(pr.non_theatrical_total||0)).toFixed(2))
+    : null;
+
+return pr;
+}
+
+function prbDisplayNumber(value){
+return value===null||value===undefined||!Number.isFinite(Number(value))
+    ? "—"
+    : Number(value).toLocaleString("en-IN",{maximumFractionDigits:2});
+}
 function renderBlocks(){
 const box=$("blocks");box.innerHTML="";
 blocks.forEach((b,i)=>{
@@ -2187,6 +2290,49 @@ body=`
   <div class="block-row" style="margin-top:9px"><div><label>Housefull Shows</label><input data-extra="housefull_shows" value="${articleContentEsc(lt.housefull_shows||"")}" placeholder="146"></div><div><label>Last Updated</label><input value="${articleContentEsc(lt.updated_at||"Auto on save")}" readonly></div></div>
   <div style="margin-top:9px"><label>Latest Update Note</label><textarea data-extra="note" placeholder="Optional short live update">${articleContentEsc(lt.note||"")}</textarea></div>
   <div class="note">Only fields with a value are shown publicly. Empty fields stay completely hidden. Day number is calculated from Movie Release Date.</div>
+</div>`;
+}
+if(b.block_type==="pre_release_business"){
+b.extra_data=syncPreReleaseBusinessAutoValues(b.extra_data);
+const pr=b.extra_data;
+const linkedMovieReady=selectedMovieLinkIds.length===1;
+body=`
+<div class="pre-release-editor">
+  <div class="block-row">
+    <div>
+      <label>Linked Movie</label>
+      <input value="${articleContentEsc(linkedMovieReady ? movieNameById(selectedMovieLinkIds[0]) : "")}" placeholder="Link exactly one movie to this article above" readonly>
+      <div class="note">${linkedMovieReady ? `Using linked movie ID ${Number(selectedMovieLinkIds[0])}. Movie name and SEO headings are automatic.` : "⚠ Link exactly one movie in Linked Movies above. This block uses that movie automatically."}</div>
+    </div>
+    <div><label>Section H2 (optional)</label><input data-prb-root="heading" value="${articleContentEsc(pr.heading||"")}" placeholder="Auto: Movie Pre-Release Business: Budget, Theatrical & Non-Theatrical Rights"></div>
+  </div>
+
+  <div class="block-row" style="margin-top:10px">
+    <div><label>Budget Components — one per line: Label | ₹ Cr</label><textarea data-prb-rows="budget_components" placeholder="Production Budget | 320&#10;Prints & Promotion | 30">${articleContentEsc(prbRowsToText(pr.budget_components))}</textarea></div>
+    <div><label>Total Reported Budget — Auto (₹ Cr)</label><input data-prb-auto="budget_total" value="${prbDisplayNumber(pr.budget_total)}" readonly><div class="note">Automatically calculated from Budget Components.</div></div>
+  </div>
+
+  <div style="margin-top:10px"><label>Area-Wise Theatrical Business — Territory | ₹ Cr</label><textarea data-prb-rows="theatrical" placeholder="Tamil Nadu | 110&#10;Telugu States | 60&#10;Overseas | 75">${articleContentEsc(prbRowsToText(pr.theatrical))}</textarea></div>
+
+  <div class="block-row" style="margin-top:10px">
+    <div><label>Worldwide Theatrical Business — Auto (₹ Cr)</label><input data-prb-auto="theatrical_total" value="${prbDisplayNumber(pr.theatrical_total)}" readonly><div class="note">Automatically calculated from territory rows.</div></div>
+    <div><label>Data Status</label><select data-prb-root="status">
+      <option value="official" ${pr.status==="official"?"selected":""}>Official</option>
+      <option value="reported" ${pr.status==="reported"?"selected":""}>Reported</option>
+      <option value="estimated" ${pr.status==="estimated"?"selected":""}>Estimated</option>
+      <option value="mixed" ${pr.status==="mixed"?"selected":""}>Mixed</option>
+    </select></div>
+  </div>
+
+  <div style="margin-top:10px"><label>Non-Theatrical Rights — Type | ₹ Cr | Partner (optional)</label><textarea data-prb-rows="non_theatrical" placeholder="OTT / Digital | 160 | Netflix&#10;Satellite | 80 | Sun TV&#10;Audio / Music | 25 |">${articleContentEsc(prbRowsToText(pr.non_theatrical,true))}</textarea></div>
+
+  <div class="block-row" style="margin-top:10px">
+    <div><label>Total Non-Theatrical Business — Auto (₹ Cr)</label><input data-prb-auto="non_theatrical_total" value="${prbDisplayNumber(pr.non_theatrical_total)}" readonly><div class="note">Automatically calculated from rights rows.</div></div>
+    <div><label>Total Pre-Release Business — Auto (₹ Cr)</label><input data-prb-auto="pre_release_total" value="${prbDisplayNumber(pr.pre_release_total)}" readonly><div class="note">Theatrical + Non-Theatrical. Budget is not added.</div></div>
+  </div>
+
+  <div style="margin-top:10px"><label>Source / Disclaimer Note (optional)</label><textarea data-prb-root="note" placeholder="Reported trade estimates; actual agreements may differ.">${articleContentEsc(pr.note||"")}</textarea></div>
+  <div class="note">Public page automatically creates one SEO H2 plus H3 sections for Budget, Area-Wise Theatrical Business, Non-Theatrical Rights and the Business Summary. Do not add another H1.</div>
 </div>`;
 }
 if(b.block_type==="table"){
@@ -2275,6 +2421,28 @@ if(tablePreview){
 if(tableHeadersInput)tableHeadersInput.oninput=syncArticleTableBlock;
 if(tableRowsInput)tableRowsInput.oninput=syncArticleTableBlock;
 
+if(b.block_type==="pre_release_business"){
+const pr=b.extra_data=syncPreReleaseBusinessAutoValues(b.extra_data);
+
+function refreshPrbAutoFields(){
+    syncPreReleaseBusinessAutoValues(pr);
+    card.querySelectorAll("[data-prb-auto]").forEach(el=>{
+        el.value=prbDisplayNumber(pr[el.dataset.prbAuto]);
+    });
+}
+
+card.querySelectorAll("[data-prb-root]").forEach(el=>{
+    el.oninput=()=>{pr[el.dataset.prbRoot]=el.value;};
+});
+card.querySelectorAll("[data-prb-rows]").forEach(el=>{
+    el.oninput=()=>{
+        const key=el.dataset.prbRows;
+        pr[key]=prbTextToRows(el.value,key==="non_theatrical");
+        refreshPrbAutoFields();
+    };
+});
+refreshPrbAutoFields();
+}
 if(b.block_type==="boxoffice"){
 bindBoxOfficeMovieSearch(card,b);
 syncBoxOfficeTheatricalWorldwide(b.extra_data,card);
@@ -2843,6 +3011,12 @@ blocks.forEach(b=>{
     if(b.block_type==="live_tracker"){
         b.extra_data=b.extra_data||{};
         b.extra_data.updated_at=nowIST;
+    }
+});
+
+blocks.forEach(b=>{
+    if(b.block_type==="pre_release_business"){
+        b.extra_data=syncPreReleaseBusinessAutoValues(b.extra_data);
     }
 });
 
