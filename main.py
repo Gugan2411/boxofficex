@@ -11052,8 +11052,11 @@ def _article_ssr_money(value):
         return html_escape(str(value or ""))
 
 
-def _article_ssr_live_tracker(data, release_date=None):
+def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
     data = data or {}
+    safe_movie_title = html_escape(
+        str(movie_title or "Movie").strip() or "Movie"
+    )
 
     # Linked movie release_date is the ONLY Day-N authority.
     # The public Live Tracker's legacy start_date is intentionally ignored.
@@ -11185,7 +11188,11 @@ def _article_ssr_live_tracker(data, release_date=None):
         return ""
 
     return (
-        f'<section class="live-tracker-block {"lt-active" if active else ""}" aria-label="Live box office tracker">'
+        f'<section id="live-boxoffice-tracker" class="live-tracker-block {"lt-active" if active else ""}" aria-label="{safe_movie_title} live box office tracker">'
+        f'<div class="bx-seo-live-head">'
+        f'<h2>{safe_movie_title} Box Office Collection Live</h2>'
+        f'<p>Follow {safe_movie_title} live box office collection updates, including India, overseas and worldwide collection.</p>'
+        f'</div>'
         f'<div class="lt-head"><div class="lt-status"><span class="lt-dot"></span>'
         f'<span class="lt-status-copy"><span>{html_escape(labels.get(status, "LIVE"))}</span>'
         f'{"<span class=\"lt-tracking-copy\">• CURRENTLY TRACKING</span>" if active else ""}'
@@ -11830,9 +11837,15 @@ def _article_ssr_block(block, article=None):
             if url else ""
         )
     if block_type == "live_tracker":
-        linked_movie = ((article or {}).get("movies") or [None])[0]
-        release_date = (linked_movie or {}).get("release_date")
-        return _article_ssr_live_tracker(data, release_date=release_date)
+        linked_movie = ((article or {}).get("movies") or [None])[0] or {}
+        release_date = linked_movie.get("release_date")
+        movie_title = str(linked_movie.get("title") or "").strip()
+
+        return _article_ssr_live_tracker(
+            data,
+            release_date=release_date,
+            movie_title=movie_title,
+        )
     if block_type == "boxoffice":
         # The box-office block's own extra_data does not always carry
         # tracker_seo/movie metadata. Seed the linked article movie here so
