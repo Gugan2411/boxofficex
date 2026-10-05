@@ -5167,7 +5167,7 @@ def _actor_ssr_build(actor_slug: str):
     template = _inject_boxofficex_global_icons((BASE_DIR / "actor.html").read_text(encoding="utf-8"))
     name, profession, bio = str(actor["name"]), str(actor["profession"]), str(actor["bio"])
     canonical = f"https://boxofficex.in/actor/{actor_slug}"
-    title = f"{name} Movies, Box Office Collection & Career Statistics | BoxOfficeX"
+    title = f"{name} Box Office Collection, Movies & Career Statistics | BoxOfficeX"
 
     # CTR-focused Google description: career scale + recent five-film performance.
     # get_actor_movies() is already ordered newest release first. Future/unreleased
@@ -5250,7 +5250,7 @@ def _actor_ssr_build(actor_slug: str):
     # Keep the visible actor hero profile-first (IMDb/Wikipedia-style).
     # SEO targeting lives in metadata, descriptive section headings and crawlable data below.
     hero=f'''<div class="actor" data-ssr="1" data-actor-id="{actor_id}">
-        <h1 id="actorName">{html_escape(name)} Movies, Box Office Collection &amp; Career Statistics</h1>
+        <h1 id="actorName">{html_escape(name)} Box Office Collection, Movies &amp; Career Statistics</h1>
         <img id="actorPhoto" src="{html_escape(profile_image, quote=True)}" alt="{html_escape(name, quote=True)} profile">
         <div id="profession">{html_escape(profession)}</div>
         <div id="actorViewCount" class="actor-view-count">👁 0 Views</div>
@@ -5265,7 +5265,13 @@ def _actor_ssr_build(actor_slug: str):
     if top_movie and top_movie_gross is not None:
         intro_parts.append(f"The highest-grossing tracked film is <strong>{html_escape(top_movie_name)}</strong> at <strong>₹{_actor_ssr_money_known(top_movie_gross)} Cr</strong> worldwide.")
     intro_parts.append(f"The current verdict record includes <strong>{blockbuster_count} blockbusters</strong>, <strong>{hit_count} hits</strong> and <strong>{int(overview.get('flops') or 0)} flops</strong>.")
-    actor_intro = '<section id="bxActorSeoIntro" class="bx-actor-seo-intro" data-ssr="1"><p>' + ' '.join(intro_parts) + '</p></section>'
+    if recent_avg is not None and last_five_worldwide:
+        intro_parts.append(f"Across the latest <strong>{len(last_five_worldwide)}</strong> released films with worldwide data, the average gross is <strong>₹{_actor_ssr_money_known(recent_avg)} Cr</strong>.")
+    actor_intro = (
+        '<section id="bxActorSeoIntro" class="bx-actor-seo-intro" data-ssr="1">'
+        f'<h2>{html_escape(name)} Box Office &amp; Career Snapshot</h2>'
+        '<p>' + ' '.join(intro_parts) + '</p></section>'
+    )
 
     # actor.html may itself contain a previously SSR-rendered actor.
     # Match the actor hero regardless of data-ssr/data-actor-id attributes so
@@ -5294,19 +5300,22 @@ def _actor_ssr_build(actor_slug: str):
     template = re.sub(
         r'<h2>[^<]*📊.*?Box Office Career Overview</h2>|'
         r'<h2>\s*📊\s*Career Overview\s*</h2>',
-        f'<h2>📊 {html_escape(name)} Box Office Career Overview</h2>',
+        f'<h2>📊 {html_escape(name)} Box Office Career Overview</h2>'
+        f'<h3>{html_escape(name)} Hit, Flop &amp; Verdict Summary</h3>',
         template, count=1, flags=re.S | re.I
     )
     template = re.sub(
         r'<h2>[^<]*💰.*?Career Box Office Statistics</h2>|'
         r'<h2>\s*💰\s*Budget\s*&(?:amp;)?\s*Box Office Overview\s*</h2>',
-        f'<h2>💰 {html_escape(name)} Career Box Office Statistics</h2>',
+        f'<h2>💰 {html_escape(name)} Career Box Office Statistics</h2>'
+        f'<h3>Budget, India, Overseas &amp; Worldwide Collection Totals</h3>',
         template, count=1, flags=re.S | re.I
     )
     template = re.sub(
         r'<h2>[^<]*🏆.*?Highest-Grossing Movies</h2>|'
         r'<h2>\s*🏆\s*Top 5 Highest-Grossing Movies\s*</h2>',
-        f'<h2>🏆 {html_escape(name)} Highest-Grossing Movies</h2>',
+        f'<h2>🏆 {html_escape(name)} Highest-Grossing Movies</h2>'
+        f'<h3>Top Worldwide Grossers from the Tracked Filmography</h3>',
         template, count=1, flags=re.S | re.I
     )
     template = re.sub(
@@ -5316,7 +5325,8 @@ def _actor_ssr_build(actor_slug: str):
     )
     template = re.sub(
         r'<h2>[^<]*🎬.*?(?:Movies\s*&(?:amp;)?\s*Complete Filmography|Complete Filmography)</h2>',
-        f'<h2>🎬 {html_escape(name)} Movies &amp; Complete Filmography</h2>',
+        f'<h2>🎬 {html_escape(name)} Movies &amp; Box Office Collection</h2>'
+        f'<h3>{html_escape(name)} Complete Filmography, Collections &amp; Verdicts</h3>',
         template, count=1, flags=re.S | re.I
     )
 
@@ -5409,7 +5419,7 @@ def _actor_ssr_build(actor_slug: str):
         (f"What is {name}'s highest-grossing movie?", highest_answer),
         (f"How many blockbusters, hits and flops does {name} have?", f"The current BoxOfficeX verdict data lists {blockbuster_count} blockbusters, {hit_count} hits and {flop_count} flops for {name}."),
     ]
-    faq_html = '<section id="bxActorFaq" class="bx-actor-faq" data-ssr="1"><h2>'+html_escape(name)+' Box Office FAQ</h2>' + ''.join(
+    faq_html = '<section id="bxActorFaq" class="bx-actor-faq" data-ssr="1"><h2>'+html_escape(name)+' Box Office Collection FAQ</h2><h3>Movies, Highest Grosser &amp; Career Verdict Answers</h3>' + ''.join(
         '<details><summary>'+html_escape(q)+'</summary><p>'+html_escape(a)+'</p></details>' for q,a in faq_items
     ) + '</section>'
     template = re.sub(r'<section id="bxActorFaq".*?</section>', faq_html, template, count=1, flags=re.S)
@@ -5423,6 +5433,29 @@ def _actor_ssr_build(actor_slug: str):
         ],
     })
     template = re.sub(r'<script id="actorStructuredData" type="application/ld\+json">.*?</script>', '<script id="actorStructuredData" type="application/ld+json">'+json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")+"</script>", template, count=1, flags=re.S)
+    # Actor SEO V2 validation: Google must receive the important hierarchy and data in the first HTML response.
+    required_actor_ssr = [
+        f'<h1 id="actorName">{html_escape(name)} Box Office Collection, Movies &amp; Career Statistics</h1>',
+        f'<h2>{html_escape(name)} Box Office &amp; Career Snapshot</h2>',
+        f'<h2>📊 {html_escape(name)} Box Office Career Overview</h2>',
+        f'<h3>{html_escape(name)} Hit, Flop &amp; Verdict Summary</h3>',
+        f'<h2>💰 {html_escape(name)} Career Box Office Statistics</h2>',
+        '<h3>Budget, India, Overseas &amp; Worldwide Collection Totals</h3>',
+        f'<h2>🏆 {html_escape(name)} Highest-Grossing Movies</h2>',
+        '<h3>Top Worldwide Grossers from the Tracked Filmography</h3>',
+        f'<h2>🎬 {html_escape(name)} Movies &amp; Box Office Collection</h2>',
+        f'<h3>{html_escape(name)} Complete Filmography, Collections &amp; Verdicts</h3>',
+        f'<h2>{html_escape(name)} Box Office Collection FAQ</h2>',
+        '<h3>Movies, Highest Grosser &amp; Career Verdict Answers</h3>',
+        'id="overviewGrid" data-ssr="1"',
+        'id="boxOfficeOverviewGrid" data-ssr="1"',
+        'id="topMovies" data-ssr="1"',
+        'id="movieList" data-ssr="1"',
+        'id="bxActorFaq" class="bx-actor-faq" data-ssr="1"',
+    ]
+    missing_actor_ssr = [item for item in required_actor_ssr if item not in template]
+    if missing_actor_ssr:
+        raise RuntimeError(f"Actor SEO V2 SSR validation failed for {actor_slug}: {missing_actor_ssr}")
     return template
 
 
@@ -14389,6 +14422,7 @@ def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
         "boxoffice", "movie", "actor", "video", "table", "live_tracker",
+        "pre_release_business",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
@@ -14418,11 +14452,11 @@ def ensure_article_tracking_lifecycle_columns():
 @app.on_event("startup")
 def ensure_live_tracker_article_block_type():
     """
-    One-time/idempotent schema compatibility check for the Live Tracker block.
+    Idempotent schema compatibility check for BoxOfficeX article block types.
 
-    Older BoxOfficeX databases have article_blocks_type_check without
-    'live_tracker'. Only replace that CHECK constraint when live_tracker is
-    missing. Future app restarts leave an already-correct constraint alone.
+    Older databases may be missing 'live_tracker' and/or
+    'pre_release_business' from article_blocks_type_check. Replace the CHECK
+    constraint only when one of the required types is missing.
     """
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -14445,8 +14479,10 @@ def ensure_live_tracker_article_block_type():
             """)
             constraint_row = cur.fetchone()
             constraint_def = constraint_row[0] if constraint_row else ""
+            constraint_def_lower = constraint_def.lower()
 
-            if "live_tracker" in constraint_def.lower():
+            required_types = ("live_tracker", "pre_release_business")
+            if all(block_type in constraint_def_lower for block_type in required_types):
                 return
 
             cur.execute("""
@@ -14469,14 +14505,18 @@ def ensure_live_tracker_article_block_type():
                         'actor',
                         'video',
                         'table',
-                        'live_tracker'
+                        'live_tracker',
+                        'pre_release_business'
                     )
                 )
             """)
 
         conn.commit()
 
-    print("ARTICLE BLOCK MIGRATION: live_tracker is allowed")
+    print(
+        "ARTICLE BLOCK MIGRATION: live_tracker and pre_release_business are allowed",
+        flush=True,
+    )
 
 
 @app.get("/admin/articles", dependencies=[Depends(require_admin)])
