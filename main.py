@@ -11054,9 +11054,7 @@ def _article_ssr_money(value):
 
 def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
     data = data or {}
-    safe_movie_title = html_escape(
-        str(movie_title or "Movie").strip() or "Movie"
-    )
+    safe_movie_title = html_escape(str(movie_title or "Movie").strip() or "Movie")
 
     # Linked movie release_date is the ONLY Day-N authority.
     # The public Live Tracker's legacy start_date is intentionally ignored.
@@ -11184,15 +11182,23 @@ def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
         )
 
     note = str(data.get("note") or "").strip()
-    if not cards and not worldwide and not show_cards and not note:
-        return ""
+
+    # V1 SEO: the LIVE search-intent section must always exist in the initial
+    # server response while article tracking is enabled.  At the 6 AM rollover
+    # we still suppress stale temporary values, but we no longer suppress the
+    # crawlable LIVE H2/snippet itself.
+    live_seo_head = (
+        '<div class="bx-seo-section-head bx-seo-live-head" data-ssr="1">'
+        f'<h2>{safe_movie_title} Box Office Collection Live</h2>'
+        f'<p>Follow {safe_movie_title} live box office collection updates, including '
+        'India, overseas and worldwide collection.</p>'
+        '</div>'
+    )
 
     return (
-        f'<section id="live-boxoffice-tracker" class="live-tracker-block {"lt-active" if active else ""}" aria-label="{safe_movie_title} live box office tracker">'
-        f'<div class="bx-seo-live-head">'
-        f'<h2>{safe_movie_title} Box Office Collection Live</h2>'
-        f'<p>Follow {safe_movie_title} live box office collection updates, including India, overseas and worldwide collection.</p>'
-        f'</div>'
+        f'<section id="live-boxoffice-tracker" class="live-tracker-block {"lt-active" if active else ""}" '
+        f'aria-label="{safe_movie_title} live box office tracker">'
+        f'{live_seo_head}'
         f'<div class="lt-head"><div class="lt-status"><span class="lt-dot"></span>'
         f'<span class="lt-status-copy"><span>{html_escape(labels.get(status, "LIVE"))}</span>'
         f'{"<span class=\"lt-tracking-copy\">• CURRENTLY TRACKING</span>" if active else ""}'
@@ -11379,8 +11385,16 @@ def _article_ssr_theatrical_performance(data):
 
     disclaimer = html_escape(str(tp.get("disclaimer") or ""))
     note = html_escape(str(tp.get("performance_note") or ""))
+    theatrical_heading = (
+        '<div class="bx-seo-section-head bx-seo-theatrical-head" data-ssr="1">'
+        f'<h2>{safe_movie_title} Theatrical Performance</h2>'
+        f'<p>Track {safe_movie_title} area-wise theatrical performance, reported theatrical values, '
+        'current gross and recovery milestones.</p>'
+        '</div>'
+    )
     return (
-        '<section class="bx-tp" aria-label="Estimated theatrical performance">'
+        theatrical_heading
+        + '<section class="bx-tp" aria-label="Estimated theatrical performance">'
         '<div class="bx-tp-head"><div><div class="bx-tp-title">🎯 Estimated Theatrical Performance</div>'
         f'<div class="bx-tp-sub">{"Recovery tracking during the opening week — verdict labels begin from Day 8" if not verdict_enabled else "Reported theatrical values compared with matching earned box-office gross"}</div></div></div>'
         + combined_html
@@ -11529,37 +11543,24 @@ def _article_ssr_boxoffice(data):
                 f'<div class="boxoffice-grid">{"".join(pairs)}</div></div>'
             )
 
-    # SEO/SSR section headings must exist in the first HTML response.
-    # Client JS mirrors these headings later, but Google should not need JS
-    # to understand the Day-Wise or Theatrical Performance sections.
-    tracker_seo = data.get("tracker_seo") if isinstance(data.get("tracker_seo"), dict) else {}
-    tracker_movie = tracker_seo.get("movie") if isinstance(tracker_seo.get("movie"), dict) else {}
-    movie_title = str(tracker_movie.get("title") or "Movie").strip()
+    analysis = data.get("analysis") if isinstance(data, dict) else {}
+    seo = analysis.get("tracker_seo") if isinstance(analysis, dict) and isinstance(analysis.get("tracker_seo"), dict) else {}
+    movie = seo.get("movie") if isinstance(seo.get("movie"), dict) else {}
+    movie_title = str(movie.get("title") or "Movie").strip() or "Movie"
+    safe_movie_title = html_escape(movie_title)
 
     daywise_html = ""
     if report_html:
         daywise_html = (
-            '<section id="boxoffice-report" class="bx-daywise-seo" data-ssr="1">'
-            '<header class="bx-seo-section-head">'
-            f'<h2>{html_escape(movie_title)} Day-Wise Box Office Collection</h2>'
-            f'<p>Track {html_escape(movie_title)} day-wise India, overseas and worldwide box office collection '
+            '<div class="bx-seo-section-head bx-seo-daywise-head" data-ssr="1">'
+            f'<h2>{safe_movie_title} Day-Wise Box Office Collection</h2>'
+            f'<p>Track {safe_movie_title} day-wise India, overseas and worldwide box office collection '
             'with the latest reported figures in the table below.</p>'
-            '</header>'
-            + report_html +
-            '</section>'
+            '</div>'
+            + report_html
         )
 
     theatrical_html = _article_ssr_theatrical_performance(data)
-    if theatrical_html:
-        theatrical_html = (
-            '<header class="bx-seo-section-head bx-seo-theatrical-head" data-ssr="1">'
-            f'<h2>{html_escape(movie_title)} Theatrical Performance</h2>'
-            f'<p>Track {html_escape(movie_title)} area-wise theatrical performance, reported theatrical values, '
-            'current gross and recovery milestones.</p>'
-            '</header>'
-            + theatrical_html
-        )
-
     return daywise_html + theatrical_html
 
 
@@ -11606,174 +11607,6 @@ def _article_ssr_related_entity(block_type, data):
     except Exception as exc:
         print("Article SSR entity block warning:", type(exc).__name__, exc, flush=True)
         return ""
-
-
-
-def _article_ssr_pre_release_business(data, article=None):
-    data = data if isinstance(data, dict) else {}
-
-    def number(value):
-        try:
-            n = float(value)
-            return n if math.isfinite(n) and n >= 0 else None
-        except (TypeError, ValueError):
-            return None
-
-    def money(value):
-        n = number(value)
-        if n is None:
-            return "—"
-        shown = f"{n:,.2f}".rstrip("0").rstrip(".")
-        return f"₹{shown} Cr"
-
-    def rows(value, with_partner=False):
-        out = []
-        for row in value if isinstance(value, list) else []:
-            if not isinstance(row, dict):
-                continue
-            label = str(row.get("label") or row.get("territory") or row.get("type") or "").strip()
-            amount = number(row.get("value"))
-            if not label or amount is None:
-                continue
-            out.append({
-                "label": label,
-                "value": amount,
-                "partner": str(row.get("partner") or "").strip() if with_partner else "",
-            })
-        return out
-
-    def row_sum(items):
-        return round(sum(item["value"] for item in items), 2) if items else None
-
-    linked_movie = ((article or {}).get("movies") or [None])[0] or {}
-    movie = str(data.get("movie_name") or linked_movie.get("title") or "Movie").strip()
-    budget_rows = rows(data.get("budget_components"))
-    theatrical_rows = rows(data.get("theatrical"))
-    non_theatrical_rows = rows(data.get("non_theatrical"), True)
-
-    budget = number(data.get("budget_total"))
-    if budget is None:
-        budget = row_sum(budget_rows)
-    theatrical = number(data.get("theatrical_total"))
-    if theatrical is None:
-        theatrical = row_sum(theatrical_rows)
-    non_theatrical = number(data.get("non_theatrical_total"))
-    if non_theatrical is None:
-        non_theatrical = row_sum(non_theatrical_rows)
-    total = number(data.get("pre_release_total"))
-    if total is None and (theatrical is not None or non_theatrical is not None):
-        total = round((theatrical or 0) + (non_theatrical or 0), 2)
-
-    # Keep the H2 concise and query-focused. The supporting answer passage
-    # below carries budget/theatrical/non-theatrical detail.
-    heading = f"{movie} Pre-Release Business"
-    status = str(data.get("status") or "reported").strip()
-    note = str(data.get("note") or "").strip()
-
-    summary_parts = []
-    if budget is not None:
-        summary_parts.append(f"reported budget of {money(budget)}")
-    if theatrical is not None:
-        summary_parts.append(f"worldwide theatrical business of {money(theatrical)}")
-    if non_theatrical is not None:
-        summary_parts.append(f"non-theatrical rights of {money(non_theatrical)}")
-    summary = ""
-    if summary_parts:
-        summary = f"{movie} has a " + ", ".join(summary_parts)
-        if total is not None:
-            summary += f", taking total reported pre-release business to {money(total)}"
-        summary += "."
-
-    def table(items, total_value, total_label, with_partner=False):
-        if not items and total_value is None:
-            return ""
-        head = "<th>Rights</th>" if with_partner else "<th>Component / Territory</th>"
-        head += "<th>Value</th>"
-        if with_partner:
-            head += "<th>Partner</th>"
-        body = ""
-        for item in items:
-            body += (
-                "<tr>"
-                f"<td>{html_escape(item['label'])}</td>"
-                f"<td>{html_escape(money(item['value']))}</td>"
-                + (f"<td>{html_escape(item['partner'] or '—')}</td>" if with_partner else "")
-                + "</tr>"
-            )
-        if total_value is not None:
-            body += (
-                '<tr class="prb-total-row">'
-                f"<td>{html_escape(total_label)}</td><td>{html_escape(money(total_value))}</td>"
-                + ("<td></td>" if with_partner else "")
-                + "</tr>"
-            )
-        return (
-            '<div class="prb-table-wrap"><table class="prb-table">'
-            f"<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>"
-        )
-
-    quick = []
-    for label, value, cls in (
-        ("Reported Budget", budget, ""),
-        ("Theatrical Business", theatrical, ""),
-        ("Non-Theatrical", non_theatrical, ""),
-        ("Total Pre-Release Business", total, " prb-total"),
-    ):
-        if value is not None:
-            quick.append(
-                f'<div class="prb-stat{cls}"><span>{html_escape(label)}</span>'
-                f'<strong>{html_escape(money(value))}</strong></div>'
-            )
-
-    sections = []
-    if budget_rows or budget is not None:
-        sections.append(
-            f"<h3>{html_escape(movie)} Budget</h3>"
-            + table(budget_rows, budget, "Total Reported Budget")
-        )
-    if theatrical_rows or theatrical is not None:
-        sections.append(
-            f"<h3>{html_escape(movie)} Area-Wise Theatrical Rights</h3>"
-            + table(theatrical_rows, theatrical, "Worldwide Theatrical Business")
-        )
-    if non_theatrical_rows or non_theatrical is not None:
-        sections.append(
-            f"<h3>{html_escape(movie)} OTT, Digital & Non-Theatrical Rights</h3>"
-            + table(non_theatrical_rows, non_theatrical, "Total Non-Theatrical Business", True)
-        )
-    if total is not None:
-        summary_cards = []
-        for label, value, cls in (
-            ("Budget", budget, ""),
-            ("Theatrical", theatrical, ""),
-            ("Non-Theatrical", non_theatrical, ""),
-            ("Total Business", total, " prb-total"),
-        ):
-            if value is not None:
-                summary_cards.append(
-                    f'<div class="prb-stat{cls}"><span>{html_escape(label)}</span>'
-                    f'<strong>{html_escape(money(value))}</strong></div>'
-                )
-        sections.append(
-            f"<h3>{html_escape(movie)} Pre-Release Business Summary</h3>"
-            f'<div class="prb-quick-grid">{"".join(summary_cards)}</div>'
-        )
-
-    disclaimer = note or (
-        "Pre-release business and rights values may be based on reported industry or trade figures. "
-        "Actual agreements can differ, and some values may include bundled or region-specific rights."
-    )
-    return (
-        '<section id="pre-release-business" class="prb-block" data-ssr="1" '
-        'aria-labelledby="preReleaseBusinessHeading">'
-        f'<h2 id="preReleaseBusinessHeading">{html_escape(heading)}</h2>'
-        + (f'<p class="prb-summary-text">{html_escape(summary)}</p>' if summary else "")
-        + f'<div class="prb-quick-grid">{"".join(quick)}</div>'
-        + "".join(sections)
-        + f'<span class="prb-status">{html_escape(status)} figures</span>'
-        + f'<p class="prb-note"><strong>Note:</strong> {html_escape(disclaimer)}</p>'
-        + "</section>"
-    )
 
 
 def _article_ssr_block(block, article=None):
@@ -11837,45 +11670,27 @@ def _article_ssr_block(block, article=None):
             if url else ""
         )
     if block_type == "live_tracker":
-        linked_movie = ((article or {}).get("movies") or [None])[0] or {}
-        release_date = linked_movie.get("release_date")
-        movie_title = str(linked_movie.get("title") or "").strip()
-
+        linked_movie = ((article or {}).get("movies") or [None])[0]
+        release_date = (linked_movie or {}).get("release_date")
+        movie_title = (linked_movie or {}).get("title")
         return _article_ssr_live_tracker(
             data,
             release_date=release_date,
             movie_title=movie_title,
         )
     if block_type == "boxoffice":
-        # The box-office block's own extra_data does not always carry
-        # tracker_seo/movie metadata. Seed the linked article movie here so
-        # Day-Wise and Theatrical Performance SSR headings never fall back
-        # to the generic word "Movie".
-        boxoffice_data = dict(data or {})
-        linked_movie = ((article or {}).get("movies") or [None])[0] or {}
-        linked_title = str(linked_movie.get("title") or "").strip()
-
-        tracker_seo = (
-            dict(boxoffice_data.get("tracker_seo"))
-            if isinstance(boxoffice_data.get("tracker_seo"), dict)
-            else {}
-        )
-        tracker_movie = (
-            dict(tracker_seo.get("movie"))
-            if isinstance(tracker_seo.get("movie"), dict)
-            else {}
-        )
-
-        if linked_title and not str(tracker_movie.get("title") or "").strip():
-            tracker_movie["title"] = linked_title
-
-        if tracker_movie:
+        linked_movie = ((article or {}).get("movies") or [None])[0]
+        movie_title = str((linked_movie or {}).get("title") or "").strip()
+        if movie_title:
+            data = dict(data or {})
+            analysis = dict(data.get("analysis") or {})
+            tracker_seo = dict(analysis.get("tracker_seo") or {})
+            tracker_movie = dict(tracker_seo.get("movie") or {})
+            tracker_movie["title"] = movie_title
             tracker_seo["movie"] = tracker_movie
-            boxoffice_data["tracker_seo"] = tracker_seo
-
-        return _article_ssr_boxoffice(boxoffice_data)
-    if block_type == "pre_release_business":
-        return _article_ssr_pre_release_business(data, article=article)
+            analysis["tracker_seo"] = tracker_seo
+            data["analysis"] = analysis
+        return _article_ssr_boxoffice(data)
     if block_type in {"movie", "actor"}:
         return _article_ssr_related_entity(block_type, data)
     return ""
@@ -12342,74 +12157,6 @@ def _article_seo_faq_items(article):
                 f"The current BoxOfficeX tracking model shows {level} as the estimated performance level."
             ))
 
-    # Structured Pre-Release Business block can answer evergreen movie-business
-    # searches without guessing from prose.
-    pre_release = next(
-        (
-            b for b in (article.get("blocks") or [])
-            if str(b.get("block_type") or "").strip().lower() == "pre_release_business"
-        ),
-        None,
-    )
-    if pre_release:
-        data = pre_release.get("extra_data") or {}
-
-        def prb_cr(value):
-            try:
-                n = float(value)
-                if not math.isfinite(n) or n < 0:
-                    return None
-                shown = f"{n:,.2f}".rstrip("0").rstrip(".")
-                return f"₹{shown} Cr"
-            except (TypeError, ValueError):
-                return None
-
-        def prb_number(value):
-            try:
-                n = float(value)
-                return n if math.isfinite(n) and n >= 0 else None
-            except (TypeError, ValueError):
-                return None
-
-        def prb_row_total(rows):
-            values = []
-            for row in rows if isinstance(rows, list) else []:
-                if not isinstance(row, dict):
-                    continue
-                n = prb_number(row.get("value"))
-                if n is not None:
-                    values.append(n)
-            return round(sum(values), 2) if values else None
-
-        budget_n = prb_number(data.get("budget_total"))
-        if budget_n is None:
-            budget_n = prb_row_total(data.get("budget_components"))
-
-        theatrical_n = prb_number(data.get("theatrical_total"))
-        if theatrical_n is None:
-            theatrical_n = prb_row_total(data.get("theatrical"))
-
-        non_theatrical_n = prb_number(data.get("non_theatrical_total"))
-        if non_theatrical_n is None:
-            non_theatrical_n = prb_row_total(data.get("non_theatrical"))
-
-        total_n = prb_number(data.get("pre_release_total"))
-        if total_n is None and (theatrical_n is not None or non_theatrical_n is not None):
-            total_n = round((theatrical_n or 0) + (non_theatrical_n or 0), 2)
-
-        budget = prb_cr(budget_n)
-        theatrical = prb_cr(theatrical_n)
-        non_theatrical = prb_cr(non_theatrical_n)
-        total = prb_cr(total_n)
-        if budget:
-            items.append((f"What is {movie_name}'s budget?", f"The reported budget listed in this BoxOfficeX report is {budget}."))
-        if total:
-            items.append((f"What is {movie_name}'s pre-release business?", f"The total pre-release business listed in this report is {total}."))
-        if theatrical:
-            items.append((f"What is {movie_name}'s theatrical business?", f"The worldwide theatrical business listed in this report is {theatrical}."))
-        if non_theatrical:
-            items.append((f"What are {movie_name}'s non-theatrical rights worth?", f"The non-theatrical rights total listed in this report is {non_theatrical}."))
-
     # Normal editorial articles still get useful, source-grounded FAQ only when
     # the article itself supplies enough metadata to answer it.
     category = str(article.get("category") or "").strip()
@@ -12605,6 +12352,22 @@ def _render_article_detail_html(slug):
         (
             r"<meta\b(?=[^>]*\bid=[\"']twitterImage[\"'])(?=[^>]*\bname=[\"']twitter:image[\"'])[^>]*>",
             f'<meta id="twitterImage" name="twitter:image" content="{safe_hero_abs}">',
+        ),
+        (
+            r"<meta\b(?=[^>]*\bid=[\"']articleAuthorMeta[\"'])[^>]*>",
+            f'<meta id="articleAuthorMeta" name="author" content="{html_escape(author, quote=True)}">',
+        ),
+        (
+            r"<meta\b(?=[^>]*\bid=[\"']articlePublishedMeta[\"'])[^>]*>",
+            f'<meta id="articlePublishedMeta" property="article:published_time" content="{html_escape(published_iso, quote=True)}">',
+        ),
+        (
+            r"<meta\b(?=[^>]*\bid=[\"']articleModifiedMeta[\"'])[^>]*>",
+            f'<meta id="articleModifiedMeta" property="article:modified_time" content="{html_escape(modified_iso, quote=True)}">',
+        ),
+        (
+            r"<meta\b(?=[^>]*\bid=[\"']articleSectionMeta[\"'])[^>]*>",
+            f'<meta id="articleSectionMeta" property="article:section" content="{html_escape(category, quote=True)}">',
         ),
     )
 
@@ -14229,7 +13992,7 @@ def validate_article_status(value: str) -> str:
 def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
-        "boxoffice", "movie", "actor", "video", "table", "live_tracker", "pre_release_business",
+        "boxoffice", "movie", "actor", "video", "table", "live_tracker",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
@@ -14259,17 +14022,15 @@ def ensure_article_tracking_lifecycle_columns():
 @app.on_event("startup")
 def ensure_live_tracker_article_block_type():
     """
-    Idempotently keep the article_blocks CHECK constraint in sync with
-    application block types added after the original schema.
-    """
-    required_types = {
-        "paragraph", "heading", "image", "quote", "gallery",
-        "boxoffice", "movie", "actor", "video", "table",
-        "live_tracker", "pre_release_business",
-    }
+    One-time/idempotent schema compatibility check for the Live Tracker block.
 
+    Older BoxOfficeX databases have article_blocks_type_check without
+    'live_tracker'. Only replace that CHECK constraint when live_tracker is
+    missing. Future app restarts leave an already-correct constraint alone.
+    """
     with get_connection() as conn:
         with conn.cursor() as cur:
+            # Local/dev databases may not have article_blocks yet.
             cur.execute("SELECT to_regclass('public.article_blocks')")
             row = cur.fetchone()
             if not row or row[0] is None:
@@ -14287,12 +14048,9 @@ def ensure_live_tracker_article_block_type():
                 LIMIT 1
             """)
             constraint_row = cur.fetchone()
-            constraint_def = str(constraint_row[0] if constraint_row else "").lower()
+            constraint_def = constraint_row[0] if constraint_row else ""
 
-            if constraint_row and all(
-                f"'{block_type}'" in constraint_def
-                for block_type in required_types
-            ):
+            if "live_tracker" in constraint_def.lower():
                 return
 
             cur.execute("""
@@ -14315,15 +14073,14 @@ def ensure_live_tracker_article_block_type():
                         'actor',
                         'video',
                         'table',
-                        'live_tracker',
-                        'pre_release_business'
+                        'live_tracker'
                     )
                 )
             """)
 
         conn.commit()
 
-    print("ARTICLE BLOCK MIGRATION: current block types are allowed", flush=True)
+    print("ARTICLE BLOCK MIGRATION: live_tracker is allowed")
 
 
 @app.get("/admin/articles", dependencies=[Depends(require_admin)])

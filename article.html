@@ -5899,7 +5899,7 @@ w.includesPreview
 }</td>${visibleTerritories.map(([key])=>`<td>${w[key]>0?money(w[key]):"—"}</td>`).join("")}<td class="bo-auto-total">${money(w.india)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">${esc(currentGrossHeading)}</div><div class="bo-final-grid">${visibleTerritories.filter(([key])=>actualTotal[key]>0).map(([key,label])=>`<div class="bo-final-item"><span>${esc(label)}</span><strong>${money(actualTotal[key])}</strong></div>`).join("")}<div class="bo-final-item total"><span>India Gross</span><strong>${money(actualTotal.india)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(actualTotal.worldwide)}</strong></div></div>
 ${hasAdvance?`<div class="bo-subtitle">${esc(advanceHeading)}</div><div class="bo-final-grid">${visibleTerritories.filter(([key])=>advanceTotal[key]>0).map(([key,label])=>`<div class="bo-final-item"><span>${esc(label)}</span><strong>${money(advanceTotal[key])}</strong></div>`).join("")}<div class="bo-final-item total"><span>India Advance</span><strong>${money(advanceTotal.india)}</strong></div><div class="bo-final-item total"><span>Worldwide Advance</span><strong>${money(advanceTotal.worldwide)}</strong></div></div>
-<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>${renderBoxOfficeAnalysis(data?.analysis, data)}${splitTheatricalPerformance(data?.analysis).performance}`;
+<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>${renderBoxOfficeAnalysis(data?.analysis, data)}`;
 }
 
 // =========================================================
@@ -6460,7 +6460,8 @@ async function renderBlock(block) {
         const safeMovie = esc(movie);
         const dayHead = `<header class="bx-seo-section-head"><h2>${safeMovie} Day-Wise Box Office Collection</h2><p>Track ${safeMovie} day-wise India, overseas and worldwide box office collection with the latest reported figures in the table below.</p></header>`;
         const tpHead = data?.analysis?.theatrical_performance ? `<header class="bx-seo-section-head bx-seo-theatrical-head"><h2>${safeMovie} Theatrical Performance</h2><p>Track ${safeMovie} area-wise theatrical performance, reported theatrical values, current gross and recovery milestones.</p></header>` : "";
-        return `<section id="boxoffice-report" class="bx-daywise-seo">${dayHead}${renderBoxOffice(data)}</section>${tpHead}`;
+        const tpPerformance = splitTheatricalPerformance(data?.analysis).performance;
+        return `<section id="boxoffice-report" class="bx-daywise-seo">${dayHead}${renderBoxOffice(data)}</section>${tpHead}${tpPerformance}`;
     }
 
     if (type === "pre_release_business") {
