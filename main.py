@@ -6012,6 +6012,399 @@ def _render_actor_comparison_html(comparison):
         '</section>'
     )
 
+
+    # ============================================================
+    # FULL ACTOR COMPARISON SSR
+    # Mirrors the deterministic browser comparison engine so the
+    # first HTML response contains winner tables, factors and ROI.
+    # Visitor-specific Fan Zone state remains client-side.
+    # ============================================================
+
+    actor_movies1 = (payload.get("movies") or {}).get(str(actor1["id"]), []) or []
+    actor_movies2 = (payload.get("movies") or {}).get(str(actor2["id"]), []) or []
+    era_universe_movies = payload.get("era_universe_movies") or []
+
+    def ssr_num(value):
+        try:
+            number = float(value)
+            return number if math.isfinite(number) else None
+        except (TypeError, ValueError):
+            return None
+
+    def ssr_movie_year(movie):
+        raw = movie.get("release_date") or movie.get("release_year") or movie.get("year")
+        if not raw:
+            return None
+        match = re.search(r"(19|20)\d{2}", str(raw))
+        return int(match.group(0)) if match else None
+
+    def ssr_movie_worldwide(movie):
+        number = ssr_num(movie.get("worldwide_collection_crore"))
+        return number if number is not None and number > 0 else None
+
+    def ssr_era_start(year):
+        return (year // 5) * 5 if year else None
+
+    def ssr_median(values):
+        values = sorted(v for v in values if v is not None and v > 0)
+        if not values:
+            return None
+        mid = len(values) // 2
+        return values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2
+
+    era_buckets = {}
+    for movie in era_universe_movies:
+        year = ssr_movie_year(movie)
+        gross = ssr_movie_worldwide(movie)
+        era = ssr_era_start(year)
+        if era is None or gross is None:
+            continue
+        era_buckets.setdefault(era, []).append(gross)
+
+    era_benchmarks = {
+        era: {"median": ssr_median(values), "count": len(values)}
+        for era, values in era_buckets.items()
+        if len(values) >= 5
+    }
+
+    def ssr_actor_era_power(movies):
+        indices = []
+        for movie in movies:
+            year = ssr_movie_year(movie)
+            gross = ssr_movie_worldwide(movie)
+            era = ssr_era_start(year)
+            benchmark = era_benchmarks.get(era)
+            if gross is None or not benchmark or not benchmark.get("median"):
+                continue
+            indices.append(min(500.0, (gross / benchmark["median"]) * 100.0))
+        if not indices:
+            return {"score": None, "sample": 0}
+        used = sorted(indices)
+        if len(used) >= 10:
+            used = used[1:-1]
+        return {"score": sum(used) / len(used), "sample": len(indices)}
+
+    def ssr_latest_five(movies):
+        today = date.today()
+        released = []
+        for movie in movies:
+            raw = movie.get("release_date") or movie.get("release_year") or movie.get("year")
+            if not raw:
+                continue
+            try:
+                release_day = date.fromisoformat(str(raw)[:10])
+            except (TypeError, ValueError):
+                continue
+            if release_day > today:
+                continue
+            released.append((release_day, movie))
+        released.sort(key=lambda item: item[0], reverse=True)
+        return [movie for _, movie in released[:5]]
+
+    def ssr_last_five_average(movies):
+        latest = ssr_latest_five(movies)
+        grosses = [ssr_movie_worldwide(movie) for movie in latest]
+        grosses = [gross for gross in grosses if gross is not None]
+        return {
+            "average": (sum(grosses) / len(grosses)) if grosses else None,
+            "count": len(grosses),
+            "total": len(latest),
+            "movies": latest,
+        }
+
+    recent_avg1 = ssr_last_five_average(actor_movies1)
+    recent_avg2 = ssr_last_five_average(actor_movies2)
+    era_power1 = ssr_actor_era_power(actor_movies1)
+    era_power2 = ssr_actor_era_power(actor_movies2)
+
+    def ssr_verdict_counts(stats_obj):
+        return {
+            "blockbusters": max(0, ssr_num(stats_obj.get("blockbusters")) or 0),
+            "hits": max(0, ssr_num(stats_obj.get("hits")) or 0),
+            "average": max(0, ssr_num(stats_obj.get("average_movies")) or 0),
+            "flops": max(0, ssr_num(stats_obj.get("flops")) or 0),
+        }
+
+    def ssr_rates(stats_obj):
+        values = ssr_verdict_counts(stats_obj)
+        classified = sum(values.values())
+        if classified <= 0:
+            return {
+                "success": None, "blockbuster": None, "hit": None,
+                "flop": None, "non_flop": None,
+            }
+        flop_rate = (values["flops"] / classified) * 100
+        return {
+            "success": ((values["blockbusters"] + values["hits"]) / classified) * 100,
+            "blockbuster": (values["blockbusters"] / classified) * 100,
+            "hit": (values["hits"] / classified) * 100,
+            "flop": flop_rate,
+            "non_flop": 100 - flop_rate,
+        }
+
+    rates1 = ssr_rates(s1)
+    rates2 = ssr_rates(s2)
+
+    def ssr_normalized_pair(a_value, b_value, weight, lower_better=False):
+        av, bv = ssr_num(a_value), ssr_num(b_value)
+        if av is None or bv is None or av < 0 or bv < 0:
+            return None
+        if av == bv:
+            return {"a": weight / 2, "b": weight / 2, "weight": weight}
+        if lower_better:
+            maximum = max(av, bv)
+            if maximum == 0:
+                return {"a": weight / 2, "b": weight / 2, "weight": weight}
+            return {
+                "a": weight * ((maximum - av) / maximum),
+                "b": weight * ((maximum - bv) / maximum),
+                "weight": weight,
+            }
+        maximum = max(av, bv)
+        if maximum <= 0:
+            return {"a": weight / 2, "b": weight / 2, "weight": weight}
+        return {
+            "a": weight * (av / maximum),
+            "b": weight * (bv / maximum),
+            "weight": weight,
+        }
+
+    def ssr_build_score(metrics):
+        raw_a = raw_b = available_weight = 0.0
+        factors = []
+        for metric in metrics:
+            result = ssr_normalized_pair(
+                metric["a"], metric["b"], metric["weight"],
+                bool(metric.get("lower_better"))
+            )
+            if not result:
+                continue
+            raw_a += result["a"]
+            raw_b += result["b"]
+            available_weight += result["weight"]
+            av, bv = ssr_num(metric["a"]), ssr_num(metric["b"])
+            winner = "tie"
+            if av != bv:
+                if metric.get("lower_better"):
+                    winner = "a" if av < bv else "b"
+                else:
+                    winner = "a" if av > bv else "b"
+            factors.append({
+                "label": metric["label"], "winner": winner,
+                "weight": metric["weight"], "a": av, "b": bv,
+                "lower_better": bool(metric.get("lower_better")),
+            })
+        if not available_weight:
+            return {"a": None, "b": None, "factors": factors, "availableWeight": 0}
+        return {
+            "a": (raw_a / available_weight) * 100,
+            "b": (raw_b / available_weight) * 100,
+            "factors": factors,
+            "availableWeight": available_weight,
+        }
+
+    highest_gross1 = ssr_num((h1 or {}).get("worldwide_collection_crore"))
+    highest_gross2 = ssr_num((h2 or {}).get("worldwide_collection_crore"))
+
+    box_office_result = ssr_build_score([
+        {"label": "Total Worldwide", "a": s1.get("total_worldwide"), "b": s2.get("total_worldwide"), "weight": 25},
+        {"label": "Era-Adjusted Power", "a": era_power1["score"], "b": era_power2["score"], "weight": 20},
+        {"label": "Last 5 Movies Average", "a": recent_avg1["average"], "b": recent_avg2["average"], "weight": 15},
+        {"label": "Highest-Grossing Movie", "a": highest_gross1, "b": highest_gross2, "weight": 15},
+        {"label": "Blockbusters", "a": s1.get("blockbusters"), "b": s2.get("blockbusters"), "weight": 15},
+        {"label": "Hits", "a": s1.get("hits"), "b": s2.get("hits"), "weight": 10},
+    ])
+
+    career_result = ssr_build_score([
+        {"label": "Success Rate", "a": rates1["success"], "b": rates2["success"], "weight": 35},
+        {"label": "Blockbuster Rate", "a": rates1["blockbuster"], "b": rates2["blockbuster"], "weight": 25},
+        {"label": "Hit Rate", "a": rates1["hit"], "b": rates2["hit"], "weight": 15},
+        {"label": "Lower Flop Rate", "a": rates1["flop"], "b": rates2["flop"], "weight": 15, "lower_better": True},
+        {"label": "Career Consistency", "a": rates1["non_flop"], "b": rates2["non_flop"], "weight": 10},
+    ])
+
+    overall_result = {
+        "a": (
+            (box_office_result["a"] + career_result["a"]) / 2
+            if box_office_result["a"] is not None and career_result["a"] is not None
+            else (box_office_result["a"] if box_office_result["a"] is not None else career_result["a"])
+        ),
+        "b": (
+            (box_office_result["b"] + career_result["b"]) / 2
+            if box_office_result["b"] is not None and career_result["b"] is not None
+            else (box_office_result["b"] if box_office_result["b"] is not None else career_result["b"])
+        ),
+    }
+
+    def ssr_result_winner(result):
+        if result.get("a") is None or result.get("b") is None:
+            return "none"
+        if abs(result["a"] - result["b"]) < 0.5:
+            return "tie"
+        return "a" if result["a"] > result["b"] else "b"
+
+    def ssr_score_text(value):
+        return "N/A" if value is None else f"{value:.1f}/100"
+
+    def ssr_factor_value(label, value):
+        if value is None:
+            return "N/A"
+        if re.search(r"Rate|Consistency", label, re.I):
+            return f"{value:.1f}%"
+        return f"{value:,.1f}".rstrip("0").rstrip(".")
+
+    def ssr_why_winner(result, state):
+        if state == "none":
+            return "Not enough comparable factors are available."
+        if state == "tie":
+            return "The available comparison factors produce an effectively tied result."
+        winner_name = name1 if state == "a" else name2
+        won = [factor for factor in result.get("factors", []) if factor.get("winner") == state]
+        won.sort(key=lambda factor: factor.get("weight", 0), reverse=True)
+        important = [factor["label"] for factor in won[:2]]
+        if len(important) >= 2:
+            return f"{winner_name} leads in {important[0]} and {important[1]}, which BoxOfficeX gives greater importance when calculating this result."
+        if important:
+            return f"{winner_name} leads in {important[0]}, an important part of the BoxOfficeX comparison score."
+        return f"{winner_name} has the stronger result across the available comparison data."
+
+    def ssr_result_section(css_type, icon, heading_title, result, subtitle):
+        state = ssr_result_winner(result)
+        winner_name = name1 if state == "a" else name2 if state == "b" else None
+        heading = (
+            f"{icon} {heading_title}: Not Enough Data" if state == "none"
+            else f"{icon} {heading_title}: Tie" if state == "tie"
+            else f"{icon} {heading_title}: {winner_name}"
+        )
+        factors = []
+        for factor in result.get("factors", []):
+            a_trophy = " 🏆" if factor.get("winner") == "a" else ""
+            b_trophy = " 🏆" if factor.get("winner") == "b" else ""
+            factors.append(
+                '<span class="bx-actor-factor">'
+                f'<strong>{html_escape(factor["label"])}</strong>: '
+                f'{html_escape(name1)} {html_escape(ssr_factor_value(factor["label"], factor.get("a")))}{a_trophy}'
+                '<span class="bx-factor-vs"> vs </span>'
+                f'{html_escape(name2)} {html_escape(ssr_factor_value(factor["label"], factor.get("b")))}{b_trophy}'
+                '</span>'
+            )
+        return (
+            f'<section class="bx-actor-result {html_escape(css_type, quote=True)}">'
+            f'<h2 class="bx-actor-result-banner">{html_escape(heading)}</h2>'
+            f'<div class="bx-actor-result-sub">{html_escape(subtitle)}</div>'
+            '<div class="bx-actor-score-grid">'
+            f'<div class="bx-actor-score-card {"winner" if state == "a" else ""}"><div><div class="bx-actor-score-name">{html_escape(name1)}</div><div class="bx-actor-score-value">{html_escape(ssr_score_text(result.get("a")))}</div></div></div>'
+            f'<div class="bx-actor-score-mid">{"⚖️" if state == "tie" else "🏆"}<span>Score</span></div>'
+            f'<div class="bx-actor-score-card {"winner" if state == "b" else ""}"><div><div class="bx-actor-score-name">{html_escape(name2)}</div><div class="bx-actor-score-value">{html_escape(ssr_score_text(result.get("b")))}</div></div></div>'
+            '</div>'
+            f'<div class="bx-actor-result-factors">{"".join(factors)}</div>'
+            f'<div class="bx-actor-result-reason"><strong>Why this result?</strong> {html_escape(ssr_why_winner(result, state))}</div>'
+            '</section>'
+        )
+
+    box_state = ssr_result_winner(box_office_result)
+    career_state = ssr_result_winner(career_result)
+    overall_state = ssr_result_winner(overall_result)
+    overall_winner_name = name1 if overall_state == "a" else name2 if overall_state == "b" else None
+    overall_heading = (
+        "Tie" if overall_state == "tie"
+        else "Not Enough Data" if overall_state == "none"
+        else overall_winner_name
+    )
+    leads = []
+    if box_state == overall_state and overall_state in {"a", "b"}:
+        leads.append("Box Office Power")
+    if career_state == overall_state and overall_state in {"a", "b"}:
+        leads.append("Career Success")
+    if overall_state == "none":
+        overall_reason = "Not enough comparable data is available."
+    elif overall_state == "tie":
+        overall_reason = "Box Office Power and Career Success combine to an effectively tied overall score."
+    elif len(leads) == 2:
+        overall_reason = f"{overall_winner_name} leads both Box Office Power and Career Success, producing the stronger combined score."
+    elif len(leads) == 1:
+        overall_reason = f"{overall_winner_name}'s advantage in {leads[0]} is strong enough to produce the higher 50/50 combined score."
+    else:
+        overall_reason = f"{overall_winner_name} has the higher combined Box Office Power and Career Success score."
+
+    winner_ssr_html = (
+        '<section class="bx-actor-results bx-ssr-winner-results" data-ssr="1" aria-label="Actor comparison winners">'
+        f'<h2>{html_escape(name1)} vs {html_escape(name2)} Comparison Winner</h2>'
+        + ssr_result_section(
+            "boxoffice", "💰", "Box Office Power Winner", box_office_result,
+            "Box-office strength using worldwide gross, era-adjusted performance, recent five-film average, highest grosser, blockbusters and hits."
+        )
+        + ssr_result_section(
+            "career", "📈", "Career Success Winner", career_result,
+            "Career success uses classified verdict rates; missing verdicts are excluded rather than treated as failures."
+        )
+        + '<section class="bx-actor-result overall">'
+        f'<h3 class="bx-actor-result-banner">🏆 Overall Actor Winner: {html_escape(overall_heading)}</h3>'
+        '<div class="bx-actor-result-sub">Box Office Power (50%) + Career Success (50%)</div>'
+        '<div class="bx-actor-score-grid">'
+        f'<div class="bx-actor-score-card {"winner" if overall_state == "a" else ""}"><div><div class="bx-actor-score-name">{html_escape(name1)}</div><div class="bx-actor-score-value">{html_escape(ssr_score_text(overall_result.get("a")))}</div></div></div>'
+        f'<div class="bx-actor-score-mid">{"⚖️" if overall_state == "tie" else "🏆"}<span>Overall</span></div>'
+        f'<div class="bx-actor-score-card {"winner" if overall_state == "b" else ""}"><div><div class="bx-actor-score-name">{html_escape(name2)}</div><div class="bx-actor-score-value">{html_escape(ssr_score_text(overall_result.get("b")))}</div></div></div>'
+        '</div>'
+        f'<div class="bx-actor-result-reason"><strong>Why this result?</strong> {html_escape(overall_reason)}</div>'
+        '<div class="bx-actor-data-note">Data methodology: Last 5 Movies Average uses the latest five released movies and only available worldwide collection records. Era-Adjusted Power compares recorded films with the box-office level of their release period. Career rates use only movies with a recorded verdict. Missing collection or verdict data is excluded rather than treated as zero.</div>'
+        '<div class="bx-overall-disclaimer"><strong>BoxOfficeX Methodology Disclaimer:</strong> These scores are statistical comparison indicators based on collection and verdict data available in the BoxOfficeX database. They do not represent acting ability, personal popularity, salary or exact market value.</div>'
+        '</section></section>'
+    )
+
+    def ssr_movie_roi(movie):
+        budget = ssr_num(movie.get("budget_crore"))
+        worldwide = ssr_movie_worldwide(movie)
+        if budget is None or budget <= 0 or worldwide is None:
+            return None
+        return ((worldwide - budget) / budget) * 100
+
+    def ssr_roi_text(value):
+        return "N/A" if value is None else f"{'+' if value >= 0 else ''}{value:.1f}%"
+
+    def ssr_roi_card(actor_name, movies):
+        latest = ssr_latest_five(movies)
+        rows = []
+        usable = []
+        for movie in latest:
+            roi = ssr_movie_roi(movie)
+            if roi is not None:
+                usable.append(roi)
+            budget = ssr_num(movie.get("budget_crore"))
+            worldwide = ssr_movie_worldwide(movie)
+            details = (
+                "Budget / worldwide data incomplete"
+                if roi is None
+                else f"₹{budget:.2f} Cr budget · ₹{worldwide:.2f} Cr worldwide"
+            )
+            rows.append(
+                '<div class="bx-last5-roi-row">'
+                f'<div class="bx-last5-roi-movie">{html_escape(str(movie.get("title") or "Untitled"))}'
+                f'<small>{html_escape(str(movie.get("release_date") or ""))} · {html_escape(details)}</small></div>'
+                f'<div class="bx-last5-roi-value">{html_escape(ssr_roi_text(roi))}</div></div>'
+            )
+        if not rows:
+            rows.append('<div class="bx-last5-roi-row"><div class="bx-last5-roi-movie">No released movie records available</div><div class="bx-last5-roi-value">N/A</div></div>')
+        average = sum(usable) / len(usable) if usable else None
+        return (
+            '<div class="bx-last5-roi-card">'
+            f'<h3 class="bx-last5-roi-actor">{html_escape(actor_name)}</h3>'
+            f'<div class="bx-last5-roi-average"><span>Average Last-5 ROI · {len(usable)}/{len(latest) or 5} usable</span><strong>{html_escape(ssr_roi_text(average))}</strong></div>'
+            + "".join(rows) + '</div>'
+        )
+
+    roi_ssr_html = (
+        '<section class="bx-last5-roi-section bx-ssr-roi" data-ssr="1">'
+        f'<div class="bx-last5-roi-head"><h2>🎞 {html_escape(name1)} vs {html_escape(name2)} Last 5 Movies Theatrical ROI</h2>'
+        '<p>Recent gross-to-budget theatrical efficiency using each actor\'s latest five released movies.</p></div>'
+        '<div class="bx-last5-roi-grid">'
+        + ssr_roi_card(name1, actor_movies1)
+        + ssr_roi_card(name2, actor_movies2)
+        + '</div>'
+        '<div class="bx-last5-roi-method"><strong>BoxOfficeX methodology:</strong> Theatrical ROI = (Worldwide Gross − Reported Budget) ÷ Reported Budget × 100. Missing budget or worldwide gross remains N/A. This is a theatrical gross-to-budget indicator, not producer profit.</div>'
+        '</section>'
+    )
+
     faq_html = (
         f'<section class="bx-compare-seo bx-compare-faq-section" aria-label="{html_escape(name1, quote=True)} vs {html_escape(name2, quote=True)} box office frequently asked questions">'
         f'<h2>{html_escape(name1)} vs {html_escape(name2)} Box Office FAQ</h2>'
@@ -6181,6 +6574,7 @@ def _render_actor_comparison_html(comparison):
         + '<div class="stats">'
         + clickable_stat_row(s1.get("movie_count", 0), "🎬 Total Movies", s2.get("movie_count", 0))
         + stat_row(f"₹{_actor_comparison_ssr_number(s1.get('total_worldwide'))} Cr", "🌍 Total Worldwide", f"₹{_actor_comparison_ssr_number(s2.get('total_worldwide'))} Cr")
+        + stat_row(f"₹{_actor_comparison_ssr_number(recent_avg1['average'])} Cr" if recent_avg1['average'] is not None else "N/A", "🔥 Last 5 Movies Average", f"₹{_actor_comparison_ssr_number(recent_avg2['average'])} Cr" if recent_avg2['average'] is not None else "N/A")
         + clickable_stat_row(s1.get("blockbusters", 0), "🔥 Blockbusters", s2.get("blockbusters", 0), "Blockbuster")
         + clickable_stat_row(s1.get("hits", 0), "⭐ Hits", s2.get("hits", 0), "Hit")
         + clickable_stat_row(s1.get("average_movies", 0), "➖ Average", s2.get("average_movies", 0), "Average")
@@ -6190,10 +6584,12 @@ def _render_actor_comparison_html(comparison):
         + f'<div class="highest-section"><h2 class="highest-section-title">🏆 {html_escape(name1)} vs {html_escape(name2)} Highest-Grossing Movies</h2><p class="bx-section-intro">Compare the highest-grossing movie currently recorded for {html_escape(name1)} and {html_escape(name2)}, including worldwide collection and verdict data.</p><div class="highest-grid">'
         + highest_card(name1, h1) + highest_card(name2, h2)
         + '</div></div>'
+        + winner_ssr_html
+        + roi_ssr_html
         + related_comparisons_html()
         + faq_html
         + '<div class="bx-ssr-comparison-note">'
-        + f'<p><strong>{html_escape(name1)} vs {html_escape(name2)}</strong> comparison includes career movie counts, worldwide collections, verdict records and highest-grossing films. Interactive scoring, ROI, Fan Zone and live engagement load in the browser.</p>'
+        + f'<p><strong>{html_escape(name1)} vs {html_escape(name2)}</strong> comparison includes career movie counts, worldwide collections, recent performance, verdict records, highest-grossing films, BoxOfficeX winner scores and last-five theatrical ROI in the first server-rendered HTML response. Fan Zone reactions and visitor-specific engagement remain interactive in the browser.</p>'
         + '</div></div>'
     )
 
@@ -18011,6 +18407,190 @@ def _render_movie_comparison_html(comparison):
         '</section>'
     )
 
+
+    # FULL MOVIE COMPARISON SSR RESULTS — mirrors browser scoring.
+    def ssr_num(movie, field):
+        try:
+            value = float(movie.get(field))
+            return value if math.isfinite(value) else None
+        except (TypeError, ValueError):
+            return None
+
+    def ssr_verdict_rank(value):
+        value = str(value or "").strip().lower()
+        ranks = {"all time blockbuster":7,"industry hit":7,"blockbuster":6,"super hit":5,
+                 "hit":4,"above average":3,"average":2,"below average":1,"flop":0,"disaster":-1}
+        if value in ranks: return ranks[value]
+        if "blockbuster" in value: return 6
+        if "super hit" in value: return 5
+        if value == "hit" or " hit" in value: return 4
+        if "above average" in value: return 3
+        if "below average" in value: return 1
+        if "average" in value: return 2
+        if "flop" in value: return 0
+        if "disaster" in value: return -1
+        return None
+
+    def ssr_collection_score(left, right):
+        sa = sb = 0
+        wa, wb = [], []
+        for field, label in (("india_collection_crore","India Gross"),
+                             ("overseas_collection_crore","Overseas Gross"),
+                             ("worldwide_collection_crore","Worldwide Gross")):
+            av, bv = ssr_num(left, field), ssr_num(right, field)
+            if av is None or bv is None: continue
+            if av > bv: sa += 1; wa.append(label)
+            elif bv > av: sb += 1; wb.append(label)
+        va, vb = ssr_verdict_rank(left.get("verdict")), ssr_verdict_rank(right.get("verdict"))
+        if va is not None and vb is not None:
+            if va > vb: sa += 1; wa.append("Verdict")
+            elif vb > va: sb += 1; wb.append("Verdict")
+        return sa, sb, wa, wb
+
+    score_a, score_b, won_a, won_b = ssr_collection_score(a, b)
+    available_categories = score_a + score_b
+    overall_winner = overall_loser = None
+    tie_breaker = False
+    if score_a != score_b:
+        overall_winner, overall_loser = (a,b) if score_a > score_b else (b,a)
+    elif available_categories:
+        aw, bw = ssr_num(a,"worldwide_collection_crore"), ssr_num(b,"worldwide_collection_crore")
+        if aw is not None and bw is not None and aw != bw:
+            overall_winner, overall_loser = (a,b) if aw > bw else (b,a)
+            tie_breaker = True
+
+    if overall_winner:
+        winner_is_a = int(overall_winner.get("id") or 0) == int(a.get("id") or 0)
+        ws, ls = (score_a,score_b) if winner_is_a else (score_b,score_a)
+        ww, lw = ssr_num(overall_winner,"worldwide_collection_crore"), ssr_num(overall_loser,"worldwide_collection_crore")
+        margin = abs(ww-lw) if ww is not None and lw is not None else None
+        overall_state = str(overall_winner.get("title") or "Movie")
+        overall_reason = (f"Category score tied {ws}-{ls}; {overall_state} leads on worldwide gross."
+                          if tie_breaker else
+                          f"{overall_state} wins {ws} of {available_categories} available box-office categories.")
+        margin_text = _movie_comparison_ssr_money(margin) if margin is not None else "N/A"
+    elif available_categories:
+        overall_state, margin_text = "Tie", "N/A"
+        overall_reason = "Both movies win the same number of available comparison categories."
+    else:
+        overall_state, margin_text = "Not Enough Data", "N/A"
+        overall_reason = "India, overseas, worldwide and verdict data are not sufficient to determine a winner."
+
+    overall_ssr_html = (
+        '<section class="overall-result bx-overall-winner bx-ssr-movie-winner" data-ssr="1">'
+        f'<h2>{html_escape(title_a)} vs {html_escape(title_b)} Box Office Winner</h2>'
+        f'<h3 class="bx-winner-banner">Overall Box Office Winner: {html_escape(overall_state)}</h3>'
+        '<p class="bx-winner-basis">Based on India Gross, Overseas Gross, Worldwide Gross and Verdict.</p>'
+        '<div class="bx-winner-facts">'
+        f'<div class="bx-winner-fact"><span>{html_escape(title_a)} Category Score</span><strong>{score_a}</strong></div>'
+        f'<div class="bx-winner-fact"><span>{html_escape(title_b)} Category Score</span><strong>{score_b}</strong></div>'
+        f'<div class="bx-winner-fact"><span>Winning Margin</span><strong>{html_escape(margin_text)}</strong></div></div>'
+        f'<p class="bx-winner-summary">{html_escape(overall_reason)}</p>'
+        f'<p><strong>{html_escape(title_a)} leads:</strong> {html_escape(", ".join(won_a) if won_a else "No available category")}. '
+        f'<strong>{html_escape(title_b)} leads:</strong> {html_escape(", ".join(won_b) if won_b else "No available category")}.</p>'
+        '</section>'
+    )
+
+    def ssr_efficiency(movie):
+        budget, worldwide = ssr_num(movie,"budget_crore"), ssr_num(movie,"worldwide_collection_crore")
+        if budget is None or budget <= 0 or worldwide is None or worldwide < 0: return None
+        return {"budget":budget,"worldwide":worldwide,"multiple":worldwide/budget,
+                "gross_above":worldwide-budget,"roi":((worldwide-budget)/budget)*100}
+
+    ea, eb = ssr_efficiency(a), ssr_efficiency(b)
+    efficiency_winner = None
+    if ea and eb and abs(ea["roi"]-eb["roi"]) > 0.1:
+        efficiency_winner = a if ea["roi"] > eb["roi"] else b
+
+    def ssr_eff_card(movie, data, is_winner):
+        name = str(movie.get("title") or "Movie")
+        if not data:
+            return f'<div class="bx-efficiency-card"><h3>{html_escape(name)}</h3><p>Theatrical Efficiency: Not enough data</p></div>'
+        return (f'<div class="bx-efficiency-card {"winner" if is_winner else ""}">'
+                f'<h3>{html_escape(name)}{" 🏆" if is_winner else ""}</h3>'
+                f'<div class="bx-efficiency-stat"><span>Budget</span><strong>₹{data["budget"]:,.2f} Cr</strong></div>'
+                f'<div class="bx-efficiency-stat"><span>Worldwide Gross</span><strong>₹{data["worldwide"]:,.2f} Cr</strong></div>'
+                f'<div class="bx-efficiency-stat"><span>Gross Above Budget</span><strong>₹{data["gross_above"]:+,.2f} Cr</strong></div>'
+                f'<div class="bx-efficiency-stat"><span>Gross / Budget</span><strong>{data["multiple"]:.2f}×</strong></div>'
+                f'<div class="bx-efficiency-stat"><span>Theatrical ROI</span><strong>{data["roi"]:+.1f}%</strong></div></div>')
+
+    if not ea or not eb:
+        efficiency_state = "Not Enough Data"
+        efficiency_reason = "Budget and worldwide gross are required for both movies to decide the Theatrical Efficiency Winner."
+    elif not efficiency_winner:
+        efficiency_state = "Too Close"
+        efficiency_reason = "Both movies generated almost the same worldwide gross relative to their reported budgets."
+    else:
+        winner_is_a = int(efficiency_winner.get("id") or 0) == int(a.get("id") or 0)
+        wd, ld = (ea,eb) if winner_is_a else (eb,ea)
+        loser = b if winner_is_a else a
+        efficiency_state = str(efficiency_winner.get("title") or "Movie")
+        efficiency_reason = (f"{efficiency_state} is more theatrically efficient: its worldwide gross is "
+                             f"{wd['multiple']:.2f}× its reported budget ({wd['roi']:+.1f}%) versus "
+                             f"{ld['multiple']:.2f}× ({ld['roi']:+.1f}%) for {loser.get('title') or 'Movie'}.")
+
+    efficiency_ssr_html = (
+        '<section class="bx-efficiency-result bx-ssr-efficiency" data-ssr="1">'
+        f'<h2>{html_escape(title_a)} vs {html_escape(title_b)} Theatrical Efficiency</h2>'
+        f'<div class="bx-efficiency-banner">Theatrical Efficiency Winner: {html_escape(efficiency_state)}</div>'
+        '<p>Measures how strongly each movie&apos;s worldwide theatrical gross performed relative to its reported budget.</p>'
+        '<div class="bx-efficiency-duel">'
+        + ssr_eff_card(a,ea,bool(efficiency_winner and int(efficiency_winner.get("id") or 0)==int(a.get("id") or 0)))
+        + '<div class="bx-efficiency-mid">ROI</div>'
+        + ssr_eff_card(b,eb,bool(efficiency_winner and int(efficiency_winner.get("id") or 0)==int(b.get("id") or 0)))
+        + '</div>'
+        f'<p class="bx-efficiency-reason"><strong>Why this result?</strong> {html_escape(efficiency_reason)}</p>'
+        '<p class="bx-efficiency-note">BoxOfficeX Theatrical ROI = (Worldwide Gross - Reported Budget) / Reported Budget x 100. '
+        'This is a gross-to-budget theatrical efficiency indicator, not producer profit or studio ROI.</p></section>'
+    )
+
+    va, vb = ssr_verdict_rank(a.get("verdict")), ssr_verdict_rank(b.get("verdict"))
+    ma, mb = budget_multiple(a), budget_multiple(b)
+    commercial_winner = None
+    commercial_basis = ""
+    commercial_reason = ""
+    if va is not None and vb is not None and va != vb:
+        commercial_winner = a if va > vb else b
+        loser = b if commercial_winner is a else a
+        commercial_basis = "Verdict"
+        commercial_reason = (f"{commercial_winner.get('title')} wins commercially because its verdict "
+                             f"({_movie_comparison_ssr_text(commercial_winner.get('verdict'))}) ranks above "
+                             f"{loser.get('title')} ({_movie_comparison_ssr_text(loser.get('verdict'))}).")
+    elif va is not None and vb is not None and va == vb and ma is not None and mb is not None and abs(ma-mb) > 0.01:
+        commercial_winner = a if ma > mb else b
+        loser = b if commercial_winner is a else a
+        wm,lm = (ma,mb) if commercial_winner is a else (mb,ma)
+        commercial_basis = "Same verdict - Budget multiplier tie-break"
+        commercial_reason = f"Both movies have the same verdict, so budget efficiency decides it. {commercial_winner.get('title')} earned about {wm:.2f}× its budget versus {lm:.2f}× for {loser.get('title')}."
+    elif ma is not None and mb is not None and abs(ma-mb) > 0.01:
+        commercial_winner = a if ma > mb else b
+        loser = b if commercial_winner is a else a
+        wm,lm = (ma,mb) if commercial_winner is a else (mb,ma)
+        commercial_basis = "Budget multiplier"
+        commercial_reason = f"With incomplete or tied verdict data, budget efficiency is used. {commercial_winner.get('title')} earned about {wm:.2f}× its reported budget versus {lm:.2f}× for {loser.get('title')}."
+
+    commercial_state = str(commercial_winner.get("title")) if commercial_winner else "Tie / Not Enough Data"
+    if not commercial_reason:
+        commercial_reason = "The available verdict and budget-efficiency data do not produce a clear commercial winner."
+
+    commercial_ssr_html = (
+        '<section class="bx-commercial-result bx-ssr-commercial" data-ssr="1">'
+        f'<h2>{html_escape(title_a)} vs {html_escape(title_b)} Commercial Performance</h2>'
+        f'<h3 class="bx-commercial-banner">Commercial Performance Winner: {html_escape(commercial_state)}</h3>'
+        '<p>Verdict is the primary factor. Budget multiplier (Worldwide Gross / Budget) is used mainly when verdicts are equal or unavailable.</p>'
+        f'<p><strong>Basis:</strong> {html_escape(commercial_basis or "Available verdict and budget data")}</p>'
+        f'<p class="bx-commercial-reason">{html_escape(commercial_reason)}</p>'
+        '<p class="bx-commercial-note">Commercial performance is a BoxOfficeX comparison indicator and should not be read as exact producer/distributor profit.</p></section>'
+    )
+
+    result_faq_html = (
+        '<section class="bx-mc-seo bx-ssr-result-faq" data-ssr="1">'
+        f'<h2>{html_escape(title_a)} vs {html_escape(title_b)} Comparison Winner FAQ</h2>'
+        f'<details><summary>Which movie is the overall box office winner: {html_escape(title_a)} or {html_escape(title_b)}?</summary><p>{html_escape(overall_reason)}</p></details>'
+        f'<details><summary>Which movie has better theatrical efficiency?</summary><p>{html_escape(efficiency_reason)}</p></details>'
+        f'<details><summary>Which movie has stronger commercial performance?</summary><p>{html_escape(commercial_reason)}</p></details></section>'
+    )
+
     content = (
         f'<main id="app" data-ssr="1" '
         f'data-movie1-id="{int(a.get("id") or movie1_ref["id"])}" '
@@ -18039,7 +18619,11 @@ def _render_movie_comparison_html(comparison):
         + row("Worldwide Gross", "worldwide_collection_crore", _movie_comparison_ssr_money, "worldwide_collection")
         + row("Verdict", "verdict")
         + '</section>'
-        '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>'
+        + overall_ssr_html
+        + efficiency_ssr_html
+        + commercial_ssr_html
+        + '<section id="bxSmartAdSlot1" class="bx-smart-ad-slot" aria-label="Advertisement slot 1"></section>'
+        + result_faq_html
         + faq_html
         + related_comparisons_html()
         + '<div class="bx-ssr-comparison-note">'
@@ -18167,6 +18751,23 @@ def _render_movie_comparison_html(comparison):
                     else f"https://boxofficex.in{poster_b}"
                 ),
             },
+        ],
+    }
+    structured = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {key: value for key, value in structured.items() if key != "@context"},
+            {"@type": "FAQPage", "mainEntity": [
+                {"@type": "Question",
+                 "name": f"Which movie is the overall box office winner: {title_a} or {title_b}?",
+                 "acceptedAnswer": {"@type": "Answer", "text": overall_reason}},
+                {"@type": "Question",
+                 "name": "Which movie has better theatrical efficiency?",
+                 "acceptedAnswer": {"@type": "Answer", "text": efficiency_reason}},
+                {"@type": "Question",
+                 "name": "Which movie has stronger commercial performance?",
+                 "acceptedAnswer": {"@type": "Answer", "text": commercial_reason}},
+            ]},
         ],
     }
     json_ld = json.dumps(structured, ensure_ascii=False).replace("</", "<\\/")
