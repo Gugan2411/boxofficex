@@ -3087,6 +3087,8 @@ line-height:1.75;
 .bx-tp-stat span{display:block;color:#667085;font-size:8px;font-weight:800;text-transform:uppercase}
 .bx-tp-stat strong{display:block;margin-top:4px;color:#102a56;font-size:15px;font-weight:900}
 .bx-tp-stat.level strong{color:#087f4f}
+.bx-tp-stat.level{grid-column:span 2;min-width:0}
+.bx-tp-stat.level .bx-tp-level-big{width:100%!important;max-width:100%;justify-content:center;text-align:center;white-space:normal;line-height:1.15!important}
 .bx-tp-next{margin-top:13px;padding:12px;border:1px solid #dce6f3;border-radius:11px;background:#f8fafc}
 .bx-tp-next-row{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#344054;font-size:11px;font-weight:800}
 .bx-tp-next-row strong{color:#102a56;font-size:12px}
@@ -3111,6 +3113,7 @@ line-height:1.75;
  .bx-tp{padding:14px 11px;border-radius:15px}
  .bx-tp-title{font-size:17px}
  .bx-tp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bx-tp-stat.level{grid-column:1 / -1}
  .bx-tp-regions{grid-template-columns:1fr}
  .bx-tp-region-values{grid-template-columns:repeat(3,minmax(0,1fr))}
  .bx-tp-next-row{align-items:flex-start}
@@ -4825,6 +4828,19 @@ html,body{scroll-padding-top:0!important}
 .bx-section-nav-hint{color:#1e293b!important}
 </style>
 
+<style id="bx-salary-details-v1">
+.bx-salary-block{margin:28px 0;border:1px solid #dbe3ef;border-radius:20px;background:#fff;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.07)}
+.bx-salary-hero{display:flex;align-items:center;gap:12px;padding:18px 20px;background:linear-gradient(120deg,#123f91,#315fd4 58%,#6b4ce6);color:#fff}
+.bx-salary-icon{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border-radius:13px;background:rgba(255,255,255,.16);font:900 23px/1 Arial,sans-serif}
+.article-content .bx-salary-hero h2{margin:0!important;color:#fff!important;font-size:23px!important;line-height:1.2!important}
+.article-content .bx-salary-hero p{margin:4px 0 0!important;color:#dbeafe!important;font:700 11px/1.4 Arial,sans-serif!important}
+.bx-salary-group{padding:0 16px}.article-content .bx-salary-group h3{margin:18px 0 9px!important;font-size:16px!important;color:#172554!important}
+.bx-salary-table-wrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:12px}.bx-salary-table{width:100%;border-collapse:collapse;min-width:560px}.bx-salary-table th{padding:9px 10px;background:#f8fafc;color:#475569;font:900 9px/1.2 Arial,sans-serif;text-transform:uppercase;letter-spacing:.3px;text-align:left}.bx-salary-table td{padding:10px;border-top:1px solid #edf2f7;color:#1e293b;font:700 11px/1.35 Arial,sans-serif;vertical-align:top}.bx-salary-table td strong{color:#0f172a}
+.bx-salary-total{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px;padding:13px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font:900 11px/1.3 Arial,sans-serif}.bx-salary-total strong{font-size:17px;color:#1d4ed8}
+.bx-salary-status{display:inline-block;margin:0 16px 10px;padding:5px 8px;border-radius:999px;background:#f1f5f9;color:#475569;font:900 8px/1 Arial,sans-serif;text-transform:uppercase}.article-content .bx-salary-note{margin:0 16px 16px!important;padding:10px 12px!important;border-radius:10px!important;background:#fff7ed!important;color:#7c2d12!important;font-size:9px!important;line-height:1.5!important}
+@media(max-width:700px){.bx-salary-block{margin:22px 0;border-radius:15px}.bx-salary-hero{padding:14px 12px}.bx-salary-icon{width:38px;height:38px;flex-basis:38px;font-size:20px}.article-content .bx-salary-hero h2{font-size:19px!important}.article-content .bx-salary-hero p{font-size:9px!important}.bx-salary-group{padding:0 10px}.article-content .bx-salary-group h3{font-size:14px!important;margin:15px 0 7px!important}.bx-salary-table{min-width:0}.bx-salary-table thead{display:none}.bx-salary-table,.bx-salary-table tbody,.bx-salary-table tr,.bx-salary-table td{display:block;width:100%}.bx-salary-table tr{padding:8px 10px;border-top:1px solid #e2e8f0}.bx-salary-table tr:first-child{border-top:0}.bx-salary-table td{display:flex;justify-content:space-between;gap:14px;padding:4px 0;border:0;font-size:10px;text-align:right}.bx-salary-table td:before{content:attr(data-label);color:#64748b;font:900 8px/1.3 Arial,sans-serif;text-transform:uppercase;text-align:left}.bx-salary-total{margin:12px 10px;padding:11px;font-size:9px}.bx-salary-total strong{font-size:14px}.bx-salary-status{margin-left:10px}.article-content .bx-salary-note{margin:0 10px 12px!important;font-size:8px!important}}
+</style>
+
 <style id="bx-article-anchor-offset-v2">
 /* Stable article anchor positioning. Keeps section headings below the site header. */
 :root{--bx-article-anchor-offset:88px}
@@ -4832,6 +4848,7 @@ html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
 #live-boxoffice-tracker,
 #boxoffice-report,
 #pre-release-business,
+#salary-details,
 #budget-success-tracker,
 #articleSeoFaq,
 .bx-seo-theatrical-head,
@@ -6315,6 +6332,76 @@ ${flow.length>1?`<div class="prb-flow-title">Pre-Release Business Flow</div><div
 <div class="prb-foot"><span class="prb-status">${esc(status)} figures</span><p class="prb-note"><strong>BoxOfficeX Note:</strong> ${esc(note)}</p></div>
 </section>`;
 }
+function renderSalaryDetails(data){
+data=data||{};
+const movie=String(data.movie_name||window.currentBoxOfficeXLiveMovieName||"Movie").trim();
+const heading=String(data.heading||`${movie} Cast & Crew Salary Details`).trim();
+const people=(Array.isArray(data.people)?data.people:[]).map(person=>{
+    const p=person||{};
+    const salaryRaw=p.salary;
+    const salary=(salaryRaw!==null && salaryRaw!==undefined && String(salaryRaw).trim()!=="" && Number.isFinite(Number(salaryRaw)))?Number(salaryRaw):null;
+    const profitRaw=p.profit_share;
+    const profit=(profitRaw!==null && profitRaw!==undefined && String(profitRaw).trim()!=="" && Number.isFinite(Number(profitRaw)))?Number(profitRaw):null;
+    return {
+        name:String(p.name||"").trim(),
+        department:String(p.department||"").trim(),
+        role:String(p.role||"").trim(),
+        salary,
+        profit_share:profit,
+        other_deal:String(p.other_deal||"").trim(),
+        status:String(p.status||"").trim()
+    };
+}).filter(p=>p.name && (p.department||p.role||p.salary!==null||p.profit_share!==null||p.other_deal||p.status));
+if(!people.length)return "";
+
+const castDepartments=new Set(["actor","actress","supporting actor","cameo","cast"]);
+const isCast=p=>castDepartments.has(p.department.toLowerCase());
+const cast=people.filter(isCast);
+const crew=people.filter(p=>!isCast(p));
+const money=v=>`₹${Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+const total=people.reduce((sum,p)=>sum+(p.salary!==null?p.salary:0),0);
+const hasSalary=people.some(p=>p.salary!==null);
+const blockStatus=String(data.status||"").trim();
+const note=String(data.note||"").trim();
+
+function group(title,rows){
+    if(!rows.length)return "";
+    const showDepartment=rows.some(p=>p.department);
+    const showRole=rows.some(p=>p.role);
+    const showSalary=rows.some(p=>p.salary!==null);
+    const showProfit=rows.some(p=>p.profit_share!==null);
+    const showDeal=rows.some(p=>p.other_deal);
+    const showStatus=rows.some(p=>p.status);
+    const heads=["Name"];
+    if(showDepartment)heads.push("Department");
+    if(showRole)heads.push("Role / Character");
+    if(showSalary)heads.push("Salary");
+    if(showProfit)heads.push("Profit Share");
+    if(showDeal)heads.push("Additional Deal");
+    if(showStatus)heads.push("Status");
+    const cells=p=>{
+        const out=[`<td data-label="Name"><strong>${esc(p.name)}</strong></td>`];
+        if(showDepartment)out.push(`<td data-label="Department">${p.department?esc(p.department):"—"}</td>`);
+        if(showRole)out.push(`<td data-label="Role / Character">${p.role?esc(p.role):"—"}</td>`);
+        if(showSalary)out.push(`<td data-label="Salary">${p.salary!==null?`<strong>${esc(money(p.salary))}</strong>`:"—"}</td>`);
+        if(showProfit)out.push(`<td data-label="Profit Share">${p.profit_share!==null?`${esc(String(p.profit_share))}%`:"—"}</td>`);
+        if(showDeal)out.push(`<td data-label="Additional Deal">${p.other_deal?esc(p.other_deal):"—"}</td>`);
+        if(showStatus)out.push(`<td data-label="Status">${p.status?esc(p.status):"—"}</td>`);
+        return out.join("");
+    };
+    return `<section class="bx-salary-group"><h3>${esc(title)}</h3><div class="bx-salary-table-wrap"><table class="bx-salary-table"><thead><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(p=>`<tr>${cells(p)}</tr>`).join("")}</tbody></table></div></section>`;
+}
+
+return `<section id="salary-details" class="bx-salary-block" aria-label="${esc(movie)} cast and crew salary details">
+    <div class="bx-salary-hero"><span class="bx-salary-icon" aria-hidden="true">₹</span><div><h2>${esc(heading)}</h2><p>Reported cast, director and technical crew remuneration details.</p></div></div>
+    ${group("Actor & Cast Salaries",cast)}
+    ${group("Director & Technical Crew Salaries",crew)}
+    ${hasSalary?`<div class="bx-salary-total"><span>Total Listed Fixed Salaries</span><strong>${esc(money(Number(total.toFixed(2))))}</strong></div>`:""}
+    ${blockStatus?`<div class="bx-salary-status">${esc(blockStatus)} figures</div>`:""}
+    ${note?`<p class="bx-salary-note"><strong>BoxOfficeX Note:</strong> ${esc(note)}</p>`:""}
+    <p class="bx-salary-note"><strong>Disclaimer:</strong> Salary, profit-share and rights figures shown above are based on publicly reported information and industry estimates where applicable. Actual remuneration and contractual terms may differ and may not be officially disclosed.</p>
+</section>`;
+}
 function bxArticleOverviewData(article){
     const blocks=Array.isArray(article?.blocks)?article.blocks:[];
     const movie=(Array.isArray(article?.movies)&&article.movies[0])||{};
@@ -6373,6 +6460,7 @@ function bxArticleOverviewData(article){
     if(types.has("live_tracker"))jumps.push(["#live-boxoffice-tracker","Live"]);
     if(types.has("boxoffice"))jumps.push(["#boxoffice-report","Day-Wise"]);
     if(types.has("pre_release_business"))jumps.push(["#pre-release-business","Budget & Business"]);
+    if(types.has("salary_details"))jumps.push(["#salary-details","Salaries"]);
     if(document.getElementById("articleSeoFaq"))jumps.push(["#articleSeoFaq","FAQ"]);
     return {movieName,facts,introText,jumps};
 }
@@ -6393,6 +6481,9 @@ function renderArticleSeoOverview(article){
     }
     if(types.has("pre_release_business")){
         links.push(`<a class="bx-section-nav-btn" href="#pre-release-business"><span class="bx-section-nav-icon" aria-hidden="true">₹</span><span>BUSINESS</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
+    }
+    if(types.has("salary_details")){
+        links.push(`<a class="bx-section-nav-btn" href="#salary-details"><span class="bx-section-nav-icon" aria-hidden="true">₹</span><span>SALARIES</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
     }
     if(!links.length)return "";
 
@@ -6466,6 +6557,10 @@ async function renderBlock(block) {
 
     if (type === "pre_release_business") {
         return renderPreReleaseBusiness(data);
+    }
+
+    if (type === "salary_details") {
+        return renderSalaryDetails(data);
     }
 
     if (type === "table") {
@@ -6622,6 +6717,22 @@ function renderArticleExploreMore(article) {
 }
 
 
+
+function bxRestoreArticleHashAnchor(){
+    const rawHash=String(window.location.hash||"").trim();
+    if(!rawHash || rawHash==="#") return;
+    let id="";
+    try{id=decodeURIComponent(rawHash.slice(1));}catch(_){id=rawHash.slice(1);}
+    if(!id) return;
+    // The article body is rebuilt and core sections are reordered after the
+    // browser's first native hash jump. Re-apply the requested anchor only
+    // after the final article layout exists. Existing CSS supplies the header offset.
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        const target=document.getElementById(id);
+        if(target) target.scrollIntoView({block:"start",inline:"nearest",behavior:"auto"});
+    }));
+}
+
 async function renderArticle(article) {
     setSEO(article);
     window.currentBoxOfficeXArticle = article;
@@ -6677,7 +6788,7 @@ async function renderArticle(article) {
     const sourceBlocks = [...(article.blocks || [])];
     // Release-page priority: Live → Day-Wise/Theatrical Performance → Pre-Release Business.
     // Other editorial blocks keep their relative order after these core tracking sections.
-    const priority = {live_tracker:0, boxoffice:1, pre_release_business:2};
+    const priority = {live_tracker:0, boxoffice:1, pre_release_business:2, salary_details:3};
     const core = sourceBlocks.filter(b => Object.prototype.hasOwnProperty.call(priority, String(b?.block_type||"").toLowerCase()))
         .sort((a,b)=>priority[String(a?.block_type||"").toLowerCase()]-priority[String(b?.block_type||"").toLowerCase()]);
     const other = sourceBlocks.filter(b => !Object.prototype.hasOwnProperty.call(priority, String(b?.block_type||"").toLowerCase()));
@@ -6685,13 +6796,17 @@ async function renderArticle(article) {
     const blockHTML = await Promise.all(orderedBlocks.map(block => renderBlock(block)));
 
     // Final release-page order:
-    // LIVE → DAY-WISE → THEATRICAL PERFORMANCE → PRE-RELEASE BUSINESS → BUDGET TRACKER → FAQ.
+    // LIVE → DAY-WISE → THEATRICAL PERFORMANCE → PRE-RELEASE BUSINESS → SALARY DETAILS → BUDGET TRACKER → FAQ.
     const boxSourceIndex = orderedBlocks.findIndex(b => String(b?.block_type || "").toLowerCase() === "boxoffice");
     const businessIndex = orderedBlocks.findIndex(b => String(b?.block_type || "").toLowerCase() === "pre_release_business");
+    const salaryIndex = orderedBlocks.findIndex(b => String(b?.block_type || "").toLowerCase() === "salary_details");
     if (boxSourceIndex >= 0 && businessIndex >= 0) {
         const analysis = orderedBlocks[boxSourceIndex]?.extra_data?.analysis;
-        const afterBusiness = `${renderBudgetSuccessTracker(analysis)}${splitTheatricalPerformance(analysis).recoveryFaq}`;
-        if (afterBusiness) blockHTML[businessIndex] = `${blockHTML[businessIndex]}${afterBusiness}`;
+        const afterCoreDetails = `${renderBudgetSuccessTracker(analysis)}${splitTheatricalPerformance(analysis).recoveryFaq}`;
+        // When Salary Details exists, place Budget Tracker after Salary Details.
+        // Otherwise preserve the previous behavior and place it after Business.
+        const targetIndex = salaryIndex >= 0 ? salaryIndex : businessIndex;
+        if (afterCoreDetails) blockHTML[targetIndex] = `${blockHTML[targetIndex]}${afterCoreDetails}`;
     }
 
 
@@ -6800,6 +6915,7 @@ async function renderArticle(article) {
         </article>
     `;
 
+    bxRestoreArticleHashAnchor();
     window.currentBoxOfficeXArticle = article;
     if (typeof window.BoxOfficeXLoadArticleInContentAds === "function") {
         window.BoxOfficeXLoadArticleInContentAds();
