@@ -4483,8 +4483,36 @@ def movie_rankings_industry_page(industry_slug: str):
 # ============================================================
 
 MOVIE_HTML_CACHE_TTL = 300
+MAX_MOVIE_HTML_CACHE = 100
 _movie_html_cache = {}
 _movie_html_cache_lock = threading.Lock()
+
+
+def _trim_html_cache(cache: dict, max_entries: int, now=None):
+    """Bound an in-memory SSR HTML cache.
+
+    Expired entries are removed first. If the cache is still above the
+    configured limit, entries closest to expiry are evicted first.
+    Caller must hold the cache's lock.
+    """
+    if now is None:
+        now = time_module.monotonic()
+
+    expired_keys = [
+        key for key, value in cache.items()
+        if float((value or {}).get("expires_at") or 0.0) <= now
+    ]
+    for key in expired_keys:
+        cache.pop(key, None)
+
+    overflow = len(cache) - max_entries
+    if overflow > 0:
+        oldest = sorted(
+            cache.items(),
+            key=lambda item: float((item[1] or {}).get("expires_at") or 0.0),
+        )[:overflow]
+        for key, _ in oldest:
+            cache.pop(key, None)
 
 
 def _movie_ssr_format_crore(value):
@@ -5065,16 +5093,20 @@ def _movie_ssr_cached(movie_slug: str):
         cached = _movie_html_cache.get(movie_slug)
         if cached and cached["expires_at"] > now:
             return cached["html"], "HIT"
+        if cached:
+            _movie_html_cache.pop(movie_slug, None)
 
     rendered = _movie_ssr_build(movie_slug)
     if rendered is None:
         return None, "MISS"
 
     with _movie_html_cache_lock:
+        cache_now = time_module.monotonic()
         _movie_html_cache[movie_slug] = {
             "html": rendered,
-            "expires_at": time_module.monotonic() + MOVIE_HTML_CACHE_TTL,
+            "expires_at": cache_now + MOVIE_HTML_CACHE_TTL,
         }
+        _trim_html_cache(_movie_html_cache, MAX_MOVIE_HTML_CACHE, cache_now)
     return rendered, "MISS"
 
 
@@ -5083,6 +5115,7 @@ def _movie_ssr_cached(movie_slug: str):
 # ============================================================
 
 ACTOR_HTML_CACHE_TTL = 300
+MAX_ACTOR_HTML_CACHE = 50
 _actor_html_cache = {}
 _actor_html_cache_lock = threading.Lock()
 
@@ -5465,11 +5498,15 @@ def _actor_ssr_cached(actor_slug: str):
         cached=_actor_html_cache.get(actor_slug)
         if cached and cached["expires_at"] > now:
             return cached["html"], "HIT"
+        if cached:
+            _actor_html_cache.pop(actor_slug, None)
     rendered=_actor_ssr_build(actor_slug)
     if rendered is None:
         return None, "MISS"
     with _actor_html_cache_lock:
-        _actor_html_cache[actor_slug]={"html":rendered, "expires_at":time_module.monotonic()+ACTOR_HTML_CACHE_TTL}
+        cache_now = time_module.monotonic()
+        _actor_html_cache[actor_slug]={"html":rendered, "expires_at":cache_now+ACTOR_HTML_CACHE_TTL}
+        _trim_html_cache(_actor_html_cache, MAX_ACTOR_HTML_CACHE, cache_now)
     return rendered, "MISS"
 
 
@@ -5876,6 +5913,8 @@ def resolve_actor_comparison_slug(comparison_slug: str):
 # ============================================================
 
 ACTOR_COMPARISON_HTML_CACHE_TTL = 300
+MAX_ACTOR_COMPARISON_CACHE = 50
+MAX_ACTOR_COMPARISON_REFRESHES = 4
 _actor_comparison_html_cache = {}
 _actor_comparison_cache_lock = threading.Lock()
 _actor_comparison_refreshing = set()
@@ -6695,10 +6734,12 @@ def _refresh_actor_comparison_cache(comparison_slug, comparison):
     try:
         rendered = _render_actor_comparison_html(comparison)
         with _actor_comparison_cache_lock:
+            cache_now = time_module.monotonic()
             _actor_comparison_html_cache[comparison_slug] = {
                 "html": rendered,
-                "expires_at": time_module.monotonic() + ACTOR_COMPARISON_HTML_CACHE_TTL,
+                "expires_at": cache_now + ACTOR_COMPARISON_HTML_CACHE_TTL,
             }
+            _trim_html_cache(_actor_comparison_html_cache, MAX_ACTOR_COMPARISON_CACHE, cache_now)
     except Exception as exc:
         print("Actor Comparison SSR refresh failed:", comparison_slug, type(exc).__name__, exc, flush=True)
     finally:
@@ -6709,6 +6750,8 @@ def _refresh_actor_comparison_cache(comparison_slug, comparison):
 def _start_actor_comparison_refresh(comparison_slug, comparison):
     with _actor_comparison_cache_lock:
         if comparison_slug in _actor_comparison_refreshing:
+            return False
+        if len(_actor_comparison_refreshing) >= MAX_ACTOR_COMPARISON_REFRESHES:
             return False
         _actor_comparison_refreshing.add(comparison_slug)
     threading.Thread(
@@ -6757,10 +6800,12 @@ def _get_actor_comparison_cached_html(comparison_slug, comparison):
         raise RuntimeError("Actor comparison SSR returned empty HTML")
 
     with _actor_comparison_cache_lock:
+        cache_now = time_module.monotonic()
         _actor_comparison_html_cache[comparison_slug] = {
             "html": rendered,
-            "expires_at": time_module.monotonic() + ACTOR_COMPARISON_HTML_CACHE_TTL,
+            "expires_at": cache_now + ACTOR_COMPARISON_HTML_CACHE_TTL,
         }
+        _trim_html_cache(_actor_comparison_html_cache, MAX_ACTOR_COMPARISON_CACHE, cache_now)
 
     print(
         f"Actor Comparison SSR cold render: {comparison_slug} {render_ms:.1f}ms",
@@ -11401,6 +11446,8 @@ def admin_unlink_actor_movie(
 
 ARTICLE_DETAIL_HTML_CACHE_TTL = 60
 ARTICLE_DETAIL_HTML_STALE_TTL = 300
+MAX_ARTICLE_DETAIL_HTML_CACHE = 100
+MAX_ARTICLE_DETAIL_REFRESHES = 4
 _article_detail_html_cache = {}
 _article_detail_cache_lock = threading.Lock()
 _article_detail_refreshing = set()
@@ -12968,6 +13015,14 @@ def _refresh_article_detail_cache(slug: str):
                 "expires_at": now + ARTICLE_DETAIL_HTML_CACHE_TTL,
                 "stale_until": now + ARTICLE_DETAIL_HTML_CACHE_TTL + ARTICLE_DETAIL_HTML_STALE_TTL,
             }
+            if len(_article_detail_html_cache) > MAX_ARTICLE_DETAIL_HTML_CACHE:
+                overflow = len(_article_detail_html_cache) - MAX_ARTICLE_DETAIL_HTML_CACHE
+                oldest = sorted(
+                    _article_detail_html_cache.items(),
+                    key=lambda item: float((item[1] or {}).get("stale_until") or 0.0),
+                )[:overflow]
+                for old_slug, _ in oldest:
+                    _article_detail_html_cache.pop(old_slug, None)
     except Exception as exc:
         print(f"[Article SSR] refresh failed for {slug}: {exc}")
     finally:
@@ -12978,6 +13033,8 @@ def _refresh_article_detail_cache(slug: str):
 def _start_article_detail_refresh(slug: str) -> bool:
     with _article_detail_cache_lock:
         if slug in _article_detail_refreshing:
+            return False
+        if len(_article_detail_refreshing) >= MAX_ARTICLE_DETAIL_REFRESHES:
             return False
         _article_detail_refreshing.add(slug)
 
@@ -13038,6 +13095,14 @@ def article_pretty_page(slug: str):
                 "expires_at": generated_at + ARTICLE_DETAIL_HTML_CACHE_TTL,
                 "stale_until": generated_at + ARTICLE_DETAIL_HTML_CACHE_TTL + ARTICLE_DETAIL_HTML_STALE_TTL,
             }
+            if len(_article_detail_html_cache) > MAX_ARTICLE_DETAIL_HTML_CACHE:
+                overflow = len(_article_detail_html_cache) - MAX_ARTICLE_DETAIL_HTML_CACHE
+                oldest = sorted(
+                    _article_detail_html_cache.items(),
+                    key=lambda item: float((item[1] or {}).get("stale_until") or 0.0),
+                )[:overflow]
+                for old_slug, _ in oldest:
+                    _article_detail_html_cache.pop(old_slug, None)
 
         return HTMLResponse(
             content=rendered,
@@ -18136,6 +18201,8 @@ def resolve_movie_comparison_slug(comparison_slug: str):
 # ============================================================
 
 MOVIE_COMPARISON_HTML_CACHE_TTL = 300
+MAX_MOVIE_COMPARISON_CACHE = 50
+MAX_MOVIE_COMPARISON_REFRESHES = 4
 _movie_comparison_html_cache = {}
 _movie_comparison_cache_lock = threading.Lock()
 _movie_comparison_refreshing = set()
@@ -18826,10 +18893,12 @@ def _refresh_movie_comparison_cache(comparison_slug, comparison):
     try:
         rendered = _render_movie_comparison_html(comparison)
         with _movie_comparison_cache_lock:
+            cache_now = time_module.monotonic()
             _movie_comparison_html_cache[comparison_slug] = {
                 "html": rendered,
-                "expires_at": time_module.monotonic() + MOVIE_COMPARISON_HTML_CACHE_TTL,
+                "expires_at": cache_now + MOVIE_COMPARISON_HTML_CACHE_TTL,
             }
+            _trim_html_cache(_movie_comparison_html_cache, MAX_MOVIE_COMPARISON_CACHE, cache_now)
     except Exception as exc:
         print(
             "Movie Comparison SSR refresh failed:",
@@ -18846,6 +18915,8 @@ def _refresh_movie_comparison_cache(comparison_slug, comparison):
 def _start_movie_comparison_refresh(comparison_slug, comparison):
     with _movie_comparison_cache_lock:
         if comparison_slug in _movie_comparison_refreshing:
+            return False
+        if len(_movie_comparison_refreshing) >= MAX_MOVIE_COMPARISON_REFRESHES:
             return False
         _movie_comparison_refreshing.add(comparison_slug)
 
@@ -18888,10 +18959,12 @@ def _get_movie_comparison_cached_html(comparison_slug, comparison):
         raise RuntimeError("Movie comparison SSR returned empty HTML")
 
     with _movie_comparison_cache_lock:
+        cache_now = time_module.monotonic()
         _movie_comparison_html_cache[comparison_slug] = {
             "html": rendered,
-            "expires_at": time_module.monotonic() + MOVIE_COMPARISON_HTML_CACHE_TTL,
+            "expires_at": cache_now + MOVIE_COMPARISON_HTML_CACHE_TTL,
         }
+        _trim_html_cache(_movie_comparison_html_cache, MAX_MOVIE_COMPARISON_CACHE, cache_now)
 
     print(
         f"Movie Comparison SSR cold render: {comparison_slug} {render_ms:.1f}ms",
