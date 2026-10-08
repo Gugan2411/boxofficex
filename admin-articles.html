@@ -3076,7 +3076,13 @@ label.textContent=cb.checked ? "ON — Automatic Day N" : "OFF — Final / Froze
 }
 
 function articlePayload(){
-return {title:$("title").value.trim(),slug:slugify($("slug").value||$("title").value),subtitle:$("subtitle").value||null,category:$("category").value.trim()||"News",author:$("author").value.trim()||
+// New tracking articles may have no manual H1: derive a stable identity from
+// the selected movie, without changing the public auto-generated headline.
+const manualTitle=$("title").value.trim();
+const movieTitle=selectedMovieLinkIds.length===1 ? String(movieNameById(selectedMovieLinkIds[0])||"").trim() : "";
+const storedTitle=manualTitle || (movieTitle ? movieTitle+" Box Office Collection" : "");
+const resolvedSlug=slugify($("slug").value || storedTitle);
+return {title:storedTitle,slug:resolvedSlug,subtitle:$("subtitle").value||null,category:$("category").value.trim()||"News",author:$("author").value.trim()||
 CURRENT_ARTICLE_ADMIN?.display_name||
 CURRENT_ARTICLE_ADMIN?.email||
 "BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null,tracking_enabled:$("trackingEnabled")?$("trackingEnabled").checked:true};
@@ -3084,9 +3090,15 @@ CURRENT_ARTICLE_ADMIN?.email||
 
 async function saveArticle(){
 const payload=articlePayload();
-// Headline is optional. Tracking articles can be saved without a manual H1;
-// the backend/public SSR automatic CTR package will generate the public H1.
-// Slug remains the stable article identity and must still be supplied.
+// The public SSR may generate the visible H1, but every saved article still
+// needs a stable title and slug in the database.
+if(!payload.slug || !payload.title){
+    toast("Enter an article title or link exactly one movie before saving.");
+    return;
+}
+if(!$("slug").value.trim() && !slugLockedAfterPublish){
+    $("slug").value=payload.slug;
+}
 
 let r;
 if(currentArticleId){
