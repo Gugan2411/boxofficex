@@ -628,6 +628,18 @@ async def admin_audit_middleware(request: Request, call_next):
         # Audit failure must never break the public/admin request itself.
         print("ADMIN AUDIT WARNING:", exc)
 
+    # Public article-list SSR must reflect edits immediately after a successful save.
+    # This does not change the article detail renderer or the stored reports.
+    if (request.method.upper() in {"POST", "PUT", "PATCH", "DELETE"}
+            and response.status_code < 400
+            and (request.url.path.startswith("/admin/articles")
+                 or request.url.path.startswith("/admin/article-blocks"))):
+        cache = globals().get("_articles_list_html_cache")
+        lock = globals().get("_articles_list_html_cache_lock")
+        if cache is not None and lock is not None:
+            with lock:
+                cache["html"] = None
+                cache["expires_at"] = 0.0
     return response
 
 
@@ -11528,8 +11540,170 @@ def _article_ssr_money(value):
         return html_escape(str(value or ""))
 
 
+# BOXOFFICEX AUTO LIVE COLLECTION V1 — schedule is private block extra_data.
+def _bx_auto_live(data, now=None):
+    """Return a temporary estimated live value; never write to the day-wise report."""
+    if not isinstance(data, dict):
+        return None
+    cfg = data.get("auto_collection") or {}
+    if not isinstance(cfg, dict) or not cfg.get("enabled") or cfg.get("paused"):
+        return None
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    candidates = []
+    for row in cfg.get("days", []):
+        if not isinstance(row, dict):
+            continue
+        try:
+            start = datetime.fromisoformat(str(row["start_at"]))
+            end = datetime.fromisoformat(str(row["end_at"]))
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            if end.tzinfo is None:
+                end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            start, end = start.astimezone(now.tzinfo), end.astimezone(now.tzinfo)
+            if end <= start or now < start:
+                continue
+            if now >= end and (now - end).total_seconds() > 6 * 3600:
+                continue
+            field = str(row.get("field") or "worldwide_gross")
+            if field not in ("india_gross", "overseas_gross", "worldwide_gross"):
+                continue
+            begin = float(row.get("start_value", 0))
+            target = float(row["target_value"])
+            interval = int(row.get("interval_minutes", 10))
+            if not (0 <= begin <= target <= 100000 and interval in (5, 10, 15, 20, 30)):
+                continue
+            duration = (end - start).total_seconds()
+            elapsed = min((now - start).total_seconds(), duration)
+            tick = min(duration, (elapsed // (interval * 60)) * interval * 60)
+            if now >= end:
+                tick = duration
+            value = round(begin + (target - begin) * tick / duration, 2)
+            stamp = start + timedelta(seconds=tick)
+            override = row.get("override") or {}
+            if isinstance(override, dict) and override.get("value") not in (None, ""):
+                try:
+                    anchor = datetime.fromisoformat(str(override["at"]))
+                    if anchor.tzinfo is None:
+                        anchor = anchor.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                    anchor = anchor.astimezone(now.tzinfo)
+                    if start <= anchor <= now and anchor <= end:
+                        value0 = float(override["value"])
+                        if 0 <= value0 <= 100000:
+                            if override.get("locked"):
+                                value, stamp = value0, anchor
+                            elif now < end:
+                                progress = min(1, max(0, (stamp - anchor).total_seconds() / max(1, (end - anchor).total_seconds())))
+                                value = round(value0 + (target - value0) * progress, 2)
+                                value = max(value0, value) if target >= value0 else min(value0, value)
+                except (ValueError, TypeError, OverflowError):
+                    pass
+            candidates.append((start, {"field": field, "value": value, "updated_at": stamp.isoformat(), "day": row.get("day"), "estimated": True}))
+        except (KeyError, ValueError, TypeError, OverflowError, ZeroDivisionError):
+            continue
+    return max(candidates, key=lambda pair: pair[0])[1] if candidates else None
+
+
+def _bx_separate_auto_values(extra, now=None):
+    """Combine independent India/Overseas schedules without exposing private targets."""
+    if not isinstance(extra, dict) or not extra.get("enabled") or extra.get("paused"):
+        return None
+    result = {}
+    for region in ("india_gross", "overseas_gross"):
+        prefix = "india" if region == "india_gross" else "overseas"
+        rows = []
+        for source in extra.get("days", []):
+            if not isinstance(source, dict):
+                continue
+            # New UI: one schedule per region. Legacy UI: two regional
+            # targets may be stored on the same day; support both formats.
+            legacy_start = source.get(prefix + "_start_value")
+            legacy_target = source.get(prefix + "_target_value")
+            if legacy_start not in (None, "") and legacy_target not in (None, ""):
+                row = dict(source)
+                row.update(field=region, start_value=legacy_start, target_value=legacy_target)
+                rows.append(row)
+            elif str(source.get("field") or "").lower() == region and source.get("target_value") not in (None, ""):
+                rows.append(dict(source))
+        if not rows:
+            continue
+        # Each region is evaluated separately. A newer Overseas schedule
+        # must never replace the India estimate, or vice versa.
+        computed = _bx_auto_live({"auto_collection": {"enabled": True, "days": rows}}, now=now)
+        if computed is not None:
+            result[region] = computed
+    if not result:
+        return None
+    india = result.get("india_gross", {}).get("value")
+    overseas = result.get("overseas_gross", {}).get("value")
+    out = {"estimated": True, "updated_at": max(v["updated_at"] for v in result.values())}
+    if india is not None:
+        out["india_gross"] = india
+        out["india_net"] = round(india / 1.18, 2)
+    if overseas is not None:
+        out["overseas_gross"] = overseas
+    if india is not None and overseas is not None:
+        out["worldwide_gross"] = round(india + overseas, 2)
+    return out
+
+
+def _bx_auto_display_time(value):
+    """Readable IST timestamp for the server-rendered automatic tracker."""
+    if not value:
+        return "Awaiting update"
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        parsed = parsed.astimezone(ZoneInfo("Asia/Kolkata"))
+        return html_escape(f"{parsed.day:02d} {parsed.strftime('%b %Y, %I:%M %p')} IST")
+    except (ValueError, TypeError, OverflowError):
+        return "Awaiting update"
+
+
+def _article_ssr_auto_tracker(extra, movie_title=None):
+    if not isinstance(extra, dict) or not extra.get("ssr_enabled", True):
+        return ""
+    # get_article() has already sanitized the public block into computed values.
+    # Never try to re-run the private schedule against this public representation.
+    values = extra.get("_public_auto_values") if "_public_auto_values" in extra else _bx_separate_auto_values(extra)
+    if isinstance(values, dict):
+        values = {k: v for k, v in values.items() if k not in ("overseas_net", "worldwide_net")}
+    if not values:
+        if extra.get("_auto_configured") or (extra.get("enabled") and extra.get("days")):
+            return ('<section id="auto-live-boxoffice-tracker" class="boxoffice-block">'
+                    '<div class="boxoffice-title">⚡ Automatic Live Collection</div>'
+                    '<p class="media-caption">No active collection estimate. Check the scheduled start/end time (IST).</p></section>')
+        return ""
+    cards = []
+    for key, label in (("india_gross", "India Gross"), ("india_net", "India Net"),
+                       ("overseas_gross", "Overseas Gross"),
+                       ("worldwide_gross", "Worldwide Gross")):
+        if key in values:
+            cards.append('<div class="lt-card"><div class="lt-value">' + _article_ssr_money(values[key]) + '</div><div class="lt-label">' + html_escape(label) + '</div></div>')
+    heading = html_escape(str(movie_title or "Movie"))
+    return ('<section id="auto-live-boxoffice-tracker" class="boxoffice-block">'
+            '<div class="boxoffice-title">⚡ ' + heading + ' — Automatic Live Collection</div>'
+            '<div class="boxoffice-grid">' + ''.join(cards) + '</div>'
+            '<div class="bx-auto-footer"><span class="bx-auto-status"><span class="bx-auto-dot" aria-hidden="true"></span> LIVE</span>'
+            '<span class="bx-auto-updated">Last updated: <strong>'
+            + _bx_auto_display_time(values.get("updated_at")) + '</strong></span></div></section>')
+
+
 def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
-    data = data or {}
+    data = dict(data or {})
+    auto_live = None  # Manual tracker is independent of the automatic block.
+    if auto_live:
+        # The automatic counter never mutates saved article data.
+        data[auto_live["field"]] = auto_live["value"]
+        data["updated_at"] = auto_live["updated_at"]
+        data["_auto_estimated_field"] = auto_live["field"]
+        # A scheduled active estimate must not inherit an old CLOSED status.
+        data["status"] = "live"
+        if auto_live["field"] == "worldwide_gross":
+            data.pop("india_gross", None)
+            data.pop("overseas_gross", None)
+            data.pop("day_gross", None)
     safe_movie_title = html_escape(str(movie_title or "Movie").strip() or "Movie")
 
     # Linked movie release_date is the ONLY Day-N authority.
@@ -11546,7 +11720,7 @@ def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
     except Exception:
         movie_release_date = None
 
-    if movie_release_date is None:
+    if movie_release_date is None and not auto_live:
         return (
             '<section class="live-tracker lt-shell" data-release-date-required="1">'
             '<div class="lt-head"><div><div class="lt-kicker">BOXOFFICEX LIVE TRACKER</div>'
@@ -11555,10 +11729,10 @@ def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
             '</div></div></section>'
         )
 
-    day_number = (boxoffice_date - movie_release_date).days + 1
+    day_number = ((boxoffice_date - movie_release_date).days + 1) if movie_release_date else int(auto_live.get("day") or 1)
 
     # Before release, do not invent Day 0/negative Day N.
-    if day_number < 1:
+    if day_number < 1 and not auto_live:
         return (
             '<section class="live-tracker lt-shell" data-before-release="1">'
             '<div class="lt-head"><div><div class="lt-kicker">BOXOFFICEX LIVE TRACKER</div>'
@@ -11582,6 +11756,9 @@ def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
         except Exception:
             tracker_is_current = False
 
+    if auto_live:
+        tracker_is_current = True
+
     if not tracker_is_current:
         preserved = {
             "status": data.get("status") or "live",
@@ -11597,7 +11774,7 @@ def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
         "closed": "TRACKER ENDED",
     }
     active = status in {"live", "update"}
-    tracking_day_label = f"DAY {day_number}"
+    tracking_day_label = f"DAY {max(1, day_number)}"
     tracking_date_label = boxoffice_date.strftime("%d %b %Y").upper()
     cards = []
 
@@ -11611,19 +11788,33 @@ def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
             f'<div class="lt-label">{html_escape(label)}</div></div>'
         )
 
-    add("india_gross", "India Gross", True)
-    add("overseas_gross", "Overseas Gross", True)
+    add("worldwide_gross", "Worldwide Gross (Estimated)" if auto_live and auto_live["field"] == "worldwide_gross" else "Worldwide Gross", True)
+    add("india_gross", "India Gross (Estimated)" if auto_live and auto_live["field"] == "india_gross" else "India Gross", True)
+    # India net is derived from the same current gross shown above, never saved
+    # as a reported value. Use the site's existing 18% GST estimate basis.
+    try:
+        india_gross_for_net = float(str(data.get("india_gross") or "").replace(",", ""))
+        if india_gross_for_net >= 0:
+            data["_derived_india_net"] = round(india_gross_for_net / 1.18, 2)
+            add("_derived_india_net", "India Net (Estimated from Gross)", True)
+    except (ValueError, TypeError, OverflowError):
+        pass
+    add("overseas_gross", "Overseas Gross (Estimated)" if auto_live and auto_live["field"] == "overseas_gross" else "Overseas Gross", True)
     add("tickets_sold", "Tickets Sold")
     add("shows_tracked", "Shows Tracked")
     add("occupancy", "Occupancy", suffix="%")
     add("advance_booking", "Advance Booking", True)
     add("premiere_gross", "Premiere Gross", True)
     add("day_gross", "Day Gross", True)
+    if auto_live:
+        cards.append('<div class="lt-card"><div class="lt-label">Estimated • Updated ' + html_escape(auto_live["updated_at"]) + '</div></div>')
     add("fast_filling", "Fast Filling")
     add("housefull_shows", "Housefull Shows")
 
     worldwide = ""
     try:
+        if auto_live and auto_live["field"] == "worldwide_gross":
+            raise ValueError("Scheduled worldwide gross is already displayed")
         india = float(str(data.get("india_gross")).replace(",", ""))
         overseas = float(str(data.get("overseas_gross")).replace(",", ""))
         worldwide = (
@@ -11881,6 +12072,20 @@ def _article_ssr_theatrical_performance(data):
     )
 
 
+def _bx_report_updated_label(data):
+    """Render a report-only last-save timestamp; never substitute live time."""
+    raw = (data or {}).get("report_updated_at")
+    if not raw:
+        return ""
+    try:
+        dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p IST")
+    except (ValueError, TypeError):
+        return ""
+
+
 def _article_ssr_boxoffice(data):
     """
     Server-render the persistent Box Office Report.
@@ -11892,6 +12097,9 @@ def _article_ssr_boxoffice(data):
     - India/Worldwide totals still use every available reported territory.
     """
     data = data or {}
+    stamp_label = _bx_report_updated_label(data)
+    stamp_html = (f'<div class="bx-report-updated" style="font-size:12px;color:#9caec9;margin:8px 0 14px">'
+                  f'Day-Wise Report Last Updated: {html_escape(stamp_label)}</div>') if stamp_label else ""
     days = list(data.get("days") or [])
 
     territory_meta = (
@@ -11985,6 +12193,7 @@ def _article_ssr_boxoffice(data):
         report_html = (
             '<div class="boxoffice-block">'
             '<div class="boxoffice-title">Box Office Collection Report</div>'
+            + stamp_html +
             '<div class="table-wrap"><table class="bo-table">'
             '<thead><tr>'
             '<th>Day</th><th>Date</th>'
@@ -12016,6 +12225,7 @@ def _article_ssr_boxoffice(data):
             report_html = (
                 '<div class="boxoffice-block">'
                 '<div class="boxoffice-title">Box Office Collection Report</div>'
+            + stamp_html +
                 f'<div class="boxoffice-grid">{"".join(pairs)}</div></div>'
             )
 
@@ -12305,6 +12515,9 @@ def _article_ssr_block(block, article=None):
             f'<a class="video-link" href="{html_escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">▶ Watch Video</a>'
             if url else ""
         )
+    if block_type == "auto_live_tracker":
+        linked_movie = ((article or {}).get("movies") or [None])[0]
+        return _article_ssr_auto_tracker(data, movie_title=(linked_movie or {}).get("title"))
     if block_type == "live_tracker":
         linked_movie = ((article or {}).get("movies") or [None])[0]
         release_date = (linked_movie or {}).get("release_date")
@@ -12411,13 +12624,23 @@ def _article_tracking_ctr(article):
     blocks = list(article.get("blocks") or [])
     live_blocks = [b for b in blocks if str(b.get("block_type") or "").lower() == "live_tracker"]
     bo_blocks = [b for b in blocks if str(b.get("block_type") or "").lower() == "boxoffice"]
-    if not live_blocks or not bo_blocks:
+    if not (live_blocks or any(str(b.get("block_type") or "").lower() == "auto_live_tracker" for b in blocks)) or not bo_blocks:
         return None
 
     movie = (article.get("movies") or [None])[0]
     movie_title = str((movie or {}).get("title") or "").strip()
     if not movie_title:
         # Do not guess a movie name from an editorial headline.
+        return None
+
+    # Automatic H1 OFF must not activate SEO generation by itself.
+    # Existing manual tracking keeps its original lifecycle behavior.
+    auto_only_blocks = [b for b in blocks if str(b.get("block_type") or "").lower() == "auto_live_tracker"]
+    if bool(article.get("tracking_enabled", True)) and not live_blocks and not any(
+        (b.get("extra_data") or {}).get("h1_enabled", True)
+        and (b.get("extra_data") or {}).get("enabled")
+        for b in auto_only_blocks
+    ):
         return None
 
     # Use the first Box Office Report with regular day rows.
@@ -12455,6 +12678,10 @@ def _article_tracking_ctr(article):
 
     # Temporary Live Tracker state for the active public tracking cycle.
     live_extra = (live_blocks[0].get("extra_data") or {}) if live_blocks else {}
+    auto_blocks = [b for b in blocks if str(b.get("block_type") or "").lower() == "auto_live_tracker"]
+    auto_extra = (auto_blocks[0].get("extra_data") or {}) if auto_blocks else {}
+    auto_values = _bx_separate_auto_values(auto_extra) if auto_extra.get("h1_enabled", True) else None
+    scheduled_live = None
 
     # DAY-NUMBER AUTHORITY
     # --------------------
@@ -12520,16 +12747,24 @@ def _article_tracking_ctr(article):
             return False
 
     def live_tracker_headline_amount(data):
+        # The independent India/Overseas auto schedules take precedence for
+        # AUTO-only articles. Never substitute a stale manual live value.
+        if auto_values:
+            for field, label in (("worldwide_gross", "Worldwide Gross So Far"),
+                                 ("india_gross", "India Gross So Far"),
+                                 ("overseas_gross", "Overseas Gross So Far")):
+                if auto_values.get(field) is not None:
+                    return auto_values[field], label
+        if scheduled_live:
+            labels = {"india_gross": "India Gross So Far", "overseas_gross": "Overseas Gross So Far", "worldwide_gross": "Worldwide Gross So Far"}
+            return scheduled_live["value"], labels[scheduled_live["field"]]
         if not live_tracker_is_current(data):
             return 0.0, ""
-
         day_gross = _bo_number((data or {}).get("day_gross"))
         if day_gross > 0:
             return day_gross, "Gross So Far"
-
         india = _bo_number((data or {}).get("india_gross"))
         overseas = _bo_number((data or {}).get("overseas_gross"))
-
         if india > 0 and overseas > 0:
             return india + overseas, "Worldwide Gross So Far"
         if india > 0:
@@ -12559,25 +12794,11 @@ def _article_tracking_ctr(article):
     tracking_enabled = bool(article.get("tracking_enabled", True))
     live_mode = tracking_enabled and day_number is not None and day_number >= 1
 
-    if not tracking_enabled:
-        # FINAL/FROZEN mode. Prefer the persistent snapshot created when Admin
-        # switches tracking OFF. The fallback below is deterministic and uses
-        # only the permanent stored Box Office Report, never temporary tracker data.
-        frozen_h1 = str(article.get("final_h1") or "").strip()
-        frozen_title = str(article.get("final_meta_title") or "").strip()
-        frozen_description = str(article.get("final_meta_description") or "").strip()
-        frozen_subtitle = str(article.get("final_subtitle") or frozen_description).strip()
-        if frozen_h1 and frozen_title and frozen_description:
-            return {
-                "mode": "FINAL / FROZEN", "day": day_number,
-                "h1": frozen_h1, "seo_title": frozen_title,
-                "meta_description": frozen_description, "subtitle": frozen_subtitle,
-                "source": "frozen_stored_boxoffice_report", "frozen": True,
-                "finalized_at": article.get("tracking_finalized_at"),
-            }
+    # Permanent SEO is regenerated from the current persisted Box Office Report.
+    # Never reuse frozen snapshots: they can contain values deleted or edited later.
 
     if live_mode:
-        h1 = f"{movie_title} Day {day_number} Box Office Collection Live"
+        h1 = f"{movie_title} Day {day_number} Collection Live"
         if current_day_gross > 0:
             h1 += f": {money(current_day_gross)} {current_day_gross_label}"
     elif tracking_enabled:
@@ -12586,69 +12807,108 @@ def _article_tracking_ctr(article):
     else:
         final_worldwide = money(report_worldwide_total)
         h1 = (
-            f"{movie_title} Box Office Collection: {final_worldwide} Worldwide, Complete Day-Wise Report"
+            f"{movie_title} Box Office Collection: {final_worldwide} Worldwide, Budget & Day-Wise Collection"
             if final_worldwide else
-            f"{movie_title} Box Office Collection: Complete Day-Wise & Worldwide Report"
+            f"{movie_title} Box Office Collection: Worldwide Gross, Budget & Day-Wise Collection"
         )
 
-    # CTR description is built from the STORED Box Office Report/theatrical analysis.
-    parts = []
+    # Search descriptions are assembled from independently stored sources.
+    # Automatic live gross is a public projection, not a stored collection row.
     rights = money(combined.get("theatrical_value"))
     share = money(combined.get("estimated_theatrical_share"))
-    gross = money(combined.get("gross"))
     level = str((combined.get("current_level") or {}).get("label") or "").strip()
     next_level = combined.get("next_level") if isinstance(combined.get("next_level"), dict) else {}
     remaining = money(next_level.get("remaining"))
     next_label = str(next_level.get("label") or "").strip()
 
-    if live_mode and current_day_gross > 0:
-        parts.append(f"{movie_title} reaches {money(current_day_gross)} {current_day_gross_label} on Day {day_number}.")
-    elif live_mode:
-        parts.append(f"{movie_title} Day {day_number} box office collection live.")
-    elif report_worldwide_total > 0:
-        if rights:
-            sentence = f"{movie_title} has collected {money(report_worldwide_total)} worldwide against {rights} reported theatrical rights"
-            if share:
-                sentence += f", with an estimated theatrical share of {share}"
-            sentence += "."
-            parts.append(sentence)
+    # Short, information-dense search snippet; all numbers come from saved blocks.
+    business = next((b.get("extra_data") for b in blocks
+                     if str(b.get("block_type") or "").lower() == "pre_release_business"
+                     and isinstance(b.get("extra_data"), dict)), {})
+    salary_data = next((b.get("extra_data") for b in blocks
+                        if str(b.get("block_type") or "").lower() == "salary_details"
+                        and isinstance(b.get("extra_data"), dict)), {})
+    salary_people = [p for p in (salary_data.get("people") or [])
+                     if isinstance(p, dict) and p.get("name") and p.get("salary") is not None]
+    budget_amount = money(business.get("budget_total"))
+    theatrical_amount = money(business.get("theatrical_total"))
+    non_theatrical_amount = money(business.get("non_theatrical_total"))
+    snippet_movie = movie_title.split(":", 1)[0].strip() or movie_title
+    if live_mode and live_blocks and not auto_values:
+        # Manual public live figures power the snippet; the in-content Box Office
+        # Report alone powers actual totals and report-based FAQ answers.
+        description = f"{snippet_movie} Day {day_number} box office collection live"
+        if current_day_gross > 0:
+            region = current_day_gross_label.replace(" So Far", "").lower()
+            description += f": {money(current_day_gross)} {region} so far"
+            live_india = _bo_number(live_extra.get("india_gross"))
+            live_overseas = _bo_number(live_extra.get("overseas_gross"))
+            is_worldwide = current_day_gross_label == "Worldwide Gross So Far"
+            if (live_tracker_is_current(live_extra) and is_worldwide
+                    and live_india > 0 and live_overseas > 0
+                    and abs(live_india + live_overseas - current_day_gross) < 0.011):
+                breakdown = (f", including {money(live_india)} India gross and "
+                             f"{money(live_overseas)} overseas gross")
+                if len(description) + len(breakdown) <= 160:
+                    description += breakdown
+            description += "."
         else:
-            parts.append(f"{movie_title} has collected {money(report_worldwide_total)} worldwide.")
+            description += ": latest live box office updates."
+        suffix = " Follow live updates."
+        if len(description) + len(suffix) <= 170:
+            description += suffix
+    elif live_mode:
+        # Leave the automatic tracker description logic untouched.
+        description = f"{snippet_movie} Day {day_number} collection live"
+        if current_day_gross > 0:
+            region = current_day_gross_label.replace(" So Far", "").lower()
+            description += f": {money(current_day_gross)} {region} so far."
+        else:
+            description += ": follow the latest day-wise box office updates."
+        if "day-wise" not in description.lower():
+            suffix = " Follow day-wise updates."
+            if len(description) + len(suffix) <= 155:
+                description += suffix
     else:
-        parts.append(f"{movie_title} complete day-wise box office collection report.")
+        final_amount = money(report_worldwide_total)
+        description = (f"{snippet_movie} box office collection {final_amount} worldwide."
+                       if final_amount else f"{snippet_movie} box office collection and day-wise earnings.")
 
-    if rights and (live_mode or report_worldwide_total <= 0):
-        sentence = f"Against {rights} reported theatrical rights"
-        if share:
-            sentence += f", with an estimated theatrical share of {share}"
-        sentence += "."
-        parts.append(sentence)
-
-    if live_mode:
-        if remaining and next_label:
-            parts.append(f"{remaining} more gross is needed to reach {next_label}.")
-        elif level:
-            parts.append(f"Current estimated performance level: {level}.")
-        parts.append("See area-wise theatrical value, recovery and performance tracking.")
-    else:
-        parts.append("Explore the complete day-wise collection, India and overseas totals, area-wise theatrical value and recovery report.")
-    description = " ".join(parts)
-
-    # Do not hard-cut generated copy mid-sentence. Search engines may choose a
-    # shorter snippet themselves; the SSR source should keep every metric
-    # understandable and preserve the next-target label/value together.
+    # Highest-value information first. Never claim a budget, deal, or salary
+    # unless its own stored block supplies it. Google controls actual snippet length.
+    detail_parts = []
+    if budget_amount:
+        detail_parts.append(f"Budget {budget_amount}")
+    if theatrical_amount:
+        detail_parts.append(f"theatrical rights {theatrical_amount}")
+    if non_theatrical_amount:
+        detail_parts.append(f"OTT & other rights {non_theatrical_amount}")
+    if detail_parts:
+        candidate = " ".join(detail_parts[:1]) + "."
+        if len(description) + len(candidate) + 1 <= 155:
+            description += " " + candidate
+        for part in detail_parts[1:]:
+            candidate = " " + part + "."
+            if len(description) + len(candidate) <= 155:
+                description = description.rstrip(".") + ", " + part + "."
+    # Do not advertise area-wise recovery merely because an analysis object exists.
+    # Territory rights alone do not establish distributor recovery.
+    for phrase, available in (("day-wise collection", bool(regular_days)),
+                              ("cast and crew salaries", bool(salary_people))):
+        if available and phrase.lower() not in description.lower():
+            candidate = " " + phrase + "."
+            if len(description) + len(candidate) <= 155:
+                description += candidate
+    description = description.replace(". day-wise", ". Day-wise").replace(". cast", ". Cast")
 
     if live_mode:
         seo_title = h1
         if len(seo_title) <= 62 and "boxofficex" not in seo_title.lower():
             seo_title += " | BoxOfficeX"
     else:
-        final_worldwide = money(report_worldwide_total)
-        seo_title = (
-            f"{movie_title} Box Office Collection: {final_worldwide} Worldwide | BoxOfficeX"
-            if final_worldwide else
-            f"{movie_title} Box Office Collection | BoxOfficeX"
-        )
+        seo_title = h1
+        if len(seo_title) <= 62:
+            seo_title += " | BoxOfficeX"
 
     return {
         "mode": "LIVE" if live_mode else "FINAL / FROZEN",
@@ -12658,6 +12918,8 @@ def _article_tracking_ctr(article):
         "meta_description": description,
         "source": "stored_boxoffice_report",
         "current_day_gross": round(current_day_gross, 2) if current_day_gross > 0 else None,
+        "current_day_gross_label": current_day_gross_label,
+        "current_day_is_estimate": bool(live_mode and auto_values and current_day_gross > 0),
         "cumulative_worldwide": round(cumulative_worldwide, 2) if cumulative_worldwide > 0 else None,
         "report_worldwide_total": round(report_worldwide_total, 2) if report_worldwide_total > 0 else None,
         "theatrical_rights": combined.get("theatrical_value"),
@@ -12693,8 +12955,66 @@ def _article_normalize_seo_text(value):
         )
     return text
 
+def _bx_auto_only_seo(article):
+    """Live SEO directly from the same automatic schedule used by SSR cards.
+
+    Unlike the permanent report SEO, an automatic tracker does not require a
+    separate populated Box Office Report block.
+    """
+    if not bool(article.get("tracking_enabled", True)):
+        return None
+    blocks = article.get("blocks") or []
+    auto = next((b.get("extra_data") or {} for b in blocks
+                 if str(b.get("block_type") or "").lower() == "auto_live_tracker"
+                 and isinstance(b.get("extra_data"), dict)
+                 and (b.get("extra_data") or {}).get("enabled")
+                 and (b.get("extra_data") or {}).get("h1_enabled", True)), None)
+    if auto is None:
+        return None
+    values = auto.get("_public_auto_values") if "_public_auto_values" in auto else _bx_separate_auto_values(auto)
+    if not isinstance(values, dict):
+        return None
+    movies = article.get("movies") or []
+    movie = movies[0] if movies and isinstance(movies[0], dict) else {}
+    name = str(movie.get("title") or "").strip()
+    if not name:
+        return None
+    release = str(movie.get("release_date") or "")[:10]
+    try:
+        day = (datetime.now(ZoneInfo("Asia/Kolkata")) - timedelta(hours=6)).date() - date.fromisoformat(release)
+        day = day.days + 1
+    except (ValueError, TypeError):
+        return None
+    if day < 1:
+        return None
+    def cr(value):
+        return f"₹{float(value):,.2f} Cr"
+    worldwide = values.get("worldwide_gross")
+    india = values.get("india_gross")
+    overseas = values.get("overseas_gross")
+    if worldwide is not None:
+        amount, region = worldwide, "Worldwide"
+    elif india is not None:
+        amount, region = india, "India Gross"
+    elif overseas is not None:
+        amount, region = overseas, "Overseas Gross"
+    else:
+        return None
+    h1 = f"{name} Day {day} Collection Live: {cr(amount)} {region}"
+    seo_title = f"{name} Day {day} Collection Live: {cr(amount)} {region}"
+    description = f"{name} Day {day} estimated {region.lower()} collection is {cr(amount)}."
+    if india is not None and overseas is not None:
+        description = (f"{name} Day {day} estimated worldwide gross is {cr(worldwide)}, "
+                       f"including {cr(india)} India gross and {cr(overseas)} overseas gross. "
+                       "Follow live updates.")
+    return {"mode": "LIVE", "day": day, "h1": h1,
+            "seo_title": seo_title, "meta_description": description,
+            "current_day_gross": amount, "current_day_is_estimate": True,
+            "auto_live_values": values, "source": "automatic_live_schedule"}
+
+
 def _article_apply_tracking_ctr(article):
-    generated = _article_tracking_ctr(article)
+    generated = _bx_auto_only_seo(article) or _article_tracking_ctr(article)
     if not generated:
         return article, None
 
@@ -12746,56 +13066,137 @@ def _article_seo_faq_items(article):
     items = []
 
     if isinstance(tracking, dict):
+        live_mode = tracking.get("mode") == "LIVE"
         day = tracking.get("day")
         current = tracking.get("current_day_gross")
-        cumulative = tracking.get("cumulative_worldwide")
         report_total = tracking.get("report_worldwide_total")
-        rights = tracking.get("theatrical_rights")
-        share = tracking.get("estimated_theatrical_share")
         level = str(tracking.get("performance_level") or "").strip()
         next_label = str(tracking.get("next_target_label") or "").strip()
         remaining = tracking.get("next_target_remaining")
 
         def cr(value):
-            if value is None:
-                return None
             try:
                 number = float(value)
-                shown = f"{number:.2f}".rstrip("0").rstrip(".")
-                return f"₹{shown} Cr"
+                return f"₹{number:,.2f}".rstrip("0").rstrip(".") + " Cr"
             except (TypeError, ValueError):
                 return None
 
-        if day and current is not None:
+        auto_values = tracking.get("auto_live_values")
+        if live_mode and day and isinstance(auto_values, dict):
+            india = auto_values.get("india_gross")
+            overseas = auto_values.get("overseas_gross")
+            worldwide = auto_values.get("worldwide_gross")
+            if worldwide is not None:
+                items.append((
+                    f"What is {movie_name} Day {day} worldwide collection?",
+                    f"The estimated Day {day} worldwide gross is {cr(worldwide)}, "
+                    f"including {cr(india)} India gross and {cr(overseas)} overseas gross. "
+                    "These are automatic live estimates, not confirmed final collections."
+                ))
+            elif india is not None or overseas is not None:
+                region = "India" if india is not None else "overseas"
+                amount = india if india is not None else overseas
+                items.append((
+                    f"What is {movie_name} Day {day} {region} gross?",
+                    f"The estimated Day {day} {region} gross is {cr(amount)}."
+                ))
+        # The permanent report is authoritative whenever tracking is OFF.
+        # No stale live-day FAQ or live-tracker wording in permanent mode.
+        if live_mode and day and current is not None and not isinstance(auto_values, dict):
             items.append((
                 f"What is {movie_name} Day {day} box office collection?",
-                f"BoxOfficeX currently tracks {cr(current)} as the Day {day} collection figure shown in this live report."
+                f"The Day {day} {'estimated ' if tracking.get('current_day_is_estimate') else ''}live tracker currently reports {cr(current)} {str(tracking.get('current_day_gross_label') or 'gross').lower()}. This is a live tracker figure, separate from the saved day-wise box office report."
             ))
-        if cumulative is not None:
-            items.append((
-                f"What is {movie_name}'s current worldwide box office collection?",
-                f"The current live tracker shows {cr(cumulative)} as the cumulative worldwide collection. The figure can change as this report is updated."
-            ))
-        elif report_total is not None:
+        if report_total is not None:
             items.append((
                 f"What is {movie_name}'s worldwide box office collection?",
-                f"The BoxOfficeX report currently lists {cr(report_total)} as the worldwide collection."
+                f"{movie_name} has collected {cr(report_total)} worldwide in the day-wise box office report."
             ))
-        if rights is not None:
-            answer = f"The reported theatrical rights value used by this BoxOfficeX report is {cr(rights)}."
-            if share is not None:
-                answer += f" The report currently estimates theatrical share at {cr(share)}."
-            items.append((f"What are {movie_name}'s reported theatrical rights?", answer))
+        # Recovery milestones are based on the saved report analysis, never a
+        # stale tracker. They remain separate from actual territory recovery.
         if next_label and remaining is not None:
             items.append((
                 f"How much more gross does {movie_name} need to reach {next_label}?",
-                f"Based on the current BoxOfficeX tracking model, {cr(remaining)} more gross is needed to reach the {next_label} level."
+                f"The theatrical performance model estimates {cr(remaining)} additional gross is needed to reach {next_label}."
             ))
         elif level:
             items.append((
-                f"What is {movie_name}'s current box office performance level?",
-                f"The current BoxOfficeX tracking model shows {level} as the estimated performance level."
+                f"What is {movie_name}'s box office performance level?",
+                f"The theatrical performance model currently estimates a {level} level."
             ))
+
+    if isinstance(tracking, dict):
+        blocks = article.get("blocks") or []
+        business = next((b.get("extra_data") for b in blocks
+                         if b.get("block_type") == "pre_release_business"
+                         and isinstance(b.get("extra_data"), dict)), {})
+        salaries = next((b.get("extra_data") for b in blocks
+                         if b.get("block_type") == "salary_details"
+                         and isinstance(b.get("extra_data"), dict)), {})
+        def financial_amount(v):
+            try:
+                number = float(v)
+                return f"₹{number:,.2f}".rstrip("0").rstrip(".") + " Cr"
+            except (TypeError, ValueError):
+                return None
+        for field, question, label in (
+            ("budget_total", f"What is {movie_name}'s budget?", "reported production budget"),
+            ("theatrical_total", f"How much are {movie_name}'s theatrical rights worth?", "reported worldwide theatrical rights"),
+            ("non_theatrical_total", f"What are {movie_name}'s OTT and non-theatrical rights worth?", "reported non-theatrical rights"),
+        ):
+            amount = financial_amount(business.get(field))
+            if amount:
+                items.append((question, f"{movie_name}'s {label} total is {amount}."))
+        territories = [r for r in (business.get("theatrical") or [])
+                       if isinstance(r, dict) and r.get("label") and financial_amount(r.get("value"))]
+        if territories:
+            summary = ", ".join(f"{r['label']} {financial_amount(r['value'])}" for r in territories[:4])
+            items.append((f"What is {movie_name}'s area-wise theatrical business?", f"Reported area-wise theatrical rights include {summary}."))
+        paid = [p for p in (salaries.get("people") or []) if isinstance(p, dict) and p.get("name") and financial_amount(p.get("salary"))]
+        if paid:
+            summary = ", ".join(f"{p['name']} {financial_amount(p['salary'])}" for p in paid[:3])
+            items.append((f"What are {movie_name}'s cast and crew salaries?", f"Reported cast and crew remuneration includes {summary}."))
+
+    # Box Office in-content block: saved cumulative figures are authoritative
+    # for report FAQs, including when the manual live tracker is enabled.
+    box_blocks = [b for b in (article.get("blocks") or [])
+                  if str(b.get("block_type") or "").lower() == "boxoffice"
+                  and isinstance(b.get("extra_data"), dict)]
+    if box_blocks:
+        data = box_blocks[0]["extra_data"]
+        def box_cr(value):
+            try:
+                if value is None or str(value).strip() == "":
+                    return None
+                return f"₹{float(value):,.2f}".rstrip("0").rstrip(".") + " Cr"
+            except (TypeError, ValueError):
+                return None
+
+        for key, question, wording in (
+            ("worldwide_gross", f"What is {movie_name}'s worldwide box office collection?", "worldwide gross"),
+            ("india_gross", f"What is {movie_name}'s India gross collection?", "India gross"),
+            ("overseas_gross", f"What is {movie_name}'s overseas collection?", "overseas gross"),
+            ("india_net", f"What is {movie_name}'s estimated India net collection?", "estimated India net"),
+        ):
+            amount = box_cr(data.get(key))
+            if amount and not any(q == question for q, _ in items):
+                items.append((question, f"The saved box office report records {amount} {wording}."))
+
+        rows = data.get("rows") or []
+        if isinstance(rows, list):
+            daily = [r for r in rows if isinstance(r, dict)]
+            if daily:
+                last = max(daily, key=lambda r: int(r.get("day") or 0))
+                try:
+                    day_no = int(last.get("day") or 0)
+                    india_day = sum(float(last.get(k) or 0) for k in
+                                    ("tamil_nadu", "kerala", "karnataka", "ap_telangana", "rest_of_india"))
+                    overseas_day = float(last.get("overseas") or 0)
+                    if day_no > 0:
+                        items.append((f"What was {movie_name}'s Day {day_no} worldwide collection?",
+                                      f"The saved Day {day_no} report records {box_cr(india_day + overseas_day)} worldwide gross."))
+                except (TypeError, ValueError):
+                    pass
 
     # Normal editorial articles still get useful, source-grounded FAQ only when
     # the article itself supplies enough metadata to answer it.
@@ -12806,7 +13207,7 @@ def _article_seo_faq_items(article):
             f"This BoxOfficeX article is filed under {category} and covers the information presented in the report above."
         ))
 
-    return items[:4]
+    return items[:8]
 
 
 def _article_seo_faq_html(article):
@@ -12884,6 +13285,13 @@ def _render_article_detail_html(slug):
     if not article_file.is_file():
         raise HTTPException(status_code=500, detail="article.html not found")
     template = _inject_boxofficex_global_icons(article_file.read_text(encoding="utf-8"))
+    # Remove embedded article snapshots accidentally saved into article.html.
+    # A page-source copy can contain stale Day 7/other article data; only the
+    # current DB response may supply the public hydration payload.
+    template = re.sub(
+        r'<script\b[^>]*>\s*window\.__BOXOFFICEX_ARTICLE_SSR_DATA__\s*=.*?</script>\s*',
+        '', template, flags=re.S | re.I,
+    )
 
     title = str(article.get("title") or "BoxOfficeX Article")
     seo_title = str(article.get("meta_title") or title).strip()
@@ -12900,6 +13308,9 @@ def _render_article_detail_html(slug):
     seo_title = _article_normalize_seo_text(seo_title)
     description = _article_normalize_seo_text(description)
     canonical = f"https://boxofficex.in/article/{article['slug']}"
+    # Fictional test articles must not be indexed even if accidentally published.
+    is_test_article = str(article.get("slug") or "") == "boxofficex-tracker-test-2026"
+    noindex_article = is_test_article or str(article.get("status") or "").lower() != "published"
     author = str(article.get("author") or "BoxOfficeX")
     category = str(article.get("category") or "Movies & Box Office")
     hero = _article_ssr_image(article.get("hero_image"))
@@ -12916,7 +13327,8 @@ def _render_article_detail_html(slug):
         '<meta id="metaDescription" name="description" content="Read the latest movie, box office and entertainment stories on BoxOfficeX.">':
             f'<meta id="metaDescription" name="description" content="{html_escape(description, quote=True)}">',
         '<meta name="robots" content="index, follow">':
-            '<meta name="robots" content="index, follow, max-image-preview:large">',
+            ('<meta name="robots" content="noindex, nofollow">' if noindex_article
+             else '<meta name="robots" content="index, follow, max-image-preview:large">'),
         '<link id="canonicalUrl" rel="canonical" href="">':
             f'<link id="canonicalUrl" rel="canonical" href="{html_escape(canonical, quote=True)}">',
         '<meta id="ogTitle" property="og:title" content="BoxOfficeX Article">':
@@ -13011,6 +13423,13 @@ def _render_article_detail_html(slug):
         ),
     )
 
+    template = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']robots["\'])[^>]*>',
+        ('<meta name="robots" content="noindex, follow">' if noindex_article
+         else '<meta name="robots" content="index, follow, max-image-preview:large">'),
+        template, count=1, flags=re.I,
+    )
+
     for pattern, replacement_value in article_head_replacements:
         template, replaced = re.subn(
             pattern,
@@ -13026,7 +13445,8 @@ def _render_article_detail_html(slug):
 
     structured = {
         "@type": "NewsArticle",
-        "headline": title,
+        # Match the server-rendered page title and social metadata.
+        "headline": seo_title,
         "description": description,
         "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
         "url": canonical,
@@ -13070,9 +13490,16 @@ def _render_article_detail_html(slug):
         )
     ]
 
+    # Automatic SSR is independent of the manual tracking_enabled flag.
+    public_blocks = [b for b in public_blocks if not (
+        str(b.get("block_type") or "").lower() == "auto_live_tracker"
+        and (not bool(article.get("tracking_enabled", True))
+             or not (b.get("extra_data") or {}).get("ssr_enabled", True))
+    )]
+
     # Keep the first server response in the same core order as the browser renderer.
     # Other editorial blocks preserve their relative order after these tracking sections.
-    core_priority = {"live_tracker": 0, "boxoffice": 1, "pre_release_business": 2, "salary_details": 3}
+    core_priority = {"live_tracker": 0, "auto_live_tracker": 0, "boxoffice": 1, "pre_release_business": 2, "salary_details": 3}
     core_blocks = sorted(
         [b for b in public_blocks if str(b.get("block_type") or "").strip().lower() in core_priority],
         key=lambda b: core_priority[str(b.get("block_type") or "").strip().lower()],
@@ -13148,7 +13575,41 @@ By <strong>{html_escape(author)}</strong>
     payload = dict(article)
     # Client enhancement must receive the same public block set as SSR.
     # Otherwise JS could re-insert a Live Tracker that SSR intentionally hid.
-    payload["blocks"] = public_blocks
+    # JS re-renders the SSR article. Supply the SAME computed live values to
+    # that renderer, without exposing private future schedules/targets.
+    hydrated_blocks = []
+    for original_block in public_blocks:
+        block = dict(original_block)
+        if str(block.get("block_type") or "").lower() == "auto_live_tracker":
+            original_extra = dict(block.get("extra_data") or {})
+            # get_article() already supplies safe computed public values.
+            # Preserve them for JS hydration rather than replacing them with None.
+            if "_public_auto_values" in original_extra:
+                block["extra_data"] = {
+                    "_public_auto_values": original_extra.get("_public_auto_values"),
+                    "_auto_configured": bool(original_extra.get("_auto_configured")),
+                }
+            else:
+                block["extra_data"] = {
+                    "_public_auto_values": _bx_separate_auto_values(original_extra),
+                    "_auto_configured": bool(original_extra.get("enabled") and original_extra.get("days")),
+                }
+        if str(block.get("block_type") or "").lower() == "live_tracker":
+            extra = dict(block.get("extra_data") or {})
+            current_estimate = None  # Separate automatic block only
+            extra.pop("auto_collection", None)  # never publish admin target/schedule
+            if current_estimate:
+                extra[current_estimate["field"]] = current_estimate["value"]
+                extra["updated_at"] = current_estimate["updated_at"]
+                extra["status"] = "live"
+                extra["_auto_estimated_field"] = current_estimate["field"]
+                if current_estimate["field"] == "worldwide_gross":
+                    extra["india_gross"] = ""
+                    extra["overseas_gross"] = ""
+                    extra["day_gross"] = ""
+            block["extra_data"] = extra
+        hydrated_blocks.append(block)
+    payload["blocks"] = hydrated_blocks
     for key in ("published_at", "created_at", "updated_at"):
         value = payload.get(key)
         if hasattr(value, "isoformat"):
@@ -13306,7 +13767,6 @@ def article_pretty_page(slug: str):
 # ============================================================
 
 @app.get("/articles")
-@app.get("/articles")
 def get_articles():
     """
     Public article listing.
@@ -13345,7 +13805,13 @@ def get_articles():
                         FROM article_blocks bb
                         WHERE bb.article_id = a.id
                           AND bb.block_type = 'boxoffice'
-                    ) AS has_boxoffice
+                    ) AS has_boxoffice,
+                    EXISTS (
+                        SELECT 1
+                        FROM article_blocks ab
+                        WHERE ab.article_id = a.id
+                          AND ab.block_type = 'auto_live_tracker'
+                    ) AS has_auto_live_tracker
                 FROM articles a
                 WHERE a.status = 'published'
                 ORDER BY a.published_at DESC NULLS LAST, a.id DESC
@@ -13375,18 +13841,12 @@ def get_articles():
         final_subtitle = str(r[14] or "").strip()
         has_live_tracker = bool(r[15])
         has_boxoffice = bool(r[16])
+        has_auto_live_tracker = bool(r[17])
 
-        # FINAL/FROZEN tracking articles already have their public H1 snapshot.
-        # No extra article-detail query is needed.
-        if (not tracking_enabled) and final_h1:
-            item["title"] = final_h1
-            if final_subtitle:
-                item["subtitle"] = final_subtitle
-
-        # AUTO tracking articles need the current generated Day-N public H1.
-        # get_article() already applies _article_apply_tracking_ctr(), so do NOT
-        # apply the generator a second time here.
-        elif tracking_enabled and has_live_tracker and has_boxoffice:
+        # Resolve tracking headlines through the same public article endpoint
+        # used by the detail page. A stored final_h1 can be older than the
+        # final report-derived headline, so it must not override this resolver.
+        if has_live_tracker or has_auto_live_tracker:
             try:
                 resolved = get_article(str(item["slug"] or ""))
                 public_article = (
@@ -13395,25 +13855,26 @@ def get_articles():
                     else None
                 )
                 if public_article:
-                    item["title"] = (
-                        public_article.get("title")
-                        or item["title"]
-                    )
-                    item["subtitle"] = (
-                        public_article.get("subtitle")
-                        or item["subtitle"]
-                    )
+                    item["title"] = public_article.get("title") or item["title"]
+                    item["subtitle"] = public_article.get("subtitle") or item["subtitle"]
+                elif (not tracking_enabled) and final_h1:
+                    item["title"] = final_h1
+                    if final_subtitle:
+                        item["subtitle"] = final_subtitle
             except Exception as exc:
-                # Listing must stay available even if one tracking article has
-                # malformed tracking data.
                 print(
                     "ARTICLES LIST TRACKING TITLE WARNING:",
-                    item["id"],
-                    item["slug"],
-                    type(exc).__name__,
-                    exc,
-                    flush=True,
+                    item["id"], item["slug"],
+                    type(exc).__name__, exc, flush=True,
                 )
+                if (not tracking_enabled) and final_h1:
+                    item["title"] = final_h1
+                    if final_subtitle:
+                        item["subtitle"] = final_subtitle
+        elif (not tracking_enabled) and final_h1:
+            item["title"] = final_h1
+            if final_subtitle:
+                item["subtitle"] = final_subtitle
 
         item["title"] = str(
             item.get("title") or "BoxOfficeX Article"
@@ -14524,8 +14985,23 @@ def get_article(slug: str):
             if str(block.get("block_type") or "").strip().lower() != "live_tracker"
         ]
 
+    safe_blocks = []
+    for block in article.get("blocks") or []:
+        kind = str(block.get("block_type") or "").lower()
+        if kind == "auto_live_tracker":
+            extra = block.get("extra_data") or {}
+            if not bool(article.get("tracking_enabled", True)) or not extra.get("ssr_enabled", True):
+                continue
+            block = dict(block)
+            block["extra_data"] = {"_public_auto_values": _bx_separate_auto_values(extra), "_auto_configured": bool(extra.get("enabled") and extra.get("days"))}
+        elif kind == "live_tracker":
+            block = dict(block)
+            extra = dict(block.get("extra_data") or {})
+            extra.pop("auto_collection", None)
+            block["extra_data"] = extra
+        safe_blocks.append(block)
+    article["blocks"] = safe_blocks
     return {"article": article}
-
 
 
 # ============================================================
@@ -14660,7 +15136,7 @@ def validate_article_status(value: str) -> str:
 def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
-        "boxoffice", "movie", "actor", "video", "table", "live_tracker",
+        "boxoffice", "movie", "actor", "video", "table", "live_tracker", "auto_live_tracker",
         "pre_release_business", "salary_details",
     }
     value = (value or "").lower().strip()
@@ -14720,7 +15196,7 @@ def ensure_live_tracker_article_block_type():
             constraint_def = constraint_row[0] if constraint_row else ""
             constraint_def_lower = constraint_def.lower()
 
-            required_types = ("live_tracker", "pre_release_business", "salary_details")
+            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details")
             if all(block_type in constraint_def_lower for block_type in required_types):
                 return
 
@@ -14745,6 +15221,7 @@ def ensure_live_tracker_article_block_type():
                         'video',
                         'table',
                         'live_tracker',
+                        'auto_live_tracker',
                         'pre_release_business',
                         'salary_details'
                     )
@@ -15297,6 +15774,64 @@ def admin_article_generated_seo_preview(article_id: int):
     }
 
 
+def _bx_final_seo_from_boxoffice_report(article):
+    """Rebuild ALL final SEO from the stored Box Office Report, never live tracker.
+
+    Bypass old final_* snapshots while calculating, so refresh cannot recycle a
+    stale headline/amount. The CTR resolver reads report analysis.combined.gross
+    (falling back to stored earned day rows) for its final worldwide figure.
+    """
+    candidate = dict(article)
+    candidate["tracking_enabled"] = False
+    for key in ("final_h1", "final_subtitle", "final_meta_title",
+                "final_meta_description", "tracking_finalized_at"):
+        candidate[key] = None
+    generated = _article_tracking_ctr(candidate)
+    if not generated or generated.get("mode") != "FINAL / FROZEN":
+        return None
+    if not all(str(generated.get(key) or "").strip() for key in
+               ("h1", "seo_title", "meta_description")):
+        return None
+    return generated
+
+
+@app.post("/admin/articles/{article_id}/refresh-final-seo", dependencies=[Depends(require_admin)])
+def admin_refresh_article_final_seo(article_id: int):
+    """Rebuild and save the complete final SEO package from Box Office Report."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT slug, tracking_enabled FROM articles WHERE id=%s", (article_id,))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Article not found")
+            slug, enabled = row
+            if enabled:
+                raise HTTPException(status_code=400, detail="Turn tracking OFF before refreshing permanent SEO")
+    article = (get_article(slug) or {}).get("article")
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    generated = _bx_final_seo_from_boxoffice_report(article)
+    if not generated:
+        raise HTTPException(status_code=400, detail="Linked movie and stored Box Office Report with day-wise data are required")
+    final_h1 = generated["h1"]
+    final_title = generated["seo_title"]
+    final_description = generated["meta_description"]
+    final_subtitle = generated.get("subtitle") or final_description
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""UPDATE articles SET final_h1=%s, final_meta_title=%s,
+                final_meta_description=%s, final_subtitle=%s,
+                updated_at=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+                WHERE id=%s AND tracking_enabled=FALSE""",
+                (final_h1, final_title, final_description, final_subtitle, article_id))
+        conn.commit()
+    _invalidate_article_detail_cache(slug)
+    return {"success": True, "tracking_enabled": False,
+            "final_h1": final_h1, "final_meta_title": final_title,
+            "final_meta_description": final_description,
+            "source": "stored_boxoffice_report"}
+
+
 class AdminArticleTrackingModeData(BaseModel):
     enabled: bool
 
@@ -15344,16 +15879,7 @@ def admin_set_article_tracking_mode(article_id: int, data: AdminArticleTrackingM
             detail="Published tracking article is required before freezing",
         )
 
-    final_candidate = dict(public)
-    final_candidate["tracking_enabled"] = False
-    # Force regeneration from the latest permanent stored report, not an older snapshot.
-    final_candidate["final_h1"] = None
-    final_candidate["final_subtitle"] = None
-    final_candidate["final_meta_title"] = None
-    final_candidate["final_meta_description"] = None
-    final_candidate["tracking_finalized_at"] = None
-
-    generated = _article_tracking_ctr(final_candidate)
+    generated = _bx_final_seo_from_boxoffice_report(public)
     if not generated or generated.get("mode") != "FINAL / FROZEN":
         raise HTTPException(
             status_code=400,
@@ -17418,6 +17944,33 @@ def admin_delete_article(article_id: int):
 
 
 
+def _bx_stamp_report_if_changed(cur, block_id, new_extra, previous_extra=None):
+    """Stamp a persisted boxoffice block only if its report data changed.
+
+    The timestamp lives in the block's JSONB, not the article updated_at,
+    so live tracker saves cannot make permanent figures appear newly verified.
+    """
+    import copy
+    old = copy.deepcopy(previous_extra or {})
+    new = copy.deepcopy(new_extra or {})
+    old.pop("report_updated_at", None)
+    new.pop("report_updated_at", None)
+    if previous_extra is not None and old == new and (previous_extra or {}).get("report_updated_at"):
+        # Editor may omit read-only metadata; retain the existing timestamp.
+        previous_stamp = (previous_extra or {}).get("report_updated_at")
+        if previous_stamp:
+            cur.execute("""UPDATE article_blocks SET extra_data =
+                jsonb_set(extra_data, '{report_updated_at}', to_jsonb(%s::text), true)
+                WHERE id=%s AND block_type='boxoffice'""", (previous_stamp, block_id))
+        return False
+    cur.execute("""UPDATE article_blocks SET extra_data =
+        jsonb_set(COALESCE(extra_data, '{}'::jsonb), '{report_updated_at}',
+        to_jsonb(to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+        'YYYY-MM-DD"T"HH24:MI:SS"Z"')), true)
+        WHERE id=%s AND block_type='boxoffice'""", (block_id,))
+    return True
+
+
 @app.put("/admin/articles/{article_id}/blocks/sync", dependencies=[Depends(require_admin)])
 def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
     """Fast, atomic and non-destructive article block sync."""
@@ -17446,7 +17999,7 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
                     raise HTTPException(status_code=404, detail="Article not found")
 
                 cur.execute("""
-                    SELECT id, block_order
+                    SELECT id, block_order, block_type, extra_data
                     FROM article_blocks
                     WHERE article_id=%s
                     ORDER BY block_order, id
@@ -17454,6 +18007,7 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
                 """, (article_id,))
                 current_rows = cur.fetchall()
                 current_ids = {int(row[0]) for row in current_rows}
+                previous_reports = {int(r[0]): (r[3] or {}) for r in current_rows if r[2] == "boxoffice"}
                 accounted_ids = set(existing_ids) | set(deleted_ids)
 
                 # Never treat a missing editor block as permission to delete it.
@@ -17517,6 +18071,11 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
                     if not row:
                         raise HTTPException(status_code=409, detail="A block changed while saving. Reload and try again.")
                     saved_ids.append(int(row[0]))
+                    if block_type == "boxoffice":
+                        _bx_stamp_report_if_changed(
+                            cur, int(row[0]), b.extra_data or {},
+                            previous_reports.get(int(row[0])) if b.id is not None else None,
+                        )
 
                 # Derive and persist new ₹50 Cr milestone snapshots from the
                 # just-saved in-content box-office block. This runs inside the
@@ -17578,6 +18137,8 @@ def admin_add_article_block(article_id: int, data: AdminArticleBlock):
                     psycopg.types.json.Jsonb(data.extra_data or {}),
                 ))
                 block_id = cur.fetchone()[0]
+                if block_type == "boxoffice":
+                    _bx_stamp_report_if_changed(cur, block_id, data.extra_data or {})
 
                 _capture_article_boxoffice_milestones(cur, article_id)
 
@@ -17608,6 +18169,8 @@ def admin_update_article_block(block_id: int, data: AdminArticleBlock):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
+            cur.execute("SELECT block_type, extra_data FROM article_blocks WHERE id=%s FOR UPDATE", (block_id,))
+            previous_block = cur.fetchone()
             try:
                 cur.execute("""
                     UPDATE article_blocks
@@ -17638,6 +18201,9 @@ def admin_update_article_block(block_id: int, data: AdminArticleBlock):
 
             if cur.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Article block not found")
+            if block_type == "boxoffice":
+                _bx_stamp_report_if_changed(cur, block_id, data.extra_data or {},
+                    previous_block[1] if previous_block and previous_block[0] == "boxoffice" else None)
 
             # Find the parent article after a successful block update and
             # refresh its modification timestamp.
@@ -17824,7 +18390,7 @@ def admin_articles_page():
 # ARTICLES LIST - NON-BLOCKING CACHED SSR
 # ============================================================
 
-ARTICLES_LIST_HTML_CACHE_TTL = 300
+ARTICLES_LIST_HTML_CACHE_TTL = 10
 _articles_list_html_cache = {"html": None, "expires_at": 0.0}
 _articles_list_html_cache_lock = threading.Lock()
 _articles_list_html_refreshing = False
@@ -18085,25 +18651,35 @@ def articles_page():
 
     if cached_html and expires_at > now:
         return HTMLResponse(content=cached_html, headers={
-            "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
+            "Cache-Control": "no-cache, must-revalidate",
             "X-BoxOfficeX-Articles-List": "cached-ssr",
             "X-BoxOfficeX-Cache": "HIT",
         })
 
-    if cached_html:
-        _start_articles_list_refresh()
-        return HTMLResponse(content=cached_html, headers={
-            "Cache-Control": "public, max-age=60, stale-while-revalidate=240",
-            "X-BoxOfficeX-Articles-List": "cached-ssr",
-            "X-BoxOfficeX-Cache": "STALE",
+    # Never return an outdated headline when the SSR cache expires.
+    # Build the current listing synchronously; keep the previous version only
+    # as an emergency fallback if rendering fails.
+    try:
+        fresh_html = _render_articles_list_html()
+        with _articles_list_html_cache_lock:
+            _articles_list_html_cache["html"] = fresh_html
+            _articles_list_html_cache["expires_at"] = time_module.monotonic() + ARTICLES_LIST_HTML_CACHE_TTL
+        return HTMLResponse(content=fresh_html, headers={
+            "Cache-Control": "no-cache, must-revalidate",
+            "X-BoxOfficeX-Articles-List": "fresh-ssr",
+            "X-BoxOfficeX-Cache": "REFRESH",
         })
-
-    _start_articles_list_refresh()
-    return FileResponse(BASE_DIR / "articles.html", headers={
-        "Cache-Control": "no-store",
-        "X-BoxOfficeX-Articles-List": "warming",
-        "X-BoxOfficeX-Cache": "WARMING",
-    })
+    except Exception as exc:
+        print("Articles list immediate SSR refresh failed:", type(exc).__name__, exc, flush=True)
+        if cached_html:
+            return HTMLResponse(content=cached_html, headers={
+                "Cache-Control": "no-store",
+                "X-BoxOfficeX-Cache": "FALLBACK",
+            })
+        return FileResponse(BASE_DIR / "articles.html", headers={
+            "Cache-Control": "no-store",
+            "X-BoxOfficeX-Cache": "WARMING",
+        })
 
 
 

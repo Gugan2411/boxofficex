@@ -837,6 +837,23 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 @media(max-width:900px){.salary-person-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.salary-person-grid{grid-template-columns:1fr}.salary-person-grid .salary-wide{grid-column:auto}}
 
+/* Automatic Live Tracker — quick target-area selector */
+.auto-target-area-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.auto-target-area-buttons button{flex:1;min-width:105px;padding:9px 10px;background:#151d31;color:#b8c5dc;border:1px solid #34415c;border-radius:9px;font-size:11px}
+.auto-target-area-buttons button.selected{background:rgba(77,141,255,.19);color:#fff;border-color:#4d8dff}
+
+/* Automatic tracker: independent India / Overseas schedule cards */
+.auto-region-card{padding:18px;margin-top:14px;border:1px solid #34435e;border-radius:14px;background:#101a2c;box-shadow:0 6px 18px rgba(0,0,0,.10)}
+.auto-region-card.auto-india{border-left:4px solid #ffb547}.auto-region-card.auto-overseas{border-left:4px solid #56a4ff}
+.auto-region-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap}
+.auto-region-head strong{color:#fff;font-size:14px}.auto-region-head small{display:block;margin-top:7px;color:#a3b1c9;font-size:11px}
+.auto-region-tag{display:inline-block;border-radius:7px;padding:6px 9px;background:#223552;color:#fff;font-size:12px;font-weight:900;letter-spacing:.4px}
+.auto-india .auto-region-tag{background:#4a3320;color:#ffd4a2}.auto-overseas .auto-region-tag{background:#1a3556;color:#b7dcff}
+.auto-region-static{min-height:41px;display:flex;align-items:center;padding:10px 12px;border:1px solid #354563;border-radius:9px;background:#1c2a43;color:#e7f0ff;font-weight:800;font-size:12px}
+.auto-add-region{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.auto-add-region button{min-height:46px;border:1px solid #4c6489;border-radius:11px;background:#1a2a44;color:#fff;font-weight:800;cursor:pointer}
+.auto-add-region button:hover{background:#263d60;border-color:#75a7f5}
+@media(max-width:650px){.auto-add-region{grid-template-columns:1fr}.auto-region-card{padding:12px}}
 </style>
 </head>
 <body>
@@ -967,16 +984,17 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <div><label>Hero credit</label><input id="heroCredit"></div>
 <div class="full"><label>Meta title</label><input id="metaTitle"></div>
 <div class="full"><label>Meta description</label><textarea id="metaDescription"></textarea></div>
-<div class="full">
+<div class="full" id="articleTrackingModePanel" style="display:none">
     <div class="generated-seo-preview" style="padding:14px 16px">
         <div class="generated-seo-preview-head">
-            <strong>🎬 Automatic Box Office Tracking</strong>
+            <strong id="articleTrackingModeHeading">🎬 Live Tracking</strong>
             <label style="display:flex;align-items:center;gap:8px;font-weight:800;cursor:pointer">
                 <input id="trackingEnabled" type="checkbox" checked style="width:18px;height:18px">
                 <span id="trackingEnabledLabel">ON — Automatic Day N</span>
             </label>
         </div>
-        <div class="generated-seo-meta">ON keeps automatic Day N tracking running with no 7-day limit. OFF freezes the final H1, SEO title, snippet and visible intro from the stored Box Office Report.</div>
+        <div class="generated-seo-meta">ON shows live Day N tracking. OFF saves permanent H1 and SEO from the stored Box Office Report. Public SSR remains ON.</div>
+        <button type="button" id="refreshFinalSeoBtn" style="display:none;margin-top:10px;padding:9px 12px;border-radius:9px;cursor:pointer">Refresh permanent SEO description</button>
     </div>
 </div>
 <div class="full">
@@ -1030,7 +1048,8 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button data-add="image">Image</button>
 <button data-add="quote">Quote</button>
 <button data-add="boxoffice">Box Office</button>
-<button data-add="live_tracker">🔴 Live Tracker</button>
+<button data-add="live_tracker">🔴 Manual Live Tracker</button>
+<button data-add="auto_live_tracker">⚡ Automatic Live Tracker</button>
 <button data-add="pre_release_business">💰 Pre-Release Business</button>
 <button data-add="salary_details">💵 Salary Details</button>
 <button data-add="table">Table</button>
@@ -1442,6 +1461,7 @@ budget:null,
 verdict:"",
 days:[makeBoxOfficeDay(1)]
 };
+if(type==="auto_live_tracker")base.extra_data={enabled:true,paused:false,ssr_enabled:true,h1_enabled:true,overseas_net_percent:100,days:[]};
 if(type==="live_tracker")base.extra_data={
 status:"live",
 start_date:"",
@@ -1467,7 +1487,8 @@ evening_occupancy:"",
 night_shows:"",
 night_occupancy:"",
 note:"",
-updated_at:""
+updated_at:"",
+auto_collection:{enabled:false,paused:false,days:[]}
 };
 if(type==="pre_release_business")base.extra_data={
 movie_id:selectedMovieLinkIds.length===1 ? Number(selectedMovieLinkIds[0]) : null,
@@ -1517,7 +1538,7 @@ if(type==="actor")base.extra_data={actor_id:null};
 if(type==="video")base.extra_data={url:""};
 return base;
 }
-function addBlock(type){blocks.push(blockTemplate(type));renumber();renderBlocks()}
+function addBlock(type){blocks.push(blockTemplate(type));renumber();renderBlocks();updateTrackingModeLabel()}
 function renumber(){blocks.forEach((b,i)=>b.block_order=i+1)}
 function moveBlock(i,d){const n=i+d;if(n<0||n>=blocks.length)return;[blocks[i],blocks[n]]=[blocks[n],blocks[i]];renumber();renderBlocks()}
 function removeBlock(i){
@@ -2339,6 +2360,7 @@ return sd.people.map((p,idx)=>`
 }
 
 function renderBlocks(){
+updateTrackingModeLabel();
 const box=$("blocks");box.innerHTML="";
 blocks.forEach((b,i)=>{
 const card=document.createElement("div");card.className="block-card";card.draggable=true;
@@ -2361,6 +2383,45 @@ body=`<div class="block-row"><div><label>Image filename</label><input data-field
 if(b.block_type==="boxoffice"){
 b.extra_data=normalizeBoxOfficeExtra(b.extra_data);
 body=renderBoxOfficeBlock(b.extra_data);
+}
+if(b.block_type==="auto_live_tracker"){
+b.extra_data=b.extra_data||{};
+const lt=b.extra_data;
+body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1px solid #394b6e;border-radius:12px;background:#111b2d">
+    <strong style="color:#ffcc33">Independent Automatic Live Collection Scheduler</strong>
+    <div class="note">Temporary estimated live numbers only. Never updates the day-wise collection report. Times are IST.</div>
+    <div class="block-row" style="margin-top:10px">
+      <label><input type="checkbox" data-auto-root="enabled" ${lt.enabled?"checked":""} style="width:auto"> Enable automatic tracker</label>
+      <label><input type="checkbox" data-auto-root="paused" ${lt.paused?"checked":""} style="width:auto"> Pause automation</label>
+    </div>
+    <div class="block-row" style="margin-top:9px">
+      <label><input type="checkbox" data-auto-root="ssr_enabled" ${lt.ssr_enabled!==false?"checked":""} style="width:auto"> Public SSR ON</label>
+      <label><input type="checkbox" data-auto-root="h1_enabled" ${lt.h1_enabled!==false?"checked":""} style="width:auto"> Automatic H1 / SEO ON</label>
+    </div>
+    <div><label>Overseas Net Conversion (%)</label><input type="number" min="0" max="100" step="0.01" data-auto-root-number="overseas_net_percent" value="${articleContentEsc(lt.overseas_net_percent??100)}"></div>
+    <div class="note">Add separate INDIA and OVERSEAS schedules. Worldwide totals show only when both are active. Empty regions remain hidden.</div>
+    <div data-auto-days>${(lt.days||[]).map((d,j)=>`
+      <div class="auto-region-card ${(d.field||"india_gross")==="india_gross"?"auto-india":"auto-overseas"}">
+        <div class="auto-region-head"><div><span class="auto-region-tag">${(d.field||"india_gross")==="india_gross"?"🇮🇳 INDIA":"🌍 OVERSEAS"}</span><strong> Schedule ${j+1}</strong><small>Independent timing, start amount and target</small></div><button type="button" data-auto-remove="${j}" class="btn-dark">Remove</button></div>
+        <div class="block-row" style="margin-top:8px">
+          <div><label>Start date (IST)</label><input type="date" data-auto-datetime="start_at" data-auto-part="date" data-auto-index="${j}" value="${articleContentEsc((d.start_at||"").slice(0,10))}"><label style="margin-top:8px">Start time</label><input type="time" step="60" data-auto-datetime="start_at" data-auto-part="time" data-auto-index="${j}" value="${articleContentEsc((d.start_at||"").slice(11,16))}"></div>
+          <div><label>End date (IST)</label><input type="date" data-auto-datetime="end_at" data-auto-part="date" data-auto-index="${j}" value="${articleContentEsc((d.end_at||"").slice(0,10))}"><label style="margin-top:8px">End time</label><input type="time" step="60" data-auto-datetime="end_at" data-auto-part="time" data-auto-index="${j}" value="${articleContentEsc((d.end_at||"").slice(11,16))}"></div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn-dark" data-auto-preset="early" data-auto-index="${j}">6 AM Start</button><button type="button" class="btn-dark" data-auto-preset="regular" data-auto-index="${j}">9 AM–11 PM</button><button type="button" class="btn-dark" data-auto-preset="premiere" data-auto-index="${j}">11:55 PM Premiere</button><button type="button" class="btn-dark" data-auto-preset="now" data-auto-index="${j}">Test Now (30 min)</button></div>
+        <div class="block-row" style="margin-top:8px">
+          <div><label>Schedule belongs to</label><div class="auto-region-static">${(d.field||"india_gross")==="india_gross"?"🇮🇳 India collection":"🌍 Overseas collection"}</div><div class="note">To track the other area, add its own schedule below.</div></div>
+          <div><label>Update interval</label><select data-auto-index="${j}" data-auto-key="interval_minutes">${[5,10,15,20,30].map(v=>`<option value="${v}" ${Number(d.interval_minutes||10)===v?"selected":""}>${v} minutes</option>`).join("")}</select></div>
+          <div><label>Starting amount (₹ Cr)</label><input type="number" min="0" step="0.01" data-auto-index="${j}" data-auto-key="start_value" value="${articleContentEsc(d.start_value??0)}"></div>
+          <div><label>Estimated target (₹ Cr)</label><input type="number" min="0" step="0.01" data-auto-index="${j}" data-auto-key="target_value" value="${articleContentEsc(d.target_value??0)}"></div>
+          <div><label>Manual override amount (optional)</label><input type="number" min="0" step="0.01" data-auto-index="${j}" data-auto-key="override_value" value="${articleContentEsc(d.override?.value??"")}"></div>
+          <div><label>Override time (IST)</label><input type="datetime-local" data-auto-index="${j}" data-auto-key="override_at" value="${articleContentEsc(d.override?.at||"")}"></div>
+          <label><input type="checkbox" data-auto-index="${j}" data-auto-key="override_locked" ${d.override?.locked?"checked":""} style="width:auto"> Lock manual override</label>
+        </div>
+      </div>`).join("")}</div>
+    <div class="auto-add-region"><button type="button" data-auto-add-region="india_gross">+ Add India Schedule</button><button type="button" data-auto-add-region="overseas_gross">+ Add Overseas Schedule</button></div>
+    <div class="note">Scheduled values are estimates, not verified collections. Manual overrides take priority. End date can be the next day for 11:55 PM premieres.</div>
+  </div>
+`;
 }
 if(b.block_type==="live_tracker"){
 b.extra_data=b.extra_data||{};
@@ -2519,6 +2580,43 @@ const textarea=card.querySelector('textarea[data-field="content"]');
 applyArticleFormat(i,btn.dataset.articleFormat,textarea);
 };
 });
+if(b.block_type==="auto_live_tracker"){
+ const ac=b.extra_data=b.extra_data||{enabled:true,paused:false,ssr_enabled:true,h1_enabled:true,days:[]};
+ ac.days=Array.isArray(ac.days)?ac.days:[];
+ card.querySelectorAll("[data-auto-root]").forEach(el=>el.onchange=()=>{ac[el.dataset.autoRoot]=el.checked;});
+ card.querySelectorAll("[data-auto-root-number]").forEach(el=>el.oninput=()=>{ac[el.dataset.autoRootNumber]=el.value===""?100:Number(el.value);});
+ card.querySelectorAll("[data-auto-datetime]").forEach(el=>{
+   const sync=()=>{const row=ac.days[Number(el.dataset.autoIndex)];if(!row)return;const key=el.dataset.autoDatetime;const date=card.querySelector(`[data-auto-datetime="${key}"][data-auto-part="date"][data-auto-index="${el.dataset.autoIndex}"]`)?.value||"";const time=card.querySelector(`[data-auto-datetime="${key}"][data-auto-part="time"][data-auto-index="${el.dataset.autoIndex}"]`)?.value||"";row[key]=date&&time?`${date}T${time}`:"";};
+   el.onchange=sync;el.oninput=sync;
+ });
+ card.querySelectorAll("[data-auto-preset]").forEach(el=>el.onclick=()=>{
+   const j=Number(el.dataset.autoIndex),row=ac.days[j];if(!row)return;
+   const now=new Date(),ist=new Date(now.toLocaleString("en-US",{timeZone:"Asia/Kolkata"}));
+   const pad=n=>String(n).padStart(2,"0");const date=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+   const today=date(ist);const tomorrow=new Date(ist);tomorrow.setDate(tomorrow.getDate()+1);
+   if(el.dataset.autoPreset==="early"){row.start_at=`${today}T06:00`;row.end_at=`${today}T23:00`;}
+   if(el.dataset.autoPreset==="regular"){row.start_at=`${today}T09:00`;row.end_at=`${today}T23:00`;}
+   if(el.dataset.autoPreset==="premiere"){row.start_at=`${today}T23:55`;row.end_at=`${date(tomorrow)}T02:30`;}
+   if(el.dataset.autoPreset==="now"){const start=new Date(ist.getTime()-10*60000),end=new Date(ist.getTime()+30*60000);row.start_at=`${date(start)}T${pad(start.getHours())}:${pad(start.getMinutes())}`;row.end_at=`${date(end)}T${pad(end.getHours())}:${pad(end.getMinutes())}`;}
+   renderBlocks();
+ });
+ card.querySelectorAll("[data-auto-index][data-auto-key]").forEach(el=>{
+   const handler=()=>{const row=ac.days[Number(el.dataset.autoIndex)];if(!row)return;
+     const key=el.dataset.autoKey;
+     if(key.startsWith("override_")){
+       row.override=row.override||{};
+       const sub=key.substring(9);
+       if(sub==="locked")row.override.locked=el.checked;
+       else if(sub==="value")row.override.value=el.value===""?null:Number(el.value);
+       else row.override.at=el.value;
+     }else row[key]=["start_value","target_value","interval_minutes"].includes(key)?Number(el.value):el.value;
+   };
+   el.oninput=handler;el.onchange=handler;
+ });
+ 
+ card.querySelectorAll("[data-auto-remove]").forEach(el=>el.onclick=()=>{ac.days.splice(Number(el.dataset.autoRemove),1);renderBlocks();});
+ card.querySelectorAll("[data-auto-add-region]").forEach(el=>el.onclick=()=>{ac.days.push({start_at:"",end_at:"",field:el.dataset.autoAddRegion,interval_minutes:10,start_value:0,target_value:0});renderBlocks();});
+}
 card.querySelectorAll("[data-extra]").forEach(el=>el.oninput=()=>{
 let v=el.value;const k=el.dataset.extra;
 if(k==="images")v=v.split(",").map(x=>x.trim()).filter(Boolean);
@@ -3072,7 +3170,14 @@ await refreshGeneratedSeoPreview();
 function updateTrackingModeLabel(){
 const cb=$("trackingEnabled"), label=$("trackingEnabledLabel");
 if(!cb||!label)return;
-label.textContent=cb.checked ? "ON — Automatic Day N" : "OFF — Final / Frozen";
+const types=new Set((blocks||[]).map(b=>b.block_type));
+const manual=types.has("live_tracker"), automatic=types.has("auto_live_tracker");
+const panel=$("articleTrackingModePanel"), heading=$("articleTrackingModeHeading");
+if(panel)panel.style.display=(manual||automatic)?"":"none";
+const name=manual&&automatic?"Manual + Automatic":manual?"Manual":"Automatic";
+if(heading)heading.textContent="🎬 "+name+" Live Tracker";
+label.textContent=cb.checked ? "ON — Live Day N" : "OFF — Permanent SEO";
+const refreshBtn=$("refreshFinalSeoBtn");if(refreshBtn)refreshBtn.style.display=(!cb.checked && currentArticleId)?"inline-block":"none";
 }
 
 function articlePayload(){
@@ -3141,7 +3246,7 @@ toast("Article saved, but content blocks failed: "+e.message);
 return;
 }
 
-const requestedTrackingEnabled = $("trackingEnabled") ? $("trackingEnabled").checked : true;
+const requestedTrackingEnabled = (blocks||[]).some(b=>["live_tracker","auto_live_tracker"].includes(b.block_type)) && $("trackingEnabled") ? $("trackingEnabled").checked : loadedTrackingEnabled;
 if(requestedTrackingEnabled !== loadedTrackingEnabled){
     const tr=await fetch(`/admin/articles/${currentArticleId}/tracking-mode`,{
         method:"PUT",credentials:"include",headers:{"Content-Type":"application/json"},
@@ -3974,6 +4079,20 @@ $("draftManagerModal")?.addEventListener("click",e=>{if(e.target===$("draftManag
  window.addEventListener("resize",()=>{if(innerWidth>760)setMenu(false)});
 })();
 
+if($("refreshFinalSeoBtn")){
+    $("refreshFinalSeoBtn").addEventListener("click",async()=>{
+        if(!currentArticleId){toast("Save the article first");return;}
+        if($("trackingEnabled")?.checked){toast("Turn tracking OFF and save first");return;}
+        if(!confirm("Refresh the saved permanent SEO description? The H1 and collection figures will not change."))return;
+        const response=await fetch(`/admin/articles/${currentArticleId}/refresh-final-seo`,{
+            method:"POST",credentials:"include"
+        });
+        let result={};try{result=await response.json()}catch(e){}
+        if(!response.ok){toast(result.detail||"Permanent SEO refresh failed");return;}
+        toast("Permanent SEO description refreshed");
+        await refreshGeneratedSeoPreview();
+    });
+}
 if($("trackingEnabled")){
     $("trackingEnabled").addEventListener("change",updateTrackingModeLabel);
     updateTrackingModeLabel();
