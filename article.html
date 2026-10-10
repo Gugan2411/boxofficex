@@ -8619,31 +8619,54 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-<style id="bx-article-direct-incontent-300x250">
+<style id="bx-article-direct-incontent-responsive">
+/* BoxOfficeX: preserve the entire image at its natural aspect ratio. */
 .article-content [id^="bxSmartAdSlot"].bx-smart-ad-slot{
-display:block!important;width:300px!important;max-width:calc(100vw - 20px)!important;height:auto!important;
-margin:30px auto!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
+ display:block!important;width:100%!important;max-width:728px!important;height:auto!important;
+ margin:30px auto!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
 }
 .article-content [id^="bxSmartAdSlot"].bx-smart-ad-slot:empty{display:none!important;margin:0!important;padding:0!important}
 .article-content [id^="bxSmartAdSlot"] .bx-smart-label{
-display:block!important;width:300px!important;max-width:100%!important;margin:0 auto 6px!important;padding:0!important;
-background:transparent!important;color:#6b7280!important;font:700 10px/1.2 Arial,sans-serif!important;
-letter-spacing:.8px!important;text-align:center!important;text-transform:uppercase!important;
+ display:block!important;width:100%!important;max-width:100%!important;margin:0 auto 6px!important;padding:0!important;
+ background:transparent!important;color:#6b7280!important;font:700 10px/1.2 Arial,sans-serif!important;
+ letter-spacing:.8px!important;text-align:center!important;text-transform:uppercase!important;
 }
 .article-content [id^="bxSmartAdSlot"] .bx-smart-ad-card{
-display:block!important;width:300px!important;max-width:100%!important;height:250px!important;min-height:250px!important;
-max-height:250px!important;margin:0 auto!important;padding:0!important;border:0!important;border-radius:10px!important;
-overflow:hidden!important;background:#eef2f7!important;box-shadow:none!important;
+ display:block!important;position:relative!important;width:100%!important;max-width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ margin:0 auto!important;padding:0!important;border:0!important;border-radius:10px!important;
+ overflow:visible!important;background:transparent!important;box-shadow:none!important;
 }
-.article-content [id^="bxSmartAdSlot"] .bx-smart-ad-card>a{display:block!important;width:100%!important;height:100%!important}
-.article-content [id^="bxSmartAdSlot"] .bx-smart-ad-card img,
-.article-content [id^="bxSmartAdSlot"] .bx-smart-ad-card video{
-display:block!important;width:100%!important;height:250px!important;min-height:250px!important;max-height:250px!important;
-margin:0!important;padding:0!important;border:0!important;aspect-ratio:300/250!important;object-fit:cover!important;
-object-position:center!important;pointer-events:none!important;
+.article-content [id^="bxSmartAdSlot"] .bx-smart-ad-card>a{
+ display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+ text-decoration:none!important;
+}
+.article-content [id^="bxSmartAdSlot"] .bx-smart-ad-card:not(.bx-smart-video-card) img{
+ display:block!important;width:100%!important;max-width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:0!important;border:0!important;
+ aspect-ratio:auto!important;object-fit:contain!important;object-position:center!important;
+ border-radius:10px!important;pointer-events:none!important;
+}
+/* Keep existing video overlays and sound controls working. */
+.article-content [id^="bxSmartAdSlot"] .bx-smart-video-card{
+ overflow:hidden!important;aspect-ratio:16/9!important;
+}
+.article-content [id^="bxSmartAdSlot"] .bx-smart-video-card>a{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+}
+.article-content [id^="bxSmartAdSlot"] .bx-smart-video-card video{
+ display:block!important;width:100%!important;height:100%!important;min-height:0!important;
+ max-height:none!important;aspect-ratio:16/9!important;object-fit:contain!important;
+ object-position:center!important;pointer-events:none!important;
 }
 .article-content [id^="bxSmartAdSlot"] .bx-smart-ad-head,
 .article-content [id^="bxSmartAdSlot"] .bx-smart-ad-close{display:none!important}
+@media(max-width:700px){
+ .article-content [id^="bxSmartAdSlot"].bx-smart-ad-slot{
+  width:100%!important;max-width:100%!important;
+ }
+}
 </style>
 
 <style id="bx-fullscreen-approved-320x480">

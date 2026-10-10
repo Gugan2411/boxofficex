@@ -2999,7 +2999,10 @@ def home():
         print(f"Homepage SSR fallback: {type(exc).__name__}: {exc}", flush=True)
         return FileResponse(
             BASE_DIR / "index.html",
+            status_code=503,
             headers={
+                "X-Robots-Tag": "noindex",
+                "Retry-After": "60",
                 "Cache-Control": "no-store",
                 "X-BoxOfficeX-Homepage": "ssr-fallback",
                 "X-BoxOfficeX-SSR-Error": type(exc).__name__,
@@ -4561,7 +4564,8 @@ def _movie_rankings_response(target_key):
 
         headers["X-BoxOfficeX-Movie-Rankings-SSR"] = "FALLBACK"
         headers["X-BoxOfficeX-SSR-Error"] = type(exc).__name__
-        return HTMLResponse(content=template, headers=headers)
+        headers.update({"X-Robots-Tag": "noindex", "Cache-Control": "no-store", "Retry-After": "60"})
+        return HTMLResponse(content=template, status_code=503, headers=headers)
 
 
 def _warm_all_movie_rankings_html_cache():
@@ -5269,10 +5273,10 @@ def _movie_ssr_build(movie_slug: str):
     worldwide_text = _movie_ssr_format_crore(movie.get("worldwide_collection_crore"))
     verdict_text = str(movie.get("verdict") or "N/A")
     faq_items = [
-        (f"What is {title_text}'s worldwide box office collection?", f"BoxOfficeX currently records {worldwide_text} as the worldwide box office collection for {title_text}."),
-        (f"What is {title_text}'s budget?", f"The reported budget currently stored on BoxOfficeX for {title_text} is {budget_text}."),
-        (f"What is {title_text}'s India and overseas box office collection?", f"BoxOfficeX currently records {india_text} in India and {overseas_text} overseas for {title_text}."),
-        (f"What is {title_text}'s box office verdict?", f"The current BoxOfficeX verdict for {title_text} is {verdict_text}."),
+        (f"What is {title_text}'s worldwide box office collection?", f"BoxOfficeX lists {worldwide_text} as the worldwide box office collection for {title_text}." if worldwide_text != "N/A" else f"Worldwide box office collection data is not currently available for {title_text}."),
+        (f"What is {title_text}'s budget?", f"The reported budget currently listed for {title_text} is {budget_text}." if budget_text != "N/A" else f"A reported budget is not currently available for {title_text}."),
+        (f"What is {title_text}'s India and overseas box office collection?", f"The available box office figures for {title_text} are India: {india_text}; overseas: {overseas_text}. Missing figures are not treated as zero."),
+        (f"What is {title_text}'s box office verdict?", f"The current BoxOfficeX verdict for {title_text} is {verdict_text}." if verdict_text != "N/A" else f"A box office verdict is not currently available for {title_text}."),
     ]
     faq_html = ''.join(
         '<details><summary>' + html_escape(q) + '</summary><p>' + html_escape(a) + '</p></details>'
@@ -5586,19 +5590,20 @@ def _actor_ssr_build(actor_slug: str):
             description += f" Last 5 films averaged ₹{_actor_ssr_money(recent_avg)} Cr worldwide."
         else:
             possessive = _actor_ssr_pronoun(profession).capitalize()
-            description += f" {possessive} last {len(last_five_worldwide)} films averaged ₹{_actor_ssr_money(recent_avg)} Cr worldwide."
+            description += f" Among the last {len(last_five)} released films, {len(last_five_worldwide)} with collection data averaged ₹{_actor_ssr_money(recent_avg)} Cr worldwide."
     description += " See budgets & verdicts."
 
     profile_image = _actor_ssr_profile_image(actor)
+    social_image = "https://boxofficex.in/images/boxofficex-share.jpg"
 
     template = re.sub(r"<title>.*?</title>", f"<title>{html_escape(title)}</title>", template, count=1, flags=re.S)
     template = re.sub(r'(<meta\s+name="description"\s+content=")[^"]*(")', lambda m: m.group(1)+html_escape(description, quote=True)+m.group(2), template, count=1, flags=re.S)
     template = re.sub(r'(<link\s+id="canonicalUrl"\s+rel="canonical"\s+href=")[^"]*(")', lambda m: m.group(1)+canonical+m.group(2), template, count=1)
-    for element_id, value in (("ogTitle", title), ("ogDescription", description), ("ogUrl", canonical), ("ogImage", profile_image), ("twitterTitle", title), ("twitterDescription", description), ("twitterImage", profile_image)):
+    for element_id, value in (("ogTitle", title), ("ogDescription", description), ("ogUrl", canonical), ("ogImage", social_image), ("twitterTitle", title), ("twitterDescription", description), ("twitterImage", social_image)):
         template = re.sub(r'(<meta id="'+re.escape(element_id)+r'"[^>]*content=")[^"]*(")', lambda m, v=value: m.group(1)+html_escape(v, quote=True)+m.group(2), template, count=1)
 
     structured = {"@context":"https://schema.org", "@graph":[
-        {"@type":"Person", "name":name, "url":canonical, "image":profile_image, "jobTitle":profession, "description":bio},
+        {"@type":"Person", "name":name, "url":canonical, "image":social_image, "jobTitle":profession, "description":bio},
         {"@type":"BreadcrumbList", "itemListElement":[
             {"@type":"ListItem", "position":1, "name":"Home", "item":"https://boxofficex.in/"},
             {"@type":"ListItem", "position":2, "name":"Actors", "item":"https://boxofficex.in/actors.html"},
@@ -5639,7 +5644,7 @@ def _actor_ssr_build(actor_slug: str):
         intro_parts.append(f"The highest-grossing tracked film is <strong>{html_escape(top_movie_name)}</strong> at <strong>₹{_actor_ssr_money_known(top_movie_gross)} Cr</strong> worldwide.")
     intro_parts.append(f"The current verdict record includes <strong>{blockbuster_count} blockbusters</strong>, <strong>{hit_count} hits</strong> and <strong>{int(overview.get('flops') or 0)} flops</strong>.")
     if recent_avg is not None and last_five_worldwide:
-        intro_parts.append(f"Across the latest <strong>{len(last_five_worldwide)}</strong> released films with worldwide data, the average gross is <strong>₹{_actor_ssr_money_known(recent_avg)} Cr</strong>.")
+        intro_parts.append(f"Among the latest <strong>{len(last_five)}</strong> released films, <strong>{len(last_five_worldwide)}</strong> with worldwide data average <strong>₹{_actor_ssr_money_known(recent_avg)} Cr</strong>.")
     actor_intro = (
         '<section id="bxActorSeoIntro" class="bx-actor-seo-intro" data-ssr="1">'
         f'<h2>{html_escape(name)} Box Office &amp; Career Snapshot</h2>'
@@ -5899,13 +5904,10 @@ def movie_slug_page(movie_slug: str):
         raise
     except Exception as exc:
         print("Movie SSR fallback:", type(exc).__name__, exc, flush=True)
-        return FileResponse(
-            BASE_DIR / "movie.html",
-            headers={
-                "Cache-Control": "no-store",
-                "X-BoxOfficeX-Movie": "ssr-fallback",
-                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
-            },
+        return HTMLResponse(
+            content="<h1>Movie details temporarily unavailable</h1><p>Please try again shortly.</p>",
+            status_code=503,
+            headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex", "Retry-After": "60", "X-BoxOfficeX-SSR-Error": type(exc).__name__},
         )
 
 
@@ -5944,13 +5946,10 @@ def actor_slug_page(actor_slug: str):
         raise
     except Exception as exc:
         print("Actor SSR fallback:", type(exc).__name__, exc, flush=True)
-        return FileResponse(
-            BASE_DIR / "actor.html",
-            headers={
-                "Cache-Control": "no-store",
-                "X-BoxOfficeX-Actor": "ssr-fallback",
-                "X-BoxOfficeX-SSR-Error": type(exc).__name__,
-            },
+        return HTMLResponse(
+            content="<h1>Actor details temporarily unavailable</h1><p>Please try again shortly.</p>",
+            status_code=503,
+            headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex", "Retry-After": "60", "X-BoxOfficeX-SSR-Error": type(exc).__name__},
         )
 
 
@@ -6313,29 +6312,31 @@ def _render_actor_comparison_html(comparison):
         return f"{number:,.1f}".rstrip("0").rstrip(".")
 
     def recent_theatrical_average(actor_id):
-        # Filmographies are already newest-first. Exclude future/unreleased titles
-        # and missing/non-positive worldwide values; never convert missing data to zero.
+        # Match the visible SSR "Last 5 Movies Average" exactly:
+        # select the five latest released films FIRST, then average only
+        # positive worldwide collections available within those five.
         today = date.today()
-        usable = []
+        released = []
         for movie in (payload.get("movies") or {}).get(str(actor_id), []):
-            release_raw = movie.get("release_date")
-            gross = movie.get("worldwide_collection_crore")
-            if not release_raw or gross is None:
+            raw = movie.get("release_date") or movie.get("release_year") or movie.get("year")
+            if not raw:
                 continue
             try:
-                release_day = date.fromisoformat(str(release_raw)[:10])
-                gross_value = float(gross)
+                release_day = date.fromisoformat(str(raw)[:10])
             except (TypeError, ValueError):
                 continue
-            if release_day > today or gross_value <= 0 or not math.isfinite(gross_value):
+            if release_day <= today:
+                released.append((release_day, movie))
+        released.sort(key=lambda item: item[0], reverse=True)
+        usable = []
+        for _, movie in released[:5]:
+            try:
+                gross = float(movie.get("worldwide_collection_crore"))
+            except (TypeError, ValueError):
                 continue
-            usable.append(gross_value)
-            if len(usable) == 5:
-                break
-
-        if not usable:
-            return None, 0
-        return sum(usable) / len(usable), len(usable)
+            if math.isfinite(gross) and gross > 0:
+                usable.append(gross)
+        return ((sum(usable) / len(usable)) if usable else None, len(usable))
 
     total1 = ctr_money(s1.get("total_worldwide"))
     total2 = ctr_money(s2.get("total_worldwide"))
@@ -6411,19 +6412,55 @@ def _render_actor_comparison_html(comparison):
         ),
     ]
 
+    # GEO Phase 1: answer the worldwide gross question separately from
+    # the multi-factor career winner, and do not treat missing totals as zero.
+    if total1 is not None and total2 is not None:
+        try:
+            gross1, gross2 = float(str(total1).replace(",", "")), float(str(total2).replace(",", ""))
+            if gross1 > gross2:
+                actor_geo_answer = f"{name1} leads in tracked worldwide career gross ({total1_display} vs {total2_display})."
+            elif gross2 > gross1:
+                actor_geo_answer = f"{name2} leads in tracked worldwide career gross ({total2_display} vs {total1_display})."
+            else:
+                actor_geo_answer = f"Both actors have the same tracked worldwide career gross of {total1_display}."
+        except (TypeError, ValueError):
+            actor_geo_answer = "The available worldwide totals cannot be reliably compared."
+    else:
+        actor_geo_answer = "A worldwide career gross leader cannot be determined from the available totals."
+
     seo_intro = (
         f'<section class="bx-compare-seo" aria-label="{html_escape(name1, quote=True)} vs {html_escape(name2, quote=True)} career box office comparison">'
         f'<h2>{html_escape(name1)} vs {html_escape(name2)} Career Box Office Comparison</h2>'
+        f'<h3>Who has the higher tracked worldwide career gross?</h3>'
+        f'<p><strong>Answer:</strong> {html_escape(actor_geo_answer)} These totals cover movies tracked by BoxOfficeX and do not represent personal earnings.</p>'
         f'<p><strong>{html_escape(name1)} vs {html_escape(name2)} Box Office Comparison:</strong> '
         f'{html_escape(name1)} has <strong>{movie_count1} tracked movies</strong> with <strong>{html_escape(total1_display)}</strong> worldwide, while '
         f'{html_escape(name2)} has <strong>{movie_count2} tracked movies</strong> with <strong>{html_escape(total2_display)}</strong> worldwide. '
         f'Their recent theatrical averages are <strong>{html_escape(recent1_display)}</strong> and <strong>{html_escape(recent2_display)}</strong> respectively, based only on recent released movies with recorded worldwide collection data.</p>'
         f'<h3>{html_escape(name1)} vs {html_escape(name2)} Hits, Blockbusters &amp; Career Record</h3>'
         f'<p>{html_escape(name1)} currently has <strong>{blockbusters1} blockbusters</strong>, <strong>{hits1} hits</strong> and <strong>{flops1} flops</strong> in the BoxOfficeX database. '
-        f'{html_escape(name2)} currently has <strong>{blockbusters2} blockbusters</strong>, <strong>{hits2} hits</strong> and <strong>{flops2} flops</strong>. Missing verdict data is excluded rather than treated as a flop.</p>'
+        f'{html_escape(name2)} currently has <strong>{blockbusters2} blockbusters</strong>, <strong>{hits2} hits</strong> and <strong>{flops2} {"flop" if flops2 == 1 else "flops"}</strong>. Missing verdict data is excluded rather than treated as a flop.</p>'
         '</section>'
     )
 
+
+    # GEO trust context: request date is not a claim that database figures changed today.
+    actor_trust_html = (
+        '<section class="bx-compare-seo bx-data-transparency" aria-label="BoxOfficeX data transparency">'
+        '<h2>Data Sources, Coverage &amp; Methodology</h2>'
+        f'<p><strong>Comparison viewed:</strong> {date.today().isoformat()} (server date). '
+        'This is the date the comparison was generated, not a verified last-update timestamp for every film.</p>'
+        '<p><strong>Data coverage:</strong> Figures come from movie collection and verdict entries '
+        'currently available in the BoxOfficeX database. Individual movie pages provide the '
+        'underlying titles and available box-office figures. No third-party source is claimed '
+        'for an entry unless it is specifically documented.</p>'
+        '<p><strong>Interpretation:</strong> Career worldwide gross is the sum of tracked movie '
+        'collections, not actor earnings. Recent-film averages exclude unreleased movies and '
+        'missing or non-positive worldwide totals. Missing figures are not estimates or zeros. '
+        'Box-office verdicts and comparison scores are editorial/statistical indicators, '
+        'not independent audits of distributor or producer profit.</p>'
+        '</section>'
+    )
 
     # ============================================================
     # FULL ACTOR COMPARISON SSR
@@ -6977,7 +7014,8 @@ def _render_actor_comparison_html(comparison):
     content = (
         f'<div id="comparisonContent" data-ssr="1" data-actor1-id="{int(left.get("id") or actor1["id"])}" data-actor2-id="{int(right.get("id") or actor2["id"])}" data-actor1-name="{html_escape(name1, quote=True)}" data-actor2-name="{html_escape(name2, quote=True)}">'
         + seo_intro
-        + '<div class="heroes">'
+        + actor_trust_html
+        + '<div class="heroes">' 
         + actor_card(left, name1, actor1_url)
         + '<div class="vs">VS</div>'
         + actor_card(right, name2, actor2_url)
@@ -7557,7 +7595,10 @@ def new_movies_page():
         _start_new_movies_refresh()
         return FileResponse(
             BASE_DIR / "new-movies.html",
+            status_code=503,
             headers={
+                "X-Robots-Tag": "noindex",
+                "Retry-After": "60",
                 "Cache-Control": "no-store",
                 "X-BoxOfficeX-New-Movies": "ssr-fallback",
                 "X-BoxOfficeX-Cache": "FALLBACK",
@@ -8163,9 +8204,12 @@ def _actor_rankings_response(target_key):
             html = _actor_rankings_warming_html(target_key)
             return HTMLResponse(
                 content=html,
+                status_code=503,
                 headers={
-                    "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
                     "X-BoxOfficeX-Actor-Rankings": "warming",
+                "X-Robots-Tag": "noindex",
+                "Retry-After": "60",
+                "Cache-Control": "no-store",
                     "X-BoxOfficeX-Cache": cache_state,
                     "X-BoxOfficeX-Rankings-CTR": "v3-language-seo",
                 },
@@ -8190,9 +8234,12 @@ def _actor_rankings_response(target_key):
         _start_actor_rankings_refresh(target_key)
         return HTMLResponse(
             content=_actor_rankings_warming_html(target_key),
+            status_code=503,
             headers={
-                "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
                 "X-BoxOfficeX-Actor-Rankings": "ssr-fallback",
+                "X-Robots-Tag": "noindex",
+                "Retry-After": "60",
+                "Cache-Control": "no-store",
                 "X-BoxOfficeX-SSR-Error": type(exc).__name__,
                 "X-BoxOfficeX-Rankings-CTR": "v3-language-seo",
             },
@@ -13556,6 +13603,33 @@ def _article_faq_schema(article):
     }
 
 
+def _article_ssr_methodology(article, public_blocks):
+    """Explain reported values and calculated estimates without claiming verification."""
+    types = {str(b.get("block_type") or "").strip().lower() for b in public_blocks}
+    financial = {"boxoffice", "pre_release_business", "salary_details", "live_tracker", "auto_live_tracker"}
+    if not types.intersection(financial):
+        return ""
+    items = [
+        ("Collections", "India gross and overseas gross refer to reported theatrical grosses. Worldwide gross is their combined total where both values are available. Figures may change as reports are updated."),
+        ("Budget and rights", "Budgets, theatrical rights, OTT and other non-theatrical rights, and cast or crew remuneration are reported or estimated amounts unless explicitly identified as confirmed. These categories should not be added together as film profit."),
+    ]
+    if "boxoffice" in types or "live_tracker" in types or "auto_live_tracker" in types:
+        items.append(("Performance estimates", "Theatrical share, recovery targets, remaining gross and verdict thresholds are model-based estimates using available collection and rights data. They are not audited distributor returns or guaranteed final verdicts."))
+    if "live_tracker" in types or "auto_live_tracker" in types:
+        items.append(("Live updates", "Live figures and projections are provisional and may be revised or replaced by final box-office reports."))
+    items.append(("Data limitations", "Unavailable values are not assumed to be zero. Reports from different territories or sources may use different accounting and update schedules."))
+    rows = "".join(
+        '<p><strong>' + html_escape(label) + ':</strong> ' + html_escape(detail) + '</p>'
+        for label, detail in items
+    )
+    return (
+        '<section class="bx-article-methodology" data-ssr="1" aria-labelledby="bxArticleMethodologyHeading" '
+        'style="margin:32px 0;padding:18px;border:1px solid rgba(77,141,255,.22);border-radius:14px;background:rgba(77,141,255,.045)">'
+        '<h2 id="bxArticleMethodologyHeading" style="font-size:20px;margin:0 0 12px">Data Sources &amp; Methodology</h2>'
+        + rows + '</section>'
+    )
+
+
 def _render_article_detail_html(slug):
     response = get_article(slug)
     article = response.get("article") if isinstance(response, dict) else None
@@ -13596,7 +13670,9 @@ def _render_article_detail_html(slug):
     # Fictional test articles must not be indexed even if accidentally published.
     is_test_article = str(article.get("slug") or "") == "boxofficex-tracker-test-2026"
     noindex_article = is_test_article or str(article.get("status") or "").lower() != "published"
-    author = str(article.get("author") or "BoxOfficeX")
+    author = str(article.get("author") or "BoxOfficeX").strip()
+    if author.casefold() == "boxofficex owner":
+        author = "BoxOfficeX Editorial Team"
     category = str(article.get("category") or "Movies & Box Office")
     hero = _article_ssr_image(article.get("hero_image"))
     hero_abs = hero if hero.startswith(("http://", "https://")) else f"https://boxofficex.in{hero}"
@@ -13800,6 +13876,9 @@ def _render_article_detail_html(slug):
         for slot, fraction in ((3, .82), (2, .55), (1, .25)):
             at = max(1, min(length, int(math.ceil(length * fraction))))
             block_html.insert(at, f'<section id="bxSmartAdSlot{slot}" class="bx-smart-ad-slot" aria-label="Advertisement slot {slot}"></section>')
+    methodology_html = _article_ssr_methodology(article, public_blocks)
+    if methodology_html:
+        block_html.append(methodology_html)
     if faq_html:
         block_html.append(faq_html)
 
@@ -19524,10 +19603,38 @@ def _render_movie_comparison_html(comparison):
         f'Compare {html_escape(title_a)} and {html_escape(title_b)} across budget, India gross, overseas gross, worldwide collection and verdict.'
     )
 
+    # GEO Phase 1: direct, factual answer in the initial server-rendered HTML.
+    # This compares worldwide GROSS, not producer profit or the overall score.
+    def _geo_worldwide(movie):
+        try:
+            number = float(movie.get("worldwide_collection_crore"))
+            return number if math.isfinite(number) and number >= 0 else None
+        except (TypeError, ValueError):
+            return None
+
+    geo_a, geo_b = _geo_worldwide(a), _geo_worldwide(b)
+    if geo_a is not None and geo_b is not None:
+        if geo_a > geo_b:
+            geo_answer = (f"{title_a} has the higher reported worldwide gross: "
+                          f"₹{geo_a:,.2f} Cr compared with ₹{geo_b:,.2f} Cr for {title_b}.")
+        elif geo_b > geo_a:
+            geo_answer = (f"{title_b} has the higher reported worldwide gross: "
+                          f"₹{geo_b:,.2f} Cr compared with ₹{geo_a:,.2f} Cr for {title_a}.")
+        else:
+            geo_answer = (f"{title_a} and {title_b} have the same reported "
+                          f"worldwide gross of ₹{geo_a:,.2f} Cr in BoxOfficeX data.")
+    else:
+        geo_answer = ("A worldwide gross winner cannot be determined from the "
+                      "currently available collection figures.")
+
     top_intro_html = (
-        '<div class="bx-mc-top-intro">'
+        '<section class="bx-mc-top-intro" aria-label="Worldwide gross comparison answer">'
+        f'<h2>Which movie collected more worldwide: {html_escape(title_a)} or {html_escape(title_b)}?</h2>'
+        f'<p><strong>Answer:</strong> {html_escape(geo_answer)}</p>'
         f'<p>{intro_text}</p>'
-        '</div>'
+        '<p><small>Worldwide gross is box-office revenue before theatrical revenue sharing; '
+        'it does not establish producer profit or investment ROI.</small></p>'
+        '</section>'
     )
 
     seo_intro_html = (
@@ -19550,6 +19657,25 @@ def _render_movie_comparison_html(comparison):
         '</section>'
     )
 
+
+    movie_trust_html = (
+        '<section class="bx-mc-seo bx-data-transparency" aria-label="BoxOfficeX data transparency">'
+        '<h2>Collection Sources, Coverage &amp; Methodology</h2>'
+        f'<p><strong>Comparison viewed:</strong> {date.today().isoformat()} (server date). '
+        'This identifies when the page was generated; it is not a verified last-update '
+        'timestamp for the movie collections.</p>'
+        '<p><strong>Data coverage:</strong> India, overseas, worldwide, budget and verdict '
+        'figures are taken from the corresponding BoxOfficeX movie records. '
+        'Visit the linked individual movie pages for available detail. '
+        'Figures may be reported or revised, and missing entries remain N/A. '
+        'No external source is attributed unless specifically documented for that figure.</p>'
+        '<p><strong>Comparison rules:</strong> Overall category scoring compares available '
+        'India gross, overseas gross, worldwide gross and verdict values. '
+        'Gross-to-budget ratios use reported worldwide theatrical gross and budget; '
+        'they do not measure net profit, distributor share or return on investment. '
+        'Unavailable values are excluded from relevant comparisons.</p>'
+        '</section>'
+    )
 
     # FULL MOVIE COMPARISON SSR RESULTS — mirrors browser scoring.
     def ssr_num(movie, field):
@@ -19750,7 +19876,8 @@ def _render_movie_comparison_html(comparison):
         + movie_card(b, title_b, url_b, poster_b)
         + '</section>'
         + seo_intro_html
-        + '<section class="table">'
+        + movie_trust_html
+        + '<section class="table">' 
         + row("Release Date", "release_date", _movie_comparison_ssr_date)
         + row("Language", "language")
         + row("Industry", "industry")
@@ -19796,9 +19923,19 @@ def _render_movie_comparison_html(comparison):
     safe_title = html_escape(page_title, quote=True)
     safe_description = html_escape(description, quote=True)
     safe_canonical = html_escape(canonical_url, quote=True)
+    # SVG data-URI placeholders are valid in page <img> tags, but not as
+    # externally fetchable social/structured-data image URLs.
+    def seo_poster_url(poster):
+        if poster.startswith(("https://", "http://")):
+            return poster
+        if poster.startswith("/") and not poster.startswith("//"):
+            return f"https://boxofficex.in{poster}"
+        return None
+
+    seo_poster_a = seo_poster_url(poster_a)
+    seo_poster_b = seo_poster_url(poster_b)
     safe_og_image = html_escape(
-        poster_a if poster_a.startswith(("http://", "https://"))
-        else f"https://boxofficex.in{poster_a}",
+        seo_poster_a or "https://boxofficex.in/images/boxofficex-share.jpg",
         quote=True,
     )
 
@@ -19880,19 +20017,13 @@ def _render_movie_comparison_html(comparison):
                 "@type": "Movie",
                 "name": title_a,
                 "url": f"https://boxofficex.in{url_a}",
-                "image": (
-                    poster_a if poster_a.startswith(("http://", "https://"))
-                    else f"https://boxofficex.in{poster_a}"
-                ),
+                **({"image": seo_poster_a} if seo_poster_a else {}),
             },
             {
                 "@type": "Movie",
                 "name": title_b,
                 "url": f"https://boxofficex.in{url_b}",
-                "image": (
-                    poster_b if poster_b.startswith(("http://", "https://"))
-                    else f"https://boxofficex.in{poster_b}"
-                ),
+                **({"image": seo_poster_b} if seo_poster_b else {}),
             },
         ],
     }
