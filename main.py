@@ -2794,9 +2794,109 @@ def _build_homepage_ssr_sections():
     }
 
 
+
+def _home_extra_ssr_sections():
+    """Render secondary homepage widgets as crawlable HTML, not JS placeholders."""
+    esc = lambda value: html_escape(str(value if value is not None else ""), quote=True)
+    def safe_url(value):
+        value = str(value or "")
+        return esc(value if value.startswith("/") and not value.startswith("//") else "/new-movies.html")
+    def fallback(message):
+        return '<div class="movie-empty">' + esc(message) + '</div>'
+    results = {}
+    def fetch(name, callback, render, empty):
+        try:
+            content = render(callback())
+            results[name] = content or fallback(empty)
+        except Exception as exc:
+            print(f"Homepage SSR {name} warning: {exc}", flush=True)
+            results[name] = fallback("This section is temporarily unavailable.")
+    try:
+        slugs = _unique_movie_slug_map()
+    except Exception:
+        slugs = {}
+    def movie_link(movie):
+        slug = slugs.get(movie.get("id"))
+        if slug:
+            return "/movie/" + str(slug)
+        return public_movie_url(movie["id"])
+    def movie_cards(data, kind):
+        cards = []
+        for pos, movie in enumerate(data.get("movies") or [], 1):
+            url = safe_url(movie_link(movie))
+            title = esc(movie.get("title") or "Movie")
+            lang = esc(movie.get("language") or movie.get("industry") or "Cinema")
+            poster = movie.get("poster") or DEFAULT_MOVIE_POSTER
+            poster = poster if _is_remote_image(poster) else "/posters/" + str(poster)
+            metrics = (
+                f'👁 {int(movie.get("view_count") or 0):,} Views • 🔥 {int(movie.get("hype_count") or 0):,} Hype'
+                if kind == "trending_movies" else
+                f'🔥 {int(movie.get("hype_count") or 0):,} Hype'
+            )
+            extra = (f'<p class="movie-verdict">❤️ {int(movie.get("fan_count") or 0):,} • '
+                     f'🗳 {int(movie.get("vote_count") or 0):,} • '
+                     f'💬 {int(movie.get("comment_count") or 0):,}</p>') if kind == "trending_movies" else ""
+            cards.append(
+                f'<a class="movie-card ranking-card" href="{url}" style="text-decoration:none;color:inherit">'
+                f'<div class="ranking-number">#{pos}</div>'
+                f'<img class="movie-poster" src="{esc(poster)}" alt="{title}" loading="lazy" decoding="async">'
+                f'<div class="movie-info"><h3>{title}</h3><p>{lang}</p>'
+                f'<p class="movie-collection">{metrics}</p>{extra}</div></a>'
+            )
+        return "\n".join(cards)
+    fetch("trending_movies", lambda: trending_movies(limit=10),
+          lambda d: movie_cards(d, "trending_movies"), "No trending activity yet.")
+    fetch("hyped_movies", lambda: most_hyped_movies(limit=10),
+          lambda d: movie_cards(d, "hyped_movies"), "No movie hype votes yet.")
+    def fan_cards(data):
+        out = []
+        icons = {"movie":"🎬","article":"📰","hero_comparison":"⚔️","movie_comparison":"🎬"}
+        for item in data.get("items") or []:
+            url = item.get("url")
+            if not url and item.get("type") == "movie":
+                try: url = public_movie_url(int(item["id"] if "id" in item else item["item_id"]))
+                except Exception: url = "/new-movies.html"
+            label = {"movie":"Movie","article":"Article","hero_comparison":"Hero Battle","movie_comparison":"Movie Battle"}.get(item.get("type"),"Fan Activity")
+            out.append(f'<a class="fan-activity-card" href="{safe_url(url)}" style="text-decoration:none;color:inherit">'
+                       f'<div class="fan-activity-icon">{icons.get(item.get("type"),"🔥")}</div>'
+                       f'<div class="fan-activity-copy"><div class="fan-activity-type">{label}</div>'
+                       f'<div class="fan-activity-title">{esc(item.get("title") or "BoxOfficeX")}</div>'
+                       f'<div class="fan-activity-count">🔥 {int(item.get("activity_count") or 0):,} interactions • 7 days</div>'
+                       f'</div></a>')
+        return "\n".join(out)
+    fetch("fan_activity", lambda: trending_fan_activity(limit=8), fan_cards, "No recent fan activity.")
+    def update_cards(data):
+        return "\n".join(
+            f'<a class="update-card" href="{safe_url(item.get("url"))}" style="text-decoration:none;color:inherit">'
+            f'<div class="update-icon">{"📰" if item.get("type") == "article" else "🎬"}</div>'
+            f'<div class="update-copy"><strong>{esc(item.get("title"))}</strong>'
+            f'<small>{esc(item.get("subtitle") or "Latest update")}</small></div></a>'
+            for item in data.get("updates") or []
+        )
+    fetch("latest_updates", lambda: latest_updates(limit=8), update_cards, "No latest updates yet.")
+    def leader_cards(data):
+        return "\n".join(
+            f'<a class="leader-card" href="{safe_url(item.get("url"))}" style="text-decoration:none;color:inherit">'
+            f'<div class="leader-label">{esc(item.get("label"))}</div>'
+            f'<div class="leader-title">{esc(item.get("title"))}</div>'
+            f'<div class="leader-count">{int(item.get("count") or 0):,} interactions</div></a>'
+            for item in data.get("leaders") or [] if item
+        )
+    fetch("leaders", fan_leaderboards, leader_cards, "No leaderboard data yet.")
+    def stats_cards(data):
+        fields = (("Movies Tracked","movies_tracked"),("Actors","actors_tracked"),
+                  ("Articles","published_articles"),("Box Office Records","boxoffice_records"))
+        return "\n".join(
+            f'<div class="launch-stat-card"><div class="launch-stat-value">{int(data.get(key) or 0):,}</div>'
+            f'<div class="launch-stat-label">{label}</div></div>' for label,key in fields
+        )
+    fetch("stats", site_stats, stats_cards, "Statistics unavailable.")
+    return results
+
 def _render_homepage_html():
     template = _inject_boxofficex_global_icons((BASE_DIR / "index.html").read_text(encoding="utf-8"))
     sections = _build_homepage_ssr_sections()
+    extra_sections = _home_extra_ssr_sections()
 
     replacements = {
         "<!-- BOXOFFICEX_SSR_RUNNING -->": sections["running"],
@@ -2804,6 +2904,12 @@ def _render_homepage_html():
         "<!-- BOXOFFICEX_SSR_RANKINGS -->": sections["rankings"],
         "<!-- BOXOFFICEX_SSR_TRENDING_ARTICLES -->": sections["trending_articles"],
         "<!-- BOXOFFICEX_SSR_POPULAR_ACTORS -->": sections["popular_actors"],
+        "<!-- BOXOFFICEX_SSR_TRENDING_MOVIES -->": extra_sections["trending_movies"],
+        "<!-- BOXOFFICEX_SSR_HYPED_MOVIES -->": extra_sections["hyped_movies"],
+        "<!-- BOXOFFICEX_SSR_FAN_ACTIVITY -->": extra_sections["fan_activity"],
+        "<!-- BOXOFFICEX_SSR_LATEST_UPDATES -->": extra_sections["latest_updates"],
+        "<!-- BOXOFFICEX_SSR_LEADERS -->": extra_sections["leaders"],
+        "<!-- BOXOFFICEX_SSR_STATS -->": extra_sections["stats"],
     }
 
     for marker, content in replacements.items():
@@ -2817,6 +2923,12 @@ def _render_homepage_html():
     template = template.replace('id="rankingGrid"', 'id="rankingGrid" data-ssr="1"', 1)
     template = template.replace('id="trendingArticlesGrid"', 'id="trendingArticlesGrid" data-ssr="1"', 1)
     template = template.replace('id="actorsGrid"', 'id="actorsGrid" data-ssr="1"', 1)
+    template = template.replace('id="trendingMoviesGrid"', 'id="trendingMoviesGrid" data-ssr="1"', 1)
+    template = template.replace('id="hypedMoviesGrid"', 'id="hypedMoviesGrid" data-ssr="1"', 1)
+    template = template.replace('id="fanActivityGrid"', 'id="fanActivityGrid" data-ssr="1"', 1)
+    template = template.replace('id="latestUpdatesList"', 'id="latestUpdatesList" data-ssr="1"', 1)
+    template = template.replace('id="fanLeaderGrid"', 'id="fanLeaderGrid" data-ssr="1"', 1)
+    template = template.replace('id="boxOfficeXStats"', 'id="boxOfficeXStats" data-ssr="1"', 1)
     return template
 
 
@@ -8627,87 +8739,44 @@ def trending_movies(limit: int = 10):
         with conn.cursor() as cur:
             cur.execute("""
                 WITH movie_activity AS (
-                    SELECT
-                        m.id,
-                        m.title,
-                        m.language,
-                        m.industry,
-                        m.release_date,
-                        m.poster,
-
-                        COUNT(DISTINCT v.id) FILTER (
-                            WHERE v.viewed_at >= NOW() - INTERVAL '7 days'
-                        )::bigint AS view_count,
-
-                        COUNT(DISTINCT f.id) FILTER (
-                            WHERE f.created_at >= NOW() - INTERVAL '7 days'
-                        )::bigint AS fan_count,
-
-                        COUNT(DISTINCT h.id) FILTER (
-                            WHERE h.created_at >= NOW() - INTERVAL '7 days'
-                        )::bigint AS hype_count,
-
-                        COUNT(DISTINCT fv.id) FILTER (
-                            WHERE fv.created_at >= NOW() - INTERVAL '7 days'
-                        )::bigint AS vote_count,
-
-                        COUNT(DISTINCT c.id) FILTER (
-                            WHERE c.created_at >= NOW() - INTERVAL '7 days'
-                        )::bigint AS comment_count
-
-                    FROM movies m
-                    LEFT JOIN movie_views v
-                        ON v.movie_id = m.id
-                    LEFT JOIN movie_fans f
-                        ON f.movie_id = m.id
-                    LEFT JOIN movie_hype h
-                        ON h.movie_id = m.id
-                    LEFT JOIN movie_fan_votes fv
-                        ON fv.movie_id = m.id
-                    LEFT JOIN movie_comments c
-                        ON c.movie_id = m.id
-
-                    GROUP BY
-                        m.id,
-                        m.title,
-                        m.language,
-                        m.industry,
-                        m.release_date,
-                        m.poster
-                ),
-                ranked AS (
-                    SELECT
-                        *,
-                        (
-                            view_count
-                            + (fan_count * 2)
-                            + (hype_count * 3)
-                            + (vote_count * 2)
-                            + (comment_count * 3)
-                        )::bigint AS trending_score
-                    FROM movie_activity
+                    SELECT movie_id, SUM(views)::bigint AS view_count,
+                           SUM(fans)::bigint AS fan_count,
+                           SUM(hypes)::bigint AS hype_count,
+                           SUM(votes)::bigint AS vote_count,
+                           SUM(comments)::bigint AS comment_count
+                    FROM (
+                        SELECT movie_id, COUNT(*) AS views, 0::bigint AS fans,
+                               0::bigint AS hypes, 0::bigint AS votes, 0::bigint AS comments
+                        FROM movie_views WHERE viewed_at >= NOW() - INTERVAL '7 days'
+                        GROUP BY movie_id
+                        UNION ALL
+                        SELECT movie_id, 0, COUNT(*), 0, 0, 0
+                        FROM movie_fans WHERE created_at >= NOW() - INTERVAL '7 days'
+                        GROUP BY movie_id
+                        UNION ALL
+                        SELECT movie_id, 0, 0, COUNT(*), 0, 0
+                        FROM movie_hype WHERE created_at >= NOW() - INTERVAL '7 days'
+                        GROUP BY movie_id
+                        UNION ALL
+                        SELECT movie_id, 0, 0, 0, COUNT(*), 0
+                        FROM movie_fan_votes WHERE created_at >= NOW() - INTERVAL '7 days'
+                        GROUP BY movie_id
+                        UNION ALL
+                        SELECT movie_id, 0, 0, 0, 0, COUNT(*)
+                        FROM movie_comments WHERE created_at >= NOW() - INTERVAL '7 days'
+                        GROUP BY movie_id
+                    ) activity
+                    GROUP BY movie_id
                 )
-                SELECT
-                    id,
-                    title,
-                    language,
-                    industry,
-                    release_date,
-                    poster,
-                    view_count,
-                    fan_count,
-                    hype_count,
-                    vote_count,
-                    comment_count,
-                    trending_score
-                FROM ranked
-                WHERE trending_score > 0
-                ORDER BY
-                    trending_score DESC,
-                    hype_count DESC,
-                    view_count DESC,
-                    release_date DESC NULLS LAST,
-                    id DESC
+                SELECT m.id, m.title, m.language, m.industry, m.release_date,
+                       m.poster, a.view_count, a.fan_count, a.hype_count,
+                       a.vote_count, a.comment_count,
+                       (a.view_count + a.fan_count * 2 + a.hype_count * 3
+                        + a.vote_count * 2 + a.comment_count * 3)::bigint AS trending_score
+                FROM movie_activity a
+                JOIN movies m ON m.id = a.movie_id
+                ORDER BY trending_score DESC, a.hype_count DESC,
+                         a.view_count DESC, m.release_date DESC NULLS LAST, m.id DESC
                 LIMIT %s
             """, (limit,))
 

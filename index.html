@@ -6414,6 +6414,12 @@ html,body{scroll-padding-top:0!important}
 }
 </style>
 
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#031123">
 </head>
 
 
@@ -6735,7 +6741,7 @@ html,body{scroll-padding-top:0!important}
     </div>
 
     <div class="movie-grid ranking-grid" id="trendingMoviesGrid">
-        <div class="movie-empty">Preparing trending movies…</div>
+        <!-- BOXOFFICEX_SSR_TRENDING_MOVIES -->
     </div>
 </section>
 
@@ -6773,7 +6779,7 @@ html,body{scroll-padding-top:0!important}
         </div>
     </div>
     <div class="movie-grid ranking-grid" id="hypedMoviesGrid">
-        <div class="movie-empty">Preparing fan hype…</div>
+        <!-- BOXOFFICEX_SSR_HYPED_MOVIES -->
     </div>
 </section>
 
@@ -6790,7 +6796,7 @@ html,body{scroll-padding-top:0!important}
         </div>
     </div>
     <div class="fan-activity-grid" id="fanActivityGrid">
-        <div class="movie-empty">Preparing fan activity…</div>
+        <!-- BOXOFFICEX_SSR_FAN_ACTIVITY -->
     </div>
 </section>
 
@@ -6879,20 +6885,40 @@ html,body{scroll-padding-top:0!important}
 <section class="section" id="latest-updates">
     <div class="section-header"><div class="section-title-wrap"><div class="section-label">FRESH ON BOXOFFICEX</div><h2>🔔 Latest Updates</h2></div></div>
     <div class="mobile-swipe-hint bx-latest-updates-swipe-hint" id="latestUpdatesSwipeHint">Swipe to explore more</div>
-    <div class="update-list" id="latestUpdatesList"><div class="movie-empty">Preparing latest updates…</div></div>
+    <div class="update-list" id="latestUpdatesList">
+        <!-- BOXOFFICEX_SSR_LATEST_UPDATES --></div>
 </section>
 
 <!-- FAN LEADERBOARDS -->
 <section class="section" id="fan-leaderboards">
     <div class="section-header"><div class="section-title-wrap"><div class="section-label">COMMUNITY LEADERS</div><h2>🏆 Fan Leaderboards</h2></div></div>
-    <div class="leader-grid" id="fanLeaderGrid"><div class="movie-empty">Preparing leaders…</div></div>
+    <div class="leader-grid" id="fanLeaderGrid">
+        <!-- BOXOFFICEX_SSR_LEADERS --></div>
 </section>
 
 <!-- BOXOFFICEX STATS -->
 <section class="section" id="boxofficex-stats">
     <div class="section-header"><div class="section-title-wrap"><div class="section-label">DATABASE COVERAGE</div><h2>📊 BoxOfficeX Stats</h2></div></div>
-    <div class="launch-feature-grid" id="boxOfficeXStats"><div class="movie-empty">Preparing stats…</div></div>
+    <div class="launch-feature-grid" id="boxOfficeXStats">
+        <!-- BOXOFFICEX_SSR_STATS --></div>
 </section>
+
+<!-- BOXOFFICEX HOMEPAGE FAQ: server-delivered HTML -->
+<section class="section bx-home-faq" id="boxofficex-faq" aria-labelledby="bx-home-faq-title">
+ <div class="section-header"><div class="section-title-wrap"><div class="section-label">ABOUT THE PLATFORM</div><h2 id="bx-home-faq-title">Frequently Asked Questions About BoxOfficeX</h2></div></div>
+ <p class="bx-home-faq-intro">Explore Indian cinema collections, comparisons and rankings with BoxOfficeX.</p>
+ <div class="bx-home-faq-list"><details class="bx-home-faq-item" open><summary>What is BoxOfficeX?<span class="bx-home-faq-chevron" aria-hidden="true">⌄</span></summary><p>BoxOfficeX is an Indian cinema information platform for movie box-office collections, actor and movie comparisons, rankings, budgets, theatrical performance and entertainment updates.</p></details>
+<details class="bx-home-faq-item" ><summary>Where can I find Indian movie box-office collections?<span class="bx-home-faq-chevron" aria-hidden="true">⌄</span></summary><p>Explore movie pages and rankings for available India, overseas and worldwide box-office figures. Supported films may also include day-wise and area-wise breakdowns.</p></details>
+<details class="bx-home-faq-item" ><summary>Can I compare two Indian actors on BoxOfficeX?<span class="bx-home-faq-chevron" aria-hidden="true">⌄</span></summary><p>Yes. The actor comparison feature lets you explore available career statistics, movie collections, highest-grossing films and box-office verdicts side by side.</p></details>
+<details class="bx-home-faq-item" ><summary>Does BoxOfficeX provide live box-office updates?<span class="bx-home-faq-chevron" aria-hidden="true">⌄</span></summary><p>Selected movies have live box-office coverage when tracking is active. Figures and update frequency depend on available reporting data.</p></details>
+<details class="bx-home-faq-item" ><summary>How does BoxOfficeX assess theatrical performance?<span class="bx-home-faq-chevron" aria-hidden="true">⌄</span></summary><p>BoxOfficeX compares available collection figures with reported theatrical rights and estimated distributor shares. These estimates are not final audited financial results.</p></details>
+<details class="bx-home-faq-item" ><summary>Can I compare Tamil, Telugu, Hindi, Malayalam and Kannada movies?<span class="bx-home-faq-chevron" aria-hidden="true">⌄</span></summary><p>BoxOfficeX includes movies and actors from multiple Indian film industries. Comparisons depend on the information available for each title.</p></details></div>
+ <p class="bx-home-faq-links">Explore <a href="/new-movies.html">movie collections</a>, <a href="/compare-select.html">actor comparisons</a> and <a href="/movie-rankings.html">movie rankings</a>.</p>
+</section>
+<style>
+/* Scoped homepage FAQ: light design without changing the rest of the site */
+.bx-home-faq{color:#182238}.bx-home-faq .section-label{color:#426bd0}.bx-home-faq .section-header h2{color:#142039}.bx-home-faq-intro{color:#66758b;font-size:14px;margin:0 0 16px}.bx-home-faq-list{display:grid;gap:10px}.bx-home-faq-item{background:#fff;border:1px solid #dfe5ef;border-radius:13px;box-shadow:0 3px 12px rgba(29,52,89,.045);overflow:hidden}.bx-home-faq-item[open]{border-color:#bfd1f4}.bx-home-faq-item summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px 19px;color:#17243c;font-weight:800;font-size:15px}.bx-home-faq-item summary::-webkit-details-marker{display:none}.bx-home-faq-chevron{color:#b48b09;font-size:23px;transition:transform .2s ease}.bx-home-faq-item[open] .bx-home-faq-chevron{transform:rotate(180deg)}.bx-home-faq-item p{padding:0 19px 18px;color:#526178;font-size:14px;line-height:1.7}.bx-home-faq-links{padding:18px 2px 0;color:#53627a;font-size:13px;line-height:1.8}.bx-home-faq-links a{color:#285fc2;text-decoration:underline;text-underline-offset:3px;font-weight:700}@media(max-width:700px){.bx-home-faq-item summary{padding:15px;font-size:14px}.bx-home-faq-item p{padding:0 15px 16px;font-size:13px}}@media(prefers-reduced-motion:reduce){.bx-home-faq-chevron{transition:none}}
+</style>
 
 <!-- ======================================================
      FOOTER
@@ -7954,12 +7980,11 @@ async function loadMovies() {
 
 async function loadTrendingMovies() {
     const grid = document.getElementById("trendingMoviesGrid");
+    if (document.getElementById("trendingMoviesGrid")?.dataset.ssr === "1") return;
     if (!grid) return;
 
     try {
-        const response = await fetch(
-            `${API_BASE}/movies/trending?limit=10`
-        );
+        const response = await bxHomeFetch(`${API_BASE}/movies/trending?limit=10`);
 
         if (!response.ok) {
             throw new Error("Trending movies API error: " + response.status);
@@ -8145,9 +8170,10 @@ async function loadTrendingArticles() {
 
 async function loadMostHypedMovies() {
     const grid = document.getElementById("hypedMoviesGrid");
+    if (document.getElementById("hypedMoviesGrid")?.dataset.ssr === "1") return;
     if (!grid) return;
     try {
-        const response = await fetch(`${API_BASE}/movies/most-hyped?limit=10`);
+        const response = await bxHomeFetch(`${API_BASE}/movies/most-hyped?limit=10`);
         if (!response.ok) throw new Error("Most hyped API error: " + response.status);
         const data = await response.json();
         const movies = Array.isArray(data.movies) ? data.movies : [];
@@ -8189,9 +8215,10 @@ async function loadMostHypedMovies() {
 ========================================================= */
 async function loadTrendingFanActivity(){
     const grid=document.getElementById("fanActivityGrid");
+    if (document.getElementById("fanActivityGrid")?.dataset.ssr === "1") return;
     if(!grid)return;
     try{
-        const response=await fetch(`${API_BASE}/fan-activity/trending?limit=8`);
+        const response=await bxHomeFetch(`${API_BASE}/fan-activity/trending?limit=8`);
         if(!response.ok)throw new Error("Trending fan activity API error: "+response.status);
         const data=await response.json();
         const items=Array.isArray(data.items)?data.items:[];
@@ -8218,7 +8245,7 @@ async function loadTrendingFanActivity(){
             </article>`;
         }).join("");
         grid.querySelectorAll("[data-fan-url]").forEach(card=>{
-            const open=()=>{window.location.href=card.dataset.fanUrl;};
+            const open=()=>{if(card.dataset.fanUrl && card.dataset.fanUrl !== "#") window.location.href=card.dataset.fanUrl;};
             card.addEventListener("click",open);
             card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
         });
@@ -8779,7 +8806,7 @@ if (comparisonCard) {
 async function startHomePage() {
     // Start independent homepage requests immediately instead of waiting
     // for the full movie catalogue before rendering other sections.
-    const movieCataloguePromise = loadMovies();
+    const movieCataloguePromise = loadMovies().catch(error => { console.warn("Movie catalogue:", error); });
 
     const independentSections = Promise.allSettled([
         loadLatestMovies(),
@@ -8791,9 +8818,13 @@ async function startHomePage() {
 
     // Rankings currently use cachedMovies, so only this section waits
     // for the catalogue request.
-    await movieCataloguePromise;
-    await loadTop10();
-    await independentSections;
+    // SSR rankings are already visible: never hold the homepage on /movies.
+    const rankingGrid = document.getElementById("rankingGrid");
+    if (!(rankingGrid && rankingGrid.dataset.ssr === "1" && rankingGrid.children.length > 0)) {
+        movieCataloguePromise.then(() => loadTop10()).catch(error => console.warn("Ranking fallback:", error));
+    }
+    // Independent loaders manage their own success and error states.
+    void independentSections;
 }
 
 startHomePage();
@@ -8982,6 +9013,23 @@ document.addEventListener("DOMContentLoaded", function(){
 
 
 <script>
+/* Make inline-click cards accessible to keyboard users without changing their URLs. */
+document.addEventListener("keydown", function (event) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target.closest('[role="link"][onclick]');
+    if (!card || event.target !== card) return;
+    event.preventDefault();
+    card.click();
+});
+
+/* Fail fast for optional homepage panels instead of leaving pending requests forever. */
+async function bxHomeFetch(url, timeoutMs = 8500) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try { return await fetch(url, {signal: controller.signal}); }
+    finally { clearTimeout(timer); }
+}
+
 /* BOXOFFICEX LAUNCH FEATURE LOADERS — normal executable script */
 function launchEsc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 
@@ -9064,9 +9112,9 @@ async function loadPopularActorsData(){
 
 async function loadBoxOfficeXStats(){
     const el=document.getElementById("boxOfficeXStats"); if(!el)return;
+    if (document.getElementById("boxOfficeXStats")?.dataset.ssr === "1") return;
     try{
-        const r=await fetch(`${API_BASE}/site/stats`); const d=await r.json();
-        if(!r.ok)throw new Error("Stats API "+r.status);
+        const r=await bxHomeFetch(`${API_BASE}/site/stats`); if(!r.ok)throw new Error("Stats API "+r.status); const d=await r.json();
         const stats=[["Movies Tracked",d.movies_tracked],["Actors",d.actors_tracked],["Articles",d.published_articles],["Box Office Records",d.boxoffice_records]];
         el.innerHTML=stats.map(x=>`<div class="launch-stat-card"><div class="launch-stat-value">${Number(x[1]||0).toLocaleString("en-IN")}</div><div class="launch-stat-label">${x[0]}</div></div>`).join("");
     }catch(e){console.error("Stats:",e);el.innerHTML='<div class="movie-empty">Stats unavailable.</div>'}
@@ -9074,9 +9122,9 @@ async function loadBoxOfficeXStats(){
 
 async function loadLatestUpdatesFeed(){
     const el=document.getElementById("latestUpdatesList"); if(!el)return;
+    if (document.getElementById("latestUpdatesList")?.dataset.ssr === "1") return;
     try{
-        const r=await fetch(`${API_BASE}/latest-updates?limit=8`); const d=await r.json();
-        if(!r.ok)throw new Error("Latest updates API "+r.status);
+        const r=await bxHomeFetch(`${API_BASE}/latest-updates?limit=8`); if(!r.ok)throw new Error("Latest updates API "+r.status); const d=await r.json();
         const items=Array.isArray(d.updates)?d.updates:[];
         el.innerHTML=items.length?items.map(x=>`<article class="update-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="update-icon">${x.type==="article"?"📰":"🎬"}</div><div class="update-copy"><strong>${launchEsc(x.title)}</strong><small>${launchEsc(x.subtitle||"Latest update")}</small></div></article>`).join(""):'<div class="movie-empty">No updates yet.</div>';
     }catch(e){console.error("Latest updates:",e);el.innerHTML='<div class="movie-empty">Updates unavailable.</div>'}
@@ -9084,9 +9132,9 @@ async function loadLatestUpdatesFeed(){
 
 async function loadFanLeaderboards(){
     const el=document.getElementById("fanLeaderGrid"); if(!el)return;
+    if (document.getElementById("fanLeaderGrid")?.dataset.ssr === "1") return;
     try{
-        const r=await fetch(`${API_BASE}/fan-leaderboards`); const d=await r.json();
-        if(!r.ok)throw new Error("Leaderboard API "+r.status);
+        const r=await bxHomeFetch(`${API_BASE}/fan-leaderboards`); if(!r.ok)throw new Error("Leaderboard API "+r.status); const d=await r.json();
         const items=(Array.isArray(d.leaders)?d.leaders:[]).filter(Boolean);
         el.innerHTML=items.length?items.map(x=>`<article class="leader-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count">${Number(x.count||0).toLocaleString("en-IN")} interactions</div></article>`).join(""):'<div class="movie-empty">No leaderboard data yet.</div>';
     }catch(e){console.error("Fan leaderboards:",e);el.innerHTML='<div class="movie-empty">Leaderboards unavailable.</div>'}
@@ -11371,5 +11419,28 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{
     html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:2/1!important;}
 }
 </style>
+<script>
+/* Homepage secondary sections should never display a perpetual loading message. */
+(function(){
+  function clearStalledHomeSections(){
+    var sections={
+      trendingMoviesGrid:'Trending movie activity is temporarily unavailable.',
+      mostHypedMoviesGrid:'Movie hype rankings are temporarily unavailable.',
+      fanActivityGrid:'Recent fan activity is temporarily unavailable.',
+      latestUpdatesList:'Latest updates are temporarily unavailable.',
+      fanLeaderGrid:'Fan leaderboard is temporarily unavailable.',
+      boxOfficeXStats:'Platform statistics are temporarily unavailable.'
+    };
+    Object.keys(sections).forEach(function(id){
+      var el=document.getElementById(id);
+      if(el && /^\s*<div[^>]*class=["']movie-empty["'][^>]*>Preparing /i.test(el.innerHTML)){
+        el.innerHTML='<div class="movie-empty">'+sections[id]+'</div>';
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(clearStalledHomeSections,12000)});
+  else setTimeout(clearStalledHomeSections,12000);
+})();
+</script>
 </body>
 </html>
