@@ -4494,7 +4494,7 @@ def movie_rankings_industry_page(industry_slug: str):
 # MOVIE DETAIL - CACHED SERVER-RENDERED SEO CONTENT
 # ============================================================
 
-MOVIE_HTML_CACHE_TTL = 300
+MOVIE_HTML_CACHE_TTL = 30
 MAX_MOVIE_HTML_CACHE = 100
 _movie_html_cache = {}
 _movie_html_cache_lock = threading.Lock()
@@ -4735,6 +4735,199 @@ def _movie_ssr_ctr_description(movie):
     description += " See complete theatrical performance."
 
     return description
+
+
+
+# Movie article hub: published linked content, rendered in initial HTML.
+def _movie_ssr_article_hub(movie_id, movie):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT a.id, a.title, a.slug, a.subtitle, ab.id, ab.block_order,
+                       ab.block_type, ab.content, ab.image, ab.image_caption,
+                       ab.image_credit, ab.extra_data
+                FROM article_movies am
+                JOIN articles a ON a.id = am.article_id AND a.status = 'published'
+                LEFT JOIN article_blocks ab ON ab.article_id = a.id
+                WHERE am.movie_id = %s
+                ORDER BY a.published_at DESC NULLS LAST, a.id DESC, ab.block_order, ab.id
+            """, (movie_id,))
+            rows = cur.fetchall()
+    if not rows:
+        return ''
+    articles = {}
+    for r in rows:
+        a = articles.setdefault(r[0], {'title': r[1], 'slug': r[2], 'subtitle': r[3], 'blocks': []})
+        if r[4] is not None:
+            extra = r[11] or {}
+            if isinstance(extra, str):
+                try:
+                    extra = json.loads(extra)
+                except (ValueError, TypeError):
+                    extra = {}
+            a['blocks'].append({'id': r[4], 'block_order': r[5], 'block_type': r[6],
+                                'content': r[7], 'image': r[8], 'image_caption': r[9],
+                                'image_credit': r[10], 'extra_data': extra})
+    cards = []
+    movie_context = {'movies': [{'id': movie_id, 'title': movie.get('title'),
+                                  'release_date': movie.get('release_date')}]}
+    for a in articles.values():
+        slug = str(a['slug'] or '').strip()
+        if not slug:
+            continue
+        rendered = []
+        for block in a['blocks']:
+            # Do not duplicate related-entity cards, but preserve editorial blocks
+            # and live-tracker / box-office / salary / pre-release widgets.
+            if block['block_type'] in {'movie', 'actor'}:
+                continue
+            try:
+                fragment = _article_ssr_block(block, article=movie_context)
+                if fragment:
+                    rendered.append(fragment)
+            except Exception as exc:
+                print('MOVIE ARTICLE BLOCK WARNING:', block['id'], exc, flush=True)
+        if not rendered:
+            continue
+        url = '/article/' + quote(slug, safe='')
+        cards.append('<article class="bx-movie-article">'
+                     '<h3>' + html_escape(str(a['title'] or 'Movie update')) + '</h3>'
+                     + ''.join(rendered)
+                     + '<p class="bx-movie-article-source"><a href="' + html_escape(url, quote=True)
+                     + '">Read original article →</a></p></article>')
+    if not cards:
+        return ''
+    return ('<section id="movieArticleHub" class="bx-movie-article-hub" data-ssr="1">'
+            '<h2>Latest Movie Reports & Live Updates</h2>' + ''.join(cards) + '</section>')
+
+def _movie_ssr_poster_tracker_card(movie_id, movie_name):
+    """SSR poster link. Respect the single tracker configured in article admin."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT a.id, a.title, a.slug, a.tracking_enabled,
+                       ab.block_type, ab.extra_data, ab.content
+                FROM article_movies am
+                JOIN articles a ON a.id=am.article_id AND a.status='published'
+                LEFT JOIN article_blocks ab ON ab.article_id=a.id
+                WHERE am.movie_id=%s AND a.slug IS NOT NULL
+                ORDER BY a.published_at DESC NULLS LAST, a.id DESC, ab.block_order
+            """, (movie_id,))
+            rows = cur.fetchall()
+    if not rows:
+        return ''
+
+    articles = {}
+    for aid, title, slug, enabled, kind, raw, block_content in rows:
+        article = articles.setdefault(aid, {
+            'title': title, 'slug': slug, 'enabled': bool(enabled), 'blocks': [], 'topics': set()
+        })
+        kind = str(kind or '').strip().lower()
+        # Only advertise subjects supported by this published article's content.
+        topic_text = str(block_content or '').lower()
+        if kind == 'pre_release_business':
+            article['topics'].update(('Theatrical Rights', 'Non-Theatrical Rights', 'Pre-Release Business'))
+        elif kind == 'salary_details':
+            article['topics'].add('Cast & Crew Salaries')
+        elif kind in ('heading', 'table', 'paragraph'):
+            for topic, phrases in (
+                ('Budget', ('budget', 'production cost')),
+                ('Theatrical Rights', ('theatrical rights', 'theatrical business')),
+                ('Non-Theatrical Rights', ('non-theatrical', 'non theatrical', 'ott rights', 'satellite rights')),
+                ('Pre-Release Business', ('pre-release business', 'pre release business')),
+                ('Cast & Crew Salaries', ('cast salaries', 'crew salaries', 'salary', 'remuneration')),
+            ):
+                if any(phrase in topic_text for phrase in phrases):
+                    article['topics'].add(topic)
+        if kind not in ('live_tracker', 'auto_live_tracker'):
+            continue
+        extra = raw or {}
+        if isinstance(extra, str):
+            try:
+                extra = json.loads(extra)
+            except (ValueError, TypeError):
+                extra = {}
+        if isinstance(extra, dict):
+            article['blocks'].append((kind, extra))
+
+    ist = ZoneInfo('Asia/Kolkata')
+    tracking_date = (datetime.now(ist) - timedelta(hours=6)).date()
+
+    def is_current(stamp):
+        try:
+            parsed = datetime.fromisoformat(str(stamp or '').replace('Z', '+00:00'))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=ist)
+            return (parsed.astimezone(ist) - timedelta(hours=6)).date() == tracking_date
+        except (ValueError, TypeError, OverflowError):
+            return False
+
+    chosen = None
+    fallback = None
+    for article in articles.values():
+        if fallback is None and (article['blocks'] or any(
+                word in str(article['title'] or '').lower()
+                for word in ('box office', 'collection', 'performance'))):
+            fallback = article
+        # Turning tracking OFF in article admin always ends the public live card.
+        if not article['enabled']:
+            continue
+        # Admin chooses one tracker type; never merge or compare tracker amounts.
+        for kind, data in article['blocks']:
+            amount = None
+            if kind == 'auto_live_tracker':
+                if not data.get('ssr_enabled', True):
+                    continue
+                values = _bx_separate_auto_values(data)
+                if not values or not is_current(values.get('updated_at')):
+                    continue
+                amount = values.get('india_gross')
+            elif kind == 'live_tracker':
+                if str(data.get('status') or 'live').lower() in ('ended', 'final', 'finished', 'completed', 'off'):
+                    continue
+                if not is_current(data.get('updated_at')):
+                    continue
+                amount = data.get('india_gross')
+            chosen = (article, amount)
+            break
+        if chosen:
+            break
+
+    if chosen:
+        article, amount = chosen
+        heading = '🔴 LIVE BOX OFFICE'
+        caption = 'India Gross Collection' if amount not in (None, '') else 'India gross update pending'
+        value = ('<strong class="bx-poster-live-value">' +
+                 html_escape(_movie_ssr_format_crore(amount)) + '</strong>') if amount not in (None, '') else ''
+        action = 'View Live Updates →'
+    elif fallback:
+        article = fallback
+        heading = 'BOX OFFICE REPORT'
+        caption = 'Explore complete box-office performance'
+        value = ''
+        action = 'Full Box Office Performance →'
+    else:
+        return ''
+
+    href = '/article/' + quote(str(article['slug']), safe='')
+    safe_name = html_escape(str(movie_name or 'This movie'))
+    topic_order = ('Budget', 'Theatrical Rights', 'Non-Theatrical Rights',
+                   'Pre-Release Business', 'Cast & Crew Salaries')
+    topics = [t for t in topic_order if t in article['topics']]
+    # Tease available details, not a full copy of the article.
+    details = ('<div class="bx-poster-tracker-topics" aria-label="Topics in this article">' +
+               ''.join('<span class="bx-poster-topic">' + html_escape(t) + '</span>'
+                       for t in topics[:5]) + '</div>') if topics else ''
+    return ('<a class="bx-poster-tracker" data-ssr="1" href="' +
+            html_escape(href, quote=True) +
+            '" aria-label="' + html_escape(str(movie_name or 'Movie') + ': ' + action.replace('→', '').strip(), quote=True) + '">'
+            '<div class="bx-poster-tracker-movie">' + safe_name + '</div>'
+            '<div class="bx-poster-tracker-heading">' + heading + '</div>'
+            '<div class="bx-poster-tracker-caption">' + caption + '</div>' + value +
+            details +
+            '<span class="bx-poster-tracker-link">' + action + '</span>'
+            '</a>')
+
 
 
 def _movie_ssr_build(movie_slug: str):
@@ -5081,6 +5274,29 @@ def _movie_ssr_build(movie_slug: str):
         template,
         count=1,
     )
+
+    # Compact article link card, SSR, directly below the poster.
+    poster_card = _movie_ssr_poster_tracker_card(movie_id, title_text)
+    if poster_card:
+        template = template.replace(
+            '<div class="hero-details">',
+            '<div class="hero-details">', 1
+        )
+        template = template.replace(
+            '</div>\n\n\n                <div class="hero-details">',
+            '</div>\n\n\n                <div class="hero-details">', 1
+        )
+        template = template.replace(
+            '<div class="poster-box">',
+            '<div class="poster-box">', 1
+        )
+        # Insert after poster image, inside poster-box (no change for unlinked movies).
+        poster_start = template.find('<div class="poster-box">')
+        hero_details = template.find('<div class="hero-details">', poster_start)
+        if poster_start >= 0 and hero_details > poster_start:
+            poster_end = template.rfind('</div>', poster_start, hero_details)
+            if poster_end >= 0:
+                template = template[:poster_end] + poster_card + '\n' + template[poster_end:]
 
     # Movie-profile SSR validation: never silently serve a thin shell.
     required_movie_ssr = (
