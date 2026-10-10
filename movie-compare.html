@@ -630,6 +630,14 @@ body.bx-bottom-ad-visible{
 
 
 .bx-mc-top-intro{max-width:820px;margin:14px auto 0;text-align:center;color:#475569;font-size:13px;line-height:1.7}.bx-mc-top-intro p{margin:0}.bx-mc-top-intro strong{color:#111827}@media(max-width:700px){.bx-mc-top-intro{margin-top:12px;padding:0 7px;font-size:11px;line-height:1.6}}
+
+/* Individual actor/movie fan reactions */
+.bx-individual-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px}
+.bx-individual-actions button{border:1px solid #dbe3ef;border-radius:9px;background:#f8fafc;color:#334155;padding:9px 4px;font-size:11px;font-weight:800;cursor:pointer}
+.bx-individual-actions button.active{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.bx-individual-actions button:disabled{opacity:.55;cursor:wait}
+.bx-individual-actions button span{display:block;font-size:9px;margin-top:3px}
+@media(max-width:700px){.bx-individual-actions{gap:3px}.bx-individual-actions button{font-size:8px;padding:7px 2px}.bx-individual-actions button span{font-size:7px}}
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -2915,9 +2923,9 @@ document.getElementById("app").innerHTML=`
 <div class="top"><div class="eyebrow">BoxOfficeX Movie Comparison</div><h1>${esc(a.title)} vs ${esc(b.title)} Box Office Comparison</h1><a class="change" href="/movie-compare-select.html">↔ Change Movies</a></div>
 ${bxMovieCompareIntro(a,b)}
 <section class="movie-heads">
-<div class="movie-card"><img src="${poster(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div class="bx-movie-card-title">${esc(a.title)}</div><p>${text(a.language)} • ${date(a.release_date)}</p></div>
+<div class="movie-card"><img src="${poster(a)}" alt="${esc(a.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div class="bx-movie-card-title">${esc(a.title)}</div><p>${text(a.language)} • ${date(a.release_date)}</p><div class="bx-individual-actions" data-movie-reactions="${a.id}"><button type="button" data-movie-reaction="fan">❤️ Like <span data-reaction-count="fan">...</span></button><button type="button" data-movie-reaction="hype">🔥 Hype <span data-reaction-count="hype">...</span></button></div></div>
 <div class="vs">VS</div>
-<div class="movie-card"><img src="${poster(b)}" alt="${esc(b.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div class="bx-movie-card-title">${esc(b.title)}</div><p>${text(b.language)} • ${date(b.release_date)}</p></div>
+<div class="movie-card"><img src="${poster(b)}" alt="${esc(b.title)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXMoviePlaceholder({title:this.alt})"><div class="bx-movie-card-title">${esc(b.title)}</div><p>${text(b.language)} • ${date(b.release_date)}</p><div class="bx-individual-actions" data-movie-reactions="${b.id}"><button type="button" data-movie-reaction="fan">❤️ Like <span data-reaction-count="fan">...</span></button><button type="button" data-movie-reaction="hype">🔥 Hype <span data-reaction-count="hype">...</span></button></div></div>
 </section>
 ${bxMovieCompareSeo(a,b)}
 
@@ -3003,6 +3011,7 @@ if(typeof window.BoxOfficeXLoadMovieCompareInContentAds==="function"){
 bxInitMovieFanShare(a.title,b.title);
 bxOttLoadMovieCompare(a,b);
 loadMovieComparisonEngagement(a.id,b.id);
+bxLoadMovieReactions();
 loadMovieComparisonComments(a.id,b.id);
 const loadRelatedComparisons = () => loadMoreMovieComparisons(a,b);
 if("requestIdleCallback" in window){
@@ -4022,5 +4031,18 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{min-height:28px!important;d
 @media (max-width:340px){html body #bxSponsoredLinkAd{width:calc(100vw - 16px)!important;max-width:none!important}html body #bxSponsoredLinkAd .bx-sponsored-story-media{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:2/1!important}}
 </style>
 
+<script>
+async function bxLoadMovieReactions(){
+ const visitor=comparisonVisitorId();
+ await Promise.all([...document.querySelectorAll('[data-movie-reactions]')].map(async card=>{
+  try{const r=await fetch(`/movies/${card.dataset.movieReactions}/engagement?visitor_id=${encodeURIComponent(visitor)}`);if(!r.ok)throw Error('Unable to load reactions');const d=await r.json();
+   for(const type of ['fan','hype']){const b=card.querySelector(`[data-movie-reaction="${type}"]`);if(!b)continue;const active=type==='fan'?d.is_fan:d.is_hyped;b.classList.toggle('active',!!active);b.querySelector('[data-reaction-count]').textContent=Number(d[type+'_count']||0).toLocaleString();b.setAttribute('aria-pressed',String(!!active));}
+  }catch(e){console.warn('Movie reactions:',e);card.querySelectorAll('[data-reaction-count]').forEach(x=>x.textContent='—')}
+ }));
+}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-movie-reaction]');if(!b)return;const card=b.closest('[data-movie-reactions]');if(!card||b.disabled)return;
+ b.disabled=true;try{const r=await fetch(`/movies/${card.dataset.movieReactions}/${b.dataset.movieReaction}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:comparisonVisitorId()})});if(!r.ok)throw Error('Unable to save reaction');await bxLoadMovieReactions()}catch(err){alert(err.message)}finally{b.disabled=false}
+});
+</script>
 </body>
 </html>

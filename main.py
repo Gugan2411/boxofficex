@@ -26327,3 +26327,49 @@ def admin_ott_sponsorships_page():
 @app.get("/admin-ott-inventory.html", dependencies=[Depends(require_owner)])
 def admin_ott_inventory_page():
     return FileResponse(BASE_DIR / "admin-ott-inventory.html")
+
+
+# Individual actor reactions used by actor comparison cards.
+def _bx_actor_reaction_table(cur):
+    cur.execute("""CREATE TABLE IF NOT EXISTS actor_reactions (
+        actor_id INTEGER NOT NULL REFERENCES actors(id) ON DELETE CASCADE,
+        visitor_id TEXT NOT NULL,
+        reaction VARCHAR(8) NOT NULL CHECK (reaction IN ('like','hype')),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY(actor_id,visitor_id,reaction)
+    )""")
+
+@app.get('/actors/{actor_id}/reactions')
+def bx_actor_reactions(actor_id: int, visitor_id: Optional[str] = None):
+    visitor = _clean_visitor_id(visitor_id) if visitor_id else None
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('SELECT 1 FROM actors WHERE id=%s',(actor_id,))
+            if not cur.fetchone(): raise HTTPException(status_code=404,detail='Actor not found')
+            _bx_actor_reaction_table(cur)
+            cur.execute('SELECT reaction, COUNT(*) FROM actor_reactions WHERE actor_id=%s GROUP BY reaction',(actor_id,))
+            counts=dict(cur.fetchall())
+            active=[]
+            if visitor:
+                cur.execute('SELECT reaction FROM actor_reactions WHERE actor_id=%s AND visitor_id=%s',(actor_id,visitor))
+                active=[r[0] for r in cur.fetchall()]
+            conn.commit()
+    return {'actor_id':actor_id,'like_count':counts.get('like',0),'hype_count':counts.get('hype',0),'liked':'like' in active,'hyped':'hype' in active}
+
+@app.post('/actors/{actor_id}/{reaction}')
+def bx_toggle_actor_reaction(actor_id: int, reaction: str, data: VisitorActionData):
+    if reaction not in ('like','hype'): raise HTTPException(status_code=404,detail='Unknown reaction')
+    visitor=_clean_visitor_id(data.visitor_id)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('SELECT 1 FROM actors WHERE id=%s',(actor_id,))
+            if not cur.fetchone(): raise HTTPException(status_code=404,detail='Actor not found')
+            _bx_actor_reaction_table(cur)
+            cur.execute('DELETE FROM actor_reactions WHERE actor_id=%s AND visitor_id=%s AND reaction=%s RETURNING actor_id',(actor_id,visitor,reaction))
+            removed=bool(cur.fetchone())
+            if not removed:
+                cur.execute('INSERT INTO actor_reactions(actor_id,visitor_id,reaction) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING',(actor_id,visitor,reaction))
+            cur.execute('SELECT COUNT(*) FROM actor_reactions WHERE actor_id=%s AND reaction=%s',(actor_id,reaction))
+            count=cur.fetchone()[0]
+            conn.commit()
+    return {'success':True,'active':not removed,'reaction':reaction,'count':count}

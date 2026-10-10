@@ -1485,6 +1485,14 @@ header nav a.nav-compare:hover{background:linear-gradient(135deg,#d93649,#b92738
 .bx-compare-faq summary{padding:11px 13px;cursor:pointer;color:#1e3a5f;font-size:11px;font-weight:800}
 .bx-compare-faq details p{padding:0 13px 12px;margin:0;font-size:11px}
 @media(max-width:700px){.bx-compare-seo{padding:15px 13px;border-radius:14px}.bx-compare-seo h2{font-size:17px}.bx-compare-seo h3{font-size:13px}.bx-compare-seo p{font-size:10.5px;line-height:1.65}}
+
+/* Individual actor/movie fan reactions */
+.bx-individual-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:11px}
+.bx-individual-actions button{border:1px solid #dbe3ef;border-radius:9px;background:#f8fafc;color:#334155;padding:9px 4px;font-size:11px;font-weight:800;cursor:pointer}
+.bx-individual-actions button.active{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.bx-individual-actions button:disabled{opacity:.55;cursor:wait}
+.bx-individual-actions button span{display:block;font-size:9px;margin-top:3px}
+@media(max-width:700px){.bx-individual-actions{gap:3px}.bx-individual-actions button{font-size:8px;padding:7px 2px}.bx-individual-actions button span{font-size:7px}}
 </style>
 
 
@@ -3365,6 +3373,11 @@ async function loadComparison() {
                     <p>
                         ${actor1.profession || "Actor"}
                     </p>
+                    <div class="bx-individual-actions" data-actor-reactions="${actor1.id}">
+                      <button type="button" data-actor-reaction="like" aria-label="Like ${actor1.name}">❤️ Like <span data-reaction-count="like">...</span></button>
+                      <button type="button" data-actor-reaction="hype" aria-label="Hype ${actor1.name}">🔥 Hype <span data-reaction-count="hype">...</span></button>
+                    </div>
+
 
                 </div>
 
@@ -3391,6 +3404,11 @@ async function loadComparison() {
                     <p>
                         ${actor2.profession || "Actor"}
                     </p>
+                    <div class="bx-individual-actions" data-actor-reactions="${actor2.id}">
+                      <button type="button" data-actor-reaction="like" aria-label="Like ${actor2.name}">❤️ Like <span data-reaction-count="like">...</span></button>
+                      <button type="button" data-actor-reaction="hype" aria-label="Hype ${actor2.name}">🔥 Hype <span data-reaction-count="hype">...</span></button>
+                    </div>
+
 
                 </div>
 
@@ -3626,6 +3644,7 @@ async function loadComparison() {
 
 
         initHeroComparisonEngagement(actor1, actor2);
+        bxLoadActorReactions();
         bxInitFanShare(actor1.name, actor2.name);
 
 
@@ -5406,6 +5425,20 @@ html body #bxSponsoredLinkAd:empty{
 
 </style>
 
+<script>
+// Individual actor reactions, independent of comparison-pair voting.
+async function bxLoadActorReactions(){
+ const visitor=getBoxOfficeXVisitorId();
+ await Promise.all([...document.querySelectorAll('[data-actor-reactions]')].map(async card=>{
+   try{const id=card.dataset.actorReactions;const r=await fetch(`/actors/${id}/reactions?visitor_id=${encodeURIComponent(visitor)}`);if(!r.ok)throw Error('Unable to load reactions');const d=await r.json();
+     for(const type of ['like','hype']){const b=card.querySelector(`[data-actor-reaction="${type}"]`);if(!b)continue;b.classList.toggle('active',!!d[type==='like'?'liked':'hyped']);b.querySelector('[data-reaction-count]').textContent=Number(d[type+'_count']||0).toLocaleString();b.setAttribute('aria-pressed',String(!!d[type==='like'?'liked':'hyped']));}
+   }catch(e){console.warn('Actor reactions:',e);card.querySelectorAll('[data-reaction-count]').forEach(x=>x.textContent='—')}
+ }));
+}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-actor-reaction]');if(!b)return;const card=b.closest('[data-actor-reactions]');if(!card||b.disabled)return;
+ b.disabled=true;try{const r=await fetch(`/actors/${card.dataset.actorReactions}/${b.dataset.actorReaction}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:getBoxOfficeXVisitorId()})});if(!r.ok)throw Error('Unable to save reaction');await bxLoadActorReactions()}catch(err){alert(err.message)}finally{b.disabled=false}
+});
+</script>
 </body>
 
 </html>
