@@ -2558,7 +2558,7 @@ html,body{scroll-padding-top:0!important}
 
     <section id="bxActorMoviesAd" aria-label="Sponsored advertisement"></section>
 
-    <div id="movieGrid" class="movie-grid" aria-live="polite">
+    <div id="movieGrid" class="movie-grid" aria-live="polite" data-ssr="0">
         <div class="loading">Loading movies...</div>
     </div>
 <section id="bxInContentVideoAds" aria-label="Sponsored video advertisements"></section>
@@ -3054,7 +3054,7 @@ html,body{scroll-padding-top:0!important}
         }
     }
 
-    initializeActorMoviesPage();
+    if (document.getElementById("movieGrid")?.dataset.ssr !== "1") initializeActorMoviesPage();
 
 </script>
 

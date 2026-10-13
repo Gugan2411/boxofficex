@@ -8077,7 +8077,7 @@ async function loadTrendingArticles() {
     if (grid.dataset.ssr === "1" && grid.children.length > 0) return;
 
     try {
-        const response = await fetch(
+        const response = await bxHomeFetch(
             `${API_BASE}/articles/trending?limit=10`
         );
 
@@ -8827,6 +8827,26 @@ async function startHomePage() {
     void independentSections;
 }
 
+async function bxHomeFetch(url, timeoutMs = 20000) {
+    // A slow Render response should not permanently hide a working homepage section.
+    let lastError;
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(url, {signal: controller.signal, cache: "no-store"});
+            if (response.ok || (response.status < 500 && response.status !== 429)) return response;
+            lastError = new Error("Homepage API HTTP " + response.status);
+        } catch (error) {
+            lastError = error;
+        } finally {
+            clearTimeout(timer);
+        }
+        if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 900));
+    }
+    throw lastError || new Error("Homepage API unavailable");
+}
+
 startHomePage();
 
 
@@ -9023,12 +9043,7 @@ document.addEventListener("keydown", function (event) {
 });
 
 /* Fail fast for optional homepage panels instead of leaving pending requests forever. */
-async function bxHomeFetch(url, timeoutMs = 8500) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try { return await fetch(url, {signal: controller.signal}); }
-    finally { clearTimeout(timer); }
-}
+
 
 /* BOXOFFICEX LAUNCH FEATURE LOADERS — normal executable script */
 function launchEsc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}

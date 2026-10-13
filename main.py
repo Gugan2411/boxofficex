@@ -579,6 +579,11 @@ def record_admin_activity(
 @app.middleware("http")
 async def admin_audit_middleware(request: Request, call_next):
     response = await call_next(request)
+    # Public engagement is visitor-specific and changes immediately after reactions.
+    if (request.url.path.startswith("/articles/") and
+            (request.url.path.endswith(("/engagement", "/comments", "/like", "/hype"))) or
+            request.url.path.startswith("/article-comments/")):
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
 
     try:
         admin = current_admin(request)
@@ -710,6 +715,77 @@ def initialize_multi_admin_security():
 
 
 
+
+
+@app.on_event("startup")
+def initialize_movie_view_tracking():
+    """Create unique movie-view storage for local and production databases."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS movie_views (
+                    id BIGSERIAL PRIMARY KEY,
+                    movie_id BIGINT NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+                    visitor_id TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (movie_id, visitor_id)
+                )
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_movie_views_movie_id
+                ON movie_views (movie_id)
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_movie_views_created_at
+                ON movie_views (created_at DESC)
+            """)
+        conn.commit()
+    print("MOVIE VIEW TRACKING: READY", flush=True)
+
+
+@app.on_event("startup")
+def initialize_movie_comment_storage():
+    """Initialize movie comment tables needed by homepage and moderation APIs."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS movie_comments (
+                    id BIGSERIAL PRIMARY KEY,
+                    movie_id BIGINT NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+                    visitor_id TEXT NOT NULL,
+                    display_name TEXT NOT NULL,
+                    comment_text TEXT NOT NULL,
+                    is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
+                    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_movie_comments_movie_created
+                ON movie_comments (movie_id, created_at DESC)
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS movie_comment_likes (
+                    id BIGSERIAL PRIMARY KEY,
+                    comment_id BIGINT NOT NULL REFERENCES movie_comments(id) ON DELETE CASCADE,
+                    visitor_id TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (comment_id, visitor_id)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS movie_comment_reports (
+                    id BIGSERIAL PRIMARY KEY,
+                    comment_id BIGINT NOT NULL REFERENCES movie_comments(id) ON DELETE CASCADE,
+                    visitor_id TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (comment_id, visitor_id)
+                )
+            """)
+        conn.commit()
+    print("MOVIE COMMENT STORAGE: READY", flush=True)
 
 
 @app.on_event("startup")
@@ -3962,7 +4038,9 @@ def robots_txt():
 
 @app.get("/index.html")
 def index_page():
-    return _boxofficex_html_file("index.html")
+    # Serve exactly the same SSR HTML as the canonical homepage route.
+    # Reuse the existing cache, error handling and crawler-safe fallback.
+    return home()
 
 @app.get("/boxofficex-placeholders.js", include_in_schema=False)
 def boxofficex_placeholders_script():
@@ -5831,6 +5909,28 @@ def _actor_ssr_build(actor_slug: str):
         'id="movieList" data-ssr="1"',
         'id="bxActorFaq" class="bx-actor-faq" data-ssr="1"',
     ]
+    # Verify SEO identity as well as the visible actor sections. A page must never
+    # silently serve metadata for one actor alongside another actor's profile.
+    expected_seo = [
+        f"<title>{html_escape(title)}</title>",
+        f'<link id="canonicalUrl" rel="canonical" href="{canonical}">',
+        f'<meta id="ogTitle" property="og:title" content="{html_escape(title, quote=True)}">',
+        f'<meta id="ogUrl" property="og:url" content="{canonical}">',
+        f'<h2>{html_escape(name)} Box Office Collection FAQ</h2>',
+    ]
+    missing_seo = [item for item in expected_seo if item not in template]
+    if missing_seo:
+        raise RuntimeError(f"Actor SEO identity validation failed for {actor_slug}: {missing_seo}")
+    structured_tags = re.findall(
+        r'<script id="actorStructuredData" type="application/ld\+json">(.*?)</script>',
+        template, flags=re.S,
+    )
+    if len(structured_tags) != 1:
+        raise RuntimeError(f"Actor structured data missing or duplicated for {actor_slug}")
+    parsed_schema = json.loads(structured_tags[0])
+    persons = [node for node in parsed_schema.get("@graph", []) if node.get("@type") == "Person"]
+    if len(persons) != 1 or persons[0].get("name") != name or persons[0].get("url") != canonical:
+        raise RuntimeError(f"Actor Person schema identity mismatch for {actor_slug}")
     missing_actor_ssr = [item for item in required_actor_ssr if item not in template]
     if missing_actor_ssr:
         raise RuntimeError(f"Actor SEO V2 SSR validation failed for {actor_slug}: {missing_actor_ssr}")
@@ -7715,7 +7815,7 @@ def _render_actor_rankings_html(target_key="all"):
     )
 
     data = actor_rankings(target["language"])
-    rankings = list(data.get("rankings") or [])
+    rankings = list(data.get("rankings") or [])[:50]
     cards = []
     total_rows = len(rankings)
     slot1_after = max(0, math.ceil(total_rows / 3) - 1)
@@ -7762,13 +7862,18 @@ def _render_actor_rankings_html(target_key="all"):
         + ("".join(cards) if cards else f"No actors found for {html_escape(empty_label)}")
         + "</div>"
     )
-    template = re.sub(
-        r'<div id="rankings"(?:\s+data-ssr="[01]")?\s*>.*?</div>',
-        ranking_html,
+    # Match the rankings element regardless of HTML attribute order.
+    # Production template uses: <div data-ssr="0" id="rankings">Loading...</div>.
+    rankings_pattern = r'<div\b(?=[^>]*\bid=["\']rankings["\'])[^>]*>.*?</div>'
+    template, replacements = re.subn(
+        rankings_pattern,
+        lambda _match: ranking_html,
         template,
         count=1,
-        flags=re.S,
+        flags=re.I | re.S,
     )
+    if replacements != 1 or ranking_html not in template:
+        raise RuntimeError("Actor Rankings SSR: rankings container replacement failed")
 
     meta = _actor_rankings_meta(target_key, rankings)
     page_title = meta["title"]
@@ -8794,7 +8899,7 @@ def trending_movies(limit: int = 10):
                     FROM (
                         SELECT movie_id, COUNT(*) AS views, 0::bigint AS fans,
                                0::bigint AS hypes, 0::bigint AS votes, 0::bigint AS comments
-                        FROM movie_views WHERE viewed_at >= NOW() - INTERVAL '7 days'
+                        FROM movie_views WHERE created_at >= NOW() - INTERVAL '7 days'
                         GROUP BY movie_id
                         UNION ALL
                         SELECT movie_id, 0, COUNT(*), 0, 0, 0
@@ -11873,6 +11978,16 @@ def _article_ssr_money(value):
 
 
 # BOXOFFICEX AUTO LIVE COLLECTION V1 — schedule is private block extra_data.
+def _bx_boxoffice_day_bounds(now):
+    """The active IST box-office day is 06:00 inclusive to next 06:00 exclusive."""
+    ist = ZoneInfo("Asia/Kolkata")
+    local = now.astimezone(ist)
+    beginning = local.replace(hour=6, minute=0, second=0, microsecond=0)
+    if local < beginning:
+        beginning -= timedelta(days=1)
+    return beginning, beginning + timedelta(days=1)
+
+
 def _bx_auto_live(data, now=None):
     """Return a temporary estimated live value; never write to the day-wise report."""
     if not isinstance(data, dict):
@@ -11882,6 +11997,7 @@ def _bx_auto_live(data, now=None):
         return None
     now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
     candidates = []
+    day_start, day_end = _bx_boxoffice_day_bounds(now)
     for row in cfg.get("days", []):
         if not isinstance(row, dict):
             continue
@@ -11893,9 +12009,11 @@ def _bx_auto_live(data, now=None):
             if end.tzinfo is None:
                 end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
             start, end = start.astimezone(now.tzinfo), end.astimezone(now.tzinfo)
-            if end <= start or now < start:
+            # Never show yesterday's showcase after the 06:00 IST rollover.
+            # A configured Day 2 schedule may begin at 06:00 or later.
+            if end <= start or not (day_start <= start < day_end):
                 continue
-            if now >= end and (now - end).total_seconds() > 6 * 3600:
+            if end > day_end or now < start:
                 continue
             field = str(row.get("field") or "worldwide_gross")
             if field not in ("india_gross", "overseas_gross", "worldwide_gross"):
@@ -11993,6 +12111,276 @@ def _bx_auto_display_time(value):
         return "Awaiting update"
 
 
+def _bx_active_day_allocations(extra, now=None):
+    """Select the configured allocation for the current 06:00–06:00 IST box-office day."""
+    if not isinstance(extra, dict):
+        return {}
+    configs = extra.get("day_allocations")
+    if not isinstance(configs, dict):
+        return extra  # Backward compatibility with legacy saved blocks.
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    start, _ = _bx_boxoffice_day_bounds(now)
+    selected = configs.get(start.date().isoformat())
+    return selected if isinstance(selected, dict) else {}
+
+
+def _bx_public_cinema_config(extra):
+    """Expose selected display settings only, never private collection schedules."""
+    extra = _bx_active_day_allocations(extra)
+    config = extra.get("cinema_regions") if isinstance(extra, dict) else None
+    if not isinstance(config, list):
+        return []
+    output = []
+    remaining = 100.0
+    for item in config[:30]:
+        if not isinstance(item, dict) or not item.get("enabled", True):
+            continue
+        try:
+            name = str(item.get("name") or "").strip()[:80]
+            share = float(item.get("share") or 0)
+            if not name or not 0 < share <= remaining + 0.00001:
+                continue
+            remaining -= share
+            cities, city_remaining = [], 100.0
+            for city in (item.get("cities") or [])[:60]:
+                if not isinstance(city, dict) or not city.get("enabled", True):
+                    continue
+                try:
+                    cname = str(city.get("name") or "").strip()[:80]
+                    cshare = float(city.get("share") or 0)
+                    price = float(city.get("ticket_price") or 0)
+                    seats = int(city.get("seats_per_show") or 0)
+                    shows = int(city.get("shows") or 0)
+                    theatres = int(city.get("theatres") or 0)
+                    if not cname or not 0 < cshare <= city_remaining + 0.00001:
+                        continue
+                    if not (1 <= price <= 10000 and 1 <= seats <= 2000 and 0 <= shows <= 100000 and 0 <= theatres <= 10000):
+                        continue
+                    city_remaining -= cshare
+                    cities.append(dict(name=cname, share=cshare, ticket_price=price, seats_per_show=seats, shows=shows, theatres=theatres))
+                except (TypeError, ValueError, OverflowError):
+                    continue
+            output.append(dict(name=name, share=share, cities=cities))
+        except (TypeError, ValueError, OverflowError):
+            continue
+    return output
+
+
+def _bx_public_overseas_countries(extra):
+    """Public country shares only; no private schedules or targets."""
+    extra = _bx_active_day_allocations(extra)
+    rows = extra.get("overseas_countries") if isinstance(extra, dict) else None
+    if not isinstance(rows, list):
+        return []
+    allowed = set(['USA', 'Canada', 'UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Oman', 'Bahrain', 'UK', 'Australia', 'New Zealand', 'Malaysia', 'Singapore', 'Germany', 'France', 'Japan', 'Nepal', 'Sri Lanka', 'South Africa', 'Other Country'])
+    out, remaining, seen = [], 100.0, set()
+    for row in rows[:30]:
+        if not isinstance(row, dict) or row.get("enabled") is False:
+            continue
+        try:
+            name = str(row.get("name") or "").strip()
+            share = float(row.get("share") or 0)
+            if name not in allowed or name in seen or not (0 < share <= remaining + 0.000001):
+                continue
+            out.append({"name": name, "share": share})
+            remaining -= share
+            seen.add(name)
+        except (TypeError, ValueError, OverflowError):
+            continue
+    return out
+
+
+def _bx_ssr_tracker_heading(title, extra, field):
+    meta = (extra.get("_public_tracker_schedules") or {}).get(field) or {}
+    status = meta.get("status")
+    label = {"live": "LIVE", "scheduled": "SCHEDULED", "final_review": "FINAL REVIEW"}.get(status)
+    klass = "review" if status == "final_review" else status
+    badge = ('<span class="bx-tracker-status ' + klass + '">' + label + '</span>') if label else ''
+    interval = meta.get("interval_minutes")
+    if status == "live" and isinstance(interval, int) and interval > 0:
+        note = '<div class="bx-tracker-frequency">Tracking updates every ' + str(interval) + (' minute' if interval == 1 else ' minutes') + '</div>'
+    elif status == "final_review":
+        note = '<div class="bx-tracker-frequency">Tracking ended · Latest figures under final review</div>'
+    elif status == "scheduled":
+        note = '<div class="bx-tracker-frequency">Tracking scheduled</div>'
+    else:
+        note = ''
+    return '<div class="bx-tracker-heading"><h3>' + title + '</h3>' + badge + '</div>' + note
+
+
+def _bx_overseas_country_dashboard(extra, values):
+    """SSR country-only allocation from the current overseas estimate."""
+    countries = extra.get("_public_overseas_countries") or []
+    if not countries or not isinstance(values, dict) or values.get("overseas_gross") is None:
+        return ""
+    try:
+        gross = float(values["overseas_gross"])
+        if not (0 <= gross < float("inf")):
+            return ""
+    except (ValueError, TypeError, OverflowError):
+        return ""
+    rows, allocated = [], 0.0
+    for country in countries:
+        share = float(country["share"])
+        allocated += share
+        amount = _bx_cinema_readable_money(gross * share / 100)
+        rows.append('<div class="bx-overseas-row"><span>' + html_escape(country["name"]) + '</span><strong>' + amount + '</strong><small>' + f'{share:g}%' + '</small></div>')
+    if allocated < 99.99999:
+        rows.append('<div class="bx-overseas-row"><span>Rest of Overseas</span><strong>' + _bx_cinema_readable_money(gross * max(0,100-allocated)/100) + '</strong><small>' + f'{max(0,100-allocated):g}%' + '</small></div>')
+    return '<section class="bx-overseas-v2"><h3>Overseas — Country-Wise Collection</h3><p>Overseas gross ' + _bx_cinema_readable_money(gross) + '</p><div class="bx-cinema-updated">Last updated: <strong>' + _bx_auto_display_time(values.get("updated_at")) + '</strong></div>' + ''.join(rows) + '</section>'
+
+
+def _bx_public_tracker_schedules(extra, now=None):
+    """Expose only today's schedule status and interval, never targets or future schedules."""
+    if not isinstance(extra, dict) or not extra.get("enabled") or extra.get("paused"):
+        return {}
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    day_start, day_end = _bx_boxoffice_day_bounds(now)
+    result = {}
+    for field in ("india_gross", "overseas_gross"):
+        windows = []
+        for row in extra.get("days") or []:
+            if not isinstance(row, dict) or str(row.get("field") or "").lower() != field:
+                continue
+            try:
+                start = datetime.fromisoformat(str(row["start_at"]))
+                end = datetime.fromisoformat(str(row["end_at"]))
+                if start.tzinfo is None:
+                    start = start.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                if end.tzinfo is None:
+                    end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                start, end = start.astimezone(now.tzinfo), end.astimezone(now.tzinfo)
+                if day_start <= start < day_end and end <= day_end and end > start:
+                    interval = int(row.get("interval_minutes") or 0)
+                    windows.append((start, end, interval))
+            except (ValueError, TypeError, KeyError, OverflowError):
+                continue
+        if not windows:
+            continue
+        start, end, interval = max(windows, key=lambda x: x[0])
+        status = "scheduled" if now < start else "live" if now < end else "final_review"
+        result[field] = {"status": status, "interval_minutes": interval if interval > 0 else None}
+    return result
+
+
+def _bx_public_cinema_window(extra, now=None):
+    """Publish only the applicable India show's start/end times (no targets or overrides)."""
+    if not isinstance(extra, dict) or not extra.get("enabled") or extra.get("paused"):
+        return None
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    matches = []
+    day_start, day_end = _bx_boxoffice_day_bounds(now)
+    for row in extra.get("days") or []:
+        if not isinstance(row, dict) or str(row.get("field") or "").lower() != "india_gross":
+            continue
+        try:
+            start = datetime.fromisoformat(str(row["start_at"]))
+            end = datetime.fromisoformat(str(row["end_at"]))
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            if end.tzinfo is None:
+                end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            start, end = start.astimezone(now.tzinfo), end.astimezone(now.tzinfo)
+            if (day_start <= start < day_end and end <= day_end
+                    and start <= now and end > start):
+                matches.append((start, end))
+        except (KeyError, ValueError, TypeError, OverflowError):
+            continue
+    if not matches:
+        return None
+    start, end = max(matches, key=lambda pair: pair[0])
+    return {"start_at": start.isoformat(), "end_at": end.isoformat()}
+
+
+def _bx_cinema_show_fraction(window, now=None):
+    """Modeled show completion against the selected India schedule, including after midnight."""
+    if not isinstance(window, dict):
+        return None
+    try:
+        start = datetime.fromisoformat(str(window["start_at"]))
+        end = datetime.fromisoformat(str(window["end_at"]))
+        now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        if end.tzinfo is None:
+            end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        duration = (end-start).total_seconds()
+        if duration <= 0:
+            return None
+        elapsed = max(0.0, min(1.0, (now-start).total_seconds()/duration))
+        milestones = [(0.0, 0.0), (3/14, .15), (6/14, .45), (10/14, .75), (1.0, 1.0)]
+        for (t0, v0), (t1, v1) in zip(milestones, milestones[1:]):
+            if elapsed <= t1:
+                return v0 + (v1-v0)*(elapsed-t0)/(t1-t0)
+        return 1.0
+    except (KeyError, ValueError, TypeError, OverflowError):
+        return None
+
+
+def _bx_cinema_readable_money(crores):
+    """Human-readable INR for regional and city estimated gross, input in crores."""
+    amount = float(crores)
+    absolute = abs(amount)
+    sign = "-" if amount < 0 else ""
+    if absolute >= 1:
+        return f"{sign}₹{absolute:,.2f} Cr"
+    if absolute >= 0.01:
+        return f"{sign}₹{absolute * 100:,.2f} Lakh".replace(",", ",")
+    return f"{sign}₹{absolute * 10000000:,.0f}"
+
+
+def _bx_cinema_dashboard(extra, values):
+    """SSR cinema estimates; show counts are configured day totals, not observed live bookings."""
+    regions = extra.get("_public_cinema_regions") or []
+    if not regions or not isinstance(values, dict) or values.get("india_gross") is None:
+        return ""
+    try:
+        india = max(0, float(values["india_gross"]))
+    except (TypeError, ValueError):
+        return ""
+    pieces = ['<div class="bx-cinema-v2" style="margin-top:18px">',
+              _bx_ssr_tracker_heading('Cinema Network — India', extra, 'india_gross'), '<div class="bx-cinema-updated">Last updated: <strong>' + _bx_auto_display_time(values.get("updated_at")) + '</strong></div>']
+    # Use the tracker snapshot time so shows do not advance without a collection update.
+    snapshot_time = None
+    if values.get("updated_at"):
+        try:
+            snapshot_time = datetime.fromisoformat(str(values["updated_at"]).replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            pass
+    show_fraction = _bx_cinema_show_fraction(extra.get("_public_cinema_window"), now=snapshot_time)
+    total_tickets = 0
+    total_shows = 0
+    total_theatres = 0
+    for region in regions:
+        rgross = india * region["share"] / 100
+        rows = []
+        for city in region["cities"]:
+            gross = rgross * city["share"] / 100
+            tickets = round(gross * 10000000 / city["ticket_price"])
+            counted_shows = min(city["shows"], round(city["shows"] * show_fraction)) if show_fraction is not None else None
+            capacity = (counted_shows or 0) * city["seats_per_show"]
+            occupancy = 100 * tickets / capacity if capacity else None
+            total_tickets += tickets
+            total_shows += counted_shows or 0
+            total_theatres += city["theatres"]
+            label = html_escape(city["name"])
+            occupancy_label = f'{occupancy:.1f}%' if occupancy is not None and 0 <= occupancy <= 100 else 'N/A'
+            rows.append(f'<div style="padding:12px;border-top:1px solid #ddd"><strong>{label}</strong> · {_bx_cinema_readable_money(gross)}'
+                        f'<div style="font-size:13px;margin-top:5px">{city["theatres"]:,} configured theatres · '
+                        f'{counted_shows if counted_shows is not None else "—"} modeled shows completed / {city["shows"]:,} scheduled · {tickets:,} estimated tickets · '
+                        f'</div></div>')
+        pieces.append('<details open style="border:1px solid #d8dce5;border-radius:12px;margin:9px 0;overflow:hidden">'
+                      f'<summary style="cursor:pointer;padding:13px;font-weight:700">{html_escape(region["name"])} '
+                      f'— {_bx_cinema_readable_money(rgross)} ({region["share"]:g}% of India)</summary>'
+                      + ''.join(rows) + '</details>')
+    pieces.append(f'<p style="font-size:13px;margin:12px 0">Selected cities: {total_theatres:,} configured theatres · '
+                  f'{total_shows:,} modeled shows counted · {total_tickets:,} estimated tickets</p>')
+    pieces.append('<p class="media-caption">City collections are allocations of the India estimate, not observed city grosses. '
+                  'Tickets use assumed ticket prices and modeled shows, not observed seat bookings. '
+                  'Only selected cities are included in the totals.</p></div>')
+    return ''.join(pieces)
+
+
 def _article_ssr_auto_tracker(extra, movie_title=None):
     if not isinstance(extra, dict) or not extra.get("ssr_enabled", True):
         return ""
@@ -12019,7 +12407,7 @@ def _article_ssr_auto_tracker(extra, movie_title=None):
             '<div class="boxoffice-grid">' + ''.join(cards) + '</div>'
             '<div class="bx-auto-footer"><span class="bx-auto-status"><span class="bx-auto-dot" aria-hidden="true"></span> LIVE</span>'
             '<span class="bx-auto-updated">Last updated: <strong>'
-            + _bx_auto_display_time(values.get("updated_at")) + '</strong></span></div></section>')
+            + _bx_auto_display_time(values.get("updated_at")) + '</strong></span></div>' + _bx_cinema_dashboard(extra, values) + _bx_overseas_country_dashboard(extra, values) + '</section>')
 
 
 def _article_ssr_live_tracker(data, release_date=None, movie_title=None):
@@ -13334,9 +13722,9 @@ def _bx_auto_only_seo(article):
         return None
     h1 = f"{name} Day {day} Collection Live: {cr(amount)} {region}"
     seo_title = f"{name} Day {day} Collection Live: {cr(amount)} {region}"
-    description = f"{name} Day {day} estimated {region.lower()} collection is {cr(amount)}."
+    description = f"{name} Day {day} {region.lower()} collection is {cr(amount)}."
     if india is not None and overseas is not None:
-        description = (f"{name} Day {day} estimated worldwide gross is {cr(worldwide)}, "
+        description = (f"{name} Day {day} worldwide gross is {cr(worldwide)}, "
                        f"including {cr(india)} India gross and {cr(overseas)} overseas gross. "
                        "Follow live updates.")
     return {"mode": "LIVE", "day": day, "h1": h1,
@@ -13952,11 +14340,19 @@ By <strong>{html_escape(author)}</strong>
                 block["extra_data"] = {
                     "_public_auto_values": original_extra.get("_public_auto_values"),
                     "_auto_configured": bool(original_extra.get("_auto_configured")),
+                    "_public_cinema_regions": original_extra.get("_public_cinema_regions") or [],
+                    "_public_overseas_countries": original_extra.get("_public_overseas_countries") or [],
+                    "_public_cinema_window": original_extra.get("_public_cinema_window"),
+                    "_public_tracker_schedules": original_extra.get("_public_tracker_schedules") or {},
                 }
             else:
                 block["extra_data"] = {
                     "_public_auto_values": _bx_separate_auto_values(original_extra),
                     "_auto_configured": bool(original_extra.get("enabled") and original_extra.get("days")),
+                    "_public_cinema_regions": _bx_public_cinema_config(original_extra),
+                    "_public_overseas_countries": _bx_public_overseas_countries(original_extra),
+                    "_public_cinema_window": _bx_public_cinema_window(original_extra),
+                    "_public_tracker_schedules": _bx_public_tracker_schedules(original_extra),
                 }
         if str(block.get("block_type") or "").lower() == "live_tracker":
             extra = dict(block.get("extra_data") or {})
@@ -14011,6 +14407,7 @@ def _refresh_article_detail_cache(slug: str):
         with _article_detail_cache_lock:
             _article_detail_html_cache[slug] = {
                 "html": rendered,
+                "boxoffice_day": _bx_boxoffice_day_bounds(datetime.now(ZoneInfo("Asia/Kolkata")))[0].date().isoformat(),
                 "expires_at": now + ARTICLE_DETAIL_HTML_CACHE_TTL,
                 "stale_until": now + ARTICLE_DETAIL_HTML_CACHE_TTL + ARTICLE_DETAIL_HTML_STALE_TTL,
             }
@@ -14062,8 +14459,14 @@ def _article_detail_headers(state: str):
 def article_pretty_page(slug: str):
     now = time_module.monotonic()
 
+    # A cached article rendered on the previous box-office day must never
+    # expose yesterday's temporary live tracker after 06:00 IST.
+    current_boxoffice_day = _bx_boxoffice_day_bounds(datetime.now(ZoneInfo("Asia/Kolkata")))[0].date().isoformat()
     with _article_detail_cache_lock:
         cached = _article_detail_html_cache.get(slug)
+        if cached and cached.get("boxoffice_day") != current_boxoffice_day:
+            _article_detail_html_cache.pop(slug, None)
+            cached = None
         if cached and cached.get("expires_at", 0) > now:
             return HTMLResponse(
                 content=cached["html"],
@@ -14091,6 +14494,7 @@ def article_pretty_page(slug: str):
         with _article_detail_cache_lock:
             _article_detail_html_cache[slug] = {
                 "html": rendered,
+                "boxoffice_day": _bx_boxoffice_day_bounds(datetime.now(ZoneInfo("Asia/Kolkata")))[0].date().isoformat(),
                 "expires_at": generated_at + ARTICLE_DETAIL_HTML_CACHE_TTL,
                 "stale_until": generated_at + ARTICLE_DETAIL_HTML_CACHE_TTL + ARTICLE_DETAIL_HTML_STALE_TTL,
             }
@@ -15357,7 +15761,7 @@ def get_article(slug: str):
             if not bool(article.get("tracking_enabled", True)) or not extra.get("ssr_enabled", True):
                 continue
             block = dict(block)
-            block["extra_data"] = {"_public_auto_values": _bx_separate_auto_values(extra), "_auto_configured": bool(extra.get("enabled") and extra.get("days"))}
+            block["extra_data"] = {"_public_auto_values": _bx_separate_auto_values(extra), "_auto_configured": bool(extra.get("enabled") and extra.get("days")), "_public_cinema_regions": _bx_public_cinema_config(extra), "_public_overseas_countries": _bx_public_overseas_countries(extra), "_public_cinema_window": _bx_public_cinema_window(extra), "_public_tracker_schedules": _bx_public_tracker_schedules(extra)}
         elif kind == "live_tracker":
             block = dict(block)
             extra = dict(block.get("extra_data") or {})
@@ -19040,10 +19444,24 @@ def articles_page():
                 "Cache-Control": "no-store",
                 "X-BoxOfficeX-Cache": "FALLBACK",
             })
-        return FileResponse(BASE_DIR / "articles.html", headers={
-            "Cache-Control": "no-store",
-            "X-BoxOfficeX-Cache": "WARMING",
-        })
+        # Do not serve a loading-only, indexable page when SSR fails.
+        # A temporary 503 tells crawlers to retry after recovery.
+        return HTMLResponse(
+            content=(
+                '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+                '<meta name="robots" content="noindex, nofollow">'
+                '<title>Articles temporarily unavailable | BoxOfficeX</title>'
+                '</head><body><h1>Articles temporarily unavailable</h1>'
+                '<p>Please try again shortly.</p></body></html>'
+            ),
+            status_code=503,
+            headers={
+                "Cache-Control": "no-store",
+                "Retry-After": "60",
+                "X-Robots-Tag": "noindex, nofollow",
+                "X-BoxOfficeX-Cache": "SSR-ERROR",
+            },
+        )
 
 
 
@@ -20966,12 +21384,25 @@ def set_movie_fan_vote(movie_id: int, data: FanVoteData):
     with get_connection() as conn:
         with conn.cursor() as cur:
             _ensure_movie_exists(cur, movie_id)
-            cur.execute("""
-                INSERT INTO movie_fan_votes (movie_id, visitor_id, verdict)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (movie_id, visitor_id)
-                DO UPDATE SET verdict = EXCLUDED.verdict, updated_at = NOW()
-            """, (movie_id, visitor_id, data.verdict))
+            # Clicking the currently selected verdict removes the vote.
+            # Selecting a different verdict replaces the previous selection.
+            cur.execute(
+                "SELECT verdict FROM movie_fan_votes WHERE movie_id = %s AND visitor_id = %s FOR UPDATE",
+                (movie_id, visitor_id),
+            )
+            previous = cur.fetchone()
+            if previous and previous[0] == data.verdict:
+                cur.execute(
+                    "DELETE FROM movie_fan_votes WHERE movie_id = %s AND visitor_id = %s",
+                    (movie_id, visitor_id),
+                )
+            else:
+                cur.execute("""
+                    INSERT INTO movie_fan_votes (movie_id, visitor_id, verdict)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (movie_id, visitor_id)
+                    DO UPDATE SET verdict = EXCLUDED.verdict, updated_at = NOW()
+                """, (movie_id, visitor_id, data.verdict))
             conn.commit()
             return _movie_engagement_summary(cur, movie_id, visitor_id)
 
@@ -21606,10 +22037,16 @@ def set_hero_comparison_vote(actor1_id: int, actor2_id: int, data: HeroCompariso
     with get_connection() as conn:
         with conn.cursor() as cur:
             _ensure_hero_comparison_exists(cur, a1, a2)
-            cur.execute("""INSERT INTO hero_comparison_votes(actor1_id,actor2_id,visitor_id,choice)
-                           VALUES(%s,%s,%s,%s)
-                           ON CONFLICT(actor1_id,actor2_id,visitor_id)
-                           DO UPDATE SET choice=EXCLUDED.choice, updated_at=NOW()""", (a1, a2, visitor_id, choice))
+            # Clicking the selected choice again removes the visitor's vote.
+            cur.execute("SELECT choice FROM hero_comparison_votes WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s", (a1, a2, visitor_id))
+            previous_vote = cur.fetchone()
+            if previous_vote and previous_vote[0] == choice:
+                cur.execute("DELETE FROM hero_comparison_votes WHERE actor1_id=%s AND actor2_id=%s AND visitor_id=%s", (a1, a2, visitor_id))
+            else:
+                cur.execute("""INSERT INTO hero_comparison_votes(actor1_id,actor2_id,visitor_id,choice)
+                               VALUES(%s,%s,%s,%s)
+                               ON CONFLICT(actor1_id,actor2_id,visitor_id)
+                               DO UPDATE SET choice=EXCLUDED.choice, updated_at=NOW()""", (a1, a2, visitor_id, choice))
             conn.commit()
             result = _hero_comparison_summary(cur, a1, a2, visitor_id)
     if reversed_order:
@@ -21976,21 +22413,18 @@ def set_movie_comparison_vote(
         with conn.cursor() as cur:
             _ensure_movie_comparison_exists(cur, normalized1, normalized2)
 
-            cur.execute("""
-                INSERT INTO movie_comparison_votes (
-                    movie1_id, movie2_id, visitor_id, choice
-                )
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (movie1_id, movie2_id, visitor_id)
-                DO UPDATE SET
-                    choice=EXCLUDED.choice,
-                    updated_at=NOW()
-            """, (
-                normalized1,
-                normalized2,
-                visitor_id,
-                choice
-            ))
+            # Clicking the selected choice again removes the visitor's vote.
+            cur.execute("SELECT choice FROM movie_comparison_votes WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s", (normalized1, normalized2, visitor_id))
+            previous_vote = cur.fetchone()
+            if previous_vote and previous_vote[0] == choice:
+                cur.execute("DELETE FROM movie_comparison_votes WHERE movie1_id=%s AND movie2_id=%s AND visitor_id=%s", (normalized1, normalized2, visitor_id))
+            else:
+                cur.execute("""
+                    INSERT INTO movie_comparison_votes (movie1_id, movie2_id, visitor_id, choice)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (movie1_id, movie2_id, visitor_id)
+                    DO UPDATE SET choice=EXCLUDED.choice, updated_at=NOW()
+                """, (normalized1, normalized2, visitor_id, choice))
 
             conn.commit()
 

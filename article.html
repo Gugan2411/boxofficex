@@ -3351,6 +3351,30 @@ line-height:1.75;
 
 /* Article SEO + full SSR V1: compact visible answer passages */
 .bx-seo-section-head{margin:22px 0 12px;padding:0 2px}.bx-seo-section-head h2{margin:0 0 7px;font-size:clamp(1.2rem,3.4vw,1.55rem);line-height:1.25;color:#111827}.bx-seo-section-head p,.prb-seo-answer{margin:0;color:#4b5563;font-size:.94rem;line-height:1.65}.bx-seo-section-head strong,.prb-seo-answer strong{color:#111827}.bx-seo-theatrical-head{margin-top:26px}.prb-seo-answer{margin:12px 0 14px;padding:11px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}@media(max-width:520px){.bx-seo-section-head{margin:17px 0 10px}.bx-seo-section-head h2{font-size:1.08rem}.bx-seo-section-head p,.prb-seo-answer{font-size:.88rem;line-height:1.55}.prb-seo-answer{padding:10px}}
+
+/* Cinema V2 — readable city metrics and distinct region colors */
+.bx-cinema-region .bx-cinema-bar span,.bx-cinema-region .bx-cinema-meter i{background:var(--bx-region-accent,#f59e0b)!important}
+.bx-cinema-region summary{border-left:5px solid var(--bx-region-accent,#f59e0b)}
+.bx-cinema-city{border-left:3px solid var(--bx-region-accent,#f59e0b)}
+.bx-cinema-city-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.bx-cinema-stat{min-width:0;padding:10px;border-radius:10px;background:#f5f8fc;border:1px solid #e4ebf4;color:#1d2939}
+.bx-cinema-stat>span{display:block;font-size:10px;color:#64748b;font-weight:700}
+.bx-cinema-stat>strong{display:block;margin-top:4px;font-size:16px;color:#172238;overflow-wrap:anywhere}
+.bx-cinema-stat small{font-size:10px;font-weight:500;color:#64748b}
+.bx-cinema-stat.bx-cinema-collection{background:#edf9f2;border-color:#c9ebd8}.bx-cinema-stat.bx-cinema-collection>strong{color:#07854d;font-size:17px}
+.bx-cinema-meter{height:5px;margin-top:8px;background:#e2e8f0;border-radius:10px;overflow:hidden}
+.bx-cinema-meter i{display:block;height:100%;border-radius:10px}
+.bx-cinema-warning{display:block;color:#a45308!important;line-height:1.4;margin-top:5px}
+.bx-cinema-unallocated{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px}
+.bx-cinema-unallocated small{width:100%;color:#64748b}
+@media(max-width:650px){.bx-cinema-city-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.bx-cinema-stat>strong{font-size:14px}}
+.bx-overseas-v2{margin:18px 0;padding:16px;border:1px solid #dce5f5;border-radius:14px;background:#f8fbff;color:#16243c}
+.bx-overseas-v2 h3{margin:0 0 8px;font-size:1.1rem;color:#1e3a8a}
+.bx-overseas-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:10px 12px;margin-top:7px;background:#fff;border:1px solid #e2e8f0;border-left:4px solid var(--overseas-color,#2563eb);border-radius:9px}
+.bx-overseas-row strong{color:#166534;font-weight:800}
+.bx-overseas-row small{color:#64748b;min-width:50px;text-align:right}
+@media(max-width:500px){.bx-overseas-row{gap:7px;padding:9px 8px}.bx-overseas-row strong{font-size:.85rem}}
+.bx-cinema-updated{font-size:12px;color:#64748b;margin:5px 0 12px}.bx-cinema-updated strong{color:#334155;font-weight:650}
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4877,6 +4901,46 @@ html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
 .bx-article-seo-faq details p{color:#475569!important}
 .bx-article-seo-faq summary::marker{color:#355d99!important}
 </style>
+<style id="bx-cinema-v2-public-styles">
+.bx-cinema-v2{margin:18px 0 28px;padding:18px;background:#f8fbff;color:#172238;border:1px solid #dbe6f3;border-radius:18px;font-family:Arial,Helvetica,sans-serif;box-shadow:0 10px 24px rgba(12,33,65,.06)}
+.bx-cinema-v2 h3{margin:0 0 6px!important;font-size:20px!important;line-height:1.3;color:#172238!important}.bx-cinema-intro{color:#64748b;font-size:12px;margin-bottom:14px}.bx-cinema-region{border:1px solid #d9e4f2;border-radius:12px;background:#fff;margin:9px 0;overflow:hidden}.bx-cinema-region summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;font-size:14px;font-weight:800;list-style-position:inside}.bx-cinema-region summary strong{color:#0b9860;text-align:right}.bx-cinema-region summary small{font-size:10px;color:#65748a}.bx-cinema-bar{height:5px;background:#eaf0f7}.bx-cinema-bar span{display:block;height:100%;background:linear-gradient(90deg,#ffcc33,#eaa300)}.bx-cinema-city{padding:12px 14px;border-top:1px solid #e8edf5}.bx-cinema-city-title{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px}.bx-cinema-city-title b{color:#0b9860;white-space:nowrap}.bx-cinema-city-meta{font-size:11px;color:#64748b;line-height:1.6;margin-top:5px}.bx-cinema-other{background:#fffaf0}.bx-cinema-unallocated,.bx-cinema-totals{margin-top:12px;padding:10px 12px;border-radius:10px;background:#edf4ff;font-size:12px}.bx-cinema-disclaimer{font-size:11px;color:#64748b;line-height:1.6;margin-top:12px}@media(max-width:650px){.bx-cinema-v2{padding:12px}.bx-cinema-region summary{flex-direction:column;align-items:flex-start}.bx-cinema-region summary strong{text-align:left}.bx-cinema-city-title{align-items:flex-start}}
+</style>
+
+<style id="bx-cinema-v2-colorful-cards">
+/* Color-coded cinema metrics; region accent remains independently configured. */
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat{position:relative;border-width:1px;border-style:solid;box-shadow:0 3px 9px rgba(22,38,65,.045);transition:transform .18s ease,box-shadow .18s ease}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(22,38,65,.1)}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(1){background:linear-gradient(145deg,#e7f9ef,#f4fff8);border-color:#a9e9c5}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(1)>strong{color:#067647}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(2){background:linear-gradient(145deg,#e8f2ff,#f6faff);border-color:#b6d5ff}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(2)>strong{color:#1d58b5}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(3){background:linear-gradient(145deg,#fff2d6,#fffaf0);border-color:#f5d28a}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(3)>strong{color:#9a5600}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(4){background:linear-gradient(145deg,#f1eaff,#faf7ff);border-color:#d6c0ff}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(4)>strong{color:#7541b4}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(5){background:linear-gradient(145deg,#ffe9ec,#fff6f7);border-color:#ffc0cb}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(5)>strong{color:#b42342}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat>span{color:#40516b}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat small{color:#5b6b80}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(3) .bx-cinema-meter i{background:linear-gradient(90deg,#f59e0b,#fbbf24)!important}
+.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat:nth-child(5) .bx-cinema-meter i{background:linear-gradient(90deg,#f43f5e,#fb7185)!important}
+.bx-cinema-v2 .bx-cinema-city{border-left-color:var(--bx-region-accent,#f59e0b)}
+.bx-cinema-v2 .bx-cinema-region summary{background:linear-gradient(90deg,color-mix(in srgb,var(--bx-region-accent,#f59e0b) 12%,white),white 70%)}
+.bx-cinema-v2 .bx-cinema-other{background:#fff9eb}
+@media(max-width:650px){.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat{padding:10px 8px}.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat>strong{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.bx-cinema-v2 .bx-cinema-city-cards .bx-cinema-stat{transition:none}}
+</style>
+<style id="bx-tracker-status-update">
+/* BX TRACKER STATUS & LIGHT SECTION HEADINGS */
+.bx-cinema-v2 h3,.bx-overseas-v2 h3{color:#17243a!important;font-size:20px!important;font-weight:900!important;line-height:1.35!important;margin:0!important}
+.bx-tracker-heading{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.bx-tracker-status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font:900 10px Arial,sans-serif;letter-spacing:.4px;background:#e9eef7;color:#475569}
+.bx-tracker-status.live{background:#ffe6e8;color:#bb1734}.bx-tracker-status.live:before{content:"";width:7px;height:7px;border-radius:50%;background:#e11d48;animation:bx-tracker-pulse 1.2s infinite}
+.bx-tracker-status.review{background:#fff0cc;color:#92400e}.bx-tracker-status.scheduled{background:#dbeafe;color:#1d4ed8}
+.bx-tracker-frequency{font:700 12px/1.5 Arial,sans-serif;color:#475569;margin:2px 0 8px}
+@keyframes bx-tracker-pulse{50%{opacity:.15}}@media(prefers-reduced-motion:reduce){.bx-tracker-status.live:before{animation:none}}
+.bx-cinema-v2 .bx-cinema-stat:has(>span:first-child){min-width:0}
+</style>
 </head>
 
 <body>
@@ -5244,7 +5308,9 @@ function setSEO(article) {
     const isAdminPreview = new URLSearchParams(window.location.search).has("admin_preview");
     const baseTitle = article.meta_title || article.title || "Article";
     const title = /BoxOfficeX/i.test(baseTitle) ? baseTitle : `${baseTitle} | BoxOfficeX`;
-    const description = article.meta_description || article.subtitle || `Read ${article.title || "this movie story"} on BoxOfficeX.`;
+    // Snippet wording only: leave collection calculations and on-page disclosures unchanged.
+    const description = String(article.meta_description || article.subtitle || `Read ${article.title || "this movie story"} on BoxOfficeX.`)
+        .replace(/\bestimated\s+(?=worldwide\s+gross\b)/gi, "");
 
     
     const publishedISO = toGoogleISO(article.published_at);
@@ -6427,6 +6493,122 @@ return `<section id="salary-details" class="bx-salary-block" aria-label="${esc(m
     <p class="bx-salary-note"><strong>Disclaimer:</strong> Salary, profit-share and rights figures shown above are based on publicly reported information and industry estimates where applicable. Actual remuneration and contractual terms may differ and may not be officially disclosed.</p>
 </section>`;
 }
+// V2 cinema dashboard is rendered during JS hydration as well as SSR.
+// Never expose or use the private automatic collection schedule here.
+function bxCinemaLastUpdated(data){
+    const raw=data?.updated_at;
+    if(!raw)return "";
+    let dt=new Date(String(raw));
+    if(Number.isNaN(dt.getTime()) && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(String(raw)))
+        dt=new Date(String(raw).replace(" ","T")+"+05:30");
+    if(Number.isNaN(dt.getTime()))return "";
+    const label=new Intl.DateTimeFormat("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit",hour12:true}).format(dt);
+    return `<div class="bx-cinema-updated">Last updated: <strong>${label} IST</strong></div>`;
+}
+function bxTrackerSectionHeading(title, block, field){
+    const meta=block?.extra_data?._public_tracker_schedules?.[field];
+    const state=meta?.status||"";
+    const label=state==="live"?"LIVE":state==="final_review"?"FINAL REVIEW":state==="scheduled"?"SCHEDULED":"";
+    const badge=label?`<span class="bx-tracker-status ${state==="final_review"?"review":state}">${label}</span>`:"";
+    const interval=Number(meta?.interval_minutes);
+    const note=state==="live"&&Number.isFinite(interval)&&interval>0?`<div class="bx-tracker-frequency">Tracking updates every ${interval} minute${interval===1?"":"s"}</div>`:state==="final_review"?`<div class="bx-tracker-frequency">Tracking ended · Latest figures under final review</div>`:state==="scheduled"?`<div class="bx-tracker-frequency">Tracking scheduled</div>`:"";
+    return `<div class="bx-tracker-heading"><h3>${title}</h3>${badge}</div>${note}`;
+}
+function bxCinemaNetworkV2(block, trackerData){
+    const regions=block?.extra_data?._public_cinema_regions;
+    const india=Number(trackerData?.india_gross);
+    if(!Array.isArray(regions)||!regions.length||trackerData?.india_gross==null||!Number.isFinite(india)||india<0)return "";
+    const money=v=>{
+        const n=Number(v);
+        if(!Number.isFinite(n))return "N/A";
+        const a=Math.abs(n),sign=n<0?"-":"";
+        const fmt=(x,d=2)=>x.toLocaleString("en-IN",{maximumFractionDigits:d});
+        if(a>=1)return `${sign}₹${fmt(a)} Cr`;
+        if(a>=0.01)return `${sign}₹${fmt(a*100)} Lakh`;
+        return `${sign}₹${fmt(a*10000000,0)}`;
+    };
+    const number=v=>Math.round(v).toLocaleString("en-IN");
+    const palette=["#f59e0b","#2563eb","#16a34a","#a855f7","#e11d48","#0891b2","#ea580c","#4f46e5"];
+    // Use the selected India collection schedule, not today's clock time.
+    // The schedule window is public metadata; private targets stay on the server.
+    const windowData=block?.extra_data?._public_cinema_window;
+    let progress=null;
+    if(windowData?.start_at&&windowData?.end_at){
+        const begin=Date.parse(windowData.start_at),finish=Date.parse(windowData.end_at);
+        if(Number.isFinite(begin)&&Number.isFinite(finish)&&finish>begin){
+            // Freeze modeled shows at the latest collection update, not the visitor's clock.
+            // This keeps tickets, completed shows and occupancy on the same reporting snapshot.
+            const rawUpdate=trackerData?.updated_at;
+            const updateTime=rawUpdate?Date.parse(String(rawUpdate).includes("T")?String(rawUpdate):String(rawUpdate).replace(" ","T")+"+05:30"):NaN;
+            const snapshotTime=Number.isFinite(updateTime)?updateTime:begin;
+            const elapsed=Math.max(0,Math.min(1,(snapshotTime-begin)/(finish-begin)));
+            const stops=[[0,0],[3/14,.15],[6/14,.45],[10/14,.75],[1,1]];
+            progress=1;
+            for(let i=1;i<stops.length;i++)if(elapsed<=stops[i][0]){
+                const [a,x]=stops[i-1], [b,y]=stops[i];
+                progress=x+(y-x)*(elapsed-a)/(b-a);break;
+            }
+        }
+    }
+    let selectedTheatres=0,selectedShows=0,selectedTickets=0;
+    const regionRows=regions.map((region,ri)=>{
+        const share=Number(region.share)||0;
+        if(share<=0)return "";
+        const color=palette[ri%palette.length];
+        const gross=india*share/100;
+        let used=0;
+        const cities=(Array.isArray(region.cities)?region.cities:[]).map(city=>{
+            const cityShare=Number(city.share)||0;
+            if(cityShare<=0)return "";
+            used+=cityShare;
+            const cityGross=gross*cityShare/100;
+            const price=Number(city.ticket_price),seats=Number(city.seats_per_show);
+            const scheduled=Math.max(0,Math.round(Number(city.shows)||0));
+            const theatres=Math.max(0,Math.round(Number(city.theatres)||0));
+            const counted=progress===null?null:Math.round(scheduled*progress);
+            const tickets=price>0?Math.round(cityGross*10000000/price):null;
+            const capacity=(counted??0)*seats;
+            const occupancy=tickets!==null&&capacity>0?100*tickets/capacity:null;
+            const valid=occupancy!==null&&Number.isFinite(occupancy)&&occupancy>=0&&occupancy<=100;
+            selectedTheatres+=theatres;selectedShows+=counted||0;selectedTickets+=tickets||0;
+            const showPct=scheduled&&counted!==null?Math.min(100,100*counted/scheduled):0;
+            const occText=valid?`${occupancy.toFixed(1)}%`:"N/A";
+            const minimumShows=tickets!==null&&seats>0?Math.ceil(tickets/seats):null;
+            const reason=(counted===null?"Show schedule unavailable":!counted?"Shows not counted yet":!capacity?"Add seating capacity":minimumShows!==null?`Capacity mismatch: at least ${number(minimumShows)} shows needed for estimated tickets` : "Insufficient capacity data");
+            return `<div class="bx-cinema-city" style="--bx-region-accent:${color}"><div class="bx-cinema-city-title"><strong>${esc(city.name||"City")}</strong></div><div class="bx-cinema-city-cards"><div class="bx-cinema-stat bx-cinema-collection"><span>Collection</span><strong>${money(cityGross)}</strong><small>Estimated gross</small></div>${theatres>0?`<div class="bx-cinema-stat"><span>Theatres</span><strong>${number(theatres)}</strong><small>Configured</small></div>`:""}${scheduled>0?`<div class="bx-cinema-stat"><span>Shows completed</span><strong>${counted===null?"—":number(counted)} <small>/ ${number(scheduled)}</small></strong><div class="bx-cinema-meter"><i style="width:${showPct}%"></i></div></div>`:""}${tickets!==null&&tickets>0?`<div class="bx-cinema-stat"><span>Tickets sold</span><strong>${number(tickets)}</strong><small>Estimated</small></div>`:""}</div></div>`;
+        }).join("");
+        const rest=Math.max(0,100-used);
+        const restRow=rest>.00001?`<div class="bx-cinema-city bx-cinema-other"><div class="bx-cinema-city-title"><strong>Other ${esc(region.name||"Region")}</strong><b>${money(gross*rest/100)}</b></div><div class="bx-cinema-city-meta">Remaining ${rest.toFixed(1)}% · Other cities and areas</div></div>`:"";
+        return `<details class="bx-cinema-region" style="--bx-region-accent:${color}" open><summary><span>${esc(region.name||"Region")}</span><strong>${money(gross)} <small>(${share}% of India)</small></strong></summary><div class="bx-cinema-bar"><span style="width:${Math.min(100,Math.max(0,share))}%"></span></div>${cities}${restRow}</details>`;
+    }).join("");
+    const allocated=regions.reduce((a,r)=>a+(Number(r.share)||0),0);
+    const unallocated=Math.max(0,100-allocated);
+    const restIndia=unallocated>.00001?`<div class="bx-cinema-unallocated">Rest of India <strong>${money(india*unallocated/100)}</strong><small>Remaining ${unallocated.toFixed(1)}% of India gross outside selected regions</small></div>`:"";
+    return `<section class="bx-cinema-v2" aria-label="Cinema network modeled estimates">${bxTrackerSectionHeading("Cinema Network — India",block,"india_gross")}<div class="bx-cinema-intro">India gross ${money(india)} · selected region and city contributions</div>${bxCinemaLastUpdated(trackerData)}${regionRows}${restIndia}${selectedTheatres>0||selectedShows>0||selectedTickets>0?`<div class="bx-cinema-totals">Selected cities: ${[selectedTheatres>0?`${number(selectedTheatres)} configured theatres`:"",selectedShows>0?`${number(selectedShows)} estimated shows counted`:"",selectedTickets>0?`${number(selectedTickets)} estimated tickets`:""].filter(Boolean).join(" · ")}</div>`:""}</section>`;
+}
+
+function bxOverseasCountryV2(block, trackerData){
+    const countries=block?.extra_data?._public_overseas_countries;
+    const overseas=Number(trackerData?.overseas_gross);
+    if(!Array.isArray(countries)||!countries.length||trackerData?.overseas_gross==null||!Number.isFinite(overseas)||overseas<0)return "";
+    const escText=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    const money=v=>{
+        const n=Number(v),a=Math.abs(n);
+        if(a>=1)return `₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+        if(a>=0.01)return `₹${(n*100).toLocaleString("en-IN",{maximumFractionDigits:2})} Lakh`;
+        return `₹${Math.round(n*10000000).toLocaleString("en-IN")}`;
+    };
+    const colors=["#2563eb","#16a34a","#9333ea","#ea580c","#0891b2","#db2777","#64748b"];
+    let used=0;
+    const rows=countries.map((c,i)=>{
+        const pct=Number(c.share)||0;used+=pct;
+        return `<div class="bx-overseas-row" style="--overseas-color:${colors[i%colors.length]}"><span>${escText(c.name)}</span><strong>${money(overseas*pct/100)}</strong><small>${pct.toFixed(1)}%</small></div>`;
+    }).join("");
+    const rest=Math.max(0,100-used);
+    const other=rest>0.00001?`<div class="bx-overseas-row" style="--overseas-color:#64748b"><span>Rest of Overseas</span><strong>${money(overseas*rest/100)}</strong><small>${rest.toFixed(1)}%</small></div>`:"";
+    return `<section class="bx-overseas-v2">${bxTrackerSectionHeading("Overseas — Country-Wise Collection",block,"overseas_gross")}<div class="bx-cinema-intro">Overseas gross ${money(overseas)}</div>${bxCinemaLastUpdated(trackerData)}${rows}${other}</section>`;
+}
+
 function bxPublicAutoTrackerData(block){
     const d=block?.extra_data||{};
     const auto=d._public_auto_values||{};
@@ -6602,7 +6784,7 @@ async function renderBlock(block) {
     if (type === "live_tracker" || type === "auto_live_tracker") {
         if (window.currentBoxOfficeXArticle?.tracking_enabled === false) return "";
         const trackerData=type === "auto_live_tracker" ? bxPublicAutoTrackerData(block) : data;
-        return `<section id="live-boxoffice-tracker">${renderLiveTracker(trackerData)}</section>`;
+        return `<section id="live-boxoffice-tracker">${renderLiveTracker(trackerData)}${type === "auto_live_tracker" ? (bxCinemaNetworkV2(block,trackerData)+bxOverseasCountryV2(block,trackerData)) : ""}</section>`;
     }
 
     if (type === "boxoffice") {
@@ -7229,7 +7411,7 @@ function articleVisitorId(){
  return id;
 }
 async function articleJSON(url,options={}){
- const r=await fetch(url,options),d=await r.json().catch(()=>({}));
+ const r=await fetch(url,{cache:"no-store",...options}),d=await r.json().catch(()=>({}));
  if(!r.ok)throw new Error(d.detail||"Request failed");
  return d;
 }
@@ -7269,26 +7451,61 @@ async function trackArticleView(id){
   }
  }
 }
+const articleReactionPending={like:false,hype:false};
+let articleEngagementRevision=0;
+let articleCommentsRevision=0;
+const articleDeletedCommentIds=new Set();
 async function loadArticleEngagement(id){
+ const revision=articleEngagementRevision;
  try{
   const d=await articleJSON(`/articles/${id}/engagement?visitor_id=${encodeURIComponent(articleVisitorId())}`);
-  document.getElementById("articleLikeCount").textContent=d.like_count||0;
-  document.getElementById("articleHypeCount").textContent=d.hype_count||0;
+  if(revision!==articleEngagementRevision||window.currentBoxOfficeXArticle?.id!==id)return;
+  document.getElementById("articleLikeCount").textContent=Number(d.like_count)||0;
+  document.getElementById("articleHypeCount").textContent=Number(d.hype_count)||0;
   document.getElementById("articleLikeBtn").classList.toggle("active",!!d.liked);
   document.getElementById("articleHypeBtn").classList.toggle("active",!!d.hyped);
  }catch(e){console.error(e)}
 }
+async function toggleArticleReaction(id,kind){
+ if(articleReactionPending[kind])return;
+ const button=document.getElementById(kind==="like"?"articleLikeBtn":"articleHypeBtn");
+ const counter=document.getElementById(kind==="like"?"articleLikeCount":"articleHypeCount");
+ if(!button||!counter)return;
+ articleReactionPending[kind]=true;
+ articleEngagementRevision++;
+ const wasActive=button.classList.contains("active");
+ const previousCount=Number(counter.textContent)||0;
+ button.classList.toggle("active",!wasActive);
+ counter.textContent=Math.max(0,previousCount+(wasActive?-1:1));
+ button.disabled=true;
+ try{
+  const d=await articleJSON(`/articles/${id}/${kind}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:articleVisitorId()})});
+  if(window.currentBoxOfficeXArticle?.id===id){
+   button.classList.toggle("active",!!d.active);
+   const count=Number(d[kind+"_count"]);
+   if(Number.isFinite(count))counter.textContent=count;
+   articleFanMessage(d.active?(kind==="like"?"You liked this article ❤️":"You hyped this story 🔥"):(kind==="like"?"Like removed":"Hype removed"));
+  }
+ }catch(error){
+  button.classList.toggle("active",wasActive);
+  counter.textContent=previousCount;
+  articleFanMessage(error.message||"Could not update reaction");
+ }finally{button.disabled=false;articleReactionPending[kind]=false}
+}
 async function loadArticleComments(id){
  const box=document.getElementById("articleComments");if(!box)return;
+ const revision=++articleCommentsRevision;
  try{
   const sort=document.getElementById("articleCommentSort")?.value||"newest";
   const d=await articleJSON(`/articles/${id}/comments?visitor_id=${encodeURIComponent(articleVisitorId())}&sort=${sort}&limit=30`);
-  const comments=d.comments||[];
-  box.innerHTML=comments.length?comments.map(c=>`<div class="article-comment-item"><div class="article-comment-author">${esc(c.display_name)}</div><div class="article-comment-body">${esc(c.comment_text)}</div><div class="article-comment-meta"><button class="article-comment-action" data-article-comment-like="${c.id}">👍 ${Number(c.like_count)||0}</button><button class="article-comment-action" data-article-comment-report="${c.id}">🚩 Report</button>${c.is_owner?`<button class="article-comment-action" data-article-comment-delete="${c.id}">🗑 Delete</button>`:""}</div></div>`).join(""):`<div class="article-fan-status">No comments yet. Be the first.</div>`;
+  if(revision!==articleCommentsRevision||window.currentBoxOfficeXArticle?.id!==id)return;
+  const comments=(d.comments||[]).filter(c=>!articleDeletedCommentIds.has(Number(c.id)));
+  box.innerHTML=comments.length?comments.map(c=>`<div class="article-comment-item" data-article-comment-id="${Number(c.id)}"><div class="article-comment-author">${esc(c.display_name)}</div><div class="article-comment-body">${esc(c.comment_text)}</div><div class="article-comment-meta"><button class="article-comment-action" data-article-comment-like="${c.id}">👍 ${Number(c.like_count)||0}</button><button class="article-comment-action" data-article-comment-report="${c.id}">🚩 Report</button>${c.is_owner?`<button class="article-comment-action" data-article-comment-delete="${c.id}">🗑 Delete</button>`:""}</div></div>`).join(""):`<div class="article-fan-status">No comments yet. Be the first.</div>`;
   const topData=await articleJSON(`/articles/${id}/comments?visitor_id=${encodeURIComponent(articleVisitorId())}&sort=top&limit=1`);
-  const top=(topData.comments||[])[0],topBox=document.getElementById("articleTopFan");
+  if(revision!==articleCommentsRevision||window.currentBoxOfficeXArticle?.id!==id)return;
+  const top=(topData.comments||[]).find(c=>!articleDeletedCommentIds.has(Number(c.id))),topBox=document.getElementById("articleTopFan");
   if(topBox&&top&&(Number(top.like_count)||0)>0){topBox.classList.add("show");topBox.innerHTML=`<div class="article-top-fan-label">🏆 Top Reader Comment</div><div class="article-top-fan-author">${esc(top.display_name)} • 👍 ${Number(top.like_count)||0}</div><div class="article-top-fan-body">${esc(top.comment_text)}</div>`}else if(topBox){topBox.classList.remove("show");topBox.innerHTML=""}
- }catch(e){box.innerHTML=`<div class="article-fan-status">${esc(e.message)}</div>`}
+ }catch(e){if(revision===articleCommentsRevision)box.innerHTML=`<div class="article-fan-status">${esc(e.message)}</div>`}
 }
 
 function articlePublicShareUrl(article){
@@ -7336,14 +7553,34 @@ document.addEventListener("click",async e=>{
  try{
   const shareButton=e.target.closest("[data-article-share]");
   if(shareButton){return shareBoxOfficeXArticle(shareButton.dataset.articleShare,a)}
-  if(e.target.closest("#articleLikeBtn")){await articleJSON(`/articles/${a.id}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await loadArticleEngagement(a.id);articleFanMessage("Your like has been counted ❤️");return}
-  if(e.target.closest("#articleHypeBtn")){await articleJSON(`/articles/${a.id}/hype`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await loadArticleEngagement(a.id);articleFanMessage("You hyped this story! +1 🔥");return}
+  if(e.target.closest("#articleLikeBtn")){return toggleArticleReaction(a.id,"like")}
+  if(e.target.closest("#articleHypeBtn")){return toggleArticleReaction(a.id,"hype")}
   const like=e.target.closest("[data-article-comment-like]");
   if(like){await articleJSON(`/article-comments/${like.dataset.articleCommentLike}/like`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleComments(a.id)}
   const report=e.target.closest("[data-article-comment-report]");
   if(report){await articleJSON(`/article-comments/${report.dataset.articleCommentReport}/report`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,reason:"User report"})});alert("Comment reported.");return}
   const del=e.target.closest("[data-article-comment-delete]");
-  if(del&&confirm("Delete your comment?")){await articleJSON(`/article-comments/${del.dataset.articleCommentDelete}`,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return loadArticleComments(a.id)}
+  if(del && await bxConfirmArticleCommentDelete()){
+   const commentId=Number(del.dataset.articleCommentDelete);
+   const row=del.closest(".article-comment-item");
+   const oldHTML=row?.outerHTML;
+   articleDeletedCommentIds.add(commentId);
+   articleCommentsRevision++;
+   row?.remove();
+   const topBox=document.getElementById("articleTopFan");
+   if(topBox){topBox.classList.remove("show");topBox.innerHTML=""}
+   try{
+    await articleJSON(`/article-comments/${commentId}`,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    await loadArticleComments(a.id);
+    articleFanMessage("Comment deleted");
+   }catch(error){
+    articleDeletedCommentIds.delete(commentId);
+    if(oldHTML&&row?.parentElement===null)document.getElementById("articleComments")?.insertAdjacentHTML("afterbegin",oldHTML);
+    await loadArticleComments(a.id);
+    articleFanMessage(error.message||"Could not delete comment");
+   }
+   return;
+  }
  }catch(err){alert(err.message)}
 });
 document.addEventListener("change",e=>{if(e.target.id==="articleCommentSort"&&window.currentBoxOfficeXArticle?.id)loadArticleComments(window.currentBoxOfficeXArticle.id)});
@@ -8901,6 +9138,62 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
     transform: none !important;
 }
 </style>
+
+<style id="bx-comment-delete-dialog-style">
+.bx-delete-overlay{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,17,.78);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.bx-delete-overlay.is-open{display:flex;animation:bxDeleteFade .18s ease-out}
+.bx-delete-dialog{width:min(100%,420px);padding:26px;border:1px solid #33425c;border-radius:20px;background:linear-gradient(145deg,#172238,#0d1424);box-shadow:0 24px 75px rgba(0,0,0,.55);color:#f4f7fb;font-family:Arial,Helvetica,sans-serif;animation:bxDeleteRise .2s ease-out}
+.bx-delete-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:rgba(255,70,85,.13);color:#ff6775;font-size:23px}
+.bx-delete-dialog h2{margin:17px 0 9px;font-size:23px;line-height:1.2;font-weight:800;color:#fff}
+.bx-delete-dialog p{margin:0 0 24px;font-size:14px;line-height:1.6;color:#afbdd3}
+.bx-delete-actions{display:flex;justify-content:flex-end;gap:10px}
+.bx-delete-actions button{min-height:43px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer}
+#bxDeleteCancel{border:1px solid #40506b;background:#202d43;color:#f0f5ff}
+#bxDeleteConfirm{border:1px solid #f34d5c;background:#ec4354;color:white}
+.bx-delete-actions button:focus-visible{outline:2px solid #82b5ff;outline-offset:3px}
+@keyframes bxDeleteFade{from{opacity:0}to{opacity:1}}
+@keyframes bxDeleteRise{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:480px){.bx-delete-dialog{padding:22px}.bx-delete-actions{display:grid;grid-template-columns:1fr 1fr}.bx-delete-actions button{padding:10px 7px}}
+@media(prefers-reduced-motion:reduce){.bx-delete-overlay.is-open,.bx-delete-dialog{animation:none}}
+</style>
+<div id="bxCommentDeleteOverlay" class="bx-delete-overlay" aria-hidden="true">
+ <div class="bx-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="bxDeleteTitle" aria-describedby="bxDeleteDescription">
+  <div class="bx-delete-icon" aria-hidden="true">&#128465;</div>
+  <h2 id="bxDeleteTitle">Delete comment?</h2>
+  <p id="bxDeleteDescription">Are you sure you want to delete this comment? This action cannot be undone.</p>
+  <div class="bx-delete-actions"><button type="button" id="bxDeleteCancel">Cancel</button><button type="button" id="bxDeleteConfirm">Delete Comment</button></div>
+ </div>
+</div>
+<script>
+function bxConfirmArticleCommentDelete(){
+ return new Promise(resolve=>{
+  const overlay=document.getElementById('bxCommentDeleteOverlay');
+  if(!overlay){resolve(false);return;}
+  const cancel=document.getElementById('bxDeleteCancel');
+  const confirmBtn=document.getElementById('bxDeleteConfirm');
+  const previousFocus=document.activeElement;
+  let finished=false;
+  function finish(result){
+   if(finished)return;finished=true;
+   overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');
+   cancel.removeEventListener('click',onCancel);confirmBtn.removeEventListener('click',onConfirm);
+   overlay.removeEventListener('click',onBackdrop);document.removeEventListener('keydown',onKey);
+   if(previousFocus?.isConnected)previousFocus.focus();
+   resolve(result);
+  }
+  function onCancel(){finish(false)}
+  function onConfirm(){finish(true)}
+  function onBackdrop(e){if(e.target===overlay)finish(false)}
+  function onKey(e){
+   if(e.key==='Escape'){e.preventDefault();finish(false)}
+   if(e.key==='Tab'){const target=e.shiftKey?confirmBtn:cancel;if(document.activeElement===(e.shiftKey?cancel:confirmBtn)){e.preventDefault();target.focus()}}
+  }
+  cancel.addEventListener('click',onCancel);confirmBtn.addEventListener('click',onConfirm);
+  overlay.addEventListener('click',onBackdrop);document.addEventListener('keydown',onKey);
+  overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');cancel.focus();
+ });
+}
+</script>
 </body>
 </html>
 <style id="bx-final-header-layout-fix-v4">
