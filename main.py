@@ -2902,8 +2902,9 @@ def _home_extra_ssr_sections():
             url = safe_url(movie_link(movie))
             title = esc(movie.get("title") or "Movie")
             lang = esc(movie.get("language") or movie.get("industry") or "Cinema")
-            poster = movie.get("poster") or DEFAULT_MOVIE_POSTER
-            poster = poster if _is_remote_image(poster) else "/posters/" + str(poster)
+            # Match the homepage's custom movie placeholders for SSR cards.
+            # These sections are marked data-ssr="1", so browser JS will not redraw them.
+            poster = _home_movie_placeholder(movie)
             metrics = (
                 f'👁 {int(movie.get("view_count") or 0):,} Views • 🔥 {int(movie.get("hype_count") or 0):,} Hype'
                 if kind == "trending_movies" else
