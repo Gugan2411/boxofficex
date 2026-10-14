@@ -876,6 +876,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <a href="/admin-daily-boxoffice.html">📅 Daily Box Office</a>
 <a href="/admin-regional-boxoffice.html">📍 Regional</a>
 <a href="/admin-articles.html" class="active">📰 Articles</a>
+<a href="#seo-views" id="seoViewsNav">📈 SEO & Views</a>
 <a href="/admin.html#actors">👤 Actors</a>
 <a href="/admin.html#actor-links">🔗 Actor Links</a>
 <a href="/admin.html#collections">📊 Collections</a>
@@ -1074,6 +1075,14 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 </section>
 </div>
 </main>
+<section id="seoViewsPanel" hidden style="width:min(1500px,calc(100% - 24px));margin:22px auto 65px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+    <h1 style="font-size:24px">SEO & Article Views</h1>
+    <button type="button" class="btn btn-dark" id="seoBackToEditor">← Back to Article Editor</button>
+  </div>
+  <iframe id="seoViewsFrame" title="BoxOfficeX SEO and Views Monitor" style="display:block;width:100%;height:calc(100vh - 190px);min-height:650px;border:1px solid #29334d;border-radius:16px;background:#070a12" loading="lazy"></iframe>
+</section>
+
 
 <div id="toast" class="toast"></div>
 
@@ -4375,5 +4384,34 @@ if($("trackingEnabled")){
 }
 </script>
 
+
+<script>
+(function(){
+ const nav=document.getElementById('seoViewsNav');
+ const panel=document.getElementById('seoViewsPanel');
+ const frame=document.getElementById('seoViewsFrame');
+ const editor=document.querySelector('main');
+ const back=document.getElementById('seoBackToEditor');
+ const dashboardHtml="\u003c!doctype html>\u003chtml lang=\"en\">\u003chead>\u003cmeta charset=\"utf-8\">\u003cmeta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\u003ctitle>SEO & Views Monitor | BoxOfficeX Admin\u003c/title>\u003cstyle>\n:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#070a12;color:#f4f7fb;font:14px Arial,sans-serif}header{padding:18px 24px;background:#101725;border-bottom:1px solid #29334d;display:flex;gap:20px;align-items:center;flex-wrap:wrap}a{color:#9fc2ff}main{max-width:1280px;margin:auto;padding:24px 16px}h1{font-size:26px}h2{font-size:18px}.muted{color:#9ba8c1}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.card,.panel{border:1px solid #29334d;background:#101725;border-radius:14px;padding:17px}.stat{font-size:26px;font-weight:800;margin-top:10px}.layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:14px;margin-top:18px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}input,select,button{border:1px solid #29334d;background:#151d31;color:#fff;border-radius:8px;padding:10px}input{flex:1;min-width:170px}button{cursor:pointer}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #29334d;padding:11px 8px}th{color:#9ba8c1;font-size:12px}tr[data-id]{cursor:pointer}tr[data-id]:hover{background:#1a2640}.scroll{overflow:auto;max-height:65vh}.good{color:#73e2aa}.warn{color:#ffcc33}.value{overflow-wrap:anywhere;line-height:1.6;margin:6px 0 17px}.label{font-size:11px;color:#9ba8c1;text-transform:uppercase}code{color:#9fc2ff}#error{color:#ff9292}@media(max-width:800px){.layout{grid-template-columns:1fr}}\n\u003c/style>\u003c/head>\u003cbody>\u003cheader>\u003cstrong>\ud83c\udfac BOXOFFICE\u003cspan style=\"color:#ffcc33\">X\u003c/span> \u00b7 Admin\u003c/strong>\u003ca href=\"/admin-articles.html\">\u2190 Article Editor\u003c/a>\u003cspan class=\"muted\">SEO & Traffic Monitor \u00b7 Owner only \u00b7 Read-only\u003c/span>\u003c/header>\u003cmain>\u003ch1>SEO & Article Views\u003c/h1>\u003cp class=\"muted\">SEO title below is a safe preview. Actual server-rendered metadata may contain collection figures; use the public source to verify exact output.\u003c/p>\u003cdiv class=\"stats\">\u003cdiv class=\"card\">Articles\u003cdiv class=\"stat\" id=\"total\">\u2014\u003c/div>\u003c/div>\u003cdiv class=\"card\">Published\u003cdiv class=\"stat\" id=\"published\">\u2014\u003c/div>\u003c/div>\u003cdiv class=\"card\">Lifetime views\u003cdiv class=\"stat\" id=\"views\">\u2014\u003c/div>\u003c/div>\u003cdiv class=\"card\">Articles with warnings\u003cdiv class=\"stat\" id=\"warnings\">\u2014\u003c/div>\u003c/div>\u003c/div>\u003cp id=\"clock\" class=\"muted\">\u003c/p>\u003cp id=\"error\">\u003c/p>\u003cdiv class=\"layout\">\u003csection class=\"panel\">\u003ch2>Article performance\u003c/h2>\u003cdiv class=\"toolbar\">\u003cinput id=\"search\" placeholder=\"Search article or movie\">\u003cselect id=\"filter\">\u003coption value=\"all\">All articles\u003c/option>\u003coption value=\"live\">Auto trackers\u003c/option>\u003coption value=\"warnings\">Warnings\u003c/option>\u003c/select>\u003cbutton id=\"refresh\">Refresh\u003c/button>\u003c/div>\u003cdiv class=\"scroll\">\u003ctable>\u003cthead>\u003ctr>\u003cth>Article\u003c/th>\u003cth>Views\u003c/th>\u003cth>SEO\u003c/th>\u003c/tr>\u003c/thead>\u003ctbody id=\"rows\">\u003c/tbody>\u003c/table>\u003c/div>\u003c/section>\u003csection class=\"panel\">\u003ch2>SEO inspector\u003c/h2>\u003cdiv id=\"detail\" class=\"muted\">Select an article to inspect.\u003c/div>\u003c/section>\u003c/div>\u003cp class=\"muted\">Daily / yesterday / 7-day view counts and unique visitors are not available from the existing lifetime-only article counter. No figures are fabricated.\u003c/p>\u003c/main>\u003cscript>\nlet articles=[],selected=null;const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString('en-IN');function el(tag,text,cls){const x=document.createElement(tag);x.textContent=text??'';if(cls)x.className=cls;return x}function detail(a){selected=a.id;const d=$('detail');d.replaceChildren();for(const [k,v] of [['Article',a.article_title],['Movie',a.movie||'Not linked'],['Current SEO day',a.day?'Day '+a.day:'Not active'],['SEO title preview',a.seo_title],['Meta description preview',a.meta_description],['Canonical',a.canonical],['Lifetime views',fmt(a.views)],['Status',a.status],['Warnings',a.warnings.join(' \u00b7 ')||'None']]){d.append(el('div',k,'label'),el('div',v,'value'))}const link=el('a','Open public article \u2197');link.href='/article/'+encodeURIComponent(a.slug||'');link.target='_blank';link.rel='noopener';d.append(link)}function render(){const q=$('search').value.toLowerCase(),f=$('filter').value;const list=articles.filter(a=>(a.article_title+' '+(a.movie||'')).toLowerCase().includes(q)&&(f==='all'||(f==='live'&&a.auto_tracker)||(f==='warnings'&&a.warnings.length)));const body=$('rows');body.replaceChildren();for(const a of list){const tr=el('tr');tr.dataset.id=a.id;const name=el('td',a.article_title),v=el('td',fmt(a.views)),st=el('td',a.warnings.length?'\u26a0 '+a.warnings.length:'\u2713 OK',a.warnings.length?'warn':'good');tr.append(name,v,st);tr.addEventListener('click',()=>detail(a));body.append(tr)}if(selected){const a=articles.find(x=>x.id===selected);if(a)detail(a)}}async function load(){try{$('error').textContent='';const r=await fetch('/admin/seo-monitor/data',{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status+' \u2014 please sign in as Owner');const data=await r.json();articles=data.articles||[];$('total').textContent=fmt(articles.length);$('published').textContent=fmt(articles.filter(a=>a.status==='published').length);$('views').textContent=fmt(articles.reduce((n,a)=>n+a.views,0));$('warnings').textContent=fmt(articles.filter(a=>a.warnings.length).length);$('clock').textContent='Snapshot: '+data.generated_at+' \u00b7 Next 6 AM rollover: '+data.next_rollover;render()}catch(e){$('error').textContent='Could not load monitor: '+e.message}}$('refresh').onclick=load;$('search').oninput=render;$('filter').onchange=render;load();\n\u003c/script>\u003c/body>\u003c/html>";
+ let loaded=false;
+ function show(){
+  editor.hidden=true;editor.style.display='none';panel.hidden=false;
+  document.querySelectorAll('.admin-nav a').forEach(a=>a.classList.remove('active'));nav.classList.add('active');
+  if(!loaded){frame.srcdoc=dashboardHtml;loaded=true;}
+  window.scrollTo(0,0);
+ }
+ function hide(){
+  panel.hidden=true;editor.hidden=false;editor.style.display='';
+  nav.classList.remove('active');
+  const articles=document.querySelector('.admin-nav a[href="/admin-articles.html"]');
+  if(articles)articles.classList.add('active');
+  window.scrollTo(0,0);
+ }
+ nav.addEventListener('click',()=>{setTimeout(show,0)});
+ back.addEventListener('click',()=>{if(location.hash==='#seo-views')history.replaceState(null,'',location.pathname);hide();});
+ window.addEventListener('hashchange',()=>{if(location.hash==='#seo-views')show();else hide();});
+ if(location.hash==='#seo-views')show();
+})();
+</script>
 </body>
 </html>

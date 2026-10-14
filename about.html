@@ -72,10 +72,20 @@
 <meta name="twitter:image" content="https://boxofficex.in/images/boxofficex-share.jpg">
 <meta name="twitter:image:alt" content="About BoxOfficeX - Movie Box Office Platform">
 
-    <script
-        id="aboutStructuredData"
-        type="application/ld+json"
-    ></script>
+    <script id="aboutStructuredData" type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "name": "About BoxOfficeX - Movie Box Office Platform",
+      "url": "https://boxofficex.in/about.html",
+      "description": "Learn about BoxOfficeX, an independent movie box-office platform for collections, rankings, actor careers, regional tracking and comparisons.",
+      "mainEntity": {
+        "@type": "Organization",
+        "name": "BoxOfficeX",
+        "url": "https://boxofficex.in/"
+      }
+    }
+    </script>
 
 
     <style>
@@ -2056,31 +2066,6 @@ html,body{scroll-padding-top:0!important}
         );
     }
 
-    const structuredData = {
-        "@context": "https://schema.org",
-        "@type": "AboutPage",
-        "name": "About BoxOfficeX",
-        "url": canonical,
-        "description":
-            "Learn about BoxOfficeX, an independent movie box-office platform for collections, rankings, actor careers, regional tracking and comparisons.",
-        "mainEntity": {
-            "@type": "Organization",
-            "name": "BoxOfficeX",
-            "url": window.location.origin + "/index.html"
-        }
-    };
-
-    const jsonLd =
-        document.getElementById(
-            "aboutStructuredData"
-        );
-
-    if (jsonLd) {
-        jsonLd.textContent =
-            JSON.stringify(
-                structuredData
-            );
-    }
 
 })();
 

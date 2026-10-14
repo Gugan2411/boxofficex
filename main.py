@@ -13028,6 +13028,26 @@ def _article_ssr_nonnegative_number(value):
         return None
 
 
+def _article_ssr_business_money(value):
+    """Display stored crore amounts as Cr, Lakh or rupees without rounding tiny values to zero."""
+    from decimal import Decimal, InvalidOperation
+    try:
+        if value is None or str(value).strip() == "":
+            return ""
+        n = Decimal(str(value).replace(",", "").strip())
+        if not n.is_finite():
+            return ""
+        def shown(x):
+            return format(x, ",f").rstrip("0").rstrip(".") if "." in format(x, "f") else format(x, ",f")
+        if abs(n) >= 1:
+            return f"₹{shown(n)} Cr"
+        if abs(n) >= Decimal("0.01"):
+            return f"₹{shown(n * 100)} Lakh"
+        return f"₹{shown(n * 10000000)}"
+    except (InvalidOperation, ValueError, TypeError):
+        return html_escape(str(value))
+
+
 def _article_ssr_sum_value_rows(rows):
     values = []
     for row in rows if isinstance(rows, list) else []:
@@ -13036,7 +13056,7 @@ def _article_ssr_sum_value_rows(rows):
         value = _article_ssr_nonnegative_number(row.get("value"))
         if value is not None:
             values.append(value)
-    return round(sum(values), 2) if values else None
+    return sum(values) if values else None
 
 
 def _article_ssr_pre_release_business(data, article=None):
@@ -13069,11 +13089,11 @@ def _article_ssr_pre_release_business(data, article=None):
     if theatrical is None: theatrical = _article_ssr_sum_value_rows(theatrical_rows)
     if non_theatrical is None: non_theatrical = _article_ssr_sum_value_rows(non_theatrical_rows)
     if total is None and (theatrical is not None or non_theatrical is not None):
-        total = round((theatrical or 0) + (non_theatrical or 0), 2)
+        total = (theatrical or 0) + (non_theatrical or 0)
     if not (budget_rows or theatrical_rows or non_theatrical_rows or any(v is not None for v in (budget, theatrical, non_theatrical, total))):
         return ""
 
-    def money(value): return _article_ssr_money(value)
+    def money(value): return _article_ssr_business_money(value)
     def table(group_rows, total_value, total_label, with_partner=False, kind=""):
         if not group_rows and total_value is None: return ""
         head = '<th>Rights</th><th>Value</th><th>Partner</th>' if with_partner else '<th>Component / Territory</th><th>Value</th>'
@@ -13155,7 +13175,7 @@ def _article_ssr_salary_details(data, article=None):
             cells = [f'<td data-label="Name"><strong>{html_escape(person["name"])}</strong></td>']
             for key,label,getter in visible:
                 value = getter(person)
-                if key == "salary": shown = _article_ssr_money(value) if value is not None else "—"
+                if key == "salary": shown = _article_ssr_business_money(value) if value is not None else "—"
                 elif key == "profit_share": shown = f'{value:g}%' if value is not None else "—"
                 else: shown = html_escape(value) if value else "—"
                 cells.append(f'<td data-label="{html_escape(label, quote=True)}">{shown}</td>')
@@ -13165,7 +13185,7 @@ def _article_ssr_salary_details(data, article=None):
     salaries = [p["salary"] for p in people if p["salary"] is not None]
     total_html = ''
     if salaries:
-        total_html = f'<div class="bx-salary-total"><span>Total Listed Fixed Salaries</span><strong>{_article_ssr_money(round(sum(salaries),2))}</strong></div>'
+        total_html = f'<div class="bx-salary-total"><span>Total Listed Fixed Salaries</span><strong>{_article_ssr_business_money(sum(salaries))}</strong></div>'
     status = str(data.get("status") or "").strip()
     note = str(data.get("note") or "").strip()
     disclaimer = "Salary, profit-share and rights figures shown above are based on publicly reported information and industry estimates where applicable. Actual remuneration and contractual terms may differ and may not be officially disclosed."
@@ -13676,6 +13696,61 @@ def _article_normalize_seo_text(value):
         )
     return text
 
+def _bx_live_article_topics(article):
+    """Return topics supported by visible article content and structured blocks."""
+    blocks = [b for b in (article.get("blocks") or []) if isinstance(b, dict)]
+    types = {str(b.get("block_type") or "").lower() for b in blocks}
+    # Headings and paragraphs are the strongest evidence of visible subjects.
+    text = " ".join(str(b.get("content") or "")[:2500] for b in blocks
+                    if str(b.get("block_type") or "").lower() in {"heading", "paragraph"})
+    text = re.sub(r"<[^>]*>", " ", html.unescape(text))
+    text = re.sub(r"\s+", " ", text)
+    topics = []
+    def add(topic, pattern, block_types=()):
+        if re.search(pattern, text, re.I) or types.intersection(block_types):
+            topics.append(topic)
+    add("day-wise collections", r"\bday[- ]wise\b|\bdaily (?:box office|collections?)\b", {"boxoffice"})
+    add("area-wise collections", r"\barea[- ]wise\b|\bterritory[- ]wise\b|\bstate[- ]wise\b|\bregional collections?\b")
+    add("advance booking", r"\badvance booking\b|\bpre[- ]sales\b|\btickets (?:sold|booked)\b")
+    add("budget", r"\bbudget\b|\bproduction cost\b")
+    add("theatrical rights", r"\btheatrical rights\b|\bdistribution rights\b|\btheatrical business\b", {"pre_release_business"})
+    add("OTT rights", r"\bOTT rights\b|\bdigital rights\b|\bstreaming rights\b")
+    add("cast salaries", r"\bcast (?:and|&) crew salar(?:y|ies)\b|\bcast salar(?:y|ies)\b|\bremuneration\b", {"salary_details"})
+    add("theatrical recovery", r"\btheatrical recovery\b|\bbreakeven\b|\bbreak[- ]even\b")
+    return list(dict.fromkeys(topics))
+
+
+def _bx_live_meta_description(name, day, values, topics):
+    """Collection-first, content-aware description; never borrow prior-day figures."""
+    def cr(value):
+        return f"₹{float(value):,.2f} Cr"
+    worldwide, india, overseas = (values.get(k) for k in
+                                   ("worldwide_gross", "india_gross", "overseas_gross"))
+    prefix = f"{name} Day {day} box office live: "
+    if worldwide is not None:
+        core = f"{cr(worldwide)} worldwide"
+        if india is not None:
+            core += f", {cr(india)} India"
+        if overseas is not None:
+            core += f", {cr(overseas)} overseas"
+    elif india is not None:
+        core = f"{cr(india)} India gross"
+        if overseas is not None:
+            core += f", {cr(overseas)} overseas"
+    elif overseas is not None:
+        core = f"{cr(overseas)} overseas gross"
+    else:
+        core = "latest collections"
+    description = prefix + core
+    # Add the highest-value subjects actually present on this article, not a
+    # fixed list of keyword promises. Never cut a money figure in half.
+    for topic in topics:
+        candidate = description + ", " + topic
+        if len(candidate) + 1 <= 165:
+            description = candidate
+    return description.rstrip(" ,") + "."
+
+
 def _bx_auto_only_seo(article):
     """Live SEO directly from the same automatic schedule used by SSR cards.
 
@@ -13713,6 +13788,8 @@ def _bx_auto_only_seo(article):
     worldwide = values.get("worldwide_gross")
     india = values.get("india_gross")
     overseas = values.get("overseas_gross")
+    topics = _bx_live_article_topics(article)
+    description = _bx_live_meta_description(name, day, values, topics)
     if worldwide is not None:
         amount, region = worldwide, "Worldwide"
     elif india is not None:
@@ -13720,16 +13797,15 @@ def _bx_auto_only_seo(article):
     elif overseas is not None:
         amount, region = overseas, "Overseas Gross"
     else:
-        return None
+        # New box-office day: no previous-day collection in SEO.
+        h1 = f"{name} Day {day} Box Office Collection Live Updates"
+        return {"mode": "LIVE", "day": day, "h1": h1,
+                "seo_title": h1, "meta_description": description,
+                "current_day_gross": None, "current_day_is_estimate": False,
+                "auto_live_values": values, "source": "automatic_live_schedule"}
     h1 = f"{name} Day {day} Collection Live: {cr(amount)} {region}"
-    seo_title = f"{name} Day {day} Collection Live: {cr(amount)} {region}"
-    description = f"{name} Day {day} {region.lower()} collection is {cr(amount)}."
-    if india is not None and overseas is not None:
-        description = (f"{name} Day {day} worldwide gross is {cr(worldwide)}, "
-                       f"including {cr(india)} India gross and {cr(overseas)} overseas gross. "
-                       "Follow live updates.")
     return {"mode": "LIVE", "day": day, "h1": h1,
-            "seo_title": seo_title, "meta_description": description,
+            "seo_title": h1, "meta_description": description,
             "current_day_gross": amount, "current_day_is_estimate": True,
             "auto_live_values": values, "source": "automatic_live_schedule"}
 
@@ -13763,6 +13839,126 @@ def _article_apply_tracking_ctr(article):
     article["generated_tracking_seo"] = generated
     return article, generated
 
+
+
+# Universal article SEO: no film-specific rules or database changes.
+def _bx_article_weak_seo(value, article, *, description=False):
+    """Recognize empty, duplicated and obviously generic metadata conservatively."""
+    value = re.sub(r"\s+", " ", str(value or "")).strip()
+    headline = re.sub(r"\s+", " ", str(article.get("title") or "")).strip()
+    if not value:
+        return True
+    plain = re.sub(r"\s*\|\s*BoxOfficeX\s*$", "", value, flags=re.I).strip()
+    if plain.casefold() in {"article", "boxofficex article", "box office collection", "movie box office collection"}:
+        return True
+    if description:
+        if plain.casefold() == headline.casefold():
+            return True
+        # A short description that is just the generic film + topic does not
+        # explain a comprehensive article. Don't overwrite informative copy.
+        if len(plain) < 65 and re.search(r"\b(box office collection|movie update|latest news)\b", plain, re.I):
+            return True
+        return False
+    # A movie-name + generic collection title is weak when the actual
+    # editorial headline covers a different lifecycle topic, even if shorter.
+    movie = _article_seo_movie_name(article)
+    if movie and plain.casefold() != headline.casefold():
+        remainder = plain[len(movie):].strip(" :-|–—") if plain.casefold().startswith(movie.casefold()) else ""
+        if remainder.casefold() in {"box office collection", "box office collections", "movie update", "latest news", "box office update"}:
+            return True
+    if len(plain) < 55 and len(headline) >= len(plain) + 12:
+        movie = _article_seo_movie_name(article)
+        if movie and plain.casefold().startswith(movie.casefold()) and re.search(
+            r"\b(box office|collection|budget|update|news)\b", plain, re.I
+        ):
+            return True
+    return False
+
+
+def _bx_article_universal_seo(article):
+    """Content-aware, universal article SEO; no invented financial facts.
+
+    Live/final tracking metadata has precedence. Strong editorial overrides
+    remain authoritative. Weak generic titles/descriptions use the actual
+    article H1, linked movie and the topics present in published blocks.
+    """
+    if article.get("generated_tracking_seo"):
+        return article
+    headline = _article_normalize_seo_text(article.get("title") or "")
+    if not headline:
+        return article
+    result = dict(article)
+    stored_title = str(article.get("meta_title") or "").strip()
+    stored_description = str(article.get("meta_description") or "").strip()
+    subtitle = re.sub(r"\s+", " ", str(article.get("subtitle") or "")).strip()
+
+    # Inspect the actual editorial headings and text as well as structured
+    # blocks. Presence of an unused tracker must not imply a live collection.
+    blocks = [b for b in (article.get("blocks") or []) if isinstance(b, dict)]
+    types = {str(b.get("block_type") or "").strip().lower() for b in blocks}
+    visible_text = " ".join(
+        str(b.get("content") or "")[:1000] for b in blocks
+        if str(b.get("block_type") or "").lower() in {"heading", "paragraph"}
+    )
+    visible_text = re.sub(r"<[^>]*>", " ", visible_text)
+    context = " ".join((headline, subtitle, visible_text))
+    def has(pattern):
+        return bool(re.search(pattern, context, re.I))
+
+    topics = []
+    if "pre_release_business" in types or has(r"\b(pre[- ]release business|theatrical rights|distribution rights|non[- ]theatrical rights)\b"):
+        topics.append("theatrical and non-theatrical rights")
+    if "salary_details" in types or has(r"\b(cast (?:and|&) crew salar(?:y|ies)|actor salar(?:y|ies)|remuneration)\b"):
+        topics.append("cast and crew salaries")
+    if has(r"\b(budget|production cost)\b"):
+        topics.insert(0, "budget")
+    if has(r"\b(advance booking|pre[- ]sales|tickets (?:sold|booked)|ticket sales)\b"):
+        topics.append("advance booking")
+    # A real box-office report block is sufficient for the collection topic;
+    # don't infer that Day N data exists without an actual tracking report.
+    if "boxoffice" in types or has(r"\b(day[- ]wise collections?|worldwide (?:gross|collection)|box office collections?)\b"):
+        topics.append("box office collections")
+    if has(r"\b(final verdict|theatrical verdict|lifetime collections?)\b"):
+        topics.append("lifetime performance and verdict")
+    topics = list(dict.fromkeys(topics))
+
+    if _bx_article_weak_seo(stored_title, article):
+        # The visible H1 is the editorial headline; align the search title
+        # with it instead of changing a published article's heading or URL.
+        result["meta_title"] = headline
+    if _bx_article_weak_seo(stored_description, article, description=True):
+        if subtitle and subtitle.casefold() != headline.casefold() and len(subtitle) >= 65:
+            description = subtitle
+        elif topics:
+            movie = _article_seo_movie_name(article)
+            subject = movie if movie and len(movie) < 65 else headline
+            # Prefer factual figures actually written in the article. This
+            # avoids generic snippets and never fabricates financial data.
+            factual_parts = []
+            for block in blocks:
+                if str(block.get("block_type") or "").lower() not in {
+                    "paragraph", "heading", "boxoffice", "pre_release_business",
+                    "salary_details", "table",
+                }:
+                    continue
+                part = re.sub(r"<[^>]*>", " ", str(block.get("content") or ""))
+                part = re.sub(r"\s+", " ", part).strip()
+                if part and re.search(r"₹\s*[\d,.]+\s*(?:Cr|crore|lakh)|\b\d[\d,]*\s*(?:tickets|shows)\b", part, re.I):
+                    factual_parts.append(part)
+                if len(factual_parts) >= 2:
+                    break
+            if factual_parts:
+                description = f"{subject}: " + "; ".join(factual_parts)
+            else:
+                description = f"Explore {subject}: " + ", ".join(topics[:4]) + ". Get the latest available details on BoxOfficeX."
+        elif subtitle and subtitle.casefold() != headline.casefold():
+            description = subtitle
+        else:
+            description = f"Read {headline} on BoxOfficeX, with the latest available details and analysis."
+        if len(description) > 165:
+            description = description[:162].rsplit(" ", 1)[0].rstrip(" ,;:") + "..."
+        result["meta_description"] = _article_normalize_seo_text(description)
+    return result
 
 
 def _article_seo_movie_name(article):
@@ -13810,16 +14006,16 @@ def _article_seo_faq_items(article):
             if worldwide is not None:
                 items.append((
                     f"What is {movie_name} Day {day} worldwide collection?",
-                    f"The estimated Day {day} worldwide gross is {cr(worldwide)}, "
+                    f"{movie_name} Day {day} worldwide gross stands at {cr(worldwide)}, "
                     f"including {cr(india)} India gross and {cr(overseas)} overseas gross. "
-                    "These are automatic live estimates, not confirmed final collections."
+                    "Live figures are subject to change and are not confirmed final collections."
                 ))
             elif india is not None or overseas is not None:
                 region = "India" if india is not None else "overseas"
                 amount = india if india is not None else overseas
                 items.append((
                     f"What is {movie_name} Day {day} {region} gross?",
-                    f"The estimated Day {day} {region} gross is {cr(amount)}."
+                    f"{movie_name} Day {day} {region} gross stands at {cr(amount)}. Live figures may change."
                 ))
         # The permanent report is authoritative whenever tracking is OFF.
         # No stale live-day FAQ or live-tracker wording in permanent mode.
@@ -14028,6 +14224,7 @@ def _render_article_detail_html(slug):
     # Box Office Tracking articles get generated H1/search metadata from the same
     # stored report + theatrical calculations rendered on this page.
     article, _generated_tracking_seo = _article_apply_tracking_ctr(article)
+    article = _bx_article_universal_seo(article)
 
     article_file = BASE_DIR / "article.html"
     if not article_file.is_file():
@@ -15770,6 +15967,7 @@ def get_article(slug: str):
             block["extra_data"] = extra
         safe_blocks.append(block)
     article["blocks"] = safe_blocks
+    article = _bx_article_universal_seo(article)
     return {"article": article}
 
 
@@ -16487,6 +16685,7 @@ def admin_article_generated_seo_preview(article_id: int):
             block["extra_data"] = extra
 
     final_article, generated = _article_apply_tracking_ctr(article)
+    final_article = _bx_article_universal_seo(final_article)
 
     title = str(final_article.get("title") or "BoxOfficeX Article").strip()
     seo_title = str(final_article.get("meta_title") or title).strip()
@@ -26939,3 +27138,75 @@ def bx_toggle_actor_reaction(actor_id: int, reaction: str, data: VisitorActionDa
             count=cur.fetchone()[0]
             conn.commit()
     return {'success':True,'active':not removed,'reaction':reaction,'count':count}
+
+
+
+# BOXOFFICEX READ-ONLY SEO / TRAFFIC MONITOR
+@app.get("/admin/seo-monitor/data", dependencies=[Depends(require_owner)])
+def bx_admin_seo_monitor_data():
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    tracking_date = (now - timedelta(hours=6)).date()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT a.id, a.title, a.slug, a.status, COALESCE(a.views,0),
+                       a.meta_title, a.meta_description, a.tracking_enabled,
+                       a.published_at, a.updated_at, a.tracking_day,
+                       EXISTS(SELECT 1 FROM article_blocks b WHERE b.article_id=a.id
+                              AND b.block_type='auto_live_tracker') AS has_auto_tracker,
+                       (SELECT m.title FROM article_movies am JOIN movies m ON m.id=am.movie_id
+                        WHERE am.article_id=a.id ORDER BY am.movie_id LIMIT 1) AS movie_title,
+                       (SELECT m.release_date FROM article_movies am JOIN movies m ON m.id=am.movie_id
+                        WHERE am.article_id=a.id ORDER BY am.movie_id LIMIT 1) AS release_date
+                FROM articles a ORDER BY a.views DESC NULLS LAST, a.id DESC
+            """)
+            rows=cur.fetchall()
+    result=[]
+    for r in rows:
+        release=r[13]
+        if isinstance(release, datetime): release=release.date()
+        elif isinstance(release,str):
+            try: release=date.fromisoformat(release[:10])
+            except ValueError: release=None
+        live=bool(r[7]) and bool(r[11]) and bool(r[12]) and isinstance(release,date)
+        day=(tracking_date-release).days+1 if live else None
+        if day is not None and day<1: day=None
+        title=str(r[12] or r[5] or r[1] or '')
+        if day is not None:
+            title=f"{r[12]} Day {day} Box Office Collection Live Updates"
+        description=(f"{r[12]} Day {day} box office collection live updates. Follow India, overseas and worldwide gross as new figures become available." if day is not None else str(r[6] or ''))
+        # Use the exact public article pipeline rather than a guessed SEO preview.
+        # Only inspect live published auto-trackers; other rows retain saved metadata.
+        if r[3] == 'published' and r[2] and bool(r[7]) and bool(r[11]):
+            try:
+                public_response = get_article(str(r[2]))
+                public_article = public_response.get('article') if isinstance(public_response, dict) else None
+                if public_article:
+                    public_article, _ = _article_apply_tracking_ctr(public_article)
+                    public_article = _bx_article_universal_seo(public_article)
+                    title = _article_normalize_seo_text(str(public_article.get('meta_title') or public_article.get('title') or ''))
+                    if title and 'boxofficex' not in title.lower():
+                        title += ' | BoxOfficeX'
+                    description = _article_normalize_seo_text(str(public_article.get('meta_description') or public_article.get('subtitle') or ''))
+            except Exception:
+                # Avoid claiming a guessed value is the exact public SEO output.
+                title = 'Unable to inspect live public SEO'
+                description = 'Public SEO inspection failed; check the article page source.'
+        warnings=[]
+        if str(r[2] or '') == 'boxofficex-tracker-test-2026':
+            warnings.append('Test article: intentionally noindex')
+        if not r[2]: warnings.append('Missing slug')
+        if not title: warnings.append('Missing SEO title')
+        if not description: warnings.append('Missing meta description')
+        if r[3]!='published': warnings.append('Not published')
+        if bool(r[7]) and bool(r[11]) and not r[12]: warnings.append('Tracker has no linked movie')
+        result.append(dict(id=r[0],article_title=r[1],slug=r[2],status=r[3],views=int(r[4]),
+                           seo_title=title,meta_description=description,tracking_enabled=bool(r[7]),
+                           auto_tracker=bool(r[11]),movie=r[12],day=day,warnings=warnings,
+                           canonical='https://boxofficex.in/article/'+str(r[2] or ''),
+                           updated_at=r[9].isoformat() if r[9] else None))
+    next_rollover=datetime.combine(now.date(), time(6,0), tzinfo=ZoneInfo('Asia/Kolkata'))
+    if now>=next_rollover: next_rollover+=timedelta(days=1)
+    return {'generated_at':now.isoformat(),'next_rollover':next_rollover.isoformat(),
+            'traffic_note':'Lifetime article views only. Existing /articles/{id}/view increments on each accepted POST; unique visitors and daily breakdown are not currently measured.',
+            'articles':result}
