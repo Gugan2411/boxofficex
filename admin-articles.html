@@ -862,6 +862,14 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 .auto-add-region button{min-height:46px;border:1px solid #4c6489;border-radius:11px;background:#1a2a44;color:#fff;font-weight:800;cursor:pointer}
 .auto-add-region button:hover{background:#263d60;border-color:#75a7f5}
 @media(max-width:650px){.auto-add-region{grid-template-columns:1fr}.auto-region-card{padding:12px}}
+/* Manual related links — small independent editor section */
+.bx-manual-admin{margin-top:20px;padding:15px;border:1px solid rgba(77,141,255,.24);border-radius:14px;background:#0c1220}
+.bx-manual-results{max-height:200px;overflow:auto;margin-top:7px}
+.bx-manual-result,.bx-manual-chip{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;margin-top:5px;border-radius:9px;background:#151d31;color:#dce5f5;font-size:11px}
+.bx-manual-result{cursor:pointer}.bx-manual-result:hover{background:#223552}
+.bx-manual-result button,.bx-manual-chip button{flex:0 0 auto;padding:5px 9px;font-size:11px;background:#243957;color:#a9c9ff}
+.bx-manual-chip button{background:#351919;color:#ff9a9a}
+.bx-manual-selected{margin-top:8px}
 </style>
 </head>
 <body>
@@ -1049,6 +1057,13 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 </div>
 
 
+<div class="bx-manual-admin" id="bxManualRelatedPanel">
+  <label style="font-size:14px;color:#fff">🔗 Related Articles <span style="color:#8e99b3;font-size:10px">(Optional)</span></label>
+  <div class="note" style="margin:6px 0 10px">Search published articles and select the links to show below this article.</div>
+  <input id="bxManualRelatedSearch" placeholder="Search article title..." autocomplete="off">
+  <div id="bxManualRelatedResults" class="bx-manual-results"></div>
+  <div id="bxManualRelatedSelected" class="bx-manual-selected"></div>
+</div>
 <div class="blocks-head">
 <h2>Content Blocks</h2>
 <div class="block-add">
@@ -1165,6 +1180,7 @@ let loadedTrackingEnabled=true;
 
 let currentStatus="draft";
 let articles=[];
+let bxManualRelatedIds=[];
 let blocks=[];
 let deletedBlockIds=[];
 let CURRENT_ARTICLE_ADMIN=null;
@@ -1458,6 +1474,7 @@ function updateBadge(){
 const b=$("statusBadge");b.textContent=currentStatus;b.className="status-pill status-"+currentStatus;
 }
 function resetEditor(){
+bxManualRelatedIds=[];bxRenderManualRelated();
 currentArticleId=null;currentStatus="draft";blocks=[];deletedBlockIds=[];
 applySlugLock(false);
 ["title","slug","subtitle","heroImage","heroCaption","heroCredit","metaTitle","metaDescription"].forEach(id=>$(id).value="");
@@ -2478,6 +2495,7 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
     <div class="note">Temporary estimated live numbers only. Never updates the day-wise collection report. Times are IST.</div>
     <div class="block-row" style="margin-top:10px">
       <label><input type="checkbox" data-auto-root="enabled" ${lt.enabled?"checked":""} style="width:auto"> Enable automatic tracker</label>
+      <label><input type="checkbox" data-auto-root="permanent_daily_save" ${lt.permanent_daily_save?"checked":""} style="width:auto"> Save this day permanently when tracker ends</label>
       <label><input type="checkbox" data-auto-root="paused" ${lt.paused?"checked":""} style="width:auto"> Pause automation</label>
     </div>
     <div class="block-row" style="margin-top:9px">
@@ -3241,6 +3259,7 @@ try{
     if(count)count.textContent=articles.length+" total";
 
     renderArticleList();
+    bxRenderManualRelated();
 }catch(error){
     console.error("LOAD ARTICLES ERROR:",error);
 
@@ -3439,6 +3458,7 @@ if(!a){
     return;
 }
 currentArticleId=a.id;
+bxManualRelatedIds=Array.isArray(a.manual_related_ids)?a.manual_related_ids.map(Number):[];bxRenderManualRelated();
 currentStatus=a.status;
 applySlugLock(a.status==="published" || Boolean(a.published_at));
 blocks=Array.isArray(a.blocks)?a.blocks:[];
@@ -3477,6 +3497,32 @@ CURRENT_ARTICLE_ADMIN?.display_name||
 CURRENT_ARTICLE_ADMIN?.email||
 "BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null,tracking_enabled:$("trackingEnabled")?$("trackingEnabled").checked:true};
 }
+
+
+function bxRenderManualRelated(){
+ const selected=document.getElementById('bxManualRelatedSelected');
+ const results=document.getElementById('bxManualRelatedResults');
+ const input=document.getElementById('bxManualRelatedSearch');
+ if(!selected||!results||!input)return;
+ const byId=new Map(articles.map(a=>[Number(a.id),a]));
+ selected.replaceChildren();results.replaceChildren();
+ for(const id of bxManualRelatedIds){
+  const a=byId.get(Number(id));const row=document.createElement('div');row.className='bx-manual-chip';
+  const title=document.createElement('span');title.textContent=a?.title||('Article #'+id);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.onclick=()=>{bxManualRelatedIds=bxManualRelatedIds.filter(x=>x!==id);bxRenderManualRelated()};
+  row.append(title,remove);selected.appendChild(row);
+ }
+ const q=input.value.trim().toLowerCase();if(q.length<2)return;
+ const matches=articles.filter(a=>a.status==='published'&&Number(a.id)!==Number(currentArticleId)&&!bxManualRelatedIds.includes(Number(a.id))&&String(a.title||'').toLowerCase().includes(q)).slice(0,12);
+ for(const a of matches){const row=document.createElement('div');row.className='bx-manual-result';const title=document.createElement('span');title.textContent=a.title;
+  const add=document.createElement('button');add.type='button';add.textContent='+ Add';row.onclick=()=>{if(bxManualRelatedIds.length>=24){toast('Maximum 24 related articles');return;}bxManualRelatedIds.push(Number(a.id));input.value='';bxRenderManualRelated()};row.append(title,add);results.appendChild(row);
+ }
+}
+async function bxSaveManualRelated(){
+ const r=await fetch(`/admin/articles/${currentArticleId}/related-links`,{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({article_ids:bxManualRelatedIds})});
+ if(!r.ok){let d={};try{d=await r.json()}catch(e){}throw Error(d.detail||('HTTP '+r.status))}
+}
+document.getElementById('bxManualRelatedSearch')?.addEventListener('input',bxRenderManualRelated);
 
 async function saveArticle(){
 const payload=articlePayload();
@@ -3523,6 +3569,10 @@ await saveLinks();
 toast("Article saved, but movie/actor links failed: "+e.message);
 return;
 }
+
+try{
+await bxSaveManualRelated();
+}catch(e){toast("Article saved, but related links failed: "+e.message);return;}
 
 try{
 await saveBlocks();

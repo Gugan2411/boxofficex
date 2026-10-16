@@ -12125,6 +12125,16 @@ def _bx_active_day_allocations(extra, now=None):
     return selected if isinstance(selected, dict) else {}
 
 
+def _bx_public_cinema_config_at(extra, at):
+    # Existing public sanitizer selects the active box-office day using its clock.
+    # Supply that historical clock without changing live tracker behavior.
+    return _bx_public_cinema_config(_bx_active_day_allocations(extra, at))
+
+
+def _bx_public_overseas_at(extra, at):
+    return _bx_public_overseas_countries(_bx_active_day_allocations(extra, at))
+
+
 def _bx_public_cinema_config(extra):
     """Expose selected display settings only, never private collection schedules."""
     extra = _bx_active_day_allocations(extra)
@@ -12194,7 +12204,7 @@ def _bx_public_overseas_countries(extra):
 def _bx_ssr_tracker_heading(title, extra, field):
     meta = (extra.get("_public_tracker_schedules") or {}).get(field) or {}
     status = meta.get("status")
-    label = {"live": "LIVE", "scheduled": "SCHEDULED", "final_review": "FINAL REVIEW"}.get(status)
+    label = {"live": "LIVE", "scheduled": "SCHEDULED", "final_review": "FINAL REVIEW", "final": "FINAL"}.get(status)
     klass = "review" if status == "final_review" else status
     badge = ('<span class="bx-tracker-status ' + klass + '">' + label + '</span>') if label else ''
     interval = meta.get("interval_minutes")
@@ -12229,6 +12239,39 @@ def _bx_overseas_country_dashboard(extra, values):
     if allocated < 99.99999:
         rows.append('<div class="bx-overseas-row"><span>Rest of Overseas</span><strong>' + _bx_cinema_readable_money(gross * max(0,100-allocated)/100) + '</strong><small>' + f'{max(0,100-allocated):g}%' + '</small></div>')
     return '<section class="bx-overseas-v2"><h3>Overseas — Country-Wise Collection</h3><p>Overseas gross ' + _bx_cinema_readable_money(gross) + '</p><div class="bx-cinema-updated">Last updated: <strong>' + _bx_auto_display_time(values.get("updated_at")) + '</strong></div>' + ''.join(rows) + '</section>'
+
+
+def _bx_public_auto_lifecycle(extra, now=None):
+    """Article schedule lifecycle; never infer LIVE from the current movie day."""
+    if not isinstance(extra, dict):
+        return "unconfigured"
+    if extra.get("_permanent_daily_snapshot") or extra.get("_public_daily_frozen"):
+        return "final"
+    if not extra.get("enabled") or extra.get("paused"):
+        return "inactive"
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    windows = []
+    for row in extra.get("days") or []:
+        if not isinstance(row, dict):
+            continue
+        try:
+            start = datetime.fromisoformat(str(row["start_at"]))
+            end = datetime.fromisoformat(str(row["end_at"]))
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            if end.tzinfo is None:
+                end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            if end > start:
+                windows.append((start.astimezone(now.tzinfo), end.astimezone(now.tzinfo)))
+        except (KeyError, ValueError, TypeError, OverflowError):
+            continue
+    if not windows:
+        return "unconfigured"
+    if now >= max(end for _, end in windows):
+        return "closed"
+    if any(start <= now < end for start, end in windows):
+        return "live"
+    return "scheduled"
 
 
 def _bx_public_tracker_schedules(extra, now=None):
@@ -12394,7 +12437,7 @@ def _article_ssr_auto_tracker(extra, movie_title=None):
         if extra.get("_auto_configured") or (extra.get("enabled") and extra.get("days")):
             return ('<section id="auto-live-boxoffice-tracker" class="boxoffice-block">'
                     '<div class="boxoffice-title">⚡ Automatic Live Collection</div>'
-                    '<p class="media-caption">No active collection estimate. Check the scheduled start/end time (IST).</p></section>')
+                    '<p class="media-caption">' + ('Tracking ended — no saved collection data available.' if extra.get('_public_auto_lifecycle') == 'closed' else 'No active collection estimate. Check the scheduled start/end time (IST).') + '</p></section>')
         return ""
     cards = []
     for key, label in (("india_gross", "India Gross"), ("india_net", "India Net"),
@@ -12406,7 +12449,7 @@ def _article_ssr_auto_tracker(extra, movie_title=None):
     return ('<section id="auto-live-boxoffice-tracker" class="boxoffice-block">'
             '<div class="boxoffice-title">⚡ ' + heading + ' — Automatic Live Collection</div>'
             '<div class="boxoffice-grid">' + ''.join(cards) + '</div>'
-            '<div class="bx-auto-footer"><span class="bx-auto-status"><span class="bx-auto-dot" aria-hidden="true"></span> LIVE</span>'
+            '<div class="bx-auto-footer"><span class="bx-auto-status"><span class="bx-auto-dot" aria-hidden="true"></span> ' + ('FINAL' if extra.get('_public_daily_frozen') else 'TRACKING ENDED' if extra.get('_public_auto_lifecycle') == 'closed' else 'SCHEDULED' if extra.get('_public_auto_lifecycle') == 'scheduled' else 'LIVE') + '</span>'
             '<span class="bx-auto-updated">Last updated: <strong>'
             + _bx_auto_display_time(values.get("updated_at")) + '</strong></span></div>' + _bx_cinema_dashboard(extra, values) + _bx_overseas_country_dashboard(extra, values) + '</section>')
 
@@ -13751,22 +13794,112 @@ def _bx_live_meta_description(name, day, values, topics):
     return description.rstrip(" ,") + "."
 
 
+def _bx_permanent_daily_seo(article, auto):
+    """Article-scoped day identity; frozen values remain the SEO source forever."""
+    if not auto.get("permanent_daily_save") and not auto.get("_public_daily_frozen") and not auto.get("_permanent_daily_snapshot"):
+        return None
+    movie = next((m for m in article.get("movies", []) if isinstance(m, dict)), {})
+    name = str(movie.get("title") or "").strip()
+    if not name:
+        return None
+    # Article-scoped identity wins over legacy title and URL text.
+    identity_data = auto.get("_daily_identity") or {}
+    assigned = article.get("tracking_day") or (identity_data.get("day") if isinstance(identity_data, dict) else None)
+    try:
+        day = int(assigned)
+    except (TypeError, ValueError):
+        identity_text = " ".join(str(article.get(k) or "") for k in ("slug", "title", "meta_title"))
+        match = re.search(r"\bday[\s_-]*(\d{1,3})\b", identity_text, re.I)
+        if not match:
+            return None
+        day = int(match.group(1))
+    if day < 1:
+        return None
+    frozen = auto.get("_permanent_daily_snapshot") or {}
+    is_final = bool(auto.get("_public_daily_frozen") or frozen)
+    values = (frozen.get("values") if isinstance(frozen, dict) and frozen else None) or auto.get("_public_auto_values")
+    if not isinstance(values, dict):
+        values = _bx_separate_auto_values(auto) or {}
+    def money(key):
+        try:
+            value = values.get(key)
+            if value is None or float(value) < 0:
+                return None
+            return f"₹{float(value):,.2f} Cr"
+        except (ValueError, TypeError, OverflowError):
+            return None
+    india, overseas = money("india_gross"), money("overseas_gross")
+    worldwide = money("worldwide_gross") if india and overseas else None
+    if not worldwide and india and overseas:
+        try:
+            worldwide = f"₹{float(values['india_gross']) + float(values['overseas_gross']):,.2f} Cr"
+        except (ValueError, TypeError, KeyError):
+            pass
+    # If overseas is disabled, do not advertise worldwide or overseas coverage.
+    network_india = auto.get("_public_cinema_regions") or (frozen.get("cinema_regions") if isinstance(frozen, dict) else None)
+    network_overseas = auto.get("_public_overseas_countries") or (frozen.get("overseas_countries") if isinstance(frozen, dict) else None)
+    closed_without_snapshot = auto.get("_public_auto_lifecycle") == "closed" and not is_final
+    suffix = "" if is_final or closed_without_snapshot else " Live"
+    if worldwide:
+        h1 = f"{name} Day {day} Box Office Collection{suffix}: {india} India, {worldwide} Worldwide"
+        short = f"{name} Day {day} Collection{suffix}: {worldwide} Worldwide"
+        core = f"India gross {india}, worldwide {worldwide}"
+    elif india:
+        h1 = f"{name} Day {day} India Box Office Collection{suffix}: {india} Gross"
+        short = f"{name} Day {day} India Collection{suffix}: {india}"
+        core = f"India gross {india}"
+    elif overseas:
+        h1 = f"{name} Day {day} Overseas Box Office Collection{suffix}: {overseas}"
+        short = f"{name} Day {day} Overseas Collection{suffix}: {overseas}"
+        core = f"overseas gross {overseas}"
+    else:
+        h1 = f"{name} Day {day} Box Office Collection{suffix}"
+        short = h1
+        core = "latest collection updates" if not is_final else "daily collection details"
+    parts = []
+    if network_india:
+        parts.append("state-wise cinema network and city collections")
+    if network_overseas and overseas:
+        parts.append("overseas country-wise breakdown")
+    detail = ", ".join(parts)
+    description = f"{name} Day {day} box office collection{suffix.lower()}: {core}."
+    if detail:
+        description += f" Explore {detail}." if is_final else f" Track {detail}."
+    # Metadata is bounded without truncating amounts.
+    if len(description) > 165:
+        description = f"{name} Day {day} collection{suffix.lower()}: {core}."
+        if len(description) + len(detail) + 2 <= 165 and detail:
+            description += " " + detail.capitalize() + "."
+    return {"mode": "FINAL" if is_final else "ENDED" if closed_without_snapshot else "LIVE", "day": day,
+            "h1": h1, "seo_title": short, "meta_description": description,
+            "source": "permanent_daily_snapshot" if is_final else "daily_auto_tracker",
+            "auto_live_values": values, "automatic_applied": True}
+
+
 def _bx_auto_only_seo(article):
     """Live SEO directly from the same automatic schedule used by SSR cards.
 
     Unlike the permanent report SEO, an automatic tracker does not require a
     separate populated Box Office Report block.
     """
-    if not bool(article.get("tracking_enabled", True)):
-        return None
     blocks = article.get("blocks") or []
+    if not bool(article.get("tracking_enabled", True)) and not any(
+        (b.get("extra_data") or {}).get("_public_daily_frozen")
+        for b in blocks if isinstance(b, dict) and isinstance(b.get("extra_data"), dict)
+    ):
+        return None
     auto = next((b.get("extra_data") or {} for b in blocks
                  if str(b.get("block_type") or "").lower() == "auto_live_tracker"
                  and isinstance(b.get("extra_data"), dict)
-                 and (b.get("extra_data") or {}).get("enabled")
-                 and (b.get("extra_data") or {}).get("h1_enabled", True)), None)
+                 and ((b.get("extra_data") or {}).get("enabled") or (b.get("extra_data") or {}).get("_public_daily_frozen"))
+                 and ((b.get("extra_data") or {}).get("h1_enabled", True) or (b.get("extra_data") or {}).get("_public_daily_frozen"))), None)
     if auto is None:
         return None
+    permanent = _bx_permanent_daily_seo(article, auto)
+    if permanent:
+        return permanent
+    if auto.get("permanent_daily_save") or auto.get("_public_daily_frozen"):
+        return None  # Missing fixed Day N: preserve editor SEO, never use rolling day.
     values = auto.get("_public_auto_values") if "_public_auto_values" in auto else _bx_separate_auto_values(auto)
     if not isinstance(values, dict):
         return None
@@ -14465,6 +14598,11 @@ def _render_article_detail_html(slug):
     methodology_html = _article_ssr_methodology(article, public_blocks)
     if methodology_html:
         block_html.append(methodology_html)
+    manual_links_html = _bx_manual_related_html(article.get("manual_related_articles") or [])
+    if manual_links_html:
+        block_html.append('<div id="bxManualRelatedMount" class="bx-manual-related-mount">' + manual_links_html + '</div>')
+    else:
+        block_html.append('<div id="bxManualRelatedMount" class="bx-manual-related-mount"></div>')
     if faq_html:
         block_html.append(faq_html)
 
@@ -14536,6 +14674,7 @@ By <strong>{html_escape(author)}</strong>
             # Preserve them for JS hydration rather than replacing them with None.
             if "_public_auto_values" in original_extra:
                 block["extra_data"] = {
+                    "_public_daily_frozen": bool(original_extra.get("_public_daily_frozen")),
                     "_public_auto_values": original_extra.get("_public_auto_values"),
                     "_auto_configured": bool(original_extra.get("_auto_configured")),
                     "_public_cinema_regions": original_extra.get("_public_cinema_regions") or [],
@@ -15838,6 +15977,129 @@ def _article_tracker_seo_context(cur, movie_rows, actor_rows):
         "movie_comparisons": movie_comparisons,
     }
 
+
+# Daily archive identity: computed from the movie release date and the first
+# scheduled tracking date, then persisted on the auto tracker block. No clock-day
+# rollover is involved. Existing archived identities are immutable.
+def _bx_daily_identity_from_dates(release_value, extra):
+    if not release_value or not isinstance(extra, dict):
+        return None
+    try:
+        release_day = date.fromisoformat(str(release_value)[:10])
+        starts = []
+        for item in extra.get("days") or []:
+            if isinstance(item, dict) and item.get("start_at"):
+                starts.append(date.fromisoformat(str(item["start_at"])[:10]))
+        if not starts:
+            return None
+        tracking_date = min(starts)
+        day = (tracking_date - release_day).days + 1
+        if day < 1:
+            raise HTTPException(status_code=400, detail="Daily tracker starts before the movie release date")
+        return {"day": day, "tracking_date": tracking_date.isoformat(),
+                "release_date": release_day.isoformat()}
+    except HTTPException:
+        raise
+    except (ValueError, TypeError):
+        return None
+
+
+def _bx_persist_daily_identity(cur, article_id):
+    """Assign each permanent daily tracker once; never change archived days."""
+    cur.execute("""SELECT m.release_date FROM article_movies am
+                   JOIN movies m ON m.id=am.movie_id
+                   WHERE am.article_id=%s ORDER BY am.movie_id LIMIT 1""", (article_id,))
+    movie = cur.fetchone()
+    if not movie or not movie[0]:
+        return
+    cur.execute("""SELECT id, extra_data FROM article_blocks
+                   WHERE article_id=%s AND block_type='auto_live_tracker'
+                   FOR UPDATE""", (article_id,))
+    for block_id, raw in cur.fetchall():
+        extra = dict(raw or {})
+        if not extra.get("permanent_daily_save"):
+            continue
+        if extra.get("_permanent_daily_snapshot"):
+            continue
+        identity = _bx_daily_identity_from_dates(movie[0], extra)
+        if not identity:
+            continue
+        # Before finalization, changing the scheduled date may correct the day.
+        extra["_daily_identity"] = identity
+        cur.execute("UPDATE article_blocks SET extra_data=%s WHERE id=%s",
+                    (psycopg.types.json.Jsonb(extra), block_id))
+
+
+# Per-article optional daily archive. Does not touch in-content box-office reports.
+def _bx_freeze_daily_auto_if_due(cur, article_id, blocks):
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    updated = False
+    result = []
+    for r in blocks:
+        block_id, order, kind, content, image, caption, credit, raw = r
+        if kind != "auto_live_tracker" or not isinstance(raw, dict):
+            result.append(r)
+            continue
+        extra = dict(raw)
+        if extra.get("_permanent_daily_snapshot"):
+            result.append(r)
+            continue
+        if not extra.get("permanent_daily_save") or not extra.get("enabled"):
+            result.append(r)
+            continue
+        schedules = [s for s in extra.get("days", []) if isinstance(s, dict) and s.get("start_at") and s.get("end_at")]
+        if not schedules:
+            result.append(r)
+            continue
+        try:
+            ends = []
+            for s in schedules:
+                end = datetime.fromisoformat(str(s["end_at"]))
+                if end.tzinfo is None:
+                    end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                ends.append(end.astimezone(ZoneInfo("Asia/Kolkata")))
+            if now < max(ends):
+                result.append(r)
+                continue
+            # Evaluate the last instant of the configured schedule, BEFORE
+            # normal 06:00 IST day rollover clears the temporary display.
+            final_at = max(ends) - timedelta(microseconds=1)
+            # At a 06:00 boundary evaluate just before rollover; shorten
+            # each completed schedule by one microsecond so its final target
+            # is included rather than the previous 5/10-minute tick.
+            final_extra = dict(extra)
+            final_extra["days"] = []
+            for source in schedules:
+                copy_row = dict(source)
+                row_end = datetime.fromisoformat(str(source["end_at"]))
+                if row_end.tzinfo is None:
+                    row_end = row_end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                row_end = row_end.astimezone(ZoneInfo("Asia/Kolkata"))
+                copy_row["end_at"] = (row_end - timedelta(microseconds=1)).isoformat()
+                final_extra["days"].append(copy_row)
+            values = _bx_separate_auto_values(final_extra, now=final_at)
+            if not values or not any(k in values for k in ("india_gross", "overseas_gross")):
+                result.append(r)
+                continue
+            # Freeze the exact network allocation and cinema time window alongside
+            # the monetary values; never resolve archived days from today's config.
+            frozen = {"values": values, "closed_at": max(ends).isoformat(), "estimated": True,
+                      "cinema_regions": _bx_public_cinema_config_at(extra, final_at),
+                      "overseas_countries": _bx_public_overseas_at(extra, final_at),
+                      "cinema_window": _bx_public_cinema_window(extra, final_at)}
+            cur.execute("""UPDATE article_blocks
+                SET extra_data=jsonb_set(extra_data,'{_permanent_daily_snapshot}',%s::jsonb,true)
+                WHERE id=%s AND article_id=%s AND NOT (extra_data ? '_permanent_daily_snapshot')
+                RETURNING extra_data""", (json.dumps(frozen), block_id, article_id))
+            saved = cur.fetchone()
+            if saved:
+                extra = saved[0]
+                updated = True
+        except (ValueError, TypeError, OverflowError):
+            pass
+        result.append((block_id, order, kind, content, image, caption, credit, extra))
+    return result, updated
+
 def get_article(slug: str):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -15864,6 +16126,10 @@ def get_article(slug: str):
                 ORDER BY block_order
             """,(a[0],))
             blocks=cur.fetchall()
+            blocks, _daily_frozen = _bx_freeze_daily_auto_if_due(cur, a[0], blocks)
+            if _daily_frozen:
+                conn.commit()
+                _invalidate_article_detail_cache(slug)
 
             cur.execute("""
                 SELECT m.id, m.title, m.release_date, m.language, m.industry
@@ -15884,6 +16150,7 @@ def get_article(slug: str):
             """, (a[0],))
             actor_rows = cur.fetchall()
             actor_ids = [r[0] for r in actor_rows]
+            manual_related = _bx_manual_related_rows(cur, a[0])
 
             boxoffice_analysis = _article_boxoffice_analysis_map(cur, a[0], movie_rows)
             tracker_seo_context = _article_tracker_seo_context(cur, movie_rows, actor_rows)
@@ -15936,6 +16203,21 @@ def get_article(slug: str):
         ]
     }
 
+    # All SEO and tracker components read the same article-scoped day.
+    for _block in article["blocks"]:
+        if _block.get("block_type") != "auto_live_tracker":
+            continue
+        _extra = _block.get("extra_data") or {}
+        if not _extra.get("permanent_daily_save") and not _extra.get("_permanent_daily_snapshot"):
+            continue
+        _identity = _extra.get("_daily_identity")
+        if not isinstance(_identity, dict) and linked_movies:
+            _identity = _bx_daily_identity_from_dates(linked_movies[0].get("release_date"), _extra)
+        if isinstance(_identity, dict) and _identity.get("day"):
+            article["tracking_day"] = int(_identity["day"])
+            article["daily_tracking_date"] = _identity.get("tracking_date")
+            break
+
     # Public API and cached SSR must resolve the exact same article state.
     # Without this, the cold article shell fetched the raw Admin title/deck,
     # while the next cached SSR request used the generated tracking title.
@@ -15956,10 +16238,11 @@ def get_article(slug: str):
         kind = str(block.get("block_type") or "").lower()
         if kind == "auto_live_tracker":
             extra = block.get("extra_data") or {}
-            if not bool(article.get("tracking_enabled", True)) or not extra.get("ssr_enabled", True):
+            frozen = extra.get("_permanent_daily_snapshot") if isinstance(extra, dict) else None
+            if (not bool(article.get("tracking_enabled", True)) and not frozen) or not extra.get("ssr_enabled", True):
                 continue
             block = dict(block)
-            block["extra_data"] = {"_public_auto_values": _bx_separate_auto_values(extra), "_auto_configured": bool(extra.get("enabled") and extra.get("days")), "_public_cinema_regions": _bx_public_cinema_config(extra), "_public_overseas_countries": _bx_public_overseas_countries(extra), "_public_cinema_window": _bx_public_cinema_window(extra), "_public_tracker_schedules": _bx_public_tracker_schedules(extra)}
+            block["extra_data"] = {"_public_daily_frozen": bool(frozen), "_public_auto_lifecycle": _bx_public_auto_lifecycle(extra), "permanent_daily_save": bool(extra.get("permanent_daily_save")), "_daily_identity": extra.get("_daily_identity"), "_public_auto_values": (frozen.get("values") if frozen else _bx_separate_auto_values(extra)), "_auto_configured": bool(extra.get("enabled") and extra.get("days")), "_public_cinema_regions": (frozen.get("cinema_regions", _bx_public_cinema_config_at(extra, datetime.fromisoformat(frozen["closed_at"]) - timedelta(microseconds=1))) if frozen else _bx_public_cinema_config(extra)), "_public_overseas_countries": (frozen.get("overseas_countries", _bx_public_overseas_at(extra, datetime.fromisoformat(frozen["closed_at"]) - timedelta(microseconds=1))) if frozen else _bx_public_overseas_countries(extra)), "_public_cinema_window": (frozen.get("cinema_window") if frozen else _bx_public_cinema_window(extra)), "_public_tracker_schedules": ({"india_gross": {"status": "final"}, "overseas_gross": {"status": "final"}} if frozen else _bx_public_tracker_schedules(extra))}
         elif kind == "live_tracker":
             block = dict(block)
             extra = dict(block.get("extra_data") or {})
@@ -15967,6 +16250,7 @@ def get_article(slug: str):
             block["extra_data"] = extra
         safe_blocks.append(block)
     article["blocks"] = safe_blocks
+    article["manual_related_articles"] = manual_related
     article = _bx_article_universal_seo(article)
     return {"article": article}
 
@@ -16546,6 +16830,62 @@ def get_movie_collections_for_articles(movie_id: int):
     }
 
 
+
+# Manual related-article links: intentionally separate from movie/actor associations.
+@app.on_event("startup")
+def initialize_manual_related_articles():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""CREATE TABLE IF NOT EXISTS article_manual_links (
+                article_id BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+                related_article_id BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY(article_id, related_article_id),
+                CHECK(article_id <> related_article_id)
+            )""")
+        conn.commit()
+
+
+def _bx_manual_related_rows(cur, article_id):
+    cur.execute("""SELECT a.id,a.title,a.slug FROM article_manual_links l
+                   JOIN articles a ON a.id=l.related_article_id
+                   WHERE l.article_id=%s AND a.status='published'
+                   ORDER BY l.sort_order, a.id LIMIT 24""", (article_id,))
+    return [{"id":r[0],"title":r[1],"slug":r[2]} for r in cur.fetchall()]
+
+
+def _bx_manual_related_html(related):
+    if not related: return ""
+    links = "".join('<a class="bx-manual-related-link" href="/article/{}">{} <span aria-hidden="true">↗</span></a>'.format(
+        html_escape(str(r['slug']), quote=True), html_escape(str(r['title']))) for r in related)
+    return '<nav class="bx-manual-related" aria-label="Related articles"><h2>Explore More Box Office Reports</h2><div class="bx-manual-related-grid">'+links+'</div></nav>'
+
+class ManualArticleLinksPayload(BaseModel):
+    article_ids: list[int] = []
+
+@app.put("/admin/articles/{article_id}/related-links", dependencies=[Depends(require_admin)])
+def admin_save_manual_related(article_id: int, data: ManualArticleLinksPayload):
+    ids=list(dict.fromkeys(int(x) for x in data.article_ids))
+    if len(ids)>24 or article_id in ids:
+        raise HTTPException(status_code=400, detail="Choose up to 24 other articles")
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT slug FROM articles WHERE id=%s", (article_id,))
+            row=cur.fetchone()
+            if not row: raise HTTPException(status_code=404, detail="Article not found")
+            slug=row[0]
+            if ids:
+                cur.execute("SELECT id FROM articles WHERE id=ANY(%s) AND status='published'", (ids,))
+                valid={r[0] for r in cur.fetchall()}
+                if set(ids)!=valid:
+                    raise HTTPException(status_code=400, detail="Only published articles can be linked")
+            cur.execute("DELETE FROM article_manual_links WHERE article_id=%s", (article_id,))
+            for i,related_id in enumerate(ids):
+                cur.execute("INSERT INTO article_manual_links(article_id,related_article_id,sort_order) VALUES(%s,%s,%s)", (article_id,related_id,i))
+        conn.commit()
+    _invalidate_article_detail_cache(slug)
+    return {"success":True,"article_ids":ids}
+
 @app.get("/admin/articles/{article_id}", dependencies=[Depends(require_admin)])
 def admin_get_article(article_id: int):
     with get_connection() as conn:
@@ -16583,6 +16923,8 @@ def admin_get_article(article_id: int):
                 ORDER BY movie_id
             """, (article_id,))
             movie_ids = [r[0] for r in cur.fetchall()]
+            cur.execute("SELECT related_article_id FROM article_manual_links WHERE article_id=%s ORDER BY sort_order", (article_id,))
+            manual_related_ids = [r[0] for r in cur.fetchall()]
 
             cur.execute("""
                 SELECT actor_id
@@ -16618,6 +16960,7 @@ def admin_get_article(article_id: int):
             "tracking_finalized_at": a[21],
             "movie_ids": movie_ids,
             "actor_ids": actor_ids,
+            "manual_related_ids": manual_related_ids,
             "blocks": [
                 {
                     "id": r[0],
@@ -19007,7 +19350,18 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
                         raise HTTPException(status_code=409, detail="A removed block changed while saving. Reload and try again.")
 
                 saved_ids = []
+                # Preserve immutable finished tracker snapshots across later editor saves.
+                existing_auto_snapshots = {
+                    int(r[0]): (r[3] or {}).get("_permanent_daily_snapshot")
+                    for r in current_rows if r[2] == "auto_live_tracker"
+                    and isinstance(r[3], dict) and (r[3] or {}).get("_permanent_daily_snapshot")
+                }
                 for i, b in enumerate(blocks):
+                    if b.id is not None and validated_types[i] == "auto_live_tracker":
+                        frozen = existing_auto_snapshots.get(int(b.id))
+                        if frozen is not None:
+                            b.extra_data = dict(b.extra_data or {})
+                            b.extra_data["_permanent_daily_snapshot"] = frozen
                     block_type = validated_types[i]
                     if b.id is not None:
                         cur.execute("""
@@ -19050,6 +19404,7 @@ def admin_sync_article_blocks(article_id: int, data: AdminArticleBlocksSync):
                 # same transaction as the block save, so no second admin action
                 # or browser request is required.
                 _capture_article_boxoffice_milestones(cur, article_id)
+                _bx_persist_daily_identity(cur, article_id)
 
                 cur.execute("""
                     UPDATE articles
@@ -19265,6 +19620,8 @@ def admin_update_article_links(article_id: int, data: AdminArticleLink):
                     WHERE id = %s
                     ON CONFLICT DO NOTHING
                 """, (article_id, actor_id))
+
+            _bx_persist_daily_identity(cur, article_id)
 
         conn.commit()
 
