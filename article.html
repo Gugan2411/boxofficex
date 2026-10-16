@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4947,6 +4948,37 @@ html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
 @keyframes bx-tracker-pulse{50%{opacity:.15}}@media(prefers-reduced-motion:reduce){.bx-tracker-status.live:before{animation:none}}
 .bx-cinema-v2 .bx-cinema-stat:has(>span:first-child){min-width:0}
 </style>
+<style id="bxAdvanceBookingClientStyle">
+/* Advance Booking: BoxOfficeX light article theme */
+.bx-advance{margin:32px 0;padding:24px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;color:#18263b;font-family:inherit;box-shadow:0 4px 20px rgba(15,23,42,.045)}
+.bx-advance h2{font-size:clamp(22px,3vw,30px);margin:0 0 12px;color:#10233e}
+.bx-advance p{color:#52647a;font-size:15px;line-height:1.65}
+.bx-adv-tabs{display:flex;gap:8px;overflow-x:auto;padding:15px 0}
+.bx-adv-tab{background:#f8fafc;border:1px solid #dbe3ed;color:#30465e;padding:9px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;font-weight:700}
+.bx-adv-tab[aria-pressed=true]{background:#fff5d6;border-color:#e8b73d;color:#654600;box-shadow:inset 0 -2px #d5a11e}
+.bx-adv-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.bx-adv-card{padding:17px;border-radius:12px;background:#f8fafc;border:1px solid #e3e9f1}
+.bx-adv-card small{display:block;color:#61738a;font-size:12px}
+.bx-adv-card strong{display:block;margin-top:7px;font-size:clamp(17px,2vw,24px);color:#143a68}
+.bx-adv-card:first-child{background:#fffbeb;border-color:#f2df9b}
+.bx-adv-card:first-child strong{color:#936100}
+.bx-adv-stats{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0;color:#475569;font-size:12px}
+.bx-adv-stats span{padding:8px 10px;border-radius:8px;background:#f1f5f9;border:1px solid #e5eaf0}
+.bx-adv-stats b{color:#142b47}
+.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#172e4c}
+.bx-adv-barrow{display:grid;grid-template-columns:minmax(70px,130px) minmax(50px,1fr) auto;align-items:center;gap:10px;margin:10px 0;font-size:12px;color:#334155}
+.bx-adv-track{height:12px;border-radius:20px;background:#edf2f7;overflow:hidden}
+.bx-adv-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#60a5fa,#3b82f6,#e6b84a)}
+.bx-adv-scroll{overflow-x:auto;border:1px solid #e4eaf1;border-radius:10px}
+.bx-adv-scroll table{border-collapse:collapse;width:100%;min-width:470px;margin-top:0;font-size:12px;background:#fff;color:#334155}
+.bx-adv-scroll th,.bx-adv-scroll td{padding:12px;border-bottom:1px solid #e9eef4;text-align:left;color:#334155}
+.bx-adv-scroll thead{background:#f5f8fc}
+.bx-adv-scroll thead th{color:#263c58;font-weight:700}
+.bx-adv-scroll tbody tr:last-child th,.bx-adv-scroll tbody tr:last-child td{border-bottom:0}
+.bx-adv-note{color:#64748b!important;font-size:11px!important;margin-top:18px}
+.bx-adv-subtotal{background:#fff8df;font-weight:800}.bx-adv-subtotal th,.bx-adv-subtotal td{color:#76500b!important}.bx-adv-day[hidden]{display:none!important}
+@media(max-width:600px){.bx-advance{padding:15px}.bx-adv-cards{grid-template-columns:1fr}.bx-adv-barrow{grid-template-columns:80px 1fr auto;font-size:10px}}
+</style>
 </head>
 
 <body>
@@ -6731,9 +6763,84 @@ function renderLiveBusinessStrip(article){
     </aside>`;
 }
 
+/* BoxOfficeX manual advance-booking article block (INR crore). */
+function bxRenderAdvanceBooking(data) {
+    if (!data || typeof data !== "object") return "";
+    const dates = Array.isArray(data.dates) ? data.dates : [];
+    const regions = Array.isArray(data.regions) ? data.regions : [];
+    const num = v => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; };
+    const money = v => `₹${num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})} Cr`;
+    const safe = v => esc(String(v ?? ""));
+    const whole = v => num(v).toLocaleString("en-IN",{maximumFractionDigits:0});
+    const pct = v => `${num(v).toLocaleString("en-IN",{maximumFractionDigits:1})}%`;
+    if (!dates.length) return `<section class="bx-advance"><h2>Advance Booking Tracker</h2><p>Booking figures will be updated soon.</p></section>`;
+    const tabs = dates.map((d,i)=>`<button type="button" class="bx-adv-tab" data-advance-target="${i}" aria-pressed="${i===0}">${safe(d.label||d.date||`Day ${i+1}`)}</button>`).join("");
+    const days = dates.map((d,i)=>{
+        const key=String(d.key||d.date||i);
+        const matching=regions.filter(r=>r && String(r.date_key||"")===key);
+        const indian=matching.filter(r=>r.level!=="country"), overseas=matching.filter(r=>r.level==="country");
+        const states=indian.filter(r=>r.level==="state"||r.level==="city");
+        const territories=indian.filter(r=>r.level==="area"||r.level==="territory");
+        // State rows take precedence over territory rows: they often describe the same bookings.
+        const primaryIndia=states.length?states:territories;
+        const add=(rows,field)=>rows.reduce((s,r)=>s+num(r[field]),0);
+        const byState=new Map();
+        for(const r of states){const state=String(r.state||r.name||"Other State");if(!byState.has(state))byState.set(state,[]);byState.get(state).push(r);}
+        const stateLeaves=[];
+        for(const [state,rows] of byState){const cities=rows.filter(r=>String(r.district_custom||r.district||r.city||"").trim());stateLeaves.push(...(cities.length?cities:rows));}
+        const indiaRows=states.length?stateLeaves:territories;
+        const hasIndia=indiaRows.length>0,hasOverseas=overseas.length>0;
+        const india=hasIndia?add(indiaRows,"gross"):num(d.india_gross);
+        const abroad=hasOverseas?add(overseas,"gross"):num(d.overseas_gross);
+        const countRows=[...indiaRows,...overseas];
+        const statsData={};
+        for(const field of ["tickets","shows","theatres","houseful","fast_filling"]){
+            statsData[field]=countRows.some(r=>r[field]!==undefined&&r[field]!==null&&r[field]!=="")?add(countRows,field):num(d[field]);
+        }
+        // Occupancy is weighted by shows when available; never add percentages.
+        const occupied=countRows.filter(r=>r.occupancy!==undefined&&r.occupancy!=="");
+        const weight=occupied.reduce((s,r)=>s+num(r.shows),0);
+        const occupancy=occupied.length?(weight?occupied.reduce((s,r)=>s+num(r.occupancy)*num(r.shows),0)/weight:occupied.reduce((s,r)=>s+num(r.occupancy),0)/occupied.length):num(d.occupancy);
+        const cards=[["Worldwide",india+abroad],["India",india],["Overseas",abroad]].map(([label,v])=>`<div class="bx-adv-card"><small>${label}</small><strong>${money(v)}</strong></div>`).join("");
+        const stats=[["Tickets",whole(statsData.tickets)],["Shows",whole(statsData.shows)],["Theatres",whole(statsData.theatres)],["Occupancy",pct(occupancy)],["Houseful",whole(statsData.houseful)],["Fast filling",whole(statsData.fast_filling)]].map(([label,v])=>`<span>${label}: <b>${v}</b></span>`).join("");
+        const table=(heading,rows,labels)=>{
+            if(!rows.length)return "";
+            const max=Math.max(.01,...rows.map(r=>num(r.gross)));
+            const bars=rows.map(r=>`<div class="bx-adv-barrow"><span>${safe(r.display)}</span><div class="bx-adv-track"><i style="width:${(num(r.gross)/max*100).toFixed(2)}%"></i></div><b>${money(r.gross)}</b></div>`).join("");
+            const trs=rows.map(r=>`<tr class="${r.subtotal?'bx-adv-subtotal':''}"><th scope="row">${safe(r.display)}</th><td>${money(r.gross)}</td><td>${whole(r.tickets)}</td><td>${whole(r.shows)}</td><td>${pct(r.occupancy)}</td></tr>`).join("");
+            return `<h3>${heading}</h3>${bars}<div class="bx-adv-scroll"><table><thead><tr><th>${labels}</th><th>Gross</th><th>Tickets</th><th>Shows</th><th>Occupancy</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+        };
+        const cityRows=[];
+        for(const [state,rows] of byState){
+            const children=rows.filter(r=>String(r.district_custom||r.district||r.city||"").trim());
+            const effective=children.length?children:rows;
+            for(const r of effective)cityRows.push({...r,display:`${state} — ${r.district_custom||r.district||r.city||'State total'}`});
+            if(children.length>0){const shows=add(children,'shows');cityRows.push({display:`${state} total`,subtotal:true,gross:add(children,'gross'),tickets:add(children,'tickets'),shows,occupancy:shows?children.reduce((s,r)=>s+num(r.occupancy)*num(r.shows),0)/shows:0});}
+        }
+        const territoryRows=territories.map(r=>({...r,display:r.territory||r.name||r.state||'Territory'}));
+        const countryRows=overseas.map(r=>({...r,display:r.custom_country||r.country||r.name||'Country'}));
+        const groups=table('State & district / city-wise',cityRows,'State / District / City')+table('Film territory-wise',territoryRows,'Territory')+table('Overseas country-wise',countryRows,'Country');
+        const note=(states.length&&territories.length)?`<p class="bx-adv-note">India totals use district/state rows; film territories are shown separately to avoid double counting overlapping areas.</p>`:"";
+        return `<section class="bx-adv-day" data-advance-day="${i}" ${i?'hidden':''}><div class="bx-adv-cards">${cards}</div><div class="bx-adv-stats">${stats}</div>${groups}${note}</section>`;
+    }).join("");
+    return `<section class="bx-advance"><h2>${safe(data.title||'Advance Booking Tracker')}</h2><p>${safe(data.summary||'Manually updated advance ticket booking figures. All gross amounts are in INR.')}</p><div class="bx-adv-tabs">${tabs}</div>${days}<p class="bx-adv-note">Totals are calculated from entered locations where available. Incomplete location coverage produces partial totals. Figures are manually updated and are not final box-office collections.</p></section>`;
+}
+
+if (!window.bxAdvanceBookingClickBound) {
+    window.bxAdvanceBookingClickBound = true;
+    document.addEventListener("click", event => {
+        const btn = event.target.closest(".bx-advance [data-advance-target]");
+        if (!btn) return;
+        const root = btn.closest(".bx-advance"), target = btn.dataset.advanceTarget;
+        root.querySelectorAll("[data-advance-target]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+        root.querySelectorAll("[data-advance-day]").forEach(day => { day.hidden = day.dataset.advanceDay !== target; });
+    });
+}
 async function renderBlock(block) {
     const type = block.block_type;
     const data = block.extra_data || {};
+
+    if (type === "advance_booking") return bxRenderAdvanceBooking(data);
 
     if (type === "paragraph") {
         return renderArticleParagraphContent(block.content || "");

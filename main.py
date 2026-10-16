@@ -13315,6 +13315,14 @@ def _article_ssr_block(block, article=None):
         return _article_ssr_pre_release_business(data, article=article)
     if block_type == "salary_details":
         return _article_ssr_salary_details(data, article=article)
+    if block_type == "advance_booking":
+        try:
+            return _article_ssr_advance_booking(data)
+        except Exception as exc:
+            print("[Advance Booking SSR] render failed:", type(exc).__name__, str(exc), flush=True)
+            return ('<section class="bx-advance" role="status">'
+                    '<h2>Advance Booking Tracker</h2>'
+                    '<p>Booking details are temporarily unavailable.</p></section>')
     if block_type == "boxoffice":
         linked_movie = ((article or {}).get("movies") or [None])[0]
         movie_title = str((linked_movie or {}).get("title") or "").strip()
@@ -16388,7 +16396,7 @@ def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
         "boxoffice", "movie", "actor", "video", "table", "live_tracker", "auto_live_tracker",
-        "pre_release_business", "salary_details",
+        "pre_release_business", "salary_details", "advance_booking",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
@@ -16447,7 +16455,7 @@ def ensure_live_tracker_article_block_type():
             constraint_def = constraint_row[0] if constraint_row else ""
             constraint_def_lower = constraint_def.lower()
 
-            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details")
+            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking")
             if all(block_type in constraint_def_lower for block_type in required_types):
                 return
 
@@ -16474,7 +16482,8 @@ def ensure_live_tracker_article_block_type():
                         'live_tracker',
                         'auto_live_tracker',
                         'pre_release_business',
-                        'salary_details'
+                        'salary_details',
+                        'advance_booking'
                     )
                 )
             """)
@@ -27567,3 +27576,50 @@ def bx_admin_seo_monitor_data():
     return {'generated_at':now.isoformat(),'next_rollover':next_rollover.isoformat(),
             'traffic_note':'Lifetime article views only. Existing /articles/{id}/view increments on each accepted POST; unique visitors and daily breakdown are not currently measured.',
             'articles':result}
+
+# Manual advance-booking in-content block. INR crore is the storage unit.
+def _article_ssr_advance_booking(data):
+    import html as _h
+    import math as _m
+    if not isinstance(data, dict):
+        return ""
+    def esc(v): return _h.escape(str(v if v is not None else ""), quote=True)
+    def number(v):
+        try:
+            n=float(v or 0)
+            return n if _m.isfinite(n) and n >= 0 else 0.0
+        except (TypeError, ValueError): return 0.0
+    def money(v): return f"₹{number(v):,.2f} Cr"
+    dates=data.get("dates") if isinstance(data.get("dates"),list) else []
+    rows=data.get("regions") if isinstance(data.get("regions"),list) else []
+    # All regional rows are independent observations; parent and child totals are NOT summed.
+    date_items=[]
+    for d in dates[:150]:
+        if isinstance(d,dict):
+            date_items.append(d)
+    if not date_items: return '<section class="bx-advance"><h2>Advance Booking Tracker</h2><p>Booking figures will be updated soon.</p></section>'
+    title=esc(data.get("title") or "Advance Booking Tracker")
+    intro=esc(data.get("summary") or "Manually updated advance ticket booking figures. All gross amounts are in INR.")
+    sections=[]
+    for idx,d in enumerate(date_items):
+        key=str(d.get("key") or d.get("date") or idx)
+        matching=[r for r in rows if isinstance(r,dict) and str(r.get("date_key") or "")==key]
+        india=number(d.get("india_gross")); overseas=number(d.get("overseas_gross"))
+        world=india+overseas
+        metrics=[("Worldwide",world),("India",india),("Overseas",overse)]
+        cards=''.join(f'<div class="bx-adv-card"><small>{label}</small><strong>{money(val)}</strong></div>' for label,val in metrics)
+        stats=''.join(f'<span>{label}: <b>{esc(d.get(field) or 0)}</b></span>' for label,field in (("Tickets","tickets"),("Shows","shows"),("Theatres","theatres"),("Occupancy %","occupancy"),("Houseful","houseful"),("Fast filling","fast_filling")))
+        groups=[]
+        for level,label in (("area","Area-wise"),("state","State-wise"),("country","Country-wise")):
+            group=[r for r in matching if str(r.get("level") or "").lower()==level]
+            if not group: continue
+            maxval=max([number(r.get("gross")) for r in group]+[.01])
+            bars=''.join('<div class="bx-adv-barrow"><div class="bx-adv-barlabel">'+esc(r.get("name"))+'</div><div class="bx-adv-track"><i style="width:'+str(round(100*number(r.get("gross"))/maxval,2))+'%"></i></div><b>'+money(r.get("gross"))+'</b></div>' for r in group[:100])
+            table=''.join('<tr><th scope="row">'+esc(r.get("name"))+'</th><td>'+money(r.get("gross"))+'</td><td>'+esc(r.get("tickets") or 0)+'</td><td>'+esc(r.get("shows") or 0)+'</td><td>'+esc(r.get("occupancy") or 0)+'%</td></tr>' for r in group[:100])
+            groups.append('<h3>'+label+'</h3>'+bars+'<div class="bx-adv-scroll"><table><thead><tr><th>Region</th><th>Gross</th><th>Tickets</th><th>Shows</th><th>Occupancy</th></tr></thead><tbody>'+table+'</tbody></table></div>')
+        sections.append('<section class="bx-adv-day" data-advance-day="'+str(idx)+'"'+('' if idx==0 else ' hidden')+'><div class="bx-adv-cards">'+cards+'</div><div class="bx-adv-stats">'+stats+'</div>'+''.join(groups)+'</section>')
+    tabs=''.join('<button type="button" class="bx-adv-tab" data-advance-target="'+str(i)+'" aria-pressed="'+('true' if i==0 else 'false')+'">'+esc(d.get("label") or d.get("date") or 'Day '+str(i+1))+'</button>' for i,d in enumerate(date_items))
+    style="""<style>.bx-advance{margin:32px 0;padding:22px;border:1px solid #304264;border-radius:18px;background:linear-gradient(145deg,#101b33,#090f1e);color:#f4f7ff;font-family:Arial,sans-serif}.bx-advance h2{font-size:clamp(22px,3vw,32px);margin:0 0 12px}.bx-advance p{color:#b5c4df;font-size:15px;line-height:1.6}.bx-adv-tabs{display:flex;gap:8px;overflow-x:auto;padding:15px 0}.bx-adv-tab{background:#1a2a48;border:1px solid #365078;color:#cbd9f3;padding:9px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;font-weight:bold}.bx-adv-tab[aria-pressed=true]{background:#ffca39;color:#10131d}.bx-adv-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.bx-adv-card{padding:16px;border-radius:14px;background:#172844;border:1px solid #345179}.bx-adv-card small{display:block;color:#aebfda}.bx-adv-card strong{display:block;margin-top:7px;font-size:clamp(17px,2vw,24px);color:#ffd15a}.bx-adv-stats{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;color:#c3d0e8;font-size:12px}.bx-adv-stats span{padding:7px 10px;border-radius:8px;background:#172238}.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#e6edff}.bx-adv-barrow{display:grid;grid-template-columns:minmax(70px,130px) minmax(50px,1fr) auto;align-items:center;gap:10px;margin:9px 0;font-size:12px}.bx-adv-track{height:13px;border-radius:20px;background:#27334e;overflow:hidden}.bx-adv-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#497fff,#8c59e9,#ffbf41)}.bx-adv-scroll{overflow-x:auto}.bx-adv-scroll table{border-collapse:collapse;width:100%;min-width:470px;margin-top:16px;font-size:12px}.bx-adv-scroll th,.bx-adv-scroll td{padding:11px;border-bottom:1px solid #33405a;text-align:left}.bx-adv-scroll thead{background:#203354}.bx-adv-note{color:#8499b8;font-size:11px;margin-top:18px}@media(max-width:600px){.bx-advance{padding:14px}.bx-adv-cards{grid-template-columns:1fr}.bx-adv-barrow{grid-template-columns:80px 1fr auto;font-size:10px}}</style>"""
+    script="""<script>(function(){document.querySelectorAll('.bx-advance').forEach(function(root){if(root.dataset.advBound)return;root.dataset.advBound='1';root.querySelectorAll('[data-advance-target]').forEach(function(btn){btn.addEventListener('click',function(){var i=btn.dataset.advanceTarget;root.querySelectorAll('[data-advance-target]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn))});root.querySelectorAll('[data-advance-day]').forEach(function(p){p.hidden=p.dataset.advanceDay!==i})})})})})();</script>"""
+    return style+'<div class="bx-advance"><h2>'+title+'</h2><p>'+intro+'</p><div class="bx-adv-tabs">'+tabs+'</div>'+''.join(sections)+'<div class="bx-adv-note">Figures are manually updated; regional figures may be partial and are not automatically summed into headline totals. Advance bookings are not final box-office collections.</div></div>'+script
+

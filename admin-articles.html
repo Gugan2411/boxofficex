@@ -1072,6 +1072,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button data-add="image">Image</button>
 <button data-add="quote">Quote</button>
 <button data-add="boxoffice">Box Office</button>
+<button data-add="advance_booking">🎟 Advance Booking</button>
 <button data-add="live_tracker">🔴 Manual Live Tracker</button>
 <button data-add="auto_live_tracker">⚡ Automatic Live Tracker</button>
 <button data-add="pre_release_business">💰 Pre-Release Business</button>
@@ -1489,6 +1490,7 @@ document.querySelectorAll(".article-item").forEach(x=>x.classList.remove("active
 }
 function blockTemplate(type){
 const base={id:null,block_order:blocks.length+1,block_type:type,content:"",image:"",image_caption:"",image_credit:"",extra_data:{}};
+if(type==="advance_booking")base.extra_data={title:"Advance Booking Tracker",summary:"",dates:[{key:"day1",label:"Day 1",date:"",india_gross:0,overseas_gross:0,tickets:0,shows:0,theatres:0,occupancy:0,houseful:0,fast_filling:0}],regions:[]};
 if(type==="boxoffice")base.extra_data={
 movie_id:selectedMovieLinkIds.length===1 ? Number(selectedMovieLinkIds[0]) : null,
 budget:null,
@@ -2434,6 +2436,33 @@ ${articleFormatToolsHTML(i)}
 if(b.block_type==="image"){
 body=`<div class="block-row"><div><label>Image filename</label><input data-field="image" value="${b.image??""}"></div><div><label>Upload</label><input type="file" data-upload accept="image/jpeg,image/png,image/webp"></div></div><div class="block-row" style="margin-top:9px"><div><label>Caption</label><input data-field="image_caption" value="${b.image_caption??""}"></div><div><label>Credit</label><input data-field="image_credit" value="${b.image_credit??""}"></div></div><div class="media-preview"><img src="${mediaUrl(b.image)}" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}'"></div>`;
 }
+if(b.block_type==="advance_booking"){
+ b.extra_data=b.extra_data||{dates:[],regions:[]};
+ const ad=b.extra_data;
+ ad.dates=Array.isArray(ad.dates)?ad.dates:[];
+ ad.regions=Array.isArray(ad.regions)?ad.regions:[];
+ const advEsc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+ const territoryMap={"Telangana":["Nizam"],"Andhra Pradesh":["Ceded","Uttarandhra","East Godavari","West Godavari","Guntur","Krishna","Nellore","Andhra Pradesh (Other)"],"Tamil Nadu":["Tamil Nadu"],"Karnataka":["Karnataka"],"Kerala":["Kerala"],"Maharashtra":["Mumbai","CP Berar"],"Delhi":["Delhi-UP"],"Uttar Pradesh":["Delhi-UP"],"Punjab":["East Punjab"],"Rajasthan":["Rajasthan"],"Madhya Pradesh":["Central India (CI)","CP Berar"],"Bihar":["Bihar"],"West Bengal":["West Bengal"]};
+ const countryNames=["USA","Canada","United Kingdom","Australia","New Zealand","United Arab Emirates (UAE)","Saudi Arabia","Qatar","Kuwait","Oman","Bahrain","Singapore","Malaysia","Germany","France","Netherlands","Ireland","South Africa","Japan","Nepal","Sri Lanka","Bangladesh","Mauritius","Fiji","Other Country"];
+ const options=(items,selected)=>'<option value="">Select...</option>'+items.map(n=>`<option value="${advEsc(n)}" ${n===selected?'selected':''}>${advEsc(n)}</option>`).join('');
+ const locationInputs=(r,j)=>{
+   const level=r.level==='city'?'state':(r.level||'state'),state=r.state|| (level==='state'?r.name:'');
+   const territory=r.territory|| (level==='area'?r.name:'');
+   const country=r.country|| (level==='country'?r.name:'');
+   const stateNames=Object.keys(BX_CINEMA_LOCATIONS).filter(n=>n!=='Rest of India');
+   const territories=territoryMap[state]||[state].filter(Boolean);
+   const districts=BX_CINEMA_LOCATIONS[state]||[];
+   const district=r.district||'';
+   const districtChoices=[...new Set([...districts,...(district&&!districts.includes(district)?[district]:[])])];
+   return `<div><label>Location type</label><select data-adv-region="${j}" data-adv-rfield="level">${[['state','India — State'],['area','India — Film territory'],['country','Overseas — Country']].map(([v,t])=>`<option value="${v}" ${v===level?'selected':''}>${t}</option>`).join('')}</select></div>`+
+    (level==='country'?`<div><label>Country</label><select data-adv-region="${j}" data-adv-rfield="country">${options(countryNames,country)}</select></div>${country==='Other Country'?`<div><label>Country name</label><input data-adv-region="${j}" data-adv-rfield="custom_country" value="${advEsc(r.custom_country||'')}"></div>`:''}`:
+    `<div><label>State</label><select data-adv-region="${j}" data-adv-rfield="state">${options(stateNames,state)}</select></div>`+
+    (level==='state'?`<div><label>District / City</label><select data-adv-region="${j}" data-adv-rfield="district">${options(districtChoices,district)}</select><small class="note">Choose a district/city or enter another name below.</small></div><div><label>Other district / city (optional)</label><input data-adv-region="${j}" data-adv-rfield="district_custom" value="${advEsc(r.district_custom||'')}" placeholder="Type any district or city"></div>`:'')+
+    (level==='area'?`<div><label>Film trade territory</label><select data-adv-region="${j}" data-adv-rfield="territory">${options(territories,territory)}</select></div>`:'')+
+    '');
+ };
+ body=`<div class="bx-advance-editor"><label>Tracker title</label><input data-adv-title value="${advEsc(ad.title||'Advance Booking Tracker')}"><label>Editorial summary</label><textarea data-adv-summary>${advEsc(ad.summary||'')}</textarea><p class="note">Manual entry only. Gross amounts in ₹ crore (₹50 lakh = 0.50). Totals update automatically from entered locations. State/district rows take precedence over overlapping trade territories. Add all locations for complete totals.</p><h3>Booking dates</h3><div data-adv-days>${ad.dates.map((d,j)=>`<div class="bo-period" style="margin:8px 0"><div class="block-row"><div><label>Day label</label><input data-adv-date="${j}" data-adv-field="label" value="${advEsc(d.label)}"></div><div><label>Booking date</label><input type="date" data-adv-date="${j}" data-adv-field="date" value="${advEsc(d.date)}"></div></div><div class="bo-grid">${['india_gross','overseas_gross','tickets','shows','theatres','occupancy','houseful','fast_filling'].map(k=>`<div><label>${k.replaceAll('_',' ')}${k.endsWith('gross')?' (₹ Cr)':''}</label><input type="number" min="0" step="any" data-adv-date="${j}" data-adv-field="${k}" value="${advEsc(d[k]??0)}"></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-delete-day="${j}">Remove day</button></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-add-day>Add booking date</button><h3 style="margin-top:20px">Location booking details</h3><p class="note">Select an Indian state or film trade territory; overseas needs only a country.</p>${ad.regions.map((r,j)=>`<div class="bo-period" style="margin:8px 0"><div class="bo-grid"><div><label>Booking day</label><select data-adv-region="${j}" data-adv-rfield="date_key">${ad.dates.map(d=>`<option value="${advEsc(d.key)}" ${d.key===r.date_key?'selected':''}>${advEsc(d.label)}</option>`).join('')}</select></div>${locationInputs(r,j)}${['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'].map(k=>`<div><label>${k}${k==='gross'?' (₹ Cr)':''}</label><input type="number" min="0" step="any" data-adv-region="${j}" data-adv-rfield="${k}" value="${advEsc(r[k]??0)}"></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-delete-region="${j}">Remove location</button></div>`).join('')}<button type="button" class="btn-dark" data-adv-add-region>Add location</button><div class="bo-period" style="margin-top:12px;border-color:#3a6a62"><strong style="color:#7de2bb">Automatic booking totals</strong><div data-adv-auto-summary class="note" style="font-size:12px;line-height:1.9"></div></div></div>`;
+}
 if(b.block_type==="boxoffice"){
 b.extra_data=normalizeBoxOfficeExtra(b.extra_data);
 body=renderBoxOfficeBlock(b.extra_data);
@@ -2715,6 +2744,36 @@ const textarea=card.querySelector('textarea[data-field="content"]');
 applyArticleFormat(i,btn.dataset.articleFormat,textarea);
 };
 });
+if(b.block_type==="advance_booking"){
+ const ad=b.extra_data;
+ const updateAdvanceTotals=()=>{
+   const container=card.querySelector('[data-adv-auto-summary]');if(!container)return;
+   const n=v=>Math.max(0,Number(v)||0);
+   container.innerHTML=ad.dates.map(day=>{
+     const rows=ad.regions.filter(r=>r.date_key===day.key);
+     const stateRows=rows.filter(r=>r.level==='state'||r.level==='city');
+     const stateGroups=new Map();for(const r of stateRows){const k=r.state||r.name||'Other';if(!stateGroups.has(k))stateGroups.set(k,[]);stateGroups.get(k).push(r);}
+     const india=[];for(const group of stateGroups.values()){const cities=group.filter(r=>r.district||r.district_custom||r.city);india.push(...(cities.length?cities:group));}
+     if(!stateRows.length)india.push(...rows.filter(r=>r.level==='area'||r.level==='territory'));
+     const abroad=rows.filter(r=>r.level==='country');
+     const sum=(arr,k)=>arr.reduce((s,r)=>s+n(r[k]),0);
+     const inGross=india.length?sum(india,'gross'):n(day.india_gross);
+     const outGross=abroad.length?sum(abroad,'gross'):n(day.overseas_gross);
+     const fmt=v=>'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:2})+' Cr';
+     return `<div><b>${articleContentEsc(day.label||day.date||'Day')}:</b> India ${fmt(inGross)} + Overseas ${fmt(outGross)} = <b>${fmt(inGross+outGross)}</b> <small>(${india.length} India rows, ${abroad.length} overseas rows)</small></div>`;
+   }).join('');
+ };
+
+ updateAdvanceTotals();
+ card.querySelector('[data-adv-title]').oninput=e=>ad.title=e.target.value;
+ card.querySelector('[data-adv-summary]').oninput=e=>ad.summary=e.target.value;
+ card.querySelectorAll('[data-adv-date]').forEach(el=>el.oninput=()=>{const d=ad.dates[Number(el.dataset.advDate)];const k=el.dataset.advField;d[k]=el.type==='number'?(el.value===''?0:Number(el.value)):el.value;updateAdvanceTotals();});
+ card.querySelectorAll('[data-adv-region]').forEach(el=>{const change=()=>{const r=ad.regions[Number(el.dataset.advRegion)];const k=el.dataset.advRfield;r[k]=el.type==='number'?(el.value===''?0:Number(el.value)):el.value;if(k==='level'){r.name='';r.state='';r.territory='';r.country='';r.custom_country='';r.district='';r.district_custom='';renderBlocks();return}if(k==='state'){r.name=r.level==='state'?el.value:'';r.territory='';r.district='';r.district_custom='';renderBlocks();return}if(['territory','country','custom_country'].includes(k)){r.name=k==='country'&&el.value==='Other Country'?(r.custom_country||''):k==='custom_country'?el.value:el.value;if(k==='country')renderBlocks();}updateAdvanceTotals();};el.addEventListener('change',change);if(el.tagName==='INPUT')el.addEventListener('input',change);});
+ card.querySelector('[data-adv-add-day]').onclick=()=>{ad.dates.push({key:'day_'+Date.now(),label:'Day '+(ad.dates.length+1),date:'',india_gross:0,overseas_gross:0,tickets:0,shows:0,theatres:0,occupancy:0,houseful:0,fast_filling:0});renderBlocks()};
+ card.querySelectorAll('[data-adv-delete-day]').forEach(el=>el.onclick=()=>{const removed=ad.dates.splice(Number(el.dataset.advDeleteDay),1)[0];ad.regions=ad.regions.filter(r=>r.date_key!==removed?.key);renderBlocks()});
+ card.querySelector('[data-adv-add-region]').onclick=()=>{if(!ad.dates.length){alert('Add a booking date first');return}ad.regions.push({date_key:ad.dates[0].key,level:'state',name:'',gross:0,tickets:0,shows:0,occupancy:0});renderBlocks()};
+ card.querySelectorAll('[data-adv-delete-region]').forEach(el=>el.onclick=()=>{ad.regions.splice(Number(el.dataset.advDeleteRegion),1);renderBlocks()});
+}
 if(b.block_type==="auto_live_tracker"){
  const ac=b.extra_data=b.extra_data||{enabled:true,paused:false,ssr_enabled:true,h1_enabled:true,days:[]};
  ac.days=Array.isArray(ac.days)?ac.days:[];
