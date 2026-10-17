@@ -999,6 +999,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <div class="full"><div id="heroPreview" class="media-preview empty">Hero preview will appear here</div></div>
 <div><label>Hero caption</label><input id="heroCaption"></div>
 <div><label>Hero credit</label><input id="heroCredit"></div>
+<div class="full"><label>SEO Mode</label><select id="seoMode"><option value="auto">Automatic SEO (default)</option><option value="manual">Manual SEO — preserve entered title, description and deck</option></select><div class="note">Manual mode preserves your saved fields, including when live tracking is ON. Tracking data remains active.</div></div>
 <div class="full"><label>Meta title</label><input id="metaTitle"></div>
 <div class="full"><label>Meta description</label><textarea id="metaDescription"></textarea></div>
 <div class="full" id="articleTrackingModePanel" style="display:none">
@@ -1477,6 +1478,7 @@ const b=$("statusBadge");b.textContent=currentStatus;b.className="status-pill st
 function resetEditor(){
 bxManualRelatedIds=[];bxRenderManualRelated();
 currentArticleId=null;currentStatus="draft";blocks=[];deletedBlockIds=[];
+if($("seoMode"))$("seoMode").value="auto";
 applySlugLock(false);
 ["title","slug","subtitle","heroImage","heroCaption","heroCredit","metaTitle","metaDescription"].forEach(id=>$(id).value="");
 setSelectedLinks([],[]);
@@ -3537,6 +3539,7 @@ blocks=Array.isArray(a.blocks)?a.blocks:[];
 deletedBlockIds=[];
 $("editorTitle").textContent="Edit Article #"+a.id;
 $("title").value=a.title||"";$("slug").value=a.slug||"";$("subtitle").value=a.subtitle||"";$("category").value=a.category||"News";$("author").value=a.author||"BoxOfficeX";$("heroImage").value=a.hero_image||"";$("heroCaption").value=a.hero_caption||"";$("heroCredit").value=a.hero_credit||"";$("metaTitle").value=a.meta_title||"";$("metaDescription").value=a.meta_description||"";
+if($("seoMode"))$("seoMode").value=a.seo_mode==="manual"?"manual":"auto";
 loadedTrackingEnabled = a.tracking_enabled !== false;
 if($("trackingEnabled")) $("trackingEnabled").checked = loadedTrackingEnabled;
 updateTrackingModeLabel();
@@ -3567,7 +3570,7 @@ const resolvedSlug=slugify($("slug").value || storedTitle);
 return {title:storedTitle,slug:resolvedSlug,subtitle:$("subtitle").value||null,category:$("category").value.trim()||"News",author:$("author").value.trim()||
 CURRENT_ARTICLE_ADMIN?.display_name||
 CURRENT_ARTICLE_ADMIN?.email||
-"BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null,tracking_enabled:$("trackingEnabled")?$("trackingEnabled").checked:true};
+"BoxOfficeX",hero_image:$("heroImage").value.trim()||null,hero_caption:$("heroCaption").value||null,hero_credit:$("heroCredit").value||null,status:currentStatus,meta_title:$("metaTitle").value||null,meta_description:$("metaDescription").value||null,published_at:null,tracking_enabled:$("trackingEnabled")?$("trackingEnabled").checked:true,seo_mode:$("seoMode")?.value==="manual"?"manual":"auto"};
 }
 
 

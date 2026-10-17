@@ -13952,6 +13952,8 @@ def _bx_auto_only_seo(article):
 
 
 def _article_apply_tracking_ctr(article):
+    if str(article.get("seo_mode") or "auto").lower() == "manual":
+        return article, None
     generated = _bx_auto_only_seo(article) or _article_tracking_ctr(article)
     if not generated:
         return article, None
@@ -14023,7 +14025,7 @@ def _bx_article_universal_seo(article):
     remain authoritative. Weak generic titles/descriptions use the actual
     article H1, linked movie and the topics present in published blocks.
     """
-    if article.get("generated_tracking_seo"):
+    if article.get("generated_tracking_seo") or str(article.get("seo_mode") or "auto").lower() == "manual":
         return article
     headline = _article_normalize_seo_text(article.get("title") or "")
     if not headline:
@@ -16157,7 +16159,7 @@ def get_article(slug: str):
                        hero_caption,hero_credit,status,meta_title,meta_description,
                        views,published_at,created_at,updated_at,
                        tracking_enabled,final_h1,final_subtitle,final_meta_title,
-                       final_meta_description,tracking_finalized_at
+                       final_meta_description,tracking_finalized_at,seo_mode
                 FROM articles
                 WHERE slug=%s AND status='published'
                 LIMIT 1
@@ -16238,7 +16240,7 @@ def get_article(slug: str):
         "published_at":a[13],"created_at":a[14],"updated_at":a[15],
         "tracking_enabled":bool(a[16]),"final_h1":a[17],"final_subtitle":a[18],
         "final_meta_title":a[19],"final_meta_description":a[20],
-        "tracking_finalized_at":a[21],
+        "tracking_finalized_at":a[21],"seo_mode":a[22],
         "movie_ids":movie_ids,"actor_ids":actor_ids,
         "movies":linked_movies,"actors":linked_actors,
         "blocks":[
@@ -16329,6 +16331,7 @@ class AdminArticleCreate(BaseModel):
     published_at: Optional[datetime] = None
     # Box-office tracking lifecycle. Normal articles ignore this field.
     tracking_enabled: bool = True
+    seo_mode: Literal["auto", "manual"] = "auto"
 
 
 class AdminArticleBlock(BaseModel):
@@ -16454,6 +16457,7 @@ def ensure_article_tracking_lifecycle_columns():
             row = cur.fetchone()
             if not row or row[0] is None:
                 return
+            cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS seo_mode TEXT NOT NULL DEFAULT 'auto'")
             cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS tracking_enabled BOOLEAN NOT NULL DEFAULT TRUE")
             cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS final_h1 TEXT")
             cur.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS final_subtitle TEXT")
@@ -16947,7 +16951,7 @@ def admin_get_article(article_id: int):
                     status, meta_title, meta_description,
                     views, published_at, created_at, updated_at,
                     tracking_enabled, final_h1, final_subtitle, final_meta_title,
-                    final_meta_description, tracking_finalized_at
+                    final_meta_description, tracking_finalized_at, seo_mode
                 FROM articles
                 WHERE id = %s
             """, (article_id,))
@@ -17008,6 +17012,7 @@ def admin_get_article(article_id: int):
             "final_meta_title": a[19],
             "final_meta_description": a[20],
             "tracking_finalized_at": a[21],
+            "seo_mode": a[22],
             "movie_ids": movie_ids,
             "actor_ids": actor_ids,
             "manual_related_ids": manual_related_ids,
@@ -17313,13 +17318,13 @@ def admin_create_article(data: AdminArticleCreate):
                         title, slug, subtitle, category, author,
                         hero_image, hero_caption, hero_credit,
                         status, meta_title, meta_description,
-                        published_at, tracking_enabled, updated_at
+                        published_at, tracking_enabled, seo_mode, updated_at
                     )
                     VALUES (
                         %s,%s,%s,%s,%s,
                         %s,%s,%s,
                         %s,%s,%s,
-                        %s,%s,CURRENT_TIMESTAMP
+                        %s,%s,%s,CURRENT_TIMESTAMP
                     )
                     RETURNING id
                 """, (
@@ -17336,6 +17341,7 @@ def admin_create_article(data: AdminArticleCreate):
                     effective_meta_description,
                     published_at,
                     bool(data.tracking_enabled),
+                    data.seo_mode,
                 ))
                 article_id = cur.fetchone()[0]
             except psycopg.errors.UniqueViolation:
@@ -17409,6 +17415,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
                         meta_description = %s,
                         published_at = %s,
                         tracking_enabled = %s,
+                        seo_mode = %s,
                         updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                     WHERE id = %s
                 """, (
@@ -17425,6 +17432,7 @@ def admin_update_article(article_id: int, data: AdminArticleCreate):
                     effective_meta_description,
                     published_at,
                     bool(data.tracking_enabled),
+                    data.seo_mode,
                     article_id,
                 ))
             except psycopg.errors.UniqueViolation:
