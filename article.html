@@ -6485,7 +6485,7 @@ const castDepartments=new Set(["actor","actress","supporting actor","cameo","cas
 const isCast=p=>castDepartments.has(p.department.toLowerCase());
 const cast=people.filter(isCast);
 const crew=people.filter(p=>!isCast(p));
-const money=v=>`₹${Number(v).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;
+const money=v=>{const n=Number(v);return n>=0 && n<1 ? `₹${Number((n*100).toFixed(2)).toLocaleString("en-IN",{maximumFractionDigits:2})} Lakh` : `₹${n.toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`;};
 const total=people.reduce((sum,p)=>sum+(p.salary!==null?p.salary:0),0);
 const hasSalary=people.some(p=>p.salary!==null);
 const blockStatus=String(data.status||"").trim();
@@ -6728,11 +6728,12 @@ function renderArticleSeoOverview(article){
     const types=new Set(blocks.map(b=>String(b?.block_type||"").toLowerCase()));
     const liveBlock=bxActiveTrackerBlock(article);
     const liveStatus=String(liveBlock?.extra_data?.status||"live").toLowerCase();
-    const liveActive=Boolean(liveBlock) && article?.tracking_enabled!==false && (liveStatus==="live"||liveStatus==="update");
+    const liveFrozen=Boolean(liveBlock?.extra_data?._public_daily_frozen);
+    const liveActive=Boolean(liveBlock) && !liveFrozen && article?.tracking_enabled!==false && (liveStatus==="live"||liveStatus==="update");
 
     const links=[];
-    if((types.has("live_tracker")||types.has("auto_live_tracker")) && article?.tracking_enabled!==false){
-        links.push(`<a class="bx-section-nav-btn bx-section-nav-live ${liveActive?"is-live":""}" href="#live-boxoffice-tracker"><span class="bx-section-nav-dot" aria-hidden="true"></span><span>LIVE</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
+    if((types.has("live_tracker")||types.has("auto_live_tracker")) && (article?.tracking_enabled!==false || liveFrozen)){
+        links.push(`<a class="bx-section-nav-btn bx-section-nav-live ${liveActive?"is-live":""}" href="#live-boxoffice-tracker"><span class="bx-section-nav-dot" aria-hidden="true"></span><span>${liveActive?"LIVE":"FINAL REPORT"}</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
     }
     if(types.has("boxoffice")){
         links.push(`<a class="bx-section-nav-btn" href="#boxoffice-report"><span class="bx-section-nav-icon" aria-hidden="true">▥</span><span>DAY-WISE</span><span class="bx-nav-arrow" aria-hidden="true">›</span></a>`);
@@ -6878,7 +6879,7 @@ async function renderBlock(block) {
     if (type === "live_tracker" || type === "auto_live_tracker") {
         if (window.currentBoxOfficeXArticle?.tracking_enabled === false && !(type === "auto_live_tracker" && data?._public_daily_frozen)) return "";
         const trackerData=type === "auto_live_tracker" ? bxPublicAutoTrackerData(block) : data;
-        return `<section id="live-boxoffice-tracker">${data?._public_daily_frozen ? '<p class="media-caption"><strong>Final daily tracker snapshot — estimated values archived for this article</strong></p>' : ''}${renderLiveTracker(trackerData)}${type === "auto_live_tracker" ? (bxCinemaNetworkV2(block,trackerData)+bxOverseasCountryV2(block,trackerData)) : ""}</section>`;
+        return `<section id="live-boxoffice-tracker">${data?._public_daily_frozen ? `<p class="bx-final-report-heading"><strong>${esc(String(window.currentBoxOfficeXLiveMovieName||"Movie"))} ${esc(String(data?.day_label||data?.day||""))} Box Office Collection — Final Report</strong></p>` : ''}${renderLiveTracker(trackerData)}${type === "auto_live_tracker" ? (bxCinemaNetworkV2(block,trackerData)+bxOverseasCountryV2(block,trackerData)) : ""}</section>`;
     }
 
     if (type === "boxoffice") {
@@ -9307,5 +9308,26 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
     right:8px!important;
     z-index:100510!important;
   }
+}
+
+/* BoxOfficeX targeted article readability + mobile related report fixes */
+.article-content .bx-manual-related{display:block!important;visibility:visible!important;width:100%!important}
+.article-content .bx-manual-related-link{font-size:15px!important;line-height:1.5!important;overflow-wrap:anywhere}
+.article-content .bx-manual-related h2{font-size:21px!important}
+.bx-final-report-heading{font:800 19px/1.4 Arial,sans-serif;color:#111827;margin:15px 0}
+.bx-section-nav-live:not(.is-live) .bx-section-nav-dot{animation:none!important;background:#64748b!important;box-shadow:none!important}
+.bx-salary-table td{font-size:14px!important}.bx-salary-table th{font-size:13px!important}
+.article-content .bx-salary-note{font-size:13px!important;line-height:1.55!important}
+.article-content .bx-salary-hero p{font-size:14px!important}
+.bo-detail-table th,.bo-detail-table td{font-size:13px!important}
+.bo-label,.bo-final-item span{font-size:12px!important}
+.bo-value,.bo-final-item strong{font-size:17px!important}
+@media(max-width:700px){
+.article-content .bx-manual-related-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+.article-content .bx-manual-related-link{display:flex!important;width:100%!important;min-width:0!important;font-size:15px!important;padding:14px!important}
+.bx-salary-table td{font-size:14px!important}.bx-salary-table td:before{font-size:11px!important}
+.article-content .bx-salary-note{font-size:13px!important}
+.article-content .bx-salary-hero p{font-size:14px!important}
+.bo-detail-table th,.bo-detail-table td{font-size:13px!important}
 }
 </style>
