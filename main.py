@@ -16108,6 +16108,47 @@ def _bx_freeze_daily_auto_if_due(cur, article_id, blocks):
         result.append((block_id, order, kind, content, image, caption, credit, extra))
     return result, updated
 
+# Explicit post-final correction. The normal block editor deliberately keeps frozen data immutable.
+class BxFinalDailyCorrection(BaseModel):
+    india_gross: float
+    overseas_gross: float
+
+
+@app.put("/admin/articles/{article_id}/daily-final/{block_id}/correct")
+def bx_correct_daily_final(article_id: int, block_id: int, data: BxFinalDailyCorrection,
+                           admin=Depends(require_admin)):
+    """Correct one archived day; keep the article, cinema allocations and lifecycle final."""
+    if not all(math.isfinite(v) and 0 <= v <= 100000 for v in (data.india_gross, data.overseas_gross)):
+        raise HTTPException(status_code=400, detail="Enter valid non-negative collection amounts in crore")
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT extra_data FROM article_blocks WHERE id=%s AND article_id=%s AND block_type='auto_live_tracker' FOR UPDATE", (block_id, article_id))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Daily auto tracker not found")
+            extra = dict(row[0] or {})
+            frozen = extra.get("_permanent_daily_snapshot")
+            if not isinstance(frozen, dict) or not isinstance(frozen.get("values"), dict):
+                raise HTTPException(status_code=409, detail="This tracker has not been permanently finalized yet")
+            old_values = dict(frozen["values"])
+            india = round(data.india_gross, 2)
+            overseas = round(data.overseas_gross, 2)
+            values = dict(old_values)
+            values.update(india_gross=india, india_net=round(india / 1.18, 2),
+                          overseas_gross=overseas, worldwide_gross=round(india + overseas, 2))
+            frozen = dict(frozen)
+            frozen["values"] = values
+            frozen["corrected_at"] = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat()
+            frozen["corrected_by_admin_id"] = admin["id"]
+            frozen["estimated"] = True
+            extra["_permanent_daily_snapshot"] = frozen
+            cur.execute("UPDATE article_blocks SET extra_data=%s WHERE id=%s AND article_id=%s",
+                        (psycopg.types.json.Jsonb(extra), block_id, article_id))
+        conn.commit()
+    return {"ok": True, "status": "FINAL", "values": values,
+            "message": "Final report corrected. Saved cinema and overseas allocations are retained."}
+
+
 def get_article(slug: str):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -27622,4 +27663,3 @@ def _article_ssr_advance_booking(data):
     style="""<style>.bx-advance{margin:32px 0;padding:22px;border:1px solid #304264;border-radius:18px;background:linear-gradient(145deg,#101b33,#090f1e);color:#f4f7ff;font-family:Arial,sans-serif}.bx-advance h2{font-size:clamp(22px,3vw,32px);margin:0 0 12px}.bx-advance p{color:#b5c4df;font-size:15px;line-height:1.6}.bx-adv-tabs{display:flex;gap:8px;overflow-x:auto;padding:15px 0}.bx-adv-tab{background:#1a2a48;border:1px solid #365078;color:#cbd9f3;padding:9px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;font-weight:bold}.bx-adv-tab[aria-pressed=true]{background:#ffca39;color:#10131d}.bx-adv-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.bx-adv-card{padding:16px;border-radius:14px;background:#172844;border:1px solid #345179}.bx-adv-card small{display:block;color:#aebfda}.bx-adv-card strong{display:block;margin-top:7px;font-size:clamp(17px,2vw,24px);color:#ffd15a}.bx-adv-stats{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;color:#c3d0e8;font-size:12px}.bx-adv-stats span{padding:7px 10px;border-radius:8px;background:#172238}.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#e6edff}.bx-adv-barrow{display:grid;grid-template-columns:minmax(70px,130px) minmax(50px,1fr) auto;align-items:center;gap:10px;margin:9px 0;font-size:12px}.bx-adv-track{height:13px;border-radius:20px;background:#27334e;overflow:hidden}.bx-adv-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#497fff,#8c59e9,#ffbf41)}.bx-adv-scroll{overflow-x:auto}.bx-adv-scroll table{border-collapse:collapse;width:100%;min-width:470px;margin-top:16px;font-size:12px}.bx-adv-scroll th,.bx-adv-scroll td{padding:11px;border-bottom:1px solid #33405a;text-align:left}.bx-adv-scroll thead{background:#203354}.bx-adv-note{color:#8499b8;font-size:11px;margin-top:18px}@media(max-width:600px){.bx-advance{padding:14px}.bx-adv-cards{grid-template-columns:1fr}.bx-adv-barrow{grid-template-columns:80px 1fr auto;font-size:10px}}</style>"""
     script="""<script>(function(){document.querySelectorAll('.bx-advance').forEach(function(root){if(root.dataset.advBound)return;root.dataset.advBound='1';root.querySelectorAll('[data-advance-target]').forEach(function(btn){btn.addEventListener('click',function(){var i=btn.dataset.advanceTarget;root.querySelectorAll('[data-advance-target]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn))});root.querySelectorAll('[data-advance-day]').forEach(function(p){p.hidden=p.dataset.advanceDay!==i})})})})})();</script>"""
     return style+'<div class="bx-advance"><h2>'+title+'</h2><p>'+intro+'</p><div class="bx-adv-tabs">'+tabs+'</div>'+''.join(sections)+'<div class="bx-adv-note">Figures are manually updated; regional figures may be partial and are not automatically summed into headline totals. Advance bookings are not final box-office collections.</div></div>'+script
-

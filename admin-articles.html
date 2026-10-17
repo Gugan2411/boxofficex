@@ -2474,6 +2474,18 @@ const bxDayKeys=bxEnsureDayAllocations(lt);
 const bxSelectedDay=(lt._editor_day_key&&bxDayKeys.includes(lt._editor_day_key))?lt._editor_day_key:(bxDayKeys[bxDayKeys.length-1]||"");
 const bxOpenDay=lt._open_day_key||bxSelectedDay||"unscheduled";
 const bxDayConfig=lt.day_allocations[bxSelectedDay]||{cinema_regions:[],overseas_countries:[]};
+const bxFrozen=lt._permanent_daily_snapshot;
+const bxFrozenValues=(bxFrozen&&bxFrozen.values)||{};
+const bxFinalCorrectionHTML=bxFrozen?`<section class="bx-final-correction" style="margin:14px 0;padding:15px;border:1px solid #4b966e;border-radius:12px;background:#11251f">
+  <strong style="color:#86efac">Edit Final Report — saved daily snapshot</strong>
+  <div class="note" style="margin:7px 0 12px;color:#cbd5e1">Updates this finished day's permanent figures. Cinema Network state/city allocations, tickets and occupancy derived from gross are recalculated on the public page. The tracker remains FINAL. Does not modify your Box Office Report block.</div>
+  <div class="block-row">
+    <div><label>Corrected India Gross (₹ Cr)</label><input type="number" min="0" max="100000" step="0.01" data-final-correction="india" value="${articleContentEsc(bxFrozenValues.india_gross??0)}"></div>
+    <div><label>Corrected Overseas Gross (₹ Cr)</label><input type="number" min="0" max="100000" step="0.01" data-final-correction="overseas" value="${articleContentEsc(bxFrozenValues.overseas_gross??0)}"></div>
+  </div>
+  <div class="note" style="margin:9px 0">Worldwide total and India net recalculate automatically; saved region/country shares and cinema capacity settings remain unchanged.</div>
+  <button type="button" class="btn-green" data-save-final-correction="${Number(b.id)}">Save Final Report Corrections</button>
+</section>`:"";
 const cinemaConfigHTML=`    <div style="margin-top:16px;padding:13px;border:1px solid #b9913c;border-radius:12px">
       <strong style="color:#ffcc33">Cinema Network V2 — India Region & City Shares</strong>
       <div class="note">Shares allocate the current India gross estimate. Shows and theatres are daily configured counts, not verified bookings. Only checked regions and cities appear publicly.</div>
@@ -2533,6 +2545,7 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
     </div>
     <div><label>Overseas Net Conversion (%)</label><input type="number" min="0" max="100" step="0.01" data-auto-root-number="overseas_net_percent" value="${articleContentEsc(lt.overseas_net_percent??100)}"></div>
     <div class="note">Add separate INDIA and OVERSEAS schedules. Worldwide totals show only when both are active. Empty regions remain hidden.</div>
+    ${bxFinalCorrectionHTML}
     <div data-auto-days>${(()=>{
       const groups=[];
       const dayKey=d=>bxTrackerDayKey(d.start_at);
@@ -3788,6 +3801,30 @@ $("movieLinkSearch").addEventListener("input",showMovieLinkResults);
 $("actorLinkSearch").addEventListener("input",showActorLinkResults);
 $("movieLinkAddBtn").onclick=addPendingMovieLink;
 $("actorLinkAddBtn").onclick=addPendingActorLink;
+document.addEventListener("click",async event=>{
+    const button=event.target.closest("[data-save-final-correction]");
+    if(!button)return;
+    if(!currentArticleId){toast("Open a saved article first");return;}
+    const section=button.closest(".bx-final-correction");
+    const india=Number(section.querySelector('[data-final-correction="india"]').value);
+    const overseas=Number(section.querySelector('[data-final-correction="overseas"]').value);
+    if(![india,overseas].every(v=>Number.isFinite(v)&&v>=0)){
+        toast("Enter valid non-negative amounts");return;
+    }
+    if(!confirm("Update this day's permanent FINAL REPORT? The same URL and final status will be kept."))return;
+    button.disabled=true;
+    try{
+        const r=await fetch(`/admin/articles/${currentArticleId}/daily-final/${Number(button.dataset.saveFinalCorrection)}/correct`,{
+            method:"PUT",credentials:"include",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({india_gross:india,overseas_gross:overseas})
+        });
+        const result=await r.json();
+        if(!r.ok)throw Error(result.detail||`HTTP ${r.status}`);
+        toast("Final report corrected successfully");
+        await loadArticle(currentArticleId);
+    }catch(error){toast("Correction failed: "+error.message)}
+    finally{button.disabled=false;}
+});
 document.addEventListener("click",e=>{
 if(!e.target.closest(".link-picker")){
 $("movieLinkResults").style.display="none";
