@@ -14358,6 +14358,107 @@ def _article_ssr_methodology(article, public_blocks):
     )
 
 
+def _bx_combined_v2_article_seo(article):
+    """Keep SSR, API, H1 and deck in sync with the published LIVE workspace.
+
+    Never present scheduled LIVE targets as confirmed box-office results.
+    Explicit manual article SEO has absolute priority.
+    """
+    if str(article.get('seo_mode') or 'auto').lower() == 'manual':
+        return article, False
+    article_id = article.get('id')
+    if not article_id:
+        return article, False
+    try:
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute("""SELECT p.id,m.title,p.release_date,p.status,p.publish_time,
+                                  p.daily_start,p.daily_end,p.seo_title,p.seo_description
+                           FROM live_tracker_v2_plans p
+                           JOIN movies m ON m.id=p.movie_id
+                           WHERE p.article_id=%s AND p.mode='combined'
+                           LIMIT 1""", (article_id,))
+            plan = cur.fetchone()
+            if not plan:
+                return article, False
+            cur.execute("""SELECT extra_data FROM article_blocks
+                           WHERE article_id=%s AND block_type='boxoffice'
+                           ORDER BY block_order LIMIT 1""", (article_id,))
+            report_row = cur.fetchone()
+            now = datetime.now(ZoneInfo('Asia/Kolkata'))
+            business_date = (now - timedelta(hours=6)).date()
+            plan_id, name, release, status, publish_time, start_time, end_time, custom_title, custom_description = plan
+            day = (business_date - release).days + 1
+            active = False
+            if status == 'scheduled' and day >= 1:
+                cur.execute("""SELECT 1 FROM live_tracker_v2_days
+                               WHERE plan_id=%s AND day_number=%s""", (plan_id, day))
+                has_day = bool(cur.fetchone())
+                if has_day and publish_time and start_time and end_time:
+                    publication = datetime.combine(release, publish_time, ZoneInfo('Asia/Kolkata'))
+                    start = datetime.combine(business_date, start_time, ZoneInfo('Asia/Kolkata'))
+                    end = datetime.combine(business_date, end_time, ZoneInfo('Asia/Kolkata'))
+                    active = publication <= now and start <= now < end
+        name = str(name or '').strip()
+        if not name:
+            return article, False
+        report = report_row[0] if report_row and isinstance(report_row[0], dict) else {}
+        saved_days = [d for d in (report.get('days') or []) if isinstance(d, dict)
+                      and str(d.get('type', 'REGULAR')).upper() == 'REGULAR']
+        regions = ('tamil_nadu', 'kerala', 'karnataka', 'telugu_states', 'rest_of_india', 'overseas')
+        def amount(value):
+            try:
+                number = float(value)
+                return number if 0 <= number < 10000000 and math.isfinite(number) else 0.0
+            except (TypeError, ValueError):
+                return 0.0
+        previous = [d for d in saved_days if str(d.get('number', '')).isdigit()
+                    and int(d['number']) < day] if day >= 1 else saved_days
+        # Only permanent, manually saved regional collection figures enter SEO.
+        india = sum(sum(amount(d.get(k)) for k in regions[:-1]) for d in previous)
+        overseas = sum(amount(d.get('overseas')) for d in previous)
+        worldwide = india + overseas
+        # Universal SEO: no state/country promises, no invented milestones or verdicts.
+        # Day N is calculated from the existing 6 AM IST theatrical-day boundary.
+        if active:
+            h1 = f'{name} Day {day} Box Office Collection LIVE Updates'
+            title = f'{name} Day {day} Box Office LIVE: Collection & Budget'
+            description = (f'{name} Day {day} box office collection LIVE: Check day-wise earnings, '
+                           'theatre occupancy, show counts, budget recovery and collection milestones.')
+            deck = (f'Track {name}\'s Day {day} box office performance LIVE with collection '
+                    'updates, occupancy trends, show counts, previous days\' earnings '
+                    'and theatrical recovery progress.')
+        elif day >= 1 and previous and worldwide > 0:
+            latest = max(int(d['number']) for d in previous)
+            h1 = f'{name} Day {latest} Box Office Collection: Day-Wise Earnings'
+            title = f'{name} Day {latest} Box Office Collection & Budget'
+            description = (f'{name} Day {latest} box office collection: Check final day-wise '
+                           'earnings, total collections, budget recovery and theatrical performance.')
+            deck = (f'Explore {name}\'s Day {latest} box office collections, previous days\' '
+                    'earnings, total performance and theatrical recovery based on saved reports.')
+        else:
+            h1 = f'{name} Box Office Collection: Day-Wise Earnings'
+            title = f'{name} Box Office Collection: Day-Wise & Budget'
+            description = (f'Check {name} box office collection, day-wise earnings, '
+                           'theatre occupancy, budget recovery and collection milestones as available.')
+            deck = (f'Explore {name} box office performance, day-wise collections, '
+                    'occupancy trends and theatrical recovery using available reports.')
+        # Workspace SEO fields are intentional overrides, subordinate to article manual mode.
+        if custom_title:
+            title = str(custom_title).strip()
+        if custom_description:
+            description = str(custom_description).strip()
+        result = dict(article)
+        result['title'] = _article_normalize_seo_text(h1)
+        result['subtitle'] = _article_normalize_seo_text(deck)
+        result['meta_title'] = _article_normalize_seo_text(title)
+        result['meta_description'] = _article_normalize_seo_text(description)
+        result['generated_tracking_seo'] = {'source': 'combined_live_workspace', 'mode': 'LIVE' if active else 'REPORT'}
+        return result, True
+    except Exception as exc:
+        print('[Combined V2 SEO] fallback:', type(exc).__name__, str(exc)[:200], flush=True)
+        return article, False
+
+
 def _render_article_detail_html(slug):
     response = get_article(slug)
     article = response.get("article") if isinstance(response, dict) else None
@@ -14368,6 +14469,9 @@ def _render_article_detail_html(slug):
     # stored report + theatrical calculations rendered on this page.
     article, _generated_tracking_seo = _article_apply_tracking_ctr(article)
     article = _bx_article_universal_seo(article)
+    # Combined V2 plans share the existing article URL and metadata. Respect
+    # explicit article SEO overrides; never copy modeled live targets into SEO.
+    article, combined_v2_seo = _bx_combined_v2_article_seo(article)
 
     article_file = BASE_DIR / "article.html"
     if not article_file.is_file():
@@ -14383,7 +14487,7 @@ def _render_article_detail_html(slug):
 
     title = str(article.get("title") or "BoxOfficeX Article")
     seo_title = str(article.get("meta_title") or title).strip()
-    if "boxofficex" not in seo_title.lower():
+    if not combined_v2_seo and "boxofficex" not in seo_title.lower():
         seo_title += " | BoxOfficeX"
     description = str(
         article.get("meta_description")
@@ -16303,6 +16407,7 @@ def get_article(slug: str):
     article["blocks"] = safe_blocks
     article["manual_related_articles"] = manual_related
     article = _bx_article_universal_seo(article)
+    article, _ = _bx_combined_v2_article_seo(article)
     return {"article": article}
 
 
@@ -16939,6 +17044,106 @@ def admin_save_manual_related(article_id: int, data: ManualArticleLinksPayload):
         conn.commit()
     _invalidate_article_detail_cache(slug)
     return {"success":True,"article_ids":ids}
+
+# V2 compact permanent Box Office Report editor: same existing article_blocks JSONB.
+# No new region tables and no changes to automatic live tracker data.
+@app.get("/admin/live-v2/movies/{movie_id}/reports", dependencies=[Depends(require_owner)])
+def bx_v2_movie_reports(movie_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM movies WHERE id=%s", (movie_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Movie not found")
+            cur.execute("""
+                SELECT DISTINCT a.id, a.title, a.slug, a.status, b.id, b.extra_data
+                FROM articles a
+                JOIN article_movies am ON am.article_id=a.id
+                JOIN article_blocks b ON b.article_id=a.id AND b.block_type='boxoffice'
+                WHERE am.movie_id=%s
+                ORDER BY a.id DESC, b.id DESC
+            """, (movie_id,))
+            records=cur.fetchall()
+    import hashlib, json
+    def version(obj):
+        return hashlib.sha256(json.dumps(obj or {},sort_keys=True,default=str).encode()).hexdigest()
+    return {"reports":[{"article_id":r[0], "article_title":r[1],
+        "article_slug":r[2], "article_status":r[3], "block_id":r[4],
+        "extra_data":r[5] or {}, "version":version(r[5])} for r in records]}
+
+
+@app.put("/admin/live-v2/reports/{article_id}/{block_id}", dependencies=[Depends(require_owner)])
+def bx_v2_save_compact_report(article_id: int, block_id: int, payload: dict):
+    # Only the editable fields of the existing permanent report are accepted.
+    from decimal import Decimal, InvalidOperation
+    areas=("tamil_nadu", "kerala", "karnataka", "telugu_states", "rest_of_india", "overseas")
+    rights=("theatrical_"+a for a in areas)
+    allowed_rights=set(rights)
+    def amount(value, name):
+        if value is None or value == "":
+            return None
+        try:
+            number=Decimal(str(value))
+        except (InvalidOperation, ValueError):
+            raise HTTPException(status_code=422, detail=f"Invalid {name}")
+        if not number.is_finite() or number < 0 or number > 100000 or number.as_tuple().exponent < -2:
+            raise HTTPException(status_code=422, detail=f"Invalid {name}: use 0–100000, max 2 decimals")
+        return float(number)
+    values=payload.get("rights")
+    days=payload.get("days")
+    if not isinstance(values,dict) or set(values)-allowed_rights:
+        raise HTTPException(status_code=422,detail="Invalid theatrical rights fields")
+    if not isinstance(days,list) or len(days)>365:
+        raise HTTPException(status_code=422,detail="Invalid days (maximum 365)")
+    if payload.get("budget") is not None:
+        budget=amount(payload["budget"],"budget")
+    else:
+        budget=None
+    for d in days:
+        if not isinstance(d,dict) or set(d)-set(areas)-{"number"}:
+            raise HTTPException(status_code=422,detail="Invalid day fields")
+        if not isinstance(d.get("number"),int) or isinstance(d.get("number"),bool) or d["number"]<1:
+            raise HTTPException(status_code=422,detail="Invalid day number")
+        for a in areas:
+            amount(d.get(a),a)
+    if len({d["number"] for d in days})!=len(days):
+        raise HTTPException(status_code=422,detail="Duplicate day numbers")
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""SELECT extra_data FROM article_blocks
+                WHERE id=%s AND article_id=%s AND block_type='boxoffice' FOR UPDATE""",
+                (block_id,article_id))
+            record=cur.fetchone()
+            if not record:
+                raise HTTPException(status_code=404,detail="Existing Box Office Report not found")
+            extra=dict(record[0] or {})
+            # Optimistic concurrency: never overwrite another admin's intervening edits.
+            import hashlib, json
+            fingerprint=lambda obj:hashlib.sha256(json.dumps(obj,sort_keys=True,default=str).encode()).hexdigest()
+            if payload.get("expected_version")!=fingerprint(extra):
+                raise HTTPException(status_code=409,detail="Report changed since loading. Reload before saving.")
+            if budget is not None:
+                extra["budget"]=budget
+            for key in allowed_rights:
+                if key in values:
+                    extra[key]=amount(values[key],key)
+            # Retain existing PREVIEW and unedited REGULAR day metadata.
+            by_number={int(d.get("number")):d for d in extra.get("days",[])
+                if str(d.get("type","REGULAR")).upper()=="REGULAR" and d.get("number") is not None}
+            current_days=list(extra.get("days",[]))
+            for day in days:
+                number=day["number"]
+                old=by_number.get(number)
+                if old is None:
+                    old={"number":number,"type":"REGULAR","label":"","date":"","status":"LIVE"}
+                    current_days.append(old)
+                for a in areas:
+                    old[a]=amount(day.get(a),a)
+            extra["days"]=current_days
+            cur.execute("UPDATE article_blocks SET extra_data=%s WHERE id=%s AND article_id=%s",
+                (psycopg.types.json.Jsonb(extra),block_id,article_id))
+            _bx_stamp_report_if_changed(cur,block_id,extra,record[0])
+        conn.commit()
+    return {"success":True,"article_id":article_id,"block_id":block_id}
 
 @app.get("/admin/articles/{article_id}", dependencies=[Depends(require_admin)])
 def admin_get_article(article_id: int):
@@ -27671,3 +27876,464 @@ def _article_ssr_advance_booking(data):
     style="""<style>.bx-advance{margin:32px 0;padding:22px;border:1px solid #304264;border-radius:18px;background:linear-gradient(145deg,#101b33,#090f1e);color:#f4f7ff;font-family:Arial,sans-serif}.bx-advance h2{font-size:clamp(22px,3vw,32px);margin:0 0 12px}.bx-advance p{color:#b5c4df;font-size:15px;line-height:1.6}.bx-adv-tabs{display:flex;gap:8px;overflow-x:auto;padding:15px 0}.bx-adv-tab{background:#1a2a48;border:1px solid #365078;color:#cbd9f3;padding:9px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;font-weight:bold}.bx-adv-tab[aria-pressed=true]{background:#ffca39;color:#10131d}.bx-adv-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.bx-adv-card{padding:16px;border-radius:14px;background:#172844;border:1px solid #345179}.bx-adv-card small{display:block;color:#aebfda}.bx-adv-card strong{display:block;margin-top:7px;font-size:clamp(17px,2vw,24px);color:#ffd15a}.bx-adv-stats{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;color:#c3d0e8;font-size:12px}.bx-adv-stats span{padding:7px 10px;border-radius:8px;background:#172238}.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#e6edff}.bx-adv-barrow{display:grid;grid-template-columns:minmax(70px,130px) minmax(50px,1fr) auto;align-items:center;gap:10px;margin:9px 0;font-size:12px}.bx-adv-track{height:13px;border-radius:20px;background:#27334e;overflow:hidden}.bx-adv-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#497fff,#8c59e9,#ffbf41)}.bx-adv-scroll{overflow-x:auto}.bx-adv-scroll table{border-collapse:collapse;width:100%;min-width:470px;margin-top:16px;font-size:12px}.bx-adv-scroll th,.bx-adv-scroll td{padding:11px;border-bottom:1px solid #33405a;text-align:left}.bx-adv-scroll thead{background:#203354}.bx-adv-note{color:#8499b8;font-size:11px;margin-top:18px}@media(max-width:600px){.bx-advance{padding:14px}.bx-adv-cards{grid-template-columns:1fr}.bx-adv-barrow{grid-template-columns:80px 1fr auto;font-size:10px}}</style>"""
     script="""<script>(function(){document.querySelectorAll('.bx-advance').forEach(function(root){if(root.dataset.advBound)return;root.dataset.advBound='1';root.querySelectorAll('[data-advance-target]').forEach(function(btn){btn.addEventListener('click',function(){var i=btn.dataset.advanceTarget;root.querySelectorAll('[data-advance-target]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn))});root.querySelectorAll('[data-advance-day]').forEach(function(p){p.hidden=p.dataset.advanceDay!==i})})})})})();</script>"""
     return style+'<div class="bx-advance"><h2>'+title+'</h2><p>'+intro+'</p><div class="bx-adv-tabs">'+tabs+'</div>'+''.join(sections)+'<div class="bx-adv-note">Figures are manually updated; regional figures may be partial and are not automatically summed into headline totals. Advance bookings are not final box-office collections.</div></div>'+script
+
+# ============================================================
+# BOXOFFICEX LIVE TRACKER V2 — ISOLATED ADMIN API
+# Existing article trackers and permanent collection data unchanged.
+# Requires additive live_tracker_v2.sql migration before API use.
+# ============================================================
+from datetime import datetime as _v2_datetime, timedelta as _v2_timedelta, time as _v2_time, timezone as _v2_timezone, date as _v2_date
+from decimal import Decimal as _v2_Decimal
+from typing import Literal as _v2_Literal, Optional as _v2_Optional
+from zoneinfo import ZoneInfo as _v2_ZoneInfo
+
+from fastapi import APIRouter as _v2_APIRouter, Depends as _v2_Depends, HTTPException as _v2_HTTPException
+from pydantic import BaseModel as _v2_BaseModel, Field as _v2_Field, model_validator as _v2_model_validator
+
+LIVE_V2_IST = _v2_ZoneInfo('Asia/Kolkata')
+
+class LiveV2DayInput(_v2_BaseModel):
+    day_number: int = _v2_Field(ge=1)
+    india_gross_crore: _v2_Decimal = _v2_Field(ge=0, max_digits=12, decimal_places=2)
+    overseas_gross_crore: _v2_Decimal = _v2_Field(ge=0, max_digits=12, decimal_places=2)
+    shows_target: _v2_Optional[int] = _v2_Field(default=None, ge=0)
+    occupancy_percent: _v2_Optional[_v2_Decimal] = _v2_Field(default=None, ge=0, le=100)
+
+class LiveV2PlanInput(_v2_BaseModel):
+    movie_id: int = _v2_Field(gt=0)
+    mode: _v2_Literal['standalone','combined'] = 'standalone'
+    article_id: _v2_Optional[int] = _v2_Field(default=None, gt=0)
+    status: _v2_Literal['draft','scheduled','paused','cancelled'] = 'draft'
+    release_date: _v2_date
+    publish_time: _v2_time = _v2_time(9,0)
+    daily_start: _v2_time = _v2_time(9,0)
+    daily_end: _v2_time = _v2_time(23,0)
+    update_interval_minutes: _v2_Literal[10,20,30] = 20
+    seo_title: _v2_Optional[str] = _v2_Field(default=None, max_length=200)
+    seo_description: _v2_Optional[str] = _v2_Field(default=None, max_length=400)
+    days: list[LiveV2DayInput] = _v2_Field(min_length=1, max_length=365)
+
+    @_v2_model_validator(mode='after')
+    def check_plan(self):
+        nums = [d.day_number for d in self.days]
+        if sorted(nums) != list(range(min(nums),min(nums)+len(nums))):
+            raise ValueError('LIVE days must be consecutive (for example Days 8, 9, 10)')
+        if self.daily_end <= self.daily_start:
+            raise ValueError('Daily end must be later than daily start')
+        # A draft may exist before its article is created or published.
+        # Publication is validated by the workspace endpoint instead.
+        return self
+
+
+def live_v2_clock_status(row, now=None):
+    """Derive runtime status without cron or frequent database writes."""
+    now = now or _v2_datetime.now(LIVE_V2_IST)
+    _, _, status, release_date, publish_time, daily_start, daily_end, day_count = row
+    if status in ('draft','paused','cancelled'):
+        return {'state':status,'day':None,'progress':0}
+    publication = _v2_datetime.combine(release_date,publish_time,LIVE_V2_IST)
+    if now < publication:
+        return {'state':'scheduled','day':None,'progress':0}
+    # Business day starts at 06:00 LIVE_V2_IST; dates before 06:00 belong to previous day.
+    business_date = (now - _v2_timedelta(hours=6)).date()
+    first_date = release_date
+    day = (business_date - first_date).days + 1
+    if day < 1:
+        day = 1  # release day before 06:00, but only after publication
+    if day > day_count:
+        return {'state':'completed','day':day_count,'progress':100}
+    start = _v2_datetime.combine(business_date, daily_start, LIVE_V2_IST)
+    end = _v2_datetime.combine(business_date, daily_end, LIVE_V2_IST)
+    if now < start:
+        return {'state':'waiting','day':day,'progress':0}
+    if now >= end:
+        return {'state':'holding','day':day,'progress':100}
+    seconds = (now-start).total_seconds()
+    total = (end-start).total_seconds()
+    return {'state':'live','day':day,'progress':round(max(0,min(100,seconds/total*100)),2)}
+
+
+def create_live_tracker_v2_router(get_connection, require_admin):
+    router = _v2_APIRouter(prefix='/admin/live-v2', tags=['Live Tracker V2'], dependencies=[_v2_Depends(require_admin)])
+
+    @router.get('/plans')
+    def list_plans():
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute('''SELECT p.id,p.movie_id,m.title,p.mode,p.status,p.release_date,p.publish_time,
+                        p.daily_start,p.daily_end,COALESCE(MAX(d.day_number),0) AS day_count,p.article_id
+                        FROM live_tracker_v2_plans p JOIN movies m ON m.id=p.movie_id
+                        LEFT JOIN live_tracker_v2_days d ON d.plan_id=p.id
+                        GROUP BY p.id,m.title ORDER BY p.release_date DESC''')
+            rows=cur.fetchall()
+        return {'plans':[{'id':r[0],'movie_id':r[1],'movie_title':r[2],'mode':r[3],
+                          'status':r[4],'release_date':str(r[5]),'publish_time':str(r[6]),
+                          'daily_start':str(r[7]),'daily_end':str(r[8]),'day_count':r[9],
+                          'article_id':r[10]} for r in rows]}
+
+    @router.get('/plans/{movie_id}')
+    def get_plan(movie_id:int):
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute('''SELECT id,movie_id,article_id,mode,status,release_date,publish_time,
+                        daily_start,daily_end,update_interval_minutes,seo_title,seo_description
+                        FROM live_tracker_v2_plans WHERE movie_id=%s''',(movie_id,))
+            p=cur.fetchone()
+            if not p: raise _v2_HTTPException(404,'No V2 plan for this movie')
+            cur.execute('''SELECT day_number,india_gross_crore,overseas_gross_crore,
+                        shows_target,occupancy_percent FROM live_tracker_v2_days
+                        WHERE plan_id=%s ORDER BY day_number''',(p[0],))
+            days=cur.fetchall()
+        return {'id':p[0],'movie_id':p[1],'article_id':p[2],'mode':p[3],
+                'status':p[4],'release_date':str(p[5]),'publish_time':str(p[6]),
+                'daily_start':str(p[7]),'daily_end':str(p[8]),
+                'update_interval_minutes':p[9],'seo_title':p[10], 'seo_description':p[11],
+                'days':[{'day_number':d[0],'india_gross_crore':str(d[1]),
+                         'overseas_gross_crore':str(d[2]),
+                         'worldwide_gross_crore':str(d[1]+d[2]),
+                         'shows_target':d[3],
+                         'occupancy_percent':str(d[4]) if d[4] is not None else None} for d in days]}
+
+    @router.put('/plans/{movie_id}')
+    def save_plan(movie_id:int, data:LiveV2PlanInput):
+        if movie_id != data.movie_id:
+            raise _v2_HTTPException(400,'Movie ID mismatch')
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute('SELECT id FROM movies WHERE id=%s',(movie_id,))
+            if not cur.fetchone(): raise _v2_HTTPException(404,'Movie not found')
+            if data.status == 'scheduled' and data.mode == 'combined' and data.article_id is None:
+                raise _v2_HTTPException(400, 'Publish or link an article before scheduling')
+            if data.article_id is not None:
+                cur.execute('SELECT id FROM articles WHERE id=%s', (data.article_id,))
+                if not cur.fetchone(): raise _v2_HTTPException(400,'Linked article not found')
+            cur.execute('''INSERT INTO live_tracker_v2_plans
+                (movie_id,article_id,mode,status,release_date,publish_time,daily_start,daily_end,
+                 update_interval_minutes,seo_title,seo_description)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                ON CONFLICT (movie_id) DO UPDATE SET
+                 article_id=EXCLUDED.article_id,mode=EXCLUDED.mode,status=EXCLUDED.status,
+                 release_date=EXCLUDED.release_date,publish_time=EXCLUDED.publish_time,
+                 daily_start=EXCLUDED.daily_start,daily_end=EXCLUDED.daily_end,
+                 update_interval_minutes=EXCLUDED.update_interval_minutes,
+                 seo_title=EXCLUDED.seo_title,seo_description=EXCLUDED.seo_description,
+                 updated_at=NOW() RETURNING id''',
+                (movie_id,data.article_id,data.mode,data.status,data.release_date,
+                 data.publish_time,data.daily_start,data.daily_end,data.update_interval_minutes,
+                 data.seo_title,data.seo_description))
+            plan_id=cur.fetchone()[0]
+            # Replace only this plan's configured day targets in one transaction.
+            # Never touch movie collections, permanent box office reports, or article blocks.
+            cur.execute('DELETE FROM live_tracker_v2_days WHERE plan_id=%s',(plan_id,))
+            for d in data.days:
+                cur.execute('''INSERT INTO live_tracker_v2_days
+                    (plan_id,day_number,india_gross_crore,overseas_gross_crore,shows_target,occupancy_percent)
+                    VALUES (%s,%s,%s,%s,%s,%s)''',
+                    (plan_id,d.day_number,d.india_gross_crore,d.overseas_gross_crore,
+                     d.shows_target,d.occupancy_percent))
+            conn.commit()
+        return {'success':True,'plan_id':plan_id,'days_saved':len(data.days)}
+
+    def _active_day_snapshot(movie_id: int, now=None):
+        """Temporary LIVE projection only; never writes to permanent box-office data."""
+        now = (now or _v2_datetime.now(LIVE_V2_IST)).astimezone(LIVE_V2_IST)
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute('''SELECT p.id,p.status,p.release_date,p.publish_time,p.daily_start,
+                p.daily_end,p.update_interval_minutes,m.title
+                FROM live_tracker_v2_plans p JOIN movies m ON m.id=p.movie_id
+                WHERE p.movie_id=%s''', (movie_id,))
+            plan = cur.fetchone()
+            if not plan:
+                raise _v2_HTTPException(404, 'No LIVE configuration for this movie')
+            plan_id, status, release, publish, start_time, end_time, interval, movie_title = plan
+            # A theatrical day changes at 06:00 IST, independent of server timezone.
+            business_date = (now - _v2_timedelta(hours=6)).date()
+            day_number = (business_date - release).days + 1
+            publication = _v2_datetime.combine(release, publish, LIVE_V2_IST)
+            if status != 'scheduled' or now < publication or day_number < 1:
+                return {'live': False, 'state': status if status != 'scheduled' else 'waiting',
+                        'movie_id': movie_id, 'movie_title': movie_title}
+            cur.execute('''SELECT india_gross_crore,overseas_gross_crore,
+                shows_target,occupancy_percent FROM live_tracker_v2_days
+                WHERE plan_id=%s AND day_number=%s''', (plan_id, day_number))
+            day = cur.fetchone()
+        if not day:
+            return {'live': False, 'state': 'no_configured_day',
+                    'movie_id': movie_id, 'movie_title': movie_title, 'day_number': day_number}
+        start = _v2_datetime.combine(business_date, start_time, LIVE_V2_IST)
+        end = _v2_datetime.combine(business_date, end_time, LIVE_V2_IST)
+        if now < start or now >= end:
+            return {'live': False, 'state': 'waiting' if now < start else 'ended',
+                    'movie_id': movie_id, 'movie_title': movie_title, 'day_number': day_number}
+        # Freeze all modeled values at the most recent completed update step.
+        # No timer jobs or historical LIVE snapshots are needed.
+        step_seconds = int(interval) * 60
+        elapsed = (now - start).total_seconds()
+        last_step = int(elapsed // step_seconds)
+        last_updated = start + _v2_timedelta(seconds=last_step * step_seconds)
+        duration = (end - start).total_seconds()
+        fraction = _v2_Decimal(str(min(1, max(0, (last_updated - start).total_seconds() / duration))))
+        money = lambda amount: str((_v2_Decimal(str(amount)) * fraction).quantize(_v2_Decimal('0.01')))
+        india = _v2_Decimal(money(day[0]))
+        overseas = _v2_Decimal(money(day[1]))
+        # Match the existing automatic tracker: gross includes assumed 18% GST.
+        india_net = (india / _v2_Decimal('1.18')).quantize(_v2_Decimal('0.01'))
+        # Model show starts over the configured LIVE window, with a two-hour
+        # screening duration before those starts count as completed.
+        # This is an indicative schedule, not observed theatre showtimes.
+        shows_total = int(day[2]) if day[2] is not None else None
+        shows_started = int((_v2_Decimal(shows_total) * fraction).to_integral_value(rounding='ROUND_FLOOR')) if shows_total is not None else None
+        completion_seconds = max(0.0, (last_updated - start).total_seconds() - 2 * 60 * 60)
+        completion_fraction = _v2_Decimal(str(min(1, completion_seconds / duration))) if duration > 0 else _v2_Decimal('0')
+        shows_completed = int((_v2_Decimal(shows_total) * completion_fraction).to_integral_value(rounding='ROUND_FLOOR')) if shows_total is not None else None
+        shows = shows_started  # Backward compatibility for existing clients.
+        # Occupancy is a configured end-of-session target, not a static LIVE value.
+        # Advance it at the same completed update step as collections and shows.
+        occupancy = (min(_v2_Decimal('100'), _v2_Decimal(str(day[3])) * fraction)
+                     .quantize(_v2_Decimal('0.1'))) if day[3] is not None else None
+        return {
+            'live': True, 'state': 'live', 'movie_id': movie_id,
+            'movie_title': movie_title, 'day_number': day_number,
+            'india_gross_crore': str(india), 'india_net_crore': str(india_net),
+            'overseas_gross_crore': str(overseas),
+            'worldwide_gross_crore': str((india + overseas).quantize(_v2_Decimal('0.01'))),
+            'shows': shows, 'shows_total': shows_total,
+            'shows_started': shows_started, 'shows_completed': shows_completed,
+            'show_duration_minutes': 120,
+            'occupancy_percent': str(occupancy) if occupancy is not None else None,
+            'last_updated_at': last_updated.isoformat(),
+            'last_updated_label': last_updated.strftime('%d %b %Y, %I:%M %p IST'),
+            'update_interval_minutes': interval,
+            'is_estimated': True,
+            'disclaimer': 'Indicative LIVE estimates, not verified ticket sales or collections'
+        }
+
+    @router.get('/preview/{movie_id}')
+    def preview(movie_id: int):
+        return {'runtime': _active_day_snapshot(movie_id)}
+
+    router.live_snapshot = _active_day_snapshot
+    return router
+
+
+_bx_v2_router = create_live_tracker_v2_router(get_connection, require_owner)
+app.include_router(_bx_v2_router)
+
+
+# Single-movie workspace: create/reuse exactly one dedicated article, permanent
+# boxoffice block and LIVE configuration. No duplicate permanent financial table.
+class BXLiveWorkspaceInput(_v2_BaseModel):
+    slug: str = _v2_Field(min_length=1, max_length=180)
+    title: str = _v2_Field(min_length=1, max_length=240)
+    action: _v2_Literal['save', 'draft', 'publish']
+    plan: LiveV2PlanInput
+    report: dict = _v2_Field(default_factory=dict)
+
+@app.get('/admin/live-v2/workspace/{movie_id}', dependencies=[_v2_Depends(require_owner)])
+def bx_live_workspace_read(movie_id: int):
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute('SELECT id FROM movies WHERE id=%s', (movie_id,))
+        if not cur.fetchone(): raise HTTPException(404, 'Movie not found')
+        cur.execute('''SELECT a.id,a.title,a.slug,a.status,b.id,b.extra_data
+            FROM articles a JOIN article_movies am ON am.article_id=a.id
+            JOIN article_blocks b ON b.article_id=a.id AND b.block_type='boxoffice'
+            WHERE am.movie_id=%s
+            ORDER BY a.id DESC''', (movie_id,))
+        found=cur.fetchall()
+        cur.execute('SELECT article_id FROM live_tracker_v2_plans WHERE movie_id=%s', (movie_id,))
+        plan=cur.fetchone()
+        linked=plan[0] if plan else None
+        if linked:
+            chosen=next((r for r in found if r[0]==linked), None)
+            if chosen is None:
+                raise HTTPException(409, 'Linked article has no Box Office block. Repair it in the article editor.')
+        elif len(found)==1:
+            chosen=found[0]
+        elif len(found)>1:
+            # Never silently pick one of several real published reports.
+            raise HTTPException(409, 'Multiple Box Office articles exist for this movie. Resolve the duplicate association before editing.')
+        else:
+            chosen=None
+    if not chosen: return {'article':None,'report':None}
+    import hashlib
+    extra=chosen[5] or {}
+    fingerprint=hashlib.sha256(json.dumps(extra,sort_keys=True,default=str).encode()).hexdigest()
+    return {'article':{'id':chosen[0],'title':chosen[1],'slug':chosen[2], 'status':chosen[3]},
+            'report':{'block_id':chosen[4], 'extra_data':extra, 'version':fingerprint}}
+
+@app.put('/admin/live-v2/workspace/{movie_id}', dependencies=[_v2_Depends(require_owner)])
+def bx_live_workspace_write(movie_id: int, data: BXLiveWorkspaceInput):
+    from decimal import Decimal, InvalidOperation
+    import hashlib
+    plan=data.plan
+    if plan.movie_id!=movie_id or plan.mode!='combined':
+        raise HTTPException(422,'Movie mismatch or unsupported LIVE mode')
+    slug=normalize_article_slug(data.slug)
+    if not slug: raise HTTPException(422,'Invalid slug')
+    areas=('tamil_nadu','kerala','karnataka','telugu_states','rest_of_india','overseas')
+    rights=data.report.get('rights',{})
+    days=data.report.get('days',[])
+    if not isinstance(rights,dict) or set(rights)-{'theatrical_'+x for x in areas}:
+        raise HTTPException(422,'Invalid rights')
+    if not isinstance(days,list) or len(days)>365:
+        raise HTTPException(422,'Invalid permanent days')
+    def number(value):
+        if value is None or value=='': return None
+        try: v=Decimal(str(value))
+        except (InvalidOperation,ValueError): raise HTTPException(422,'Invalid amount')
+        if not v.is_finite() or v<0 or v>100000 or v.as_tuple().exponent < -2:
+            raise HTTPException(422,'Invalid amount: 0–100000 with up to 2 decimals')
+        return float(v)
+    for key,value in rights.items(): number(value)
+    budget=number(data.report.get('budget'))
+    seen=set()
+    for d in days:
+        if not isinstance(d,dict) or set(d)-set(areas)-{'number'}:
+            raise HTTPException(422,'Invalid permanent day fields')
+        n=d.get('number')
+        if type(n)!=int or n<1 or n>365 or n in seen: raise HTTPException(422,'Invalid or duplicate day number')
+        seen.add(n)
+        for area in areas: number(d.get(area))
+    with get_connection() as conn, conn.cursor() as cur:
+        # Serialize saves for one movie to prevent two first-time articles.
+        cur.execute('SELECT id FROM movies WHERE id=%s FOR UPDATE',(movie_id,))
+        if not cur.fetchone(): raise HTTPException(404,'Movie not found')
+        cur.execute('SELECT article_id,status FROM live_tracker_v2_plans WHERE movie_id=%s',(movie_id,))
+        plan_row=cur.fetchone()
+        linked=plan_row[0] if plan_row else None
+        cur.execute('''SELECT a.id,b.id,b.extra_data,a.status,a.slug FROM articles a
+            JOIN article_movies am ON am.article_id=a.id
+            JOIN article_blocks b ON b.article_id=a.id AND b.block_type='boxoffice'
+            WHERE am.movie_id=%s ORDER BY a.id DESC''',(movie_id,))
+        candidates=cur.fetchall()
+        if linked:
+            found=next((x for x in candidates if x[0]==linked),None)
+            if found is None: raise HTTPException(409,'Linked article is missing its Box Office block')
+        elif len(candidates)==1: found=candidates[0]
+        elif candidates: raise HTTPException(409,'Multiple Box Office reports: cannot select safely')
+        else: found=None
+        cur.execute('SELECT id FROM articles WHERE slug=%s',(slug,))
+        collision=cur.fetchone()
+        if collision and (not found or collision[0]!=found[0]):
+            # An existing article with this slug may already belong to this movie
+            # but lack a boxoffice block. Reuse it instead of duplicating the URL.
+            cur.execute('''SELECT 1 FROM article_movies WHERE article_id=%s AND movie_id=%s''',
+                        (collision[0],movie_id))
+            belongs_to_movie=cur.fetchone() is not None
+            if not belongs_to_movie or found:
+                raise HTTPException(409,'This slug belongs to a different article. Choose a unique slug.')
+            cur.execute('''SELECT a.id,b.id,b.extra_data,a.status,a.slug FROM articles a
+                LEFT JOIN article_blocks b ON b.article_id=a.id AND b.block_type='boxoffice'
+                WHERE a.id=%s''',(collision[0],))
+            same_article=cur.fetchone()
+            if same_article[1] is not None:
+                found=same_article
+            else:
+                # Add only the missing existing-format block, preserving other blocks.
+                cur.execute('''SELECT COALESCE(MAX(block_order),0)+1 FROM article_blocks
+                    WHERE article_id=%s''',(collision[0],))
+                next_order=cur.fetchone()[0]
+                cur.execute('''INSERT INTO article_blocks
+                    (article_id,block_order,block_type,content,extra_data)
+                    VALUES (%s,%s,'boxoffice',NULL,'{}'::jsonb) RETURNING id''',
+                    (collision[0],next_order))
+                new_block_id=cur.fetchone()[0]
+                found=(same_article[0],new_block_id,{},same_article[3],same_article[4])
+        if found:
+            article_id,block_id,extra,old_status,old_slug=found
+            if data.report.get('expected_version'):
+                fp=hashlib.sha256(json.dumps(extra or {},sort_keys=True,default=str).encode()).hexdigest()
+                if data.report['expected_version']!=fp:
+                    raise HTTPException(409,'Permanent report changed. Reload before saving.')
+            article_status=('draft' if data.action=='draft' else 'published' if data.action=='publish' else old_status)
+            cur.execute('''UPDATE articles SET title=%s,slug=%s,status=%s,
+                published_at=CASE WHEN %s='published' THEN COALESCE(published_at,NOW()) ELSE published_at END,
+                updated_at=NOW() WHERE id=%s''',(data.title.strip(),slug,article_status,article_status,article_id))
+            extra=dict(extra or {})
+        else:
+            article_status='published' if data.action=='publish' else 'draft'
+            cur.execute('''INSERT INTO articles (title,slug,subtitle,category,author,status,
+                meta_title,meta_description,published_at,tracking_enabled,seo_mode,updated_at)
+                VALUES (%s,%s,%s,'Box Office','BoxOfficeX',%s,%s,%s,
+                CASE WHEN %s='published' THEN NOW() ELSE NULL END,TRUE,'auto',NOW()) RETURNING id''',
+                (data.title.strip(),slug,data.title.strip(),article_status,data.title.strip(),
+                 'Day-wise box office collections and LIVE tracking.',article_status))
+            article_id=cur.fetchone()[0]
+            cur.execute('INSERT INTO article_movies(article_id,movie_id) VALUES (%s,%s) ON CONFLICT DO NOTHING',(article_id,movie_id))
+            extra={}
+            cur.execute('''INSERT INTO article_blocks(article_id,block_order,block_type,content,extra_data)
+                VALUES (%s,1,'boxoffice',NULL,'{}'::jsonb) RETURNING id''',(article_id,))
+            block_id=cur.fetchone()[0]
+        if budget is not None: extra['budget']=budget
+        for key,value in rights.items(): extra[key]=number(value)
+        saved=list(extra.get('days') or [])
+        by_day={int(d['number']):d for d in saved if isinstance(d,dict) and
+                str(d.get('type','REGULAR')).upper()=='REGULAR' and d.get('number') is not None}
+        for day in days:
+            old=by_day.get(day['number'])
+            if old is None:
+                old={'number':day['number'],'type':'REGULAR','label':'','date':'','status':'FINAL'}
+                saved.append(old)
+            for area in areas: old[area]=number(day.get(area))
+            # Preserve manually entered dates. Populate missing dates from the
+            # configured theatrical release date and day number.
+            if not old.get('date'):
+                old['date']=(plan.release_date + _v2_timedelta(days=day['number']-1)).isoformat()
+        extra['days']=saved
+        cur.execute('UPDATE article_blocks SET extra_data=%s WHERE id=%s',
+                    (psycopg.types.json.Jsonb(extra),block_id))
+        _bx_stamp_report_if_changed(cur,block_id,extra,found[2] if found else {})
+        # Draft never goes live. Publishing enables the scheduled plan.
+        live_status='scheduled' if article_status=='published' and data.action=='publish' else (
+            'draft' if article_status!='published' else (plan_row[1] if plan_row else 'draft'))
+        cur.execute('''INSERT INTO live_tracker_v2_plans
+            (movie_id,article_id,mode,status,release_date,publish_time,daily_start,daily_end,
+             update_interval_minutes,seo_title,seo_description)
+            VALUES (%s,%s,'combined',%s,%s,%s,%s,%s,%s,%s,%s)
+            ON CONFLICT (movie_id) DO UPDATE SET article_id=EXCLUDED.article_id,
+             mode='combined',status=EXCLUDED.status,release_date=EXCLUDED.release_date,
+             publish_time=EXCLUDED.publish_time,daily_start=EXCLUDED.daily_start,
+             daily_end=EXCLUDED.daily_end,update_interval_minutes=EXCLUDED.update_interval_minutes,
+             seo_title=EXCLUDED.seo_title,seo_description=EXCLUDED.seo_description,
+             updated_at=NOW() RETURNING id''',
+            (movie_id,article_id,live_status,plan.release_date,plan.publish_time,
+             plan.daily_start,plan.daily_end,plan.update_interval_minutes,
+             plan.seo_title,plan.seo_description))
+        plan_id=cur.fetchone()[0]
+        cur.execute('DELETE FROM live_tracker_v2_days WHERE plan_id=%s',(plan_id,))
+        for d in plan.days:
+            cur.execute('''INSERT INTO live_tracker_v2_days
+                (plan_id,day_number,india_gross_crore,overseas_gross_crore,shows_target,occupancy_percent)
+                VALUES (%s,%s,%s,%s,%s,%s)''',
+                (plan_id,d.day_number,d.india_gross_crore,d.overseas_gross_crore,
+                 d.shows_target,d.occupancy_percent))
+        conn.commit()
+    _invalidate_article_detail_cache(slug)
+    if found and old_slug!=slug: _invalidate_article_detail_cache(old_slug)
+    return {'success':True,'article_id':article_id,'block_id':block_id,'slug':slug,
+            'article_status':article_status,'live_status':live_status,'plan_id':plan_id,
+            'url':'/article/'+slug}
+
+@app.get('/api/live-v2/article/{article_id}', include_in_schema=False)
+def bx_public_live_v2_article_snapshot(article_id: int):
+    # Only expose a workspace session belonging to a published article.
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute("""SELECT p.movie_id FROM live_tracker_v2_plans p
+            JOIN articles a ON a.id=p.article_id
+            WHERE a.id=%s AND a.status='published' """, (article_id,))
+        row=cur.fetchone()
+    if not row:
+        return Response(content=json.dumps({'live':False,'state':'no_published_plan'}),
+                        media_type='application/json',headers={'Cache-Control':'no-store, max-age=0'})
+    snapshot=_bx_v2_router.live_snapshot(row[0])
+    return Response(content=json.dumps(snapshot), media_type='application/json',
+                    headers={'Cache-Control':'no-store, max-age=0'})
+
+@app.get('/api/live-v2/{movie_id}', include_in_schema=False)
+def bx_public_live_v2_snapshot(movie_id: int):
+    # Returns active-day temporary values only, with no admin configuration exposed.
+    response = _bx_v2_router.live_snapshot(movie_id)
+    return Response(content=json.dumps(response), media_type='application/json',
+                    headers={'Cache-Control': 'no-store, max-age=0'})
+
+@app.get("/admin-live-tracker.html", dependencies=[_v2_Depends(require_owner)], include_in_schema=False)
+def live_v2_admin_page():
+    return FileResponse(BASE_DIR / "admin-live-tracker.html")
+

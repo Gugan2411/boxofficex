@@ -5833,7 +5833,19 @@ if(!rawDays.length)return `<div class="boxoffice-block"><div class="boxoffice-ti
 
 const india=d=>num(d.tamil_nadu)+num(d.kerala)+num(d.karnataka)+num(d.telugu_states)+num(d.rest_of_india);
 const world=d=>india(d)+num(d.overseas);
-const fmt=v=>{if(!v)return"N/A";const d=new Date(v+"T00:00:00");return Number.isNaN(d.getTime())?v:d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"})};
+const fmt=v=>{if(!v)return"N/A";const d=new Date(String(v).slice(0,10)+"T00:00:00");return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",weekday:"long"})};
+// Legacy report rows have no date. Derive display-only dates from the movie's
+// release date; never alter or overwrite stored actual collection data.
+const dayDate=d=>{
+    if(d?.date)return d.date;
+    const release=String(window.currentBoxOfficeXLiveMovieReleaseDate||"").slice(0,10);
+    const n=Number(d?.number);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(release)||!Number.isInteger(n)||n<1)return "";
+    const base=new Date(release+"T00:00:00Z");
+    if(Number.isNaN(base.getTime()))return "";
+    base.setUTCDate(base.getUTCDate()+n-1);
+    return base.toISOString().slice(0,10);
+};
 
 const statusInfo=status=>{
     const s=String(status||"LIVE").toUpperCase();
@@ -5995,9 +6007,9 @@ const rows=displayDays.map((d,i)=>{
     return `<tr>
         <td>
             <span class="bo-day-label ${isPreview?"bo-preview-label":""}">${shownDayLabel}</span>
-            <span class="bo-mobile-day-date">${esc(fmt(d.date))}</span>
+            <span class="bo-mobile-day-date">${esc(fmt(dayDate(d)))}</span>
         </td>
-        <td>${esc(fmt(d.date))}</td>
+        <td>${esc(fmt(dayDate(d)))}</td>
         <td><span class="bo-status ${s.cls}">${esc(s.label)}</span><span class="bo-status-help">${esc(s.help)}</span></td>
         ${visibleTerritories.map(([key])=>`<td>${territoryValue(d,key)}</td>`).join("")}
         <td class="bo-auto-total">${money(india(d))}</td>
@@ -6320,7 +6332,13 @@ function renderLiveTracker(data) {
     }
     addCard(liveData.overseas_gross, hasScheduledEstimate && data._auto_estimated_field === "overseas_gross" ? "Overseas Gross (Estimated)" : "Overseas Gross", money, "lt-money-card");
     addCard(liveData.tickets_sold, "Tickets Sold");
-    addCard(liveData.shows_tracked, "Shows Tracked");
+    if (has(liveData.shows_total) && has(liveData.shows_started) && has(liveData.shows_completed)) {
+        const totalShows = plain(liveData.shows_total);
+        addCard(`${plain(liveData.shows_started)} / ${totalShows}`, "Shows Started");
+        addCard(`${plain(liveData.shows_completed)} / ${totalShows}`, "Shows Completed");
+    } else {
+        addCard(liveData.shows_tracked, "Shows Tracked");
+    }
     addCard(liveData.occupancy, "Occupancy", value => `${plain(value)}%`);
     addCard(liveData.advance_booking, "Advance Booking", money, "lt-money-card");
     addCard(liveData.premiere_gross, "Premiere Gross", money, "lt-money-card");
@@ -6385,8 +6403,7 @@ function renderLiveTracker(data) {
         <div class="lt-head">
             <div class="${statusClass}"><span class="lt-dot"></span><span class="lt-status-copy"><span>${statusLabel}</span>${isActivelyTracking ? `<span class="lt-tracking-copy">• CURRENTLY TRACKING</span>` : ""}</span></div>
         </div>
-        ${updatedLabel ? `<div class="lt-updated ${isActivelyTracking ? "live" : ""}">Latest Update • ${esc(updatedLabel)} IST</div>` : ""}
-        ${dayNumber || releaseDateLabel || movieDayTitle ? `<div class="lt-date-panel">${dayNumber ? `<div class="lt-day">DAY ${dayNumber}</div>` : ""}${releaseDateLabel ? `<div class="lt-date">${esc(releaseDateLabel)}</div>` : ""}${movieDayTitle ? `<div class="lt-tracker-movie"><span class="lt-movie-name">${esc(linkedMovieName || "Box Office")}</span>${dayNumber ? ` DAY ${dayNumber} COLLECTION` : ` COLLECTION`}</div>` : ""}</div>` : ""}
+        ${dayNumber || releaseDateLabel || movieDayTitle ? `<div class="lt-date-panel">${dayNumber ? `<div class="lt-day">DAY ${dayNumber}</div>` : ""}${releaseDateLabel ? `<div class="lt-date">${esc(releaseDateLabel)}</div>` : ""}${movieDayTitle ? `<div class="lt-tracker-movie"><span class="lt-movie-name">${esc(linkedMovieName || "Box Office")}</span>${dayNumber ? ` DAY ${dayNumber} COLLECTION` : ` COLLECTION`}</div>` : ""}${updatedLabel ? `<div class="lt-updated ${isActivelyTracking ? "live" : ""}">Last updated: ${esc(updatedLabel)} IST</div>` : ""}</div>` : ""}
         ${cards.length ? `<div class="lt-grid">${cards.join("")}</div>` : ""}
         ${worldwide !== null ? `<div class="lt-worldwide"><div class="lt-value">${money(worldwide)}</div><div class="lt-label">${hasScheduledEstimate && data._auto_estimated_field === "worldwide_gross" ? "Worldwide Gross (Estimated)" : "Worldwide Gross"}</div>${isWorldwideAuto ? `<span class="lt-auto">Auto Calculated</span>` : ""}</div>` : ""}
         ${showPerformanceCards.length ? `<div class="lt-show-performance"><div class="lt-show-head"><strong>Show Performance</strong>${isActivelyTracking ? `<span class="lt-show-live">Live</span>` : ""}</div><div class="lt-show-grid">${showPerformanceCards.join("")}</div></div>` : ""}
@@ -7075,6 +7092,37 @@ function bxRestoreArticleHashAnchor(){
     }));
 }
 
+// Refresh temporary V2 figures without reloading the permanent report.
+let bxV2RefreshTimer = null;
+function bxStartV2Refresh(movieId) {
+    if (bxV2RefreshTimer) clearInterval(bxV2RefreshTimer);
+    bxV2RefreshTimer = setInterval(async () => {
+        const mount = document.querySelector(`[data-bx-v2-movie="${Number(movieId)}"]`);
+        if (!mount) { clearInterval(bxV2RefreshTimer); bxV2RefreshTimer=null; return; }
+        try {
+            const response = await fetch(`/api/live-v2/${encodeURIComponent(movieId)}`, {cache:"no-store"});
+            if (!response.ok) return;
+            const snapshot = await response.json();
+            if (snapshot.live === true) mount.innerHTML = renderLiveTracker(bxV2ToExistingTracker(snapshot));
+            else { mount.remove(); clearInterval(bxV2RefreshTimer); bxV2RefreshTimer=null; }
+        } catch (error) { console.warn("LIVE refresh failed", error); }
+    }, 60000);
+}
+
+function bxV2ToExistingTracker(s) {
+    // Map only the active theatrical day. No cumulative or historical LIVE values.
+    return {
+        status:"live", tracking_status:"live", day_number:s.day_number,
+        day:s.day_number, _daily_identity:{day:s.day_number}, india_gross:s.india_gross_crore,
+        india_net:s.india_net_crore, overseas_gross:s.overseas_gross_crore,
+        worldwide_gross:s.worldwide_gross_crore, shows_tracked:s.shows,
+        shows_total:s.shows_total, shows_started:s.shows_started,
+        shows_completed:s.shows_completed,
+        occupancy:s.occupancy_percent, updated_at:s.last_updated_at,
+        note:"Indicative LIVE tracking figures; actual collections appear in the Box Office Report."
+    };
+}
+
 async function renderArticle(article) {
     setSEO(article);
     window.currentBoxOfficeXArticle = article;
@@ -7136,6 +7184,29 @@ async function renderArticle(article) {
     const other = sourceBlocks.filter(b => !Object.prototype.hasOwnProperty.call(priority, String(b?.block_type||"").toLowerCase()));
     const orderedBlocks = [...core, ...other];
     const blockHTML = await Promise.all(orderedBlocks.map(block => renderBlock(block)));
+    // Resolve the published workspace plan by ARTICLE ID, not only movie blocks.
+    // New Live Manager articles can have only a boxoffice block, so movie IDs
+    // are not guaranteed in the public article payload.
+    if (article.status === "published" && article.id) {
+        try {
+            const liveResponse = await fetch(`/api/live-v2/article/${encodeURIComponent(article.id)}`, {cache:"no-store"});
+            if (liveResponse.ok) {
+                const snapshot = await liveResponse.json();
+                if (snapshot.live === true && Number.isInteger(Number(snapshot.movie_id))) {
+                    // The workspace LIVE session takes precedence ONLY while active.
+                    // Keep legacy manual/automatic trackers untouched otherwise.
+                    orderedBlocks.forEach((block, index) => {
+                        if (["live_tracker", "auto_live_tracker"].includes(String(block?.block_type || "").toLowerCase())) {
+                            blockHTML[index] = "";
+                        }
+                    });
+                    window.currentBoxOfficeXLiveMovieName = snapshot.movie_title || window.currentBoxOfficeXLiveMovieName;
+                    blockHTML.unshift(`<section id="live-boxoffice-tracker" data-bx-v2-movie="${Number(snapshot.movie_id)}">${renderLiveTracker(bxV2ToExistingTracker(snapshot))}</section>`);
+                    setTimeout(() => bxStartV2Refresh(snapshot.movie_id), 0);
+                }
+            }
+        } catch (error) { console.warn("Workspace LIVE could not load", error); }
+    }
 
     // Final release-page order:
     // LIVE → DAY-WISE → THEATRICAL PERFORMANCE → PRE-RELEASE BUSINESS → SALARY DETAILS → BUDGET TRACKER → FAQ.

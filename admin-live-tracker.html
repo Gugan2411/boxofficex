@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Live Manager | BoxOfficeX</title><style>
+
+:root{--bg:#070a12;--panel:#101725;--panel2:#151d31;--border:#29334d;--muted:#8e99b3;--text:#f4f7fb;--blue:#4d8dff;--gold:#ffcc33;--red:#ff4655;--green:#3ac47d}*{box-sizing:border-box}body{margin:0;font:14px Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#17213a,#080b14 38%,#070a12 75%);color:var(--text)}header{background:#070b16ed;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2}.nav{max-width:1350px;margin:auto;padding:16px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}.brand{font-weight:900;font-size:21px;color:white;text-decoration:none}.brand span{color:var(--gold)}nav{display:flex;gap:10px;flex-wrap:wrap}nav a{color:#b9c9e4;text-decoration:none;font-size:12px;padding:9px;border-radius:8px}nav a.active{background:#1d2d4b;color:#91baff}main{max-width:1350px;margin:auto;padding:28px 20px 70px}h1{font-size:32px;margin:0 0 8px}h2{font-size:17px;margin:0 0 15px}p,.muted{color:var(--muted)}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.pill{border-radius:20px;background:#1b3554;color:#b5d5ff;padding:7px 11px;font-size:11px;font-weight:800}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:25px 0}.stat,.panel{background:#101725;border:1px solid var(--border);border-radius:15px;padding:18px}.stat strong{display:block;font-size:26px;margin-bottom:7px}.stat small{color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,470px);gap:18px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}button,input,select{font:inherit;border-radius:9px}button{padding:10px 13px;border:1px solid #35435e;background:#17243a;color:#dce8ff;cursor:pointer;font-weight:800}button:hover{background:#243957}button.primary{background:linear-gradient(135deg,#4d8dff,#795cff);color:white;border:0}button:disabled{opacity:.5;cursor:not-allowed}button.active{border-color:var(--blue);color:white;background:#24436c}input,select{background:#0a101c;border:1px solid #34415c;color:white;padding:10px;width:100%;min-width:0}label{display:block;color:#b8c6df;font-size:11px;font-weight:800;margin-bottom:6px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid #27344d;background:#0c1220;border-radius:10px;margin-bottom:9px}.row small{display:block;color:var(--muted);margin-top:4px}.status{font-size:10px;font-weight:800;color:var(--gold)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin:0 0 12px}.daytable{overflow-x:auto}.daytable table{width:100%;border-collapse:collapse;min-width:470px}.daytable th,.daytable td{padding:7px 5px;border-bottom:1px solid #29334d;text-align:left;font-size:11px}.daytable input{padding:8px 5px;min-width:75px}.notice{background:#30291b;border:1px solid #6e5423;color:#f6d58c;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;margin:14px 0}.summary{background:#0c1220;border-radius:10px;padding:13px;margin:12px 0;color:#cbd6e8;line-height:1.7}.empty{color:#8e99b3;padding:25px;text-align:center}.tiny{font-size:11px;color:var(--muted)}@media(max-width:1000px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:550px){main{padding:18px 10px}.stats{gap:8px}.stat{padding:12px}.grid2{grid-template-columns:1fr}.nav{padding:12px}.toolbar button{flex:1}}
+
+</style><style>
+
+#reportPanel{margin-top:22px}.compact-scroll{overflow-x:auto}.compact-scroll table{border-collapse:collapse;width:100%;min-width:950px}.compact-scroll th,.compact-scroll td{padding:8px 6px;border-bottom:1px solid #29334d;font-size:11px;text-align:left}.compact-scroll input{padding:8px 5px;min-width:78px}.compact-scroll .calc{font-weight:900;color:#73e2aa}.compact-help{font-size:11px;color:#8e99b3;line-height:1.6;margin:8px 0}.compact-top{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.compact-top .field{min-width:230px;flex:1}
+
+</style><style>.selected-movie-row{border:2px solid #ffcc33!important;background:#24304a!important}#reportPanel{scroll-margin-top:85px}#movieList{max-height:390px;overflow:auto}#reportDayRows input{width:95px!important;min-width:95px!important}#reportPanel .primary{background:#ffcc33;color:#080b14;font-weight:900}</style><style id="bx-live-usability">
+
+.layout{display:block!important}.layout>section.panel{margin-bottom:20px!important}
+
+#movieList{max-height:450px!important;display:grid!important;grid-template-columns:1fr!important;gap:7px!important}
+
+#movieList button.row{display:flex!important;align-items:center!important;justify-content:space-between!important;text-align:left!important;min-height:57px!important;padding:12px 16px!important;border:1px solid #34415c!important;border-radius:11px!important;background:#131e30!important;color:#f4f7fb!important;cursor:pointer!important}
+
+#movieList button.row:hover,#movieList button.row:focus-visible{border-color:#ffcc33!important;background:#202b44!important}
+
+#movieList button.row.selected-movie-row{border:2px solid #ffcc33!important;background:#24304a!important}
+
+#movieList button.row span{display:flex!important;flex-direction:column!important;gap:5px!important}
+
+#movieList button.row strong{font-size:15px!important}#movieList button.row small{font-size:12px!important;color:#aeb8ce!important}
+
+#movieSearch{font-size:17px!important;min-height:48px!important}
+
+#reportDayRows input{width:100px!important;min-width:100px!important;min-height:42px!important;font-size:15px!important;background:#192840!important;color:#fff!important;border:1px solid #4b648a!important}
+
+#reportDayRows input:focus{outline:2px solid #ffcc33!important}
+
+#reportPanel .compact-scroll{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+
+#reportPanel .compact-scroll th{white-space:nowrap!important}
+
+#reportPanel .compact-scroll td:first-child{white-space:nowrap;font-weight:800}
+
+@media(max-width:680px){#movieList button.row{min-height:64px!important}#reportPanel{padding:14px!important}}
+
+</style><style id="bx-unified-workspace">main{max-width:1180px!important}.layout{display:block!important}.layout>section.panel:first-child{margin-bottom:18px!important}.layout>section.panel:nth-child(2){border-radius:16px 16px 0 0!important;border-bottom:0!important;margin-bottom:0!important}.layout>section.panel:nth-child(2),#reportPanel,#seoPanel{background:#101725!important;max-width:none!important}#reportPanel{border-radius:0!important;margin-top:0!important;border-top:1px dashed #415071!important}#seoPanel{border-radius:0 0 16px 16px!important;margin-top:0!important;border-top:1px dashed #415071!important}#movieList{max-height:310px!important}#movieDayIndicator{padding:12px;border-radius:9px;background:#192840;color:#bcd3ff!important}#workspaceHeading{font-size:23px}#articleId{display:none}#reportSelect{max-width:100%}#reportPanel .compact-scroll{overflow-x:auto}#startDay{border-color:#526a9d}#dayRows input{min-width:105px;min-height:42px}#movieList button.row small{color:#91b4f0!important}</style><style id="bx-day-wise-clarity">#reportPanel .compact-scroll{overflow-x:auto;border:1px solid #354460;border-radius:12px;margin-top:12px}#reportDayRows tr:nth-child(odd){background:rgba(82,106,157,.09)}#reportDayRows tr:hover{background:rgba(82,106,157,.19)}#reportDayRows td:first-child{position:sticky;left:0;z-index:1;background:#17233a;color:#fff;font-weight:900;white-space:nowrap}#reportDayRows input{width:112px;min-width:112px;padding:12px 9px;font-size:15px;border:1px solid #526a9d;border-radius:8px;background:#0b1426;color:#fff}#reportDayRows input:focus{outline:2px solid #ffcc33;outline-offset:1px}#reportDayRows .calc{font-weight:900;color:#7de2bb;white-space:nowrap}#reportPanel th{white-space:nowrap}#reportSave{min-height:44px}#reportFeedback{min-height:22px}</style></head><body><header><div class="nav"><a class="brand" href="/admin.html">🎬 BOXOFFICE<span>X</span></a><nav><a href="/admin.html">Admin Home</a><a href="/admin-articles.html">Articles</a><a href="#" class="active">Live Manager</a></nav></div></header><main><div class="top"><div><h1>Movie Live & Day-Wise Manager</h1><p>One movie selection · LIVE days · Permanent collections · SEO</p></div><span class="pill">Combined movie workspace</span></div><div class="notice">Select one movie. Configure LIVE days and enter permanent day-wise collections. Save Draft or Publish creates or updates the same article.</div><div class="stats"><div class="stat"><strong id="todayCount">—</strong><small>Releasing today</small></div><div class="stat"><strong id="weekCount">—</strong><small>Next 7 days</small></div><div class="stat"><strong id="liveCount">—</strong><small>Running live</small></div><div class="stat"><strong id="scheduledCount">—</strong><small>Scheduled</small></div></div><div class="layout"><section class="panel"><h2>Running Movies · Select Once</h2><div class="toolbar"><button data-filter="week">Next 7 days</button><button data-filter="today">Today</button><button class="active" data-filter="running">Running</button><button data-filter="scheduled">Scheduled</button><button data-filter="all">All</button></div><div class="field"><label for="movieSearch">Search any movie (all release dates)</label><input id="movieSearch" type="search" autocomplete="off" placeholder="Type movie name — e.g. Jailer 2"></div><p class="compact-help">Search ignores calendar filters. Select a movie once to load its existing report.</p><div id="movieList" class="empty">Loading movies from your existing admin API…</div></section><section class="panel"><h2 id="workspaceHeading">Selected Movie · Combined Workspace</h2><p id="movieDayIndicator" class="compact-help">Select a movie above to load its running day and connected article.</p><div class="panel" id="bxArticleIdentity" style="background:#0b1426;margin:12px 0;padding:14px">
+<div class="grid2"><div class="field"><label for="bxArticleSlug">Article URL slug</label><input id="bxArticleSlug" placeholder="movie-box-office-collection"></div>
+<div class="field"><label>Article / LIVE status</label><div id="bxArticleStatus" class="summary" style="margin:0">New draft · LIVE not started</div></div></div>
+<p class="tiny" id="bxArticleLink">A new article will be created on first save. No article ID or report selection required.</p><p class="tiny" id="bxSlugFeedback" role="status" aria-live="polite">You can edit the slug before saving or publishing.</p></div>
+<div class="field"><label for="movieName">Movie (preview)</label><input id="movieName" placeholder="Movie title for layout preview" maxlength="160"></div><div class="grid2"><div class="field"><label for="releaseDate">Release date</label><input id="releaseDate" type="date"></div><div class="field"><label for="publishTime">Auto-publish time (IST)</label><input id="publishTime" type="time" value="09:00"></div><div class="field"><label for="startDay">First LIVE day (e.g. 8)</label><input id="startDay" type="number" min="1" max="365" value="1"></div><div class="field"><label for="days">Number of LIVE days (e.g. 3 for Days 8–10)</label><input id="days" type="number" min="1" max="365" value="3"></div><div class="field"><label for="interval">Update interval</label><select id="interval"><option>10</option><option selected>20</option><option>30</option></select></div><div class="field"><label for="startTime">Daily start</label><input id="startTime" type="time" value="09:00"></div><div class="field"><label for="endTime">Daily end</label><input id="endTime" type="time" value="23:00"></div></div><div class="field"><label for="displayMode">Publishing mode</label><select id="displayMode"><option value="standalone">Separate standalone live URL (not needed for combined)</option><option value="combined">Live + day-wise in existing article (recommended)</option></select></div><div class="field" style="display:none"><label for="articleId">Article connection (automatic)</label><input id="articleId" type="number" min="1" readonly placeholder="Select a movie; article is found automatically"><p class="compact-help">No article ID to enter. The existing Box Office Report below supplies the linked article automatically.</p></div><h2>LIVE day targets (temporary · never permanent box-office figures)</h2><div class="toolbar"><button id="copyFirst">Copy Day 1 to all days</button><button id="addDay" type="button">+ Add Next Day</button><button id="removeDay" type="button">− Remove Last Day</button></div><div class="daytable"><table><thead><tr><th>Day</th><th>India gross ₹Cr</th><th>Overseas gross ₹Cr</th><th>Shows</th><th>Occupancy %</th></tr></thead><tbody id="dayRows"></tbody></table></div><div class="summary" id="summary"></div><div class="toolbar"><button class="primary" id="previewBtn">Preview Schedule</button><button id="saveDraft" type="button" hidden>Legacy Draft</button><button id="schedulePlan" type="button" hidden>Legacy Schedule</button></div><p id="saveFeedback" class="tiny" role="status" aria-live="polite">Select a movie to load or save its plan.</p></section></div><section class="panel" id="reportPanel">
+
+<h2>Actual Day-Wise Collections &amp; Theatrical Rights</h2>
+
+<p class="compact-help">Choose your movie once above. Enter actual collections for each day and region here; India and worldwide totals update as you type. This updates the existing Box Office Report, not a duplicate.</p>
+
+<div class="compact-top"><div class="field"><label>Permanent day-wise collections</label><div id="reportConnectionStatus" class="compact-help" role="status">Select a movie to load its existing collection data.</div><select id="reportSelect" hidden aria-hidden="true" tabindex="-1"><option value="">Select a movie first</option></select></div><div class="field"><label for="reportBudget">Budget ₹Cr</label><input id="reportBudget" type="number" min="0" step="0.01"></div></div>
+
+<h2>Region-wise Theatrical Rights · ₹Cr</h2><div class="compact-scroll"><table><thead><tr><th>TN</th><th>KL</th><th>KA</th><th>TS</th><th>Rest of India</th><th>Overseas</th><th>Worldwide rights</th></tr></thead><tbody><tr id="rightsRow"></tr></tbody></table></div>
+
+<h2 style="margin-top:22px">Day 1, Day 2, Day 3… · Region-wise Gross (₹ Cr)</h2><p class="compact-help">Each row is a theatrical day. Fill TN, KL, KA, TS, Rest of India and Overseas; India and Worldwide are calculated automatically. Scroll sideways on small screens. These are actual reported collections, NOT live targets.</p><div class="compact-scroll" role="region" aria-label="Editable day-wise regional box office table" tabindex="0"><table><thead><tr><th>Day</th><th>Tamil Nadu</th><th>Kerala</th><th>Karnataka</th><th>Telugu States</th><th>Rest of India</th><th>Overseas</th><th>India gross</th><th>Worldwide gross</th></tr></thead><tbody id="reportDayRows"></tbody><tfoot><tr id="reportTotals"></tr></tfoot></table></div>
+
+<div class="toolbar" style="margin-top:12px"><button id="reportAddDay" type="button">+ Add Next Day</button><button id="reportReload" type="button">Reload Existing Report</button><button id="reportSave" class="primary" type="button" hidden>Legacy Report Save</button></div>
+
+<p class="compact-help">Worldwide rights and India/Worldwide day totals calculate instantly here. Regional distributor shares and breakeven remain calculated by your existing public Box Office Report logic. Unknown rights stay blank. Existing preview/premiere days and day status fields are preserved.</p><p id="reportFeedback" class="tiny" role="status" aria-live="polite"></p>
+
+</section><section class="panel" id="seoPanel" style="margin-top:22px"><h2>Search SEO · Linked Movie</h2><p class="compact-help">Automatic titles have no BoxOfficeX suffix. Snippets prioritize saved regional theatrical rights, distributor shares and breakeven. For combined mode, saved SEO applies to the linked article unless that article has a manual SEO override.</p><div class="grid2"><div class="field"><label for="seoStyle">Snippet focus</label><select id="seoStyle"><option value="regions">Regional shares & breakeven</option><option value="rights">Theatrical rights & regional business</option><option value="recovery">Distributor recovery & targets</option></select></div><div class="field"><label for="seoMode">SEO control</label><select id="seoMode"><option value="auto">Automatic from linked movie</option><option value="manual">Manual override</option></select></div></div><div class="field"><label for="seoTitle">SEO title</label><input id="seoTitle" maxlength="200" readonly></div><div class="field"><label for="seoDescription">Meta description</label><textarea id="seoDescription" rows="3" maxlength="400" readonly style="width:100%;background:#151d31;color:#f4f7fb;border:1px solid #29334d;border-radius:9px;padding:10px"></textarea></div><div class="summary"><strong>Search preview</strong><div id="seoPreviewTitle" style="color:#80acff;margin:8px 0"></div><div id="seoPreviewUrl" class="tiny"></div><p id="seoPreviewDescription"></p></div><p class="tiny" id="seoFeedback">Select a movie to generate its SEO preview. Save Draft or Save & Schedule to store manual overrides.</p></section><section class="panel" id="activeLivePreviewPanel" style="margin-top:18px"><h2>Current LIVE Day · Public Data Preview</h2><p class="compact-help">Reads the active day from the existing LIVE scheduling backend. Temporary figures only; the in-content Box Office Report is unchanged.</p><div id="activeLivePreview" class="summary" aria-live="polite">Select a movie to view its current LIVE status.</div><button id="refreshActiveLive" type="button">Refresh LIVE Preview</button></section><section class="panel" id="articleActionsPanel" style="margin-top:18px"><h2>Save Movie LIVE Article</h2>
+<p class="compact-help">One save stores the article, LIVE schedule and actual day-wise collections together. Draft stays private. Publish makes the article public and enables the configured LIVE schedule.</p>
+<div class="toolbar" id="articleActionButtons" style="margin-top:14px"><button id="bxSave" type="button">Save</button><button id="bxDraft" type="button">Save Draft</button><button id="bxPublish" type="button" class="primary">Publish</button></div>
+<p id="bxWorkspaceFeedback" class="tiny" role="status" aria-live="polite">Select a movie to begin.</p></section></main><script>
+
+'use strict';const $=id=>document.getElementById(id);document.addEventListener('DOMContentLoaded',()=>{});const tz='Asia/Kolkata';function dateInIndia(){return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}function validDate(s){return /^\d{4}-\d{2}-\d{2}$/.test(s)}function makeRows(){const n=Number($('days').value),old=[...$('dayRows').children].map(tr=>[...tr.querySelectorAll('input')].map(i=>i.value));$('dayRows').replaceChildren();for(let d=1;d<=n;d++){const tr=document.createElement('tr');const label=document.createElement('td');label.textContent='Day '+(Number($('startDay').value||1)+d-1);tr.append(label);for(let j=0;j<4;j++){const td=document.createElement('td'),i=document.createElement('input');i.type='number';i.min='0';i.step=j===3?'1':'0.01';if(j===3)i.max='100';i.setAttribute('aria-label',`Day ${d} ${['India gross','Overseas gross','Shows','Occupancy'][j]}`);i.value=old[d-1]?.[j]??'';td.append(i);tr.append(td)}$('dayRows').append(tr)}}function summarize(){const date=$('releaseDate').value;const name=$('movieName').value.trim()||'Selected movie';const count=Number($('days').value);const start=$('publishTime').value;const valid=validDate(date)&&/^\d{2}:\d{2}$/.test(start);if(!valid){$('summary').textContent='Choose a release date and valid publishing time to preview the schedule.';return}const first=new Date(date+'T12:00:00Z');const last=new Date(first.getTime()+(Number($('startDay').value||1)+count-2)*86400000).toISOString().slice(0,10);$('summary').textContent=`${name} · Scheduled to publish ${date} at ${start} IST · Day ${$('startDay').value}: prepared · Day ${Number($('startDay').value||1)+count-1}: ${last} · Daily rollover: 6:00 AM IST · Updates: every ${$('interval').value} minutes · Daily window: ${$('startTime').value}–${$('endTime').value}. Mode: ${$('displayMode').value}. Preview only; no database changes.`}$('releaseDate').value=dateInIndia();$('addDay').addEventListener('click',()=>{$('days').value=Math.min(365,Number($('days').value||0)+1);makeRows();summarize()});$('removeDay').addEventListener('click',()=>{$('days').value=Math.max(1,Number($('days').value||1)-1);makeRows();summarize()});$('days').addEventListener('change',()=>{makeRows();summarize()});$('startDay').addEventListener('change',()=>{makeRows();summarize()});for(const id of ['movieName','releaseDate','publishTime','interval','startTime','endTime','displayMode'])$(id).addEventListener('change',summarize);$('copyFirst').addEventListener('click',()=>{const rows=[...$('dayRows').children];if(!rows.length)return;const first=[...rows[0].querySelectorAll('input')].map(i=>i.value);for(const row of rows.slice(1)){[...row.querySelectorAll('input')].forEach((input,j)=>input.value=first[j])}});$('previewBtn').addEventListener('click',summarize);makeRows();summarize();
+
+function runningDay(release){if(!validDate(release))return 0;const today=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));if(today.getHours()<6)today.setDate(today.getDate()-1);const base=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());const start=Date.parse(release+'T00:00:00Z');return Math.floor((base-start)/86400000)+1}let movies=[];let activeFilter='running';function renderMovies(){const q=$('movieSearch').value.toLowerCase().trim(),today=dateInIndia();const end=new Date(today+'T12:00:00Z');end.setUTCDate(end.getUTCDate()+7);const weekEnd=end.toISOString().slice(0,10);const filtered=movies.filter(m=>(m.title||'').toLowerCase().includes(q)&& (q||activeFilter==='all'||activeFilter==='today'&&m.release_date===today||activeFilter==='week'&&m.release_date>=today&&m.release_date<=weekEnd||activeFilter==='running'&&runningDay(m.release_date)>0&&runningDay(m.release_date)<=60||activeFilter==='scheduled'&&m.release_date>today));$('movieList').replaceChildren();if(!filtered.length){$('movieList').textContent='No movies match this filter.';return}for(const m of filtered.slice(0,100)){const btn=document.createElement('button');btn.type='button';btn.className='row';btn.style.width='100%';btn.dataset.movieId=String(m.id);if(Number(window.selectedMovieId)===Number(m.id))btn.classList.add('selected-movie-row');const info=document.createElement('span');const name=document.createElement('strong');name.textContent=m.title;const sub=document.createElement('small');const currentDay=runningDay(m.release_date);sub.textContent=(m.release_date||'No release date')+' · '+(m.language||'')+(currentDay>0?' · RUNNING DAY '+currentDay:'');info.append(name,sub);btn.append(info);btn.addEventListener('click',()=>{$('movieName').value=m.title;$('releaseDate').value=m.release_date||today;window.selectedMovieId=m.id;window.selectedMovieDay=Math.max(1,runningDay(m.release_date));$('movieDayIndicator').textContent=m.title+' · '+(runningDay(m.release_date)>0?'Theatrical Day '+runningDay(m.release_date):'Upcoming / release date unknown')+' · Edit everything below in one workspace';$('workspaceHeading').textContent=m.title+' · Live + Day-Wise + SEO';renderMovies();document.getElementById('workspaceHeading').scrollIntoView({behavior:'smooth',block:'start'});summarize()});$('movieList').append(btn)}}async function loadMovies(){try{const r=await fetch('/admin/movies',{credentials:'same-origin'});if(!r.ok)throw Error('Admin API returned '+r.status);const data=await r.json();movies=data.movies||[];const today=dateInIndia();$('todayCount').textContent=movies.filter(m=>m.release_date===today).length;const e=new Date(today+'T12:00:00Z');e.setUTCDate(e.getUTCDate()+7);$('weekCount').textContent=movies.filter(m=>m.release_date>=today&&m.release_date<=e.toISOString().slice(0,10)).length;$('liveCount').textContent='—';$('scheduledCount').textContent='—';renderMovies()}catch(e){$('movieList').textContent='Movie API unavailable: '+e.message+'. Open this page from a signed-in BoxOfficeX admin session.'}}$('movieSearch').addEventListener('input',()=>{if($('movieSearch').value.trim()){activeFilter='all';document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter==='all'))}renderMovies()});document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;renderMovies()}));loadMovies();
+
+</script><script>
+
+(function(){'use strict';const el=id=>document.getElementById(id);const api='/admin/live-v2';const status=(message,ok)=>{el('saveFeedback').textContent=message;el('saveFeedback').style.color=ok?'#73e2aa':'#ffcc33'};
+
+async function request(url,opts){const r=await fetch(url,{credentials:'same-origin',...opts});let obj;try{obj=await r.json()}catch{throw Error('Server returned '+r.status)}if(!r.ok)throw Error(typeof obj.detail==='string'?obj.detail:JSON.stringify(obj.detail||obj));return obj}
+
+function value(id){return el(id).value}
+
+function payload(mode){const movieId=Number(window.selectedMovieId);if(!movieId)throw Error('Select a movie from Release Calendar first');if(mode!=='draft'&&value('displayMode')==='combined'&&!value('articleId'))throw Error('To schedule a combined live article, first create or select its existing article. Drafts can be saved without one.');const rows=[...el('dayRows').querySelectorAll('tr')];if(!rows.length)throw Error('Add at least one day');const days=rows.map((tr,i)=>{const inputs=[...tr.querySelectorAll('input')];const [india,overseas,shows,occupancy]=inputs.map(x=>x.value.trim());if(mode!=='draft'&&(!india||!overseas))throw Error('Enter India and Overseas LIVE targets for Day '+(Number(value('startDay')||1)+i));return {day_number:Number(value('startDay')||1)+i,india_gross_crore:india||'0',overseas_gross_crore:overseas||'0',shows_target:shows===''?null:Number(shows),occupancy_percent:occupancy===''?null:occupancy}});return {movie_id:movieId,mode:value('displayMode'),article_id:value('articleId')?Number(value('articleId')):null,status:mode,release_date:value('releaseDate'),publish_time:value('publishTime'),daily_start:value('startTime'),daily_end:value('endTime'),update_interval_minutes:Number(value('interval')),days}}
+
+async function save(mode){try{const data=payload(mode);data.seo_title=el("seoMode").value==="manual"?el("seoTitle").value.trim()||null:null;data.seo_description=el("seoMode").value==="manual"?el("seoDescription").value.trim()||null:null;if(mode==='scheduled'&&!confirm('Schedule '+el('movieName').value+' with '+data.days.length+' configured days?'))return;status('Saving plan…');const result=await request(api+'/plans/'+data.movie_id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});status('Saved '+result.days_saved+' days as '+mode+'. Plan #'+result.plan_id,true);refreshCounts()}catch(e){status('Save failed: '+e.message,false)}}
+
+async function load(id){try{const p=await request(api+'/plans/'+id);el('releaseDate').value=p.release_date;el('publishTime').value=p.publish_time.slice(0,5);el('startTime').value=p.daily_start.slice(0,5);el('endTime').value=p.daily_end.slice(0,5);el('interval').value=String(p.update_interval_minutes);el('displayMode').value=p.mode;el('articleId').value=p.article_id||'';el('seoMode').value=p.seo_title||p.seo_description?'manual':'auto';el('seoTitle').dataset.saved=p.seo_title||'';el('seoDescription').dataset.saved=p.seo_description||'';el('seoTitle').dataset.initMovie='';window.refreshLiveSeo?.();el('startDay').value=p.days[0]?.day_number||1;el('days').value=p.days.length;el('days').dispatchEvent(new Event('change'));const trs=[...el('dayRows').querySelectorAll('tr')];p.days.forEach((d,i)=>{const inputs=[...trs[i].querySelectorAll('input')];[d.india_gross_crore,d.overseas_gross_crore,d.shows_target??'',d.occupancy_percent??''].forEach((v,j)=>inputs[j].value=v)});status('Loaded existing '+p.status+' plan with '+p.days.length+' days.',true)}catch(e){if(e.message.includes('404')||e.message.includes('No V2 plan')){el('startDay').value=window.selectedMovieDay||1;el('days').value=3;el('days').dispatchEvent(new Event('change'));el('dayRows').querySelectorAll('input').forEach(x=>x.value='');el('articleId').value='';el('displayMode').value='combined';el('seoMode').value='auto';el('seoTitle').dataset.saved='';el('seoDescription').dataset.saved='';el('seoTitle').dataset.initMovie='';window.refreshLiveSeo?.();status('No saved plan. Ready for a new 3-day setup.',true)}else status('Load failed: '+e.message,false)}}
+
+async function refreshCounts(){try{const data=await request(api+'/plans');const plans=data.plans||[];el('scheduledCount').textContent=plans.filter(x=>x.status==='scheduled').length;el('liveCount').textContent='—'}catch{}}
+
+el('saveDraft').addEventListener('click',()=>save('draft'));el('schedulePlan').addEventListener('click',()=>save('scheduled'));
+
+// Existing movie buttons are generated by renderMovies; event capture runs after their click handlers.
+
+el('movieList').addEventListener('click',event=>{const button=event.target.closest('button.row');if(!button)return;setTimeout(()=>{if(window.selectedMovieId)load(window.selectedMovieId)},0)});
+
+refreshCounts();
+
+})();
+
+</script><script>
+
+(function(){'use strict';
+
+const $=id=>document.getElementById(id),names=['tamil_nadu','kerala','karnataka','telugu_states','rest_of_india','overseas'];
+
+let reports=[],selected=null,rows=[];
+
+const money=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+
+const input=(v,label)=>{const i=document.createElement('input');i.type='number';i.min='0';i.step='0.01';i.value=v??'';i.setAttribute('aria-label',label);return i};
+
+const note=(message,good=false)=>{const el=$('reportFeedback');el.textContent=message;el.style.color=good?'#73e2aa':'#ffcc33'};
+
+const cell=(tr,node)=>{const td=document.createElement('td');if(typeof node==='string')td.textContent=node;else td.append(node);tr.append(td);return td};
+
+const getNumbers=tr=>[...tr.querySelectorAll('input')].map(i=>i.value);
+
+function renderRights(){const tr=$('rightsRow');tr.replaceChildren();names.forEach((n,i)=>cell(tr,input(selected?.extra_data?.['theatrical_'+n]??'',n+' rights')));cell(tr,'0.00').className='calc';tr.addEventListener('input',totals);totals()}
+
+function syncRows(){[...$('reportDayRows').children].forEach((tr,i)=>{if(!rows[i])return;const values=getNumbers(tr);names.forEach((n,j)=>rows[i][n]=values[j])})}
+
+function renderDays(){const body=$('reportDayRows');body.replaceChildren();rows.forEach((d,i)=>{const tr=document.createElement('tr');cell(tr,'Day '+d.number);names.forEach(n=>cell(tr,input(d[n]??'',`Day ${d.number} ${n.replaceAll('_',' ')} gross in crore`)));cell(tr,'0.00').className='calc';cell(tr,'0.00').className='calc';tr.addEventListener('input',totals);body.append(tr)});totals()}
+
+function totals(){const rights=getNumbers($('rightsRow'));const rt=$('rightsRow').lastElementChild;rt.textContent=rights.some(x=>x!=='')?rights.reduce((a,b)=>a+money(b),0).toFixed(2):'—';const sums=names.map(()=>0);let indiaAll=0,worldAll=0;[...$('reportDayRows').children].forEach(tr=>{const vals=getNumbers(tr).map(money);vals.forEach((v,i)=>sums[i]+=v);const india=vals.slice(0,5).reduce((a,b)=>a+b,0),ww=india+vals[5];indiaAll+=india;worldAll+=ww;tr.children[7].textContent=india.toFixed(2);tr.children[8].textContent=ww.toFixed(2)});const footer=$('reportTotals');footer.replaceChildren();cell(footer,'TOTAL');sums.forEach(x=>cell(footer,x.toFixed(2)));cell(footer,indiaAll.toFixed(2)).className='calc';cell(footer,worldAll.toFixed(2)).className='calc'}
+
+function choose(){selected=$('reportSelect').value===''?null:(reports[Number($('reportSelect').value)]||null);if(selected){$('articleId').value=selected.article_id;$('displayMode').value='combined';$('displayMode').dispatchEvent(new Event('change'));}rows=selected?(selected.extra_data.days||[]).filter(d=>String(d.type||'REGULAR').toUpperCase()==='REGULAR').map(d=>({...d})):[];if(!rows.length)rows=[{number:1},{number:2},{number:3}];$('reportBudget').value=selected?.extra_data?.budget??'';renderRights();renderDays();$('reportConnectionStatus').textContent=selected?'Existing collections loaded for '+selected.article_title+'.':'No unique existing collection record selected.';note(selected?'Editing existing day-wise collections — changes not saved.':'Existing day-wise collections could not be identified automatically.')}
+
+async function loadReports(movieId){reports=[];selected=null;$('reportSelect').replaceChildren(new Option('Loading linked reports…',''));choose();if(!movieId)return;try{const r=await fetch('/admin/live-v2/movies/'+movieId+'/reports',{credentials:'same-origin'});if(!r.ok)throw Error('HTTP '+r.status);reports=(await r.json()).reports||[];const sel=$('reportSelect');sel.replaceChildren(new Option(reports.length?'Choose report to edit':'No existing Box Office Report for this movie',''));reports.forEach((r,i)=>sel.add(new Option(`${r.article_title} (${r.article_status}) · block #${r.block_id}`,String(i))));const linkedId=Number($('articleId').value);const preferred=reports.findIndex(x=>Number(x.article_id)===linkedId);const dayWise=reports.map((r,i)=>({r,i})).filter(x=>/day[ -]?wise|day[ -]?[0-9]+|collection/i.test(x.r.article_title||''));const autoIndex=preferred>=0?preferred:(reports.length===1?0:(dayWise.length===1?dayWise[0].i:-1));if(autoIndex>=0){sel.value=String(autoIndex);choose()}else note(reports.length?'Multiple matching collection records exist. Automatic selection is unsafe; no permanent data will be overwritten.':'No existing Box Office Report. Permanent saving requires an existing article with a Box Office block; LIVE target editing still works.')}catch(e){note('Cannot load report: '+e.message)}}
+
+$('reportSelect').addEventListener('change',choose);
+
+$('reportAddDay').addEventListener('click',()=>{const last=Math.max(0,...rows.map(x=>Number(x.number)||0));if(last>=365)return note('Maximum 365 days');syncRows();rows.push({number:last+1});renderDays()});
+
+$('reportReload').addEventListener('click',()=>loadReports(window.selectedMovieId));
+
+$('reportSave').addEventListener('click',async()=>{if(!selected)return note('Cannot save yet: no linked Box Office Report. Select a day-wise report above, or add a Box Office block to this movie’s article.');const rInputs=getNumbers($('rightsRow'));const rights=Object.fromEntries(names.map((n,i)=>['theatrical_'+n,rInputs[i]]));const days=[...$('reportDayRows').children].map((tr,i)=>({number:rows[i].number,...Object.fromEntries(names.map((n,j)=>[n,getNumbers(tr)[j]]))}));const payload={expected_version:selected.version,budget:$('reportBudget').value||null,rights,days};if(!confirm('Save permanent reported Box Office values to '+selected.article_title+'? This does not save live estimates.'))return;try{note('Saving permanent report…');const res=await fetch(`/admin/live-v2/reports/${selected.article_id}/${selected.block_id}`,{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();if(!res.ok)throw Error(typeof data.detail==='string'?data.detail:'HTTP '+res.status);note('Permanent report saved. Reloading latest data…',true);const movie=window.selectedMovieId;const block=selected.block_id;await loadReports(movie);const idx=reports.findIndex(x=>x.block_id===block);if(idx>=0){$('reportSelect').value=String(idx);choose()}note('Saved successfully to existing Box Office Report.',true)}catch(e){note('Save failed: '+e.message)}});
+
+$('movieList').addEventListener('click',e=>{if(!e.target.closest('button.row'))return;setTimeout(()=>loadReports(window.selectedMovieId),0)});
+
+choose();
+
+})();
+
+</script><script>
+
+(function(){'use strict';
+
+const el=id=>document.getElementById(id);
+
+const areaNames=[['tamil_nadu','TN'],['kerala','Kerala'],['karnataka','Karnataka'],['telugu_states','Telugu States'],['rest_of_india','Rest of India'],['overseas','overseas']];
+
+let lastMovie=null, report=null, token=0;
+
+function clean(s){return String(s||'').replace(/\s*\|\s*BoxOfficeX\s*$/i,'').trim()}
+
+function amount(x){if(x===null||x===undefined||x==='')return null;const n=Number(x);return Number.isFinite(n)&&n>=0?n:null}
+
+function generate(){const m=(window.selectedMovieId&&window.selectedMovieId===lastMovie)?(window.liveSeoMovie||null):null;
+
+if(!m){el('seoFeedback').textContent='Select a movie to generate SEO.';return}
+
+const day=Number(el('days').value)>0?Math.max(1,Math.floor((new Date(Date.now()+19800000)-new Date((el('releaseDate').value||m.release_date)+'T00:00:00Z'))/86400000)+1):1;
+
+const dayLabel='Day '+day;const mode=el('displayMode').value;
+
+const title=clean(`${m.title} ${dayLabel} Box Office Collection Live: Worldwide Gross`);
+
+const data=report?.extra_data||{};const regions=areaNames.map(([key,name])=>({name,rights:amount(data['theatrical_'+key])})).filter(x=>x.rights!==null&&x.rights>0);
+
+regions.sort((a,b)=>b.rights-a.rights);
+
+const focus=el('seoStyle').value;
+
+let snippet='';
+
+if(focus==='rights'&&regions.length){const rights=regions.slice(0,3).map(x=>`${x.name} ₹${Number(x.rights.toFixed(2))} Cr`).join(', ');snippet=`${m.title} ${dayLabel} box office: theatrical rights ${rights}. Follow region-wise distributor shares, recovery and breakeven targets.`}
+
+else if(focus==='recovery'){snippet=`${m.title} ${dayLabel} box office: check region-wise distributor shares, theatrical recovery, breakeven targets and India & worldwide gross.`}
+
+else {snippet=`${m.title} ${dayLabel} collection: TN, Kerala, Karnataka, Telugu States and overseas distributor shares, theatrical recovery and region-wise breakeven targets.`}
+
+if(snippet.length>165){snippet=snippet.slice(0,162).replace(/\s+\S*$/,'')+'…'}
+
+const manual=el('seoMode').value==='manual';el('seoTitle').readOnly=!manual;el('seoDescription').readOnly=!manual;
+
+if(!manual){el('seoTitle').value=title;el('seoDescription').value=snippet}
+
+else if(el('seoTitle').dataset.initMovie!==String(lastMovie)){el('seoTitle').value=el('seoTitle').dataset.saved||title;el('seoDescription').value=el('seoDescription').dataset.saved||snippet;el('seoTitle').dataset.initMovie=String(lastMovie)}
+
+el('seoPreviewTitle').textContent=el('seoTitle').value;
+
+const slug=String(m.slug||m.title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+
+el('seoPreviewUrl').textContent=mode==='combined'?'Existing linked article URL (same canonical)':`https\://boxofficex.in/live/${slug} (planned URL)`;
+
+el('seoPreviewDescription').textContent=el('seoDescription').value;
+
+el('seoFeedback').textContent=mode==='combined'?'Combined mode: save the plan to apply SEO on the linked article. Manual article SEO still wins.':'Standalone mode: manual SEO overrides save with the tracker plan. Public live page SEO requires its public route.';
+
+}
+
+async function onMovie(){const id=Number(window.selectedMovieId);if(!id)return;const m=(window.liveSeoMovies||[]).find(x=>Number(x.id)===id);if(!m)return;window.liveSeoMovie=m;lastMovie=id;report=null;el('seoTitle').dataset.initMovie='';const requestId=++token;generate();try{const r=await fetch('/admin/live-v2/movies/'+id+'/reports',{credentials:'same-origin'});if(!r.ok)return;const reports=(await r.json()).reports||[];if(requestId!==token)return;report=reports.length===1?reports[0]:null;generate()}catch{}}
+
+window.refreshLiveSeo=generate;
+
+el('movieList').addEventListener('click',e=>{if(e.target.closest('button.row'))setTimeout(onMovie,0)});
+
+// Observe movie selection from the existing list without replacing its event handlers.
+
+fetch('/admin/movies',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(d=>{window.liveSeoMovies=d?.movies||[];if(window.selectedMovieId)onMovie()}).catch(()=>{});
+
+['seoStyle','seoMode','displayMode','days','releaseDate'].forEach(id=>el(id).addEventListener('change',()=>{if(id==='seoMode')el('seoTitle').dataset.initMovie='';generate()}));
+
+['seoTitle','seoDescription'].forEach(id=>el(id).addEventListener('input',generate));
+
+})();
+
+</script><script id="bx-active-day-preview">(function(){'use strict';
+const box=document.getElementById('activeLivePreview');
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function refresh(){const id=Number(window.selectedMovieId);if(!id){box.textContent='Select a movie first.';return;}box.textContent='Checking current LIVE day…';try{const response=await fetch('/api/live-v2/'+id,{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw Error('LIVE API returned '+response.status);const d=await response.json();if(!d.live){box.textContent='Not LIVE now · '+String(d.state||'inactive')+(d.day_number?' · Day '+d.day_number:'');return;}box.innerHTML='<strong>'+esc(d.movie_title)+' — Day '+esc(d.day_number)+' Collection · LIVE</strong><div class="tiny" style="margin:6px 0 12px">Last updated: '+esc(d.last_updated_label)+'</div><div class="grid2"><div>India gross: ₹'+esc(d.india_gross_crore)+' Cr</div><div>India net: ₹'+esc(d.india_net_crore)+' Cr</div><div>Overseas gross: ₹'+esc(d.overseas_gross_crore)+' Cr</div><div>Worldwide gross: ₹'+esc(d.worldwide_gross_crore)+' Cr</div><div>Shows: '+esc(d.shows??'Not configured')+'</div><div>Occupancy: '+esc(d.occupancy_percent??'Not configured')+'%</div></div><p class="tiny">Indicative estimates · Update every '+esc(d.update_interval_minutes)+' minutes · Active day only</p>';}catch(e){box.textContent='Preview unavailable: '+e.message;}}
+document.getElementById('refreshActiveLive').addEventListener('click',refresh);
+document.getElementById('movieList').addEventListener('click',e=>{if(e.target.closest('button.row'))setTimeout(refresh,150)});
+})();</script><script id="bx-single-workspace-script">
+(function(){'use strict';
+const $=id=>document.getElementById(id);
+let activeId=0, articleStatus='draft', lastVersion=null, lastSlug='', busy=false;
+const slugify=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function msg(t,ok=false){$('bxWorkspaceFeedback').textContent=t;$('bxWorkspaceFeedback').style.color=ok?'#73e2aa':'#ffcc33';}
+async function json(url,opts={}){const r=await fetch(url,{credentials:'same-origin',...opts});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(typeof d.detail==='string'?d.detail:'HTTP '+r.status);return d;}
+function status(article,live){articleStatus=article?.status||'draft';lastSlug=article?.slug||'';$('bxArticleStatus').textContent=(article?article.status.toUpperCase():'NEW DRAFT')+' · LIVE '+String(live||'not started').toUpperCase();$('bxArticleLink').textContent=article?location.origin+'/article/'+article.slug:'New article will be created when you save.';}
+async function load(id){activeId=id;lastVersion=null;const movie=$('movieName').value;const requestId=id;
+$('bxArticleSlug').value=slugify(movie)+'-box-office-collection';status(null,'not started');msg('Loading movie workspace…');
+try{const [w,p]=await Promise.all([json('/admin/live-v2/workspace/'+id),json('/admin/live-v2/plans/'+id).catch(()=>null)]);if(activeId!==requestId)return;
+if(w.article){$('bxArticleSlug').value=w.article.slug;lastVersion=w.report?.version||null;status(w.article,p?.status||'draft');}
+else status(null,p?.status||'not started');msg(w.article?'Existing article loaded. Ready to edit.':'New article ready. Save Draft or Publish to create it.',true);
+}catch(e){msg('Cannot load workspace: '+e.message);}}
+$('movieList').addEventListener('click',e=>{const b=e.target.closest('button.row');if(!b)return;setTimeout(()=>load(Number(window.selectedMovieId)),60);});
+// The slug belongs to the editor: changing the movie title must not overwrite it.
+$('bxArticleSlug').addEventListener('input',()=>{
+  const slug=slugify($('bxArticleSlug').value);
+  $('bxArticleLink').textContent=location.origin+'/article/'+(slug||'your-slug');
+  $('bxSlugFeedback').textContent=slug?'Editable URL preview — changes apply when you save.':'Enter a valid slug before saving.';
+  $('bxSlugFeedback').style.color=slug?'#8e99b3':'#ffcc33';
+});
+function num(v){return v===''?null:v;}
+function payload(action){const movieId=Number(window.selectedMovieId);if(!movieId)throw Error('Select a movie first');
+const title=($('movieName').value||'').trim()+' Box Office Collection: Day-Wise & LIVE';const slug=slugify($('bxArticleSlug').value);if(!slug)throw Error('Enter a URL slug');
+const liveDays=[...$('dayRows').querySelectorAll('tr')].map((tr,i)=>{const inputs=[...tr.querySelectorAll('input')];return {day_number:Number($('startDay').value||1)+i,india_gross_crore:inputs[0].value||'0',overseas_gross_crore:inputs[1].value||'0',shows_target:num(inputs[2].value),occupancy_percent:num(inputs[3].value)};});
+const area=['tamil_nadu','kerala','karnataka','telugu_states','rest_of_india','overseas'];const rights={};const rinputs=[...$('rightsRow').querySelectorAll('input')];area.forEach((x,i)=>rights['theatrical_'+x]=num(rinputs[i]?.value||''));
+const dayRows=[...$('reportDayRows').querySelectorAll('tr')].map(tr=>{const d={number:Number(tr.children[0].textContent.match(/\d+/)?.[0])};const inputs=[...tr.querySelectorAll('input')];area.forEach((x,i)=>d[x]=num(inputs[i]?.value||''));return d;});
+const plan={movie_id:movieId,mode:'combined',article_id:null,status:action==='publish'?'scheduled':'draft',release_date:$('releaseDate').value,publish_time:$('publishTime').value,daily_start:$('startTime').value,daily_end:$('endTime').value,update_interval_minutes:Number($('interval').value),days:liveDays,seo_title:$('seoMode').value==='manual'?$('seoTitle').value.trim()||null:null,seo_description:$('seoMode').value==='manual'?$('seoDescription').value.trim()||null:null};
+return {title,slug,action,plan,report:{expected_version:lastVersion,budget:num($('reportBudget').value),rights,days:dayRows}};}
+async function save(action){if(busy)return;let data;try{data=payload(action);}catch(e){msg(e.message);return;}if(action==='publish'&&!confirm('Publish '+data.title+' and enable its LIVE schedule?'))return;
+busy=true;for(const id of ['bxSave','bxDraft','bxPublish'])$(id).disabled=true;msg('Saving article, LIVE schedule and permanent collections…');
+try{const d=await json('/admin/live-v2/workspace/'+data.plan.movie_id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+status({status:d.article_status,slug:d.slug},d.live_status);lastSlug=d.slug;$('bxArticleSlug').value=d.slug;
+msg('Saved successfully · Article '+d.article_status+' · LIVE '+d.live_status+'.',true);
+// Reload version and actual permanent report after the transaction completes.
+await load(data.plan.movie_id);$('reportReload').click();
+}catch(e){msg('Save failed: '+e.message);if(/slug already exists/i.test(e.message)){$('bxSlugFeedback').textContent='This slug is already used. Edit the slug above and save again.';$('bxSlugFeedback').style.color='#ffcc33';$('bxArticleSlug').focus();}}finally{busy=false;for(const id of ['bxSave','bxDraft','bxPublish'])$(id).disabled=false;}}
+$('bxSave').addEventListener('click',()=>save('save'));
+$('bxDraft').addEventListener('click',()=>save('draft'));
+$('bxPublish').addEventListener('click',()=>save('publish'));
+})();
+</script></body></html>
