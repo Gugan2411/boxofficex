@@ -19978,7 +19978,7 @@ def admin_articles_page():
 # ARTICLES LIST - NON-BLOCKING CACHED SSR
 # ============================================================
 
-ARTICLES_LIST_HTML_CACHE_TTL = 10
+ARTICLES_LIST_HTML_CACHE_TTL = 60
 _articles_list_html_cache = {"html": None, "expires_at": 0.0}
 _articles_list_html_cache_lock = threading.Lock()
 _articles_list_html_refreshing = False
@@ -20244,9 +20244,19 @@ def articles_page():
             "X-BoxOfficeX-Cache": "HIT",
         })
 
-    # Never return an outdated headline when the SSR cache expires.
-    # Build the current listing synchronously; keep the previous version only
-    # as an emergency fallback if rendering fails.
+    # Stale-while-revalidate: do not block visitors on the expensive
+    # full-list render when a previously rendered SSR page is available.
+    # Admin article/block mutations invalidate the cache explicitly.
+    if cached_html:
+        _start_articles_list_refresh()
+        return HTMLResponse(content=cached_html, headers={
+            "Cache-Control": "no-cache, must-revalidate",
+            "X-BoxOfficeX-Articles-List": "stale-ssr-refreshing",
+            "X-BoxOfficeX-Cache": "STALE",
+        })
+
+    # Cold start (or explicit invalidation): render synchronously to ensure
+    # search engines receive real article links, not a loading shell.
     try:
         fresh_html = _render_articles_list_html()
         with _articles_list_html_cache_lock:
@@ -28059,15 +28069,18 @@ def create_live_tracker_v2_router(get_connection, require_admin):
                     'movie_id': movie_id, 'movie_title': movie_title, 'day_number': day_number}
         start = _v2_datetime.combine(business_date, start_time, LIVE_V2_IST)
         end = _v2_datetime.combine(business_date, end_time, LIVE_V2_IST)
-        if now < start or now >= end:
-            return {'live': False, 'state': 'waiting' if now < start else 'ended',
-                    'movie_id': movie_id, 'movie_title': movie_title, 'day_number': day_number}
-        # Freeze all modeled values at the most recent completed update step.
-        # No timer jobs or historical LIVE snapshots are needed.
+        # Keep the current theatrical day visible from 06:00 until the next
+        # 06:00 rollover. Before the configured start show fresh zero values;
+        # after the configured end retain the final modeled values overnight.
+        # These are temporary display values, never permanent collections.
+        phase = 'waiting' if now < start else ('holding' if now >= end else 'live')
         step_seconds = int(interval) * 60
-        elapsed = (now - start).total_seconds()
-        last_step = int(elapsed // step_seconds)
-        last_updated = start + _v2_timedelta(seconds=last_step * step_seconds)
+        elapsed = max(0.0, (min(now, end) - start).total_seconds())
+        if phase == 'holding':
+            last_updated = end
+        else:
+            last_step = int(elapsed // step_seconds)
+            last_updated = min(end, start + _v2_timedelta(seconds=last_step * step_seconds))
         duration = (end - start).total_seconds()
         fraction = _v2_Decimal(str(min(1, max(0, (last_updated - start).total_seconds() / duration))))
         money = lambda amount: str((_v2_Decimal(str(amount)) * fraction).quantize(_v2_Decimal('0.01')))
@@ -28089,7 +28102,7 @@ def create_live_tracker_v2_router(get_connection, require_admin):
         occupancy = (min(_v2_Decimal('100'), _v2_Decimal(str(day[3])) * fraction)
                      .quantize(_v2_Decimal('0.1'))) if day[3] is not None else None
         return {
-            'live': True, 'state': 'live', 'movie_id': movie_id,
+            'live': True, 'state': phase, 'movie_id': movie_id,
             'movie_title': movie_title, 'day_number': day_number,
             'india_gross_crore': str(india), 'india_net_crore': str(india_net),
             'overseas_gross_crore': str(overseas),
@@ -28205,7 +28218,26 @@ def bx_live_workspace_write(movie_id: int, data: BXLiveWorkspaceInput):
         candidates=cur.fetchall()
         if linked:
             found=next((x for x in candidates if x[0]==linked),None)
-            if found is None: raise HTTPException(409,'Linked article is missing its Box Office block')
+            if found is None:
+                # The plan already identifies the article: add its missing block in place.
+                cur.execute('''SELECT id,status,slug FROM articles WHERE id=%s FOR UPDATE''',(linked,))
+                linked_article=cur.fetchone()
+                if not linked_article:
+                    raise HTTPException(409,'Linked article no longer exists')
+                cur.execute('''SELECT id,extra_data FROM article_blocks
+                    WHERE article_id=%s AND block_type='boxoffice' ORDER BY id LIMIT 1''',(linked,))
+                existing_block=cur.fetchone()
+                if existing_block:
+                    found=(linked,existing_block[0],existing_block[1],linked_article[1],linked_article[2])
+                else:
+                    cur.execute('''SELECT COALESCE(MAX(block_order),0)+1 FROM article_blocks
+                        WHERE article_id=%s''',(linked,))
+                    next_order=cur.fetchone()[0]
+                    cur.execute('''INSERT INTO article_blocks
+                        (article_id,block_order,block_type,content,extra_data)
+                        VALUES (%s,%s,'boxoffice',NULL,'{}'::jsonb) RETURNING id''',
+                        (linked,next_order))
+                    found=(linked,cur.fetchone()[0],{},linked_article[1],linked_article[2])
         elif len(candidates)==1: found=candidates[0]
         elif candidates: raise HTTPException(409,'Multiple Box Office reports: cannot select safely')
         else: found=None
