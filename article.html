@@ -3383,6 +3383,30 @@ line-height:1.75;
 .bx-manual-related-link{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid #dfe5ee;border-radius:10px;background:#f8fafc;color:#2563eb;text-decoration:none;font:700 12px/1.5 Arial,sans-serif}
 .bx-manual-related-link:hover{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
 @media(max-width:650px){.bx-manual-related-grid{grid-template-columns:1fr}}
+
+/* Color accents for automatic LIVE Shows and Occupancy metrics only */
+.lt-grid .lt-card.lt-shows-highlight{background:linear-gradient(135deg,#eff6ff,#e0e7ff);border-color:#a5b4fc;box-shadow:0 6px 18px rgba(79,70,229,.09)}
+.lt-grid .lt-shows-highlight .lt-value{color:#4338ca}
+.lt-grid .lt-shows-highlight .lt-label{color:#4f46e5}
+.lt-grid .lt-card .lt-metric-chip{display:inline-flex;align-items:center;width:fit-content;margin-top:8px;padding:5px 9px;border-radius:999px;font:800 10px/1.35 Arial,Helvetica,sans-serif;letter-spacing:0;max-width:100%;white-space:normal}
+.lt-grid .lt-shows-highlight .lt-metric-chip{background:#c7d2fe;color:#312e81}
+.lt-grid .lt-card.lt-occupancy-highlight{border-width:1px;box-shadow:0 6px 18px rgba(15,23,42,.06)}
+.lt-grid .lt-occupancy-slow{background:linear-gradient(135deg,#fff1f2,#ffe4e6);border-color:#fda4af}
+.lt-grid .lt-occupancy-slow .lt-value,.lt-grid .lt-occupancy-slow .lt-label{color:#be123c}
+.lt-grid .lt-occupancy-slow .lt-metric-chip{background:#fecdd3;color:#9f1239}
+.lt-grid .lt-occupancy-picking{background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74}
+.lt-grid .lt-occupancy-picking .lt-value,.lt-grid .lt-occupancy-picking .lt-label{color:#c2410c}
+.lt-grid .lt-occupancy-picking .lt-metric-chip{background:#fed7aa;color:#9a3412}
+.lt-grid .lt-occupancy-steady{background:linear-gradient(135deg,#fefce8,#fef9c3);border-color:#fde047}
+.lt-grid .lt-occupancy-steady .lt-value,.lt-grid .lt-occupancy-steady .lt-label{color:#a16207}
+.lt-grid .lt-occupancy-steady .lt-metric-chip{background:#fef08a;color:#854d0e}
+.lt-grid .lt-occupancy-strong{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#86efac}
+.lt-grid .lt-occupancy-strong .lt-value,.lt-grid .lt-occupancy-strong .lt-label{color:#15803d}
+.lt-grid .lt-occupancy-strong .lt-metric-chip{background:#bbf7d0;color:#166534}
+.lt-grid .lt-occupancy-housefull{background:linear-gradient(135deg,#ecfdf5,#ccfbf1);border-color:#5eead4}
+.lt-grid .lt-occupancy-housefull .lt-value,.lt-grid .lt-occupancy-housefull .lt-label{color:#047857}
+.lt-grid .lt-occupancy-housefull .lt-metric-chip{background:#99f6e4;color:#115e59}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -4963,7 +4987,7 @@ html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
 .bx-adv-stats{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0;color:#475569;font-size:12px}
 .bx-adv-stats span{padding:8px 10px;border-radius:8px;background:#f1f5f9;border:1px solid #e5eaf0}
 .bx-adv-stats b{color:#142b47}
-.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#172e4c}
+.bx-adv-remainder{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin:10px 0 18px;font-size:13px;color:#1e40af}.bx-adv-remainder strong{white-space:nowrap}.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#172e4c}
 .bx-adv-barrow{display:grid;grid-template-columns:minmax(70px,130px) minmax(50px,1fr) auto;align-items:center;gap:10px;margin:10px 0;font-size:12px;color:#334155}
 .bx-adv-track{height:12px;border-radius:20px;background:#edf2f7;overflow:hidden}
 .bx-adv-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#60a5fa,#3b82f6,#e6b84a)}
@@ -4976,8 +5000,65 @@ html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
 .bx-adv-note{color:#64748b!important;font-size:11px!important;margin-top:18px}
 .bx-adv-subtotal{background:#fff8df;font-weight:800}.bx-adv-subtotal th,.bx-adv-subtotal td{color:#76500b!important}.bx-adv-day[hidden]{display:none!important}
 @media(max-width:600px){.bx-advance{padding:15px}.bx-adv-cards{grid-template-columns:1fr}.bx-adv-barrow{grid-template-columns:80px 1fr auto;font-size:10px}}
+
+/* Advance booking day navigation: visual-only enhancement */
+.bx-advance .bx-adv-tabs-label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:20px;font-size:14px;font-weight:850;color:#17385c}
+.bx-advance .bx-adv-tabs-label span{font-size:12px;font-weight:600;color:#58718b}
+.bx-advance .bx-adv-tabs{gap:11px;padding:13px 2px 19px;scroll-snap-type:x proximity}
+.bx-advance .bx-adv-tab{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:126px;padding:13px 16px;border:2px solid #cbd8e8;border-radius:14px;background:#f5f8fd;color:#254766;box-shadow:0 3px 8px rgba(20,50,90,.07);transition:background .15s,border-color .15s,transform .15s;scroll-snap-align:start;text-align:left}
+.bx-advance .bx-adv-tab:hover{border-color:#468ce4;background:#eaf3ff;transform:translateY(-2px)}
+.bx-advance .bx-adv-tab:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+.bx-advance .bx-adv-tab[aria-pressed="true"]{border-color:#2563eb;background:#eaf2ff;color:#123e7a;box-shadow:inset 0 -4px #2563eb,0 4px 14px rgba(37,99,235,.12)}
+.bx-advance .bx-adv-tab-name{font-size:17px;font-weight:900;line-height:1.2}
+.bx-advance .bx-adv-tab-date{font-size:11px;font-weight:650;color:#617a94}
+.bx-advance .bx-adv-tab-state{font-size:11px;font-weight:800;color:#4975a6}
+.bx-advance .bx-adv-tab[aria-pressed="true"] .bx-adv-tab-state{color:#126534}
+.bx-advance .bx-adv-day:not([hidden]){animation:bxAdvReveal .18s ease-out}
+@keyframes bxAdvReveal{from{opacity:.6;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.bx-advance .bx-adv-tabs-label{align-items:flex-start;flex-direction:column}.bx-advance .bx-adv-tab{min-width:112px;padding:12px}}
 </style>
 <script>window.__BOXOFFICEX_ARTICLE_SSR_DATA__={"id":230,"title":"Ranabaali Day 9 Box Office Collection LIVE Updates","slug":"ranabaali-day-wise-box-office-collection-worldwide-total-region-wise-performance-breakeven","subtitle":"Track Ranabaali's Day 9 box office performance LIVE with collection updates, occupancy trends, show counts, previous days' earnings and theatrical recovery progress.","category":"Box Office","author":"BoxOfficeX Owner","hero_image":null,"hero_caption":null,"hero_credit":null,"status":"published","meta_title":"Ranabaali Day 9 Box Office LIVE: Collection & Budget","meta_description":"Ranabaali Day 9 box office collection LIVE: Check day-wise earnings, theatre occupancy, show counts, budget recovery and collection milestones.","views":22,"published_at":"2026-10-17T07:59:13.075254","created_at":"2026-10-17T07:58:54.773029","updated_at":"2026-10-24T07:34:30.374550","tracking_enabled":true,"final_h1":null,"final_subtitle":null,"final_meta_title":null,"final_meta_description":null,"tracking_finalized_at":null,"seo_mode":"auto","movie_ids":[3452],"actor_ids":[34],"movies":[{"id":3452,"title":"Ranabaali","release_date":"2026-10-16","language":"Telugu","industry":"Tollywood","url":"/movie/ranabaali-2026"}],"actors":[{"id":34,"name":"Vijay Deverakonda","url":"/actor/vijay-deverakonda"}],"blocks":[{"id":5965,"block_order":1,"block_type":"boxoffice","content":null,"image":null,"image_caption":null,"image_credit":null,"extra_data":{"days":[{"date":"2026-10-16","type":"REGULAR","label":"","kerala":0.05,"number":1,"status":"ESTIMATED_FINAL","overseas":3.98,"karnataka":0.72,"tamil_nadu":0.1,"rest_of_india":0.12,"telugu_states":6.95},{"date":"2026-10-17","type":"REGULAR","label":"","kerala":0.01,"number":2,"status":"ESTIMATED_FINAL","overseas":2.1,"karnataka":1.08,"tamil_nadu":0.17,"rest_of_india":0.25,"telugu_states":7},{"date":"2026-10-18","type":"REGULAR","label":"","kerala":0.03,"number":3,"status":"ESTIMATED_FINAL","overseas":1.5,"karnataka":1.05,"tamil_nadu":0.2,"rest_of_india":0.25,"telugu_states":7.25},{"date":"2026-10-19","type":"REGULAR","label":"","kerala":0.02,"number":4,"status":"ESTIMATED_FINAL","overseas":0.5,"karnataka":0.6,"tamil_nadu":0.15,"rest_of_india":0.1,"telugu_states":5.5},{"date":"2026-10-20","type":"REGULAR","label":"","kerala":0.01,"number":5,"status":"ESTIMATED_FINAL","overseas":0.75,"karnataka":0.87,"tamil_nadu":0.13,"rest_of_india":0.2,"telugu_states":7}],"budget":130,"verdict":"","movie_id":3452,"report_updated_at":"2026-10-21T12:36:49Z","theatrical_kerala":1.5,"theatrical_overseas":9.5,"theatrical_karnataka":4,"theatrical_worldwide":62,"theatrical_tamil_nadu":2,"theatrical_rest_of_india":8,"theatrical_telugu_states":37,"analysis":{"milestone_step":50,"budget_crore":130.0,"milestones":[],"theatrical_performance":{"model":"BOXOFFICEX_ESTIMATED_THEATRICAL_PERFORMANCE_V1","earned_worldwide_gross":48.64,"advance_excluded":true,"run_stage":{"key":"FIRST_WEEK","label":"First Week Tracking","day":5,"verdict_enabled":false},"budget":{"reported_budget":130.0,"worldwide_gross":48.64,"gross_budget_multiple":0.37,"gross_budget_percent":37.42},"combined":{"label":"Available Markets","market_count":6,"markets":["tamil_nadu","kerala","karnataka","telugu_states","rest_of_india","overseas"],"gross":48.64,"theatrical_value":62.0,"multiple":0.78,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":93.0,"remaining":44.36,"progress_percent":52.3},"atb_achieved":false,"estimated_net":42.57,"estimated_theatrical_share":20.4},"regions":{"tamil_nadu":{"key":"tamil_nadu","label":"Tamil Nadu","gross":0.75,"theatrical_value":2.0,"multiple":0.38,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":3.0,"remaining":2.25,"progress_percent":25.0},"atb_achieved":false,"estimated_net":0.64,"estimated_theatrical_share":0.32},"kerala":{"key":"kerala","label":"Kerala","gross":0.12,"theatrical_value":1.5,"multiple":0.08,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":2.25,"remaining":2.13,"progress_percent":5.33},"atb_achieved":false,"estimated_net":0.1,"estimated_theatrical_share":0.05},"karnataka":{"key":"karnataka","label":"Karnataka","gross":4.32,"theatrical_value":4.0,"multiple":1.08,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":6.0,"remaining":1.68,"progress_percent":72.0},"atb_achieved":false,"estimated_net":3.66,"estimated_theatrical_share":1.83},"telugu_states":{"key":"telugu_states","label":"AP & Telangana","gross":33.7,"theatrical_value":37.0,"multiple":0.91,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":55.5,"remaining":21.8,"progress_percent":60.72},"atb_achieved":false,"estimated_net":28.56,"estimated_theatrical_share":14.28},"rest_of_india":{"key":"rest_of_india","label":"Rest of India","gross":0.92,"theatrical_value":8.0,"multiple":0.11,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":12.0,"remaining":11.08,"progress_percent":7.67},"atb_achieved":false,"estimated_net":0.78,"estimated_theatrical_share":0.39},"overseas":{"key":"overseas","label":"Overseas","gross":8.83,"theatrical_value":9.5,"multiple":0.93,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":14.25,"remaining":5.42,"progress_percent":61.96},"atb_achieved":false,"estimated_net":8.83,"estimated_theatrical_share":3.53}},"disclaimer":"Theatrical values, distribution rights, distributor shares and territory-wise recovery figures are based on available industry reports and estimates. Actual commercial agreements, revenue shares and final settlements are private financial information known fully only to the producers, distributors, exhibitors/theatre owners and other parties involved.","performance_note":"BoxOfficeX performance labels are estimates based on reported theatrical values and available box-office gross. Estimated net and theatrical share are editorial calculations, not official settlements. India net uses an 18% GST assumption and theatrical share uses 50% of estimated net. Overseas uses a simplified 40% share assumption because taxes and settlement structures vary by market.","estimation_assumptions":{"india_gst_rate_percent":18.0,"india_share_of_net_percent":50.0,"overseas_net_factor_percent":100.0,"overseas_share_of_net_percent":40.0}},"tracker_seo":{"movie":{"id":3452,"title":"Ranabaali","release_date":"2026-10-16","language":"Telugu","industry":"Tollywood","url":"/movie/ranabaali-2026"},"movies":[{"id":3452,"title":"Ranabaali","release_date":"2026-10-16","language":"Telugu","industry":"Tollywood","url":"/movie/ranabaali-2026"}],"actors":[{"id":34,"name":"Vijay Deverakonda","url":"/actor/vijay-deverakonda"}],"actor_comparisons":[],"movie_comparisons":[]}}}}],"manual_related_articles":[{"id":212,"title":"Ranabaali Box Office Collection day 1","slug":"ranabaali-box-office-collection-day-1"},{"id":194,"title":"Ranabaali Pre-Release Business: ₹144 Cr Rights, Budget & Cast Salaries","slug":"ranabaali-box-office-collection"},{"id":227,"title":"Ranabaali Box Office Collection day 2","slug":"ranabaali-box-office-collection-day-2"}],"generated_tracking_seo":{"source":"combined_live_workspace","mode":"LIVE"}};</script>
+<style>.bx-adv-barrow{display:none!important}.bx-adv-city summary{cursor:pointer;padding:10px 14px;font-weight:700;color:#2863a9}.bx-adv-city table{margin:0;width:100%}.bx-adv-day[hidden]{display:none!important}</style>
+<style id="bxAdvanceVisualV3">
+.bx-advance{background:linear-gradient(155deg,#fff 0%,#f4f8ff 100%);border:1px solid #cbdcf2;box-shadow:0 14px 35px rgba(26,65,130,.1)}
+.bx-advance h2{border-left:5px solid #2563eb;padding-left:13px}
+.bx-adv-cards{gap:12px}.bx-adv-card{border:0;box-shadow:0 7px 18px rgba(30,60,110,.1);background:linear-gradient(135deg,#dbeafe,#eff6ff)}
+.bx-adv-card:first-child{background:linear-gradient(125deg,#fff0b3,#ffe1a3)}
+.bx-adv-card:nth-child(2){background:linear-gradient(125deg,#dcfce7,#a7f3d0)}
+.bx-adv-card:nth-child(3){background:linear-gradient(125deg,#f3e8ff,#ddd6fe)}
+.bx-adv-stats span{background:#e9f3ff;border-color:#cbdcf2;font-weight:650}
+.bx-adv-chart{background:#fff;border:1px solid #dce8f7;border-radius:16px;padding:16px;margin:14px 0 18px;box-shadow:0 5px 15px rgba(22,65,125,.06)}
+.bx-adv-chart-title{font-size:14px;font-weight:850;color:#183657;margin-bottom:14px}
+.bx-adv-chart-row{display:grid;grid-template-columns:minmax(85px,145px) minmax(0,1fr) auto;gap:10px;align-items:center;margin:12px 0;font-size:12px}
+.bx-adv-chart-name{color:#27405d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.bx-adv-chart-track{height:14px;border-radius:999px;background:#edf2fa;overflow:hidden}
+.bx-adv-chart-fill{height:100%;border-radius:999px;min-width:2px;background:linear-gradient(90deg,var(--bx-start),var(--bx-end));transition:width .35s ease}
+.bx-adv-chart-value{font-weight:800;color:#183657;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bx-adv-chart-occupancy{display:inline-block;margin-left:6px;color:#0f766e;font-size:11px}
+.bx-adv-scroll{box-shadow:0 3px 12px rgba(22,65,125,.04)}
+.bx-adv-scroll tbody tr:nth-child(even){background:#f8fbff}
+.bx-adv-scroll tbody tr:hover{background:#eaf3ff}
+.bx-adv-day[hidden]{display:none!important}
+@media(max-width:600px){.bx-adv-chart{padding:11px}.bx-adv-chart-row{grid-template-columns:78px minmax(0,1fr) auto;gap:6px;font-size:10px}.bx-adv-chart-occupancy{display:block;margin-left:0}.bx-adv-card{padding:13px}.bx-adv-cards{grid-template-columns:repeat(auto-fit,minmax(125px,1fr))}}
+@media(prefers-reduced-motion:reduce){.bx-adv-chart-fill{transition:none}}
+</style>
+<style id="bxAdvancePolishV4">
+.bx-advance .bx-adv-card:first-child{background:linear-gradient(125deg,#dcfce7,#a7f3d0)}
+.bx-advance .bx-adv-card:nth-child(2){background:linear-gradient(125deg,#e0e7ff,#c7d2fe)}
+.bx-advance .bx-adv-card:nth-child(3){background:linear-gradient(125deg,#fff0b3,#ffd37d);border:1px solid #f3c354}
+.bx-advance .bx-adv-card:nth-child(3) strong{color:#8a4b00}
+.bx-advance .bx-adv-remainder{background:#f8fafc;border:1px dashed #cbd5e1;color:#475569;padding:10px 14px;font-size:12px;box-shadow:none}
+.bx-advance .bx-adv-remainder strong{color:#334155}
+.bx-advance .bx-adv-city summary{display:flex;align-items:center;min-height:40px;background:#eaf2ff;border-left:4px solid #3b82f6;color:#174780;font-size:13px}
+.bx-advance .bx-adv-city[open] summary{background:#dbeafe}
+.bx-advance .bx-adv-city table{width:100%;table-layout:auto}
+.bx-advance .bx-adv-city th{padding-left:24px;color:#1d4f91}
+.bx-advance .bx-adv-city tr:nth-child(even){background:#f2f7ff}
+.bx-advance .bx-adv-parent{background:#f8fbff;font-weight:700}
+.bx-advance .bx-adv-expand-hint{display:inline-block;font-size:10px;color:#2563eb;margin-left:7px;font-weight:600}
+.bx-advance .bx-adv-child-row:hover{background:transparent}
+@media(max-width:600px){.bx-advance .bx-adv-scroll th,.bx-advance .bx-adv-scroll td{padding:10px 8px}.bx-advance .bx-adv-expand-hint{display:block;margin:4px 0 0}}
+</style>
 </head>
 
 <body>
@@ -6326,25 +6407,31 @@ function renderLiveTracker(data) {
         if (!has(value)) return;
         cards.push(`<div class="lt-card ${extraClass}"><div class="lt-value">${formatter(value)}</div><div class="lt-label">${label}</div></div>`);
     };
-    addCard(liveData.india_gross, hasScheduledEstimate && data._auto_estimated_field === "india_gross" ? "India Gross (Estimated)" : "India Gross", money, "lt-money-card");
+    addCard(liveData.india_gross, hasScheduledEstimate && data._auto_estimated_field === "india_gross" ? "India Gross" : "India Gross", money, "lt-money-card");
     if (estimatedIndiaNett !== null) {
-        cards.push(`<div class="lt-card lt-money-card lt-nett-card"><div class="lt-value">${money(estimatedIndiaNett)}</div><div class="lt-label">Est. India Nett</div><span class="lt-estimated">Estimated</span></div>`);
+        cards.push(`<div class="lt-card lt-money-card lt-nett-card"><div class="lt-value">${money(estimatedIndiaNett)}</div><div class="lt-label">Calculated India Nett</div></div>`);
     }
-    addCard(liveData.overseas_gross, hasScheduledEstimate && data._auto_estimated_field === "overseas_gross" ? "Overseas Gross (Estimated)" : "Overseas Gross", money, "lt-money-card");
+    addCard(liveData.overseas_gross, hasScheduledEstimate && data._auto_estimated_field === "overseas_gross" ? "Overseas Gross" : "Overseas Gross", money, "lt-money-card");
     addCard(liveData.tickets_sold, "Tickets Sold");
     if (has(liveData.shows_total) && has(liveData.shows_started) && has(liveData.shows_completed)) {
         const totalShows = plain(liveData.shows_total);
         addCard(`${plain(liveData.shows_started)} / ${totalShows}`, "Shows Started");
         addCard(`${plain(liveData.shows_completed)} / ${totalShows}`, "Shows Completed");
     } else {
-        addCard(liveData.shows_tracked, "Shows Tracked");
+        if (has(liveData.shows_tracked)) cards.push(`<div class="lt-card lt-shows-highlight"><div class="lt-value">${plain(liveData.shows_tracked)}</div><div class="lt-label">Shows</div><small class="lt-metric-chip">Today Tracked Shows</small></div>`);
     }
-    addCard(liveData.occupancy, "Occupancy", value => `${plain(value)}%`);
+    if (has(liveData.occupancy)) {
+        const occ = Number(liveData.occupancy);
+        const trend = occ < 20 ? "Slow Start" : occ < 40 ? "Picking Up" : occ < 60 ? "Steady Footfalls" : occ < 80 ? "Strong Occupancy" : "Housefull Trend";
+        const trendColor = occ < 20 ? "slow" : occ < 40 ? "picking" : occ < 60 ? "steady" : occ < 80 ? "strong" : "housefull";
+        cards.push(`<div class="lt-card lt-occupancy-highlight lt-occupancy-${trendColor}"><div class="lt-value">${plain(liveData.occupancy)}%</div><div class="lt-label">Occupancy</div><small class="lt-metric-chip">${trend}</small></div>`);
+    }
     addCard(liveData.advance_booking, "Advance Booking", money, "lt-money-card");
     addCard(liveData.premiere_gross, "Premiere Gross", money, "lt-money-card");
     addCard(liveData.day_gross, "Day Gross", money, "lt-money-card");
     addCard(liveData.fast_filling, "Fast Filling");
     addCard(liveData.housefull_shows, "Housefull Shows");
+
 
     const occupancyRating = value => {
         const n = number(value);
@@ -6405,7 +6492,7 @@ function renderLiveTracker(data) {
         </div>
         ${dayNumber || releaseDateLabel || movieDayTitle ? `<div class="lt-date-panel">${dayNumber ? `<div class="lt-day">DAY ${dayNumber}</div>` : ""}${releaseDateLabel ? `<div class="lt-date">${esc(releaseDateLabel)}</div>` : ""}${movieDayTitle ? `<div class="lt-tracker-movie"><span class="lt-movie-name">${esc(linkedMovieName || "Box Office")}</span>${dayNumber ? ` DAY ${dayNumber} COLLECTION` : ` COLLECTION`}</div>` : ""}${updatedLabel ? `<div class="lt-updated ${isActivelyTracking ? "live" : ""}">Last updated: ${esc(updatedLabel)} IST</div>` : ""}</div>` : ""}
         ${cards.length ? `<div class="lt-grid">${cards.join("")}</div>` : ""}
-        ${worldwide !== null ? `<div class="lt-worldwide"><div class="lt-value">${money(worldwide)}</div><div class="lt-label">${hasScheduledEstimate && data._auto_estimated_field === "worldwide_gross" ? "Worldwide Gross (Estimated)" : "Worldwide Gross"}</div>${isWorldwideAuto ? `<span class="lt-auto">Auto Calculated</span>` : ""}</div>` : ""}
+        ${worldwide !== null ? `<div class="lt-worldwide"><div class="lt-value">${money(worldwide)}</div><div class="lt-label">${hasScheduledEstimate && data._auto_estimated_field === "worldwide_gross" ? "Worldwide Gross" : "Worldwide Gross"}</div>${isWorldwideAuto ? `<span class="lt-auto">Auto Calculated</span>` : ""}</div>` : ""}
         ${showPerformanceCards.length ? `<div class="lt-show-performance"><div class="lt-show-head"><strong>Show Performance</strong>${isActivelyTracking ? `<span class="lt-show-live">Live</span>` : ""}</div><div class="lt-show-grid">${showPerformanceCards.join("")}</div></div>` : ""}
         ${noteText ? `<div class="lt-note"><strong>Latest Update</strong>${renderInlineArticleFormatting(noteText).replace(/\n/g, "<br>")}<span class="lt-scroll-hint">↓ Swipe down to see complete day-wise and region-wise box office data, plus advance booking status for the next day in the Box Office Report.</span></div>` : ""}
     </section>`;
@@ -6781,67 +6868,84 @@ function renderLiveBusinessStrip(article){
     </aside>`;
 }
 
+<style>.bx-advance .bx-adv-cumulative{margin:20px 0;padding:18px;border:1px solid #93c5fd;border-radius:16px;background:linear-gradient(135deg,#eff6ff,#e0f2fe)}.bx-advance .bx-adv-cumulative h3{margin:0 0 14px;color:#1d4ed8;font-size:19px}.bx-advance .bx-adv-cumulative .bx-adv-card{border-color:#bfdbfe}</style>
 /* BoxOfficeX manual advance-booking article block (INR crore). */
 function bxRenderAdvanceBooking(data) {
-    if (!data || typeof data !== "object") return "";
-    const dates = Array.isArray(data.dates) ? data.dates : [];
-    const regions = Array.isArray(data.regions) ? data.regions : [];
-    const num = v => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; };
-    const money = v => `₹${num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})} Cr`;
-    const safe = v => esc(String(v ?? ""));
-    const whole = v => num(v).toLocaleString("en-IN",{maximumFractionDigits:0});
-    const pct = v => `${num(v).toLocaleString("en-IN",{maximumFractionDigits:1})}%`;
-    if (!dates.length) return `<section class="bx-advance"><h2>Advance Booking Tracker</h2><p>Booking figures will be updated soon.</p></section>`;
-    const tabs = dates.map((d,i)=>`<button type="button" class="bx-adv-tab" data-advance-target="${i}" aria-pressed="${i===0}">${safe(d.label||d.date||`Day ${i+1}`)}</button>`).join("");
-    const days = dates.map((d,i)=>{
-        const key=String(d.key||d.date||i);
-        const matching=regions.filter(r=>r && String(r.date_key||"")===key);
-        const indian=matching.filter(r=>r.level!=="country"), overseas=matching.filter(r=>r.level==="country");
-        const states=indian.filter(r=>r.level==="state"||r.level==="city");
-        const territories=indian.filter(r=>r.level==="area"||r.level==="territory");
-        // State rows take precedence over territory rows: they often describe the same bookings.
-        const primaryIndia=states.length?states:territories;
-        const add=(rows,field)=>rows.reduce((s,r)=>s+num(r[field]),0);
-        const byState=new Map();
-        for(const r of states){const state=String(r.state||r.name||"Other State");if(!byState.has(state))byState.set(state,[]);byState.get(state).push(r);}
-        const stateLeaves=[];
-        for(const [state,rows] of byState){const cities=rows.filter(r=>String(r.district_custom||r.district||r.city||"").trim());stateLeaves.push(...(cities.length?cities:rows));}
-        const indiaRows=states.length?stateLeaves:territories;
-        const hasIndia=indiaRows.length>0,hasOverseas=overseas.length>0;
-        const india=hasIndia?add(indiaRows,"gross"):num(d.india_gross);
-        const abroad=hasOverseas?add(overseas,"gross"):num(d.overseas_gross);
-        const countRows=[...indiaRows,...overseas];
-        const statsData={};
-        for(const field of ["tickets","shows","theatres","houseful","fast_filling"]){
-            statsData[field]=countRows.some(r=>r[field]!==undefined&&r[field]!==null&&r[field]!=="")?add(countRows,field):num(d[field]);
+    if (!data || typeof data !== 'object') return '';
+    const dates=Array.isArray(data.dates)?data.dates:[];
+    const regions=Array.isArray(data.regions)?data.regions:[];
+    const safe=v=>esc(String(v??''));
+    const n=v=>Number.isFinite(Number(v))&&Number(v)>0?Number(v):0;
+    const fmt=v=>n(v).toLocaleString('en-IN',{maximumFractionDigits:0});
+    const money=v=>`₹${n(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})} Cr`;
+    const populated=v=>v!==null&&v!==undefined&&v!==''&&n(v)>0;
+    const tabs=dates.map((d,i)=>`<button type="button" class="bx-adv-tab" data-advance-target="${i}" aria-pressed="${i===0}" aria-label="View Day ${i+1} advance booking"><span class="bx-adv-tab-name">Day ${i+1}</span>${d.date?`<span class="bx-adv-tab-date">${safe(d.date)}</span>`:""}<span class="bx-adv-tab-state">${i===0?"● Viewing":"Tap to view"}</span></button>`).join('');
+    // Cumulative figures use each day's overall totals, never regional rows twice.
+    const dailyTotals=dates.map((d,i)=>{
+        const rows=regions.filter(r=>r&&String(r.date_key||'')===String(d.key||d.date||i));
+        const indian=rows.filter(r=>r.level!=='country');
+        const countries=rows.filter(r=>r.level==='country');
+        const states=indian.filter(r=>r.level==='state'||r.level==='city');
+        const territories=indian.filter(r=>r.level==='area'||r.level==='territory');
+        const grouped=new Map();
+        for(const r of states){const key=String(r.state||r.name||'Other');if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(r);}
+        const primary=states.length?[...grouped.values()].flatMap(items=>{const cities=items.filter(r=>String(r.district_custom||r.district||r.city||'').trim());return cities.length?cities:items;}):territories;
+        const pick=(value,items,key)=>populated(value)?n(value):items.reduce((a,r)=>a+n(r[key]),0);
+        return {india:pick(d.india_gross,primary,'gross'),overseas:pick(d.overseas_gross,countries,'gross'),tickets:pick(d.tickets,[...primary,...countries],'tickets')};
+    });
+    const cumulative=dates.map((_,i)=>dailyTotals.slice(0,i+1).reduce((acc,x)=>({india:acc.india+x.india,overseas:acc.overseas+x.overseas,tickets:acc.tickets+x.tickets}),{india:0,overseas:0,tickets:0}));
+    const days=dates.map((d,i)=>{
+        const matching=regions.filter(r=>r&&String(r.date_key||'')===String(d.key||d.date||i));
+        const indian=matching.filter(r=>r.level!=='country');
+        const countries=matching.filter(r=>r.level==='country');
+        const states=indian.filter(r=>r.level==='state'||r.level==='city');
+        const territories=indian.filter(r=>r.level==='area'||r.level==='territory');
+        const groups=new Map();
+        for(const r of states){const state=String(r.state||r.name||'Other');if(!groups.has(state))groups.set(state,[]);groups.get(state).push(r);}
+        const leaves=[];const display=[];
+        for(const [state,items] of groups){
+            const children=items.filter(r=>String(r.district_custom||r.district||r.city||'').trim());
+            const effective=children.length?children:items;
+            leaves.push(...effective);
+            const sum=field=>effective.reduce((s,r)=>s+n(r[field]),0);
+            const total=Object.fromEntries(['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'].map(k=>[k,k==='occupancy'?0:sum(k)]));
+            const parent=items.find(r=>!String(r.district_custom||r.district||r.city||'').trim());
+            if(parent&&children.length){for(const field of ['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'])if(populated(parent[field]))total[field]=n(parent[field]);}
+            if(children.length){
+                display.push({name:state,...total,children:children.map(r=>({...r,name:r.district_custom||r.district||r.city}))});
+            }else display.push({...items[0],name:state});
         }
-        // Occupancy is weighted by shows when available; never add percentages.
-        const occupied=countRows.filter(r=>r.occupancy!==undefined&&r.occupancy!=="");
-        const weight=occupied.reduce((s,r)=>s+num(r.shows),0);
-        const occupancy=occupied.length?(weight?occupied.reduce((s,r)=>s+num(r.occupancy)*num(r.shows),0)/weight:occupied.reduce((s,r)=>s+num(r.occupancy),0)/occupied.length):num(d.occupancy);
-        const cards=[["Worldwide",india+abroad],["India",india],["Overseas",abroad]].map(([label,v])=>`<div class="bx-adv-card"><small>${label}</small><strong>${money(v)}</strong></div>`).join("");
-        const stats=[["Tickets",whole(statsData.tickets)],["Shows",whole(statsData.shows)],["Theatres",whole(statsData.theatres)],["Occupancy",pct(occupancy)],["Houseful",whole(statsData.houseful)],["Fast filling",whole(statsData.fast_filling)]].map(([label,v])=>`<span>${label}: <b>${v}</b></span>`).join("");
-        const table=(heading,rows,labels)=>{
-            if(!rows.length)return "";
-            const max=Math.max(.01,...rows.map(r=>num(r.gross)));
-            const bars=rows.map(r=>`<div class="bx-adv-barrow"><span>${safe(r.display)}</span><div class="bx-adv-track"><i style="width:${(num(r.gross)/max*100).toFixed(2)}%"></i></div><b>${money(r.gross)}</b></div>`).join("");
-            const trs=rows.map(r=>`<tr class="${r.subtotal?'bx-adv-subtotal':''}"><th scope="row">${safe(r.display)}</th><td>${money(r.gross)}</td><td>${whole(r.tickets)}</td><td>${whole(r.shows)}</td><td>${pct(r.occupancy)}</td></tr>`).join("");
-            return `<h3>${heading}</h3>${bars}<div class="bx-adv-scroll"><table><thead><tr><th>${labels}</th><th>Gross</th><th>Tickets</th><th>Shows</th><th>Occupancy</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+        const primary=states.length?leaves:territories;
+        const sum=(rows,field)=>rows.reduce((s,r)=>s+n(r[field]),0);
+        const pick=(value,rows,field)=>populated(value)?n(value):sum(rows,field);
+        const india=pick(d.india_gross,primary,'gross');
+        const abroad=pick(d.overseas_gross,countries,'gross');
+        const countRows=[...primary,...countries];
+        const stats=['tickets','shows','theatres','houseful','fast_filling'].map(k=>[k,pick(d[k],countRows,k)]);
+        const occupied=countRows.filter(r=>populated(r.occupancy));
+        const weight=sum(occupied,'shows');
+        const occupancy=populated(d.occupancy)?n(d.occupancy):(occupied.length?(weight?occupied.reduce((s,r)=>s+n(r.occupancy)*n(r.shows),0)/weight:sum(occupied,'occupancy')/occupied.length):0);
+        const cards=[['India',india],['Overseas',abroad],['Worldwide',india+abroad]].filter(x=>x[1]>0).map(([label,value])=>`<div class="bx-adv-card"><small>${label}</small><strong>${money(value)}</strong></div>`).join('');
+        const names={tickets:'Tickets',shows:'Shows',theatres:'Theatres',houseful:'Houseful',fast_filling:'Fast filling'};
+        const pills=stats.filter(([k,v])=>v>0).map(([k,v])=>`<span>${names[k]}: <b>${fmt(v)}</b></span>`).join('')+(occupancy>0?`<span>Occupancy: <b>${occupancy.toFixed(1).replace(/\.0$/,'')}%</b></span>`:'');
+        const table=(heading,rows,first)=>{
+            rows=rows.filter(r=>['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'].some(k=>populated(r[k])));
+            if(!rows.length)return '';
+            const cols=['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'].filter(k=>rows.some(r=>populated(r[k])));
+            const cell=(r,k)=>populated(r[k])?(k==='gross'?money(r[k]):k==='occupancy'?`${n(r[k])}%`:fmt(r[k])):'—';
+            const trs=rows.map(r=>`<tr class="bx-adv-parent"><th scope="row">${safe(r.name)}${r.children?.length?` <span class="bx-adv-expand-hint">▼ Cities below</span>`:""}</th>${cols.map(k=>`<td>${cell(r,k)}</td>`).join('')}</tr>`+(r.children?.length?`<tr class="bx-adv-child-row"><td colspan="${cols.length+1}" style="padding:0"><details class="bx-adv-city"><summary>Show ${safe(r.name)} cities (${r.children.length})</summary><table><tbody>${r.children.map(ch=>`<tr><th scope="row">↳ ${safe(ch.name)}</th>${cols.map(k=>`<td>${cell(ch,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></details></td></tr>`:'')).join('');
+            return `<h3>${heading}</h3><div class="bx-adv-scroll"><table><thead><tr><th>${first}</th>${cols.map(k=>`<th>${({gross:'Gross',tickets:'Tickets',shows:'Shows',theatres:'Theatres',houseful:'Houseful',fast_filling:'Fast filling',occupancy:'Occupancy'})[k]}</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>`;
         };
-        const cityRows=[];
-        for(const [state,rows] of byState){
-            const children=rows.filter(r=>String(r.district_custom||r.district||r.city||"").trim());
-            const effective=children.length?children:rows;
-            for(const r of effective)cityRows.push({...r,display:`${state} — ${r.district_custom||r.district||r.city||'State total'}`});
-            if(children.length>0){const shows=add(children,'shows');cityRows.push({display:`${state} total`,subtotal:true,gross:add(children,'gross'),tickets:add(children,'tickets'),shows,occupancy:shows?children.reduce((s,r)=>s+num(r.occupancy)*num(r.shows),0)/shows:0});}
-        }
-        const territoryRows=territories.map(r=>({...r,display:r.territory||r.name||r.state||'Territory'}));
-        const countryRows=overseas.map(r=>({...r,display:r.custom_country||r.country||r.name||'Country'}));
-        const groups=table('State & district / city-wise',cityRows,'State / District / City')+table('Film territory-wise',territoryRows,'Territory')+table('Overseas country-wise',countryRows,'Country');
-        const note=(states.length&&territories.length)?`<p class="bx-adv-note">India totals use district/state rows; film territories are shown separately to avoid double counting overlapping areas.</p>`:"";
-        return `<section class="bx-adv-day" data-advance-day="${i}" ${i?'hidden':''}><div class="bx-adv-cards">${cards}</div><div class="bx-adv-stats">${stats}</div>${groups}${note}</section>`;
-    }).join("");
-    return `<section class="bx-advance"><h2>${safe(data.title||'Advance Booking Tracker')}</h2><p>${safe(data.summary||'Manually updated advance ticket booking figures. All gross amounts are in INR.')}</p><div class="bx-adv-tabs">${tabs}</div>${days}<p class="bx-adv-note">Totals are calculated from entered locations where available. Incomplete location coverage produces partial totals. Figures are manually updated and are not final box-office collections.</p></section>`;
+        const indiaAllocated=display.reduce((v,r)=>v+n(r.gross),0);
+        const overseasAllocated=countries.reduce((v,r)=>v+n(r.gross),0);
+        const remain=(label,total,used)=>{if(!(total>used))return '';const remaining=total-used;const pct=Math.max(0,Math.min(100,used/total*100));return `<div class="bx-adv-remainder-v2" role="group" aria-label="${safe(label)} allocation breakdown"><div class="bx-adv-rem-head"><div><span class="bx-adv-rem-kicker">${safe(label)} · Regional breakdown</span><strong>${label==='India'?'Other States Collection':label==='Overseas'?'Other Countries Collection':'Other Regions Collection'}</strong><small>Not assigned to a listed ${label==='India'?'state':'country'}</small></div><strong class="bx-adv-rem-amount">${money(remaining)}</strong></div><div class="bx-adv-rem-track" role="img" aria-label="${pct.toFixed(1)} percent allocated"><span style="width:${pct.toFixed(2)}%"></span></div><div class="bx-adv-rem-foot"><span><i class="bx-adv-dot allocated"></i> Allocated ${money(used)} (${pct.toFixed(1)}%)</span><span><i class="bx-adv-dot remaining"></i> Remaining ${(100-pct).toFixed(1)}%</span></div></div>`;};
+        const sections=table('India Advance Booking – State & City Breakdown',display,'Location')+remain('India',india,indiaAllocated)+(!states.length?table('Film territory-wise',territories.map(r=>({...r,name:r.territory||r.name||r.state||'Territory'})),'Territory'):'')+table('Overseas country-wise',countries.map(r=>({...r,name:r.custom_country||r.country||r.name||'Country'})),'Country')+remain('Overseas',abroad,overseasAllocated);
+        const running=cumulative[i];
+        const cumulativeCards=[['India',running.india],['Overseas',running.overseas],['Worldwide',running.india+running.overseas]].filter(([,v])=>v>0).map(([label,v])=>`<div class="bx-adv-card"><small>${label}</small><strong>${money(v)}</strong></div>`).join('');
+        const cumulativeSection=i>0&&(cumulativeCards||running.tickets>0)?`<div class="bx-adv-cumulative"><h3>Day 1–${i+1} Total Advance Booking</h3><div class="bx-adv-cards">${cumulativeCards}</div>${running.tickets>0?`<div class="bx-adv-stats"><span>Total tickets sold: <b>${fmt(running.tickets)}</b></span></div>`:''}</div>`:'';
+        return `<section class="bx-adv-day" data-advance-day="${i}" ${i?'hidden':''}><div class="bx-adv-cards">${cards}</div><div class="bx-adv-stats">${pills}</div>${cumulativeSection}${sections}</section>`;
+    }).join('');
+    return `<section class="bx-advance"><h2>${safe(data.title||'Advance Booking Tracker')}</h2>${data.summary?`<p>${safe(data.summary)}</p>`:''}<div class="bx-adv-tabs-label">Select a day <span>Tap a day to see its booking details ↓</span></div><div class="bx-adv-tabs" role="group" aria-label="Choose advance booking day">${tabs}</div>${days}</section>`;
 }
 
 if (!window.bxAdvanceBookingClickBound) {
@@ -6850,7 +6954,7 @@ if (!window.bxAdvanceBookingClickBound) {
         const btn = event.target.closest(".bx-advance [data-advance-target]");
         if (!btn) return;
         const root = btn.closest(".bx-advance"), target = btn.dataset.advanceTarget;
-        root.querySelectorAll("[data-advance-target]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+        root.querySelectorAll("[data-advance-target]").forEach(b => { b.setAttribute("aria-pressed", String(b === btn)); const state=b.querySelector(".bx-adv-tab-state"); if(state) state.textContent=b===btn?"● Viewing":"Tap to view"; });
         root.querySelectorAll("[data-advance-day]").forEach(day => { day.hidden = day.dataset.advanceDay !== target; });
     });
 }
@@ -9315,6 +9419,36 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
     transform: none !important;
 }
 </style>
+<script id="bxAdvanceVisualV3Script">
+/* Presentation-only: visualizes saved public table figures without modifying totals. */
+(function(){
+ const colors=[['#2563eb','#60a5fa'],['#059669','#34d399'],['#7c3aed','#c4b5fd'],['#ea580c','#fdba74'],['#db2777','#f9a8d4'],['#0891b2','#67e8f9']];
+ const number=t=>{const x=String(t||'').replace(/,/g,'').match(/(?:₹\s*)?([0-9]+(?:\.[0-9]+)?)/);return x?Number(x[1]):0};
+ function update(){
+  document.querySelectorAll('.bx-advance .bx-adv-day').forEach(day=>{
+   day.querySelectorAll('.bx-adv-scroll').forEach(wrap=>{
+    if(wrap.previousElementSibling?.classList.contains('bx-adv-chart'))return;
+    const table=wrap.querySelector('table');if(!table)return;
+    const headers=[...table.querySelectorAll('thead th')].map(x=>x.textContent.trim().toLowerCase());
+    const gross=headers.findIndex(x=>x.includes('gross'));
+    if(gross<0)return;
+    const occupancy=headers.findIndex(x=>x.includes('occupancy'));
+    const rows=[...table.querySelectorAll(':scope > tbody > tr')].filter(tr=>tr.querySelector('th')&&!tr.querySelector('details')).map(tr=>{
+     const cells=[...tr.children];return {name:cells[0]?.textContent.trim()||'',value:number(cells[gross]?.textContent),occupancy:occupancy>=0?number(cells[occupancy]?.textContent):0};
+    }).filter(r=>r.value>0);
+    if(!rows.length)return;
+    const max=Math.max(...rows.map(r=>r.value));
+    const chart=document.createElement('div');chart.className='bx-adv-chart';chart.setAttribute('role','img');chart.setAttribute('aria-label','Gross collection by region bar chart');
+    const heading=wrap.previousElementSibling?.tagName==='H3'?wrap.previousElementSibling.textContent.trim():'Regional collections';
+    const title=document.createElement('div');title.className='bx-adv-chart-title';title.textContent=heading+' · Gross comparison';chart.append(title);
+    rows.forEach((r,i)=>{const line=document.createElement('div');line.className='bx-adv-chart-row';const name=document.createElement('span');name.className='bx-adv-chart-name';name.textContent=r.name;name.title=r.name;const track=document.createElement('div');track.className='bx-adv-chart-track';const fill=document.createElement('div');fill.className='bx-adv-chart-fill';fill.style.setProperty('--bx-start',colors[i%colors.length][0]);fill.style.setProperty('--bx-end',colors[i%colors.length][1]);fill.style.width=(100*r.value/max).toFixed(2)+'%';track.append(fill);const val=document.createElement('span');val.className='bx-adv-chart-value';val.textContent='₹'+r.value.toLocaleString('en-IN',{maximumFractionDigits:2})+' Cr';if(r.occupancy>0){const occ=document.createElement('span');occ.className='bx-adv-chart-occupancy';occ.textContent=r.occupancy+'% occupancy';val.append(occ)}line.append(name,track,val);chart.append(line)});
+    wrap.before(chart);
+   });
+  });
+ }
+ document.addEventListener('DOMContentLoaded',()=>{update();const root=document.querySelector('#articleContent')||document.body;const obs=new MutationObserver(()=>{obs.disconnect();update();obs.observe(root,{childList:true,subtree:true})});obs.observe(root,{childList:true,subtree:true})});
+})();
+</script>
 </body>
 </html>
 <style id="bx-final-header-layout-fix-v4">
@@ -9401,4 +9535,18 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
 .article-content .bx-salary-hero p{font-size:14px!important}
 .bo-detail-table th,.bo-detail-table td{font-size:13px!important}
 }
+
+/* Regional allocation breakdown — public tracker */
+.bx-advance .bx-adv-remainder-v2{margin:12px 0 22px;padding:15px 17px;border:1px solid #dce6f1;border-radius:16px;background:linear-gradient(130deg,#fff,#f8fbff);box-shadow:0 4px 16px rgba(30,65,110,.045);font-family:Arial,Helvetica,sans-serif;color:#263e5a}
+.bx-adv-rem-head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.bx-adv-rem-head>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.bx-adv-rem-kicker{color:#64748b;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.bx-adv-rem-head strong{font-size:14px;color:#24364c}
+.bx-adv-rem-head small{color:#718198;font-size:11px}
+.bx-adv-rem-amount{font-size:19px!important;color:#a56510!important;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bx-adv-rem-track{height:10px;border-radius:999px;overflow:hidden;margin:14px 0 10px;background:linear-gradient(90deg,#fbd38d,#f6b84c)}
+.bx-adv-rem-track span{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#2563eb);border-radius:999px}
+.bx-adv-rem-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;font-size:11px;color:#64748b}
+.bx-adv-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}.bx-adv-dot.allocated{background:#2563eb}.bx-adv-dot.remaining{background:#f4b647}
+@media(max-width:600px){.bx-advance .bx-adv-remainder-v2{padding:12px}.bx-adv-rem-amount{font-size:16px!important}.bx-adv-rem-head strong{font-size:12px}}
 </style>

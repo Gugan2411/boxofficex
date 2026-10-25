@@ -11903,6 +11903,60 @@ _article_detail_cache_lock = threading.Lock()
 _article_detail_refreshing = set()
 
 
+def _article_ssr_hero_placeholder(title="Cinema Article", category="ARTICLE"):
+    """Exact original BoxOfficeX article SVG design, rendered during SSR."""
+    from urllib.parse import quote as _quote
+    title = str(title or "Cinema Article")
+    category = str(category or "BOX OFFICE NEWS").upper()
+    h = 2166136261
+    for char in title.lower():
+        # Match the original browser FNV-1a hash (JS charCodeAt for BMP titles).
+        for code in ([ord(char)] if ord(char) <= 0xFFFF else [0xD800 + ((ord(char)-0x10000)>>10), 0xDC00 + ((ord(char)-0x10000)&1023)]):
+            h = ((h ^ code) * 16777619) & 0xFFFFFFFF
+    a = h % 360
+    b = (a + 38 + ((h >> 8) % 83)) % 360
+    c = (b + 42 + ((h >> 20) % 67)) % 360
+    d = (a + 145 + ((h >> 17) % 71)) % 360
+    colors = (f"hsl({a} 70% 14%)", f"hsl({b} 68% 35%)", f"hsl({c} 70% 19%)", f"hsl({d} 88% 68%)")
+    parts = []
+    for word in title.strip().upper().split():
+        parts.extend([word[i:i+24] for i in range(0, len(word), 24)])
+    lines, current = [], ""
+    for part in parts:
+        next_line = (current + " " + part) if current else part
+        if len(next_line) > 24 and current:
+            lines.append(current)
+            current = part
+        else:
+            current = next_line
+    if current:
+        lines.append(current)
+    if len(lines) > 3:
+        lines = lines[:3]
+        lines[-1] = lines[-1][:22] + "…"
+    if not lines:
+        lines = ["UNTITLED"]
+    size = 42 if len(lines) == 3 else (60 if max(map(len, lines)) <= 14 else 49)
+    gap = size + 14
+    start = 292 - (len(lines)-1)*gap/2
+    words = "".join(f'<text x="600" y="{start+i*gap:g}" text-anchor="middle" fill="#fff" font-family="Arial" font-size="{size}" font-weight="900">{html_escape(line)}</text>' for i,line in enumerate(lines))
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750">'
+           f'<defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="{colors[0]}"/>'
+           f'<stop offset=".55" stop-color="{colors[1]}"/><stop offset="1" stop-color="{colors[2]}"/></linearGradient>'
+           f'<linearGradient id="v"><stop stop-color="#fff" stop-opacity=".23"/>'
+           f'<stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient></defs>'
+           f'<rect width="1200" height="750" fill="url(#g)"/>'
+           f'<circle cx="1080" cy="95" r="250" fill="{colors[3]}" fill-opacity=".16"/>'
+           f'<rect x="70" y="62" width="1060" height="520" rx="54" fill="url(#v)" stroke="#fff" stroke-opacity=".35" stroke-width="4"/>'
+           f'<rect x="108" y="100" width="330" height="55" rx="27" fill="#fff" fill-opacity=".17"/>'
+           f'<text x="273" y="136" text-anchor="middle" fill="#fff" font-family="Arial" font-size="20" font-weight="800">{html_escape(category[:25])}</text>'
+           f'{words}<line x1="300" y1="468" x2="900" y2="468" stroke="{colors[3]}" stroke-width="10" stroke-linecap="round"/>'
+           f'<rect x="412" y="620" width="376" height="86" rx="27" fill="#fff" fill-opacity=".94"/>'
+           f'<text x="600" y="674" text-anchor="middle" font-family="Arial" font-size="29" font-weight="900"><tspan fill="#101828">BOXOFFICE</tspan><tspan fill="#f4b400"> X</tspan></text>'
+           f'<text x="600" y="697" text-anchor="middle" fill="#475467" font-family="Arial" font-size="11" font-weight="800">CINEMA ARTICLE</text></svg>')
+    return "data:image/svg+xml;charset=UTF-8," + _quote(svg, safe="")
+
+
 def _article_ssr_image(value, fallback="/images/boxofficex-og.png"):
     value = str(value or "").strip()
     if not value:
@@ -12055,6 +12109,70 @@ def _bx_auto_live(data, now=None):
     return max(candidates, key=lambda pair: pair[0])[1] if candidates else None
 
 
+def _bx_auto_show_occupancy(extra, now=None):
+    """Deterministic scheduled show count and fluctuating modeled occupancy.
+
+    The configured occupancy is a baseline, not a measurement. Never return
+    metrics for another box-office day or a future schedule.
+    """
+    if not isinstance(extra, dict):
+        return {}
+    now = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+    now = now.astimezone(ZoneInfo("Asia/Kolkata"))
+    day_start, day_end = _bx_boxoffice_day_bounds(now)
+    candidates = []
+    for row in extra.get("days", []):
+        if not isinstance(row, dict):
+            continue
+        try:
+            start = datetime.fromisoformat(str(row.get("start_at") or ""))
+            end = datetime.fromisoformat(str(row.get("end_at") or ""))
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            if end.tzinfo is None:
+                end = end.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            start, end = start.astimezone(now.tzinfo), end.astimezone(now.tzinfo)
+            if end <= start or start < day_start or start >= day_end or now < start:
+                continue
+            candidates.append((start, end, row))
+        except (ValueError, TypeError, OverflowError):
+            continue
+    if not candidates:
+        return {}
+    # A pair of India and Overseas schedules represents the same show inventory.
+    # Use one configured schedule rather than summing it twice.
+    candidates.sort(key=lambda x: (x[0], str(x[2].get("field") or "") != "india_gross"))
+    start, end, row = candidates[0]
+    try:
+        shows = max(0, int(float(row.get("shows") or 0)))
+        baseline = max(0.0, min(100.0, float(row.get("occupancy") or 0)))
+        interval = max(1, int(row.get("interval_minutes") or 10))
+    except (TypeError, ValueError, OverflowError):
+        return {}
+    stamp = min(now, end)
+    elapsed = max(0, (stamp - start).total_seconds())
+    duration = max(1, (end - start).total_seconds())
+    slot = int(elapsed // (interval * 60))
+    slot_stamp = min(start + timedelta(minutes=slot * interval), end)
+    fraction = min(1.0, max(0.0, (slot_stamp - start).total_seconds() / duration))
+    result = {"metrics_mode": "simulated"}
+    if shows:
+        result["shows_tracked"] = min(shows, int(shows * fraction))
+    if row.get("occupancy") not in (None, ""):
+        # Stable for each interval; changes can be positive or negative.
+        # Keep the user-entered baseline at the beginning of the day.
+        import hashlib
+        key = f"{start.isoformat()}:{slot}".encode("utf-8")
+        unit = int.from_bytes(hashlib.sha256(key).digest()[:4], "big") / 4294967295
+        hour = slot_stamp.hour + slot_stamp.minute / 60
+        daypart = (-3 if hour < 12 else 0 if hour < 17 else 5 if hour < 22 else -2)
+        swing = 0 if slot == 0 else (unit - .5) * 14 + daypart
+        result["occupancy"] = round(max(0, min(100, baseline + swing)), 1)
+    return result
+
+
 def _bx_separate_auto_values(extra, now=None):
     """Combine independent India/Overseas schedules without exposing private targets."""
     if not isinstance(extra, dict) or not extra.get("enabled") or extra.get("paused"):
@@ -12095,6 +12213,7 @@ def _bx_separate_auto_values(extra, now=None):
         out["overseas_gross"] = overseas
     if india is not None and overseas is not None:
         out["worldwide_gross"] = round(india + overseas, 2)
+    out.update(_bx_auto_show_occupancy(extra, now=now))
     return out
 
 
@@ -12445,6 +12564,14 @@ def _article_ssr_auto_tracker(extra, movie_title=None):
                        ("worldwide_gross", "Worldwide Gross")):
         if key in values:
             cards.append('<div class="lt-card"><div class="lt-value">' + _article_ssr_money(values[key]) + '</div><div class="lt-label">' + html_escape(label) + '</div></div>')
+    if values.get("shows_tracked") is not None:
+        cards.append('<div class="lt-card"><div class="lt-value">' + f'{int(values["shows_tracked"]):,}' + '</div><div class="lt-label">Shows</div><small>Today Tracked Shows</small></div>')
+    if values.get("occupancy") is not None:
+        occ = float(values["occupancy"])
+        trend = "Slow Start" if occ < 20 else "Picking Up" if occ < 40 else "Steady Footfalls" if occ < 60 else "Strong Occupancy" if occ < 80 else "Housefull Trend"
+        cards.append('<div class="lt-card"><div class="lt-value">' + f'{occ:.1f}%' + '</div><div class="lt-label">Occupancy</div><small>' + trend + '</small></div>')
+    if values.get("metrics_mode") == "simulated":
+        cards.append('<p class="media-caption">Shows and occupancy are automatically modeled from configured schedules, not verified ticketing data.</p>')
     heading = html_escape(str(movie_title or "Movie"))
     return ('<section id="auto-live-boxoffice-tracker" class="boxoffice-block">'
             '<div class="boxoffice-title">⚡ ' + heading + ' — Automatic Live Collection</div>'
@@ -14358,7 +14485,33 @@ def _article_ssr_methodology(article, public_blocks):
     )
 
 
+# Legacy standalone LIVE Manager is retired by default.
+# Set BOXOFFICEX_LEGACY_LIVE_V2_ENABLED=true only for a deliberate rollback.
+BOXOFFICEX_LEGACY_LIVE_V2_ENABLED = (
+    os.getenv("BOXOFFICEX_LEGACY_LIVE_V2_ENABLED", "false").strip().lower()
+    in {"1", "true", "yes", "on"}
+)
+
+@app.middleware("http")
+async def block_retired_live_v2(request: Request, call_next):
+    if not BOXOFFICEX_LEGACY_LIVE_V2_ENABLED:
+        path = request.url.path
+        if (path == "/admin-live-tracker.html"
+                or path.startswith("/admin/live-v2/")
+                or path == "/admin/live-v2"
+                or path.startswith("/api/live-v2/")
+                or path == "/api/live-v2"):
+            return Response(
+                content=json.dumps({"detail": "Previous LIVE Manager is disabled"}),
+                status_code=410,
+                media_type="application/json",
+                headers={"Cache-Control": "no-store"},
+            )
+    return await call_next(request)
+
 def _bx_combined_v2_article_seo(article):
+    if not BOXOFFICEX_LEGACY_LIVE_V2_ENABLED:
+        return article, False
     """Keep SSR, API, H1 and deck in sync with the published LIVE workspace.
 
     Never present scheduled LIVE targets as confirmed box-office results.
@@ -14507,7 +14660,8 @@ def _render_article_detail_html(slug):
     if author.casefold() == "boxofficex owner":
         author = "BoxOfficeX Editorial Team"
     category = str(article.get("category") or "Movies & Box Office")
-    hero = _article_ssr_image(article.get("hero_image"))
+    hero_missing = not str(article.get("hero_image") or "").strip()
+    hero = _article_ssr_image(article.get("hero_image")) if not hero_missing else _article_ssr_hero_placeholder(title, "ARTICLE")
     hero_abs = hero if hero.startswith(("http://", "https://")) else f"https://boxofficex.in{hero}"
 
     published = article.get("published_at") or article.get("created_at")
@@ -14749,8 +14903,9 @@ By <strong>{html_escape(author)}</strong>
 )}
 </div></div>
 <figure class="hero-wrap">
-<img src="{html_escape(hero, quote=True)}" alt="{html_escape(caption or title, quote=True)}" loading="lazy">
+<img src="{html_escape(hero, quote=True)}" alt="{html_escape(caption or title, quote=True)}" loading="lazy" onerror="this.onerror=null;this.src=boxOfficeXArticlePlaceholder({{title:this.alt,category:'ARTICLE'}})">
 {hero_caption}
+
 </figure>
 </div>
 <section id="bxArticleDetailAd" aria-label="Sponsored advertisement"></section>
@@ -27843,49 +27998,110 @@ def bx_admin_seo_monitor_data():
 
 # Manual advance-booking in-content block. INR crore is the storage unit.
 def _article_ssr_advance_booking(data):
-    import html as _h
-    import math as _m
+    import html as h
+    import json as j
     if not isinstance(data, dict):
         return ""
-    def esc(v): return _h.escape(str(v if v is not None else ""), quote=True)
-    def number(v):
-        try:
-            n=float(v or 0)
-            return n if _m.isfinite(n) and n >= 0 else 0.0
+    # Browser and SSR share the same priority: explicit day totals first, regional fallback.
+    def num(v):
+        try: return max(0.0, float(v or 0))
         except (TypeError, ValueError): return 0.0
-    def money(v): return f"₹{number(v):,.2f} Cr"
-    dates=data.get("dates") if isinstance(data.get("dates"),list) else []
-    rows=data.get("regions") if isinstance(data.get("regions"),list) else []
-    # All regional rows are independent observations; parent and child totals are NOT summed.
-    date_items=[]
-    for d in dates[:150]:
-        if isinstance(d,dict):
-            date_items.append(d)
-    if not date_items: return '<section class="bx-advance"><h2>Advance Booking Tracker</h2><p>Booking figures will be updated soon.</p></section>'
-    title=esc(data.get("title") or "Advance Booking Tracker")
-    intro=esc(data.get("summary") or "Manually updated advance ticket booking figures. All gross amounts are in INR.")
+    def fmt(v): return f"{num(v):,.0f}"
+    def money(v): return f"₹{num(v):,.2f} Cr"
+    def esc(v): return h.escape(str(v if v is not None else ''), quote=True)
+    dates=data.get('dates') if isinstance(data.get('dates'),list) else []
+    regions=data.get('regions') if isinstance(data.get('regions'),list) else []
+    tabs=''.join(f'<button type="button" class="bx-adv-tab" data-advance-target="{i}" aria-pressed="{str(i==0).lower()}" aria-label="View Day {i+1} advance booking"><span class="bx-adv-tab-name">Day {i+1}</span>'+(f'<span class="bx-adv-tab-date">{esc(d.get("date"))}</span>' if d.get("date") else '')+f'<span class="bx-adv-tab-state">{"● Viewing" if i==0 else "Tap to view"}</span></button>' for i,d in enumerate(dates) if isinstance(d,dict))
     sections=[]
-    for idx,d in enumerate(date_items):
-        key=str(d.get("key") or d.get("date") or idx)
-        matching=[r for r in rows if isinstance(r,dict) and str(r.get("date_key") or "")==key]
-        india=number(d.get("india_gross")); overseas=number(d.get("overseas_gross"))
-        world=india+overseas
-        metrics=[("Worldwide",world),("India",india),("Overseas",overse)]
-        cards=''.join(f'<div class="bx-adv-card"><small>{label}</small><strong>{money(val)}</strong></div>' for label,val in metrics)
-        stats=''.join(f'<span>{label}: <b>{esc(d.get(field) or 0)}</b></span>' for label,field in (("Tickets","tickets"),("Shows","shows"),("Theatres","theatres"),("Occupancy %","occupancy"),("Houseful","houseful"),("Fast filling","fast_filling")))
-        groups=[]
-        for level,label in (("area","Area-wise"),("state","State-wise"),("country","Country-wise")):
-            group=[r for r in matching if str(r.get("level") or "").lower()==level]
-            if not group: continue
-            maxval=max([number(r.get("gross")) for r in group]+[.01])
-            bars=''.join('<div class="bx-adv-barrow"><div class="bx-adv-barlabel">'+esc(r.get("name"))+'</div><div class="bx-adv-track"><i style="width:'+str(round(100*number(r.get("gross"))/maxval,2))+'%"></i></div><b>'+money(r.get("gross"))+'</b></div>' for r in group[:100])
-            table=''.join('<tr><th scope="row">'+esc(r.get("name"))+'</th><td>'+money(r.get("gross"))+'</td><td>'+esc(r.get("tickets") or 0)+'</td><td>'+esc(r.get("shows") or 0)+'</td><td>'+esc(r.get("occupancy") or 0)+'%</td></tr>' for r in group[:100])
-            groups.append('<h3>'+label+'</h3>'+bars+'<div class="bx-adv-scroll"><table><thead><tr><th>Region</th><th>Gross</th><th>Tickets</th><th>Shows</th><th>Occupancy</th></tr></thead><tbody>'+table+'</tbody></table></div>')
-        sections.append('<section class="bx-adv-day" data-advance-day="'+str(idx)+'"'+('' if idx==0 else ' hidden')+'><div class="bx-adv-cards">'+cards+'</div><div class="bx-adv-stats">'+stats+'</div>'+''.join(groups)+'</section>')
-    tabs=''.join('<button type="button" class="bx-adv-tab" data-advance-target="'+str(i)+'" aria-pressed="'+('true' if i==0 else 'false')+'">'+esc(d.get("label") or d.get("date") or 'Day '+str(i+1))+'</button>' for i,d in enumerate(date_items))
-    style="""<style>.bx-advance{margin:32px 0;padding:22px;border:1px solid #304264;border-radius:18px;background:linear-gradient(145deg,#101b33,#090f1e);color:#f4f7ff;font-family:Arial,sans-serif}.bx-advance h2{font-size:clamp(22px,3vw,32px);margin:0 0 12px}.bx-advance p{color:#b5c4df;font-size:15px;line-height:1.6}.bx-adv-tabs{display:flex;gap:8px;overflow-x:auto;padding:15px 0}.bx-adv-tab{background:#1a2a48;border:1px solid #365078;color:#cbd9f3;padding:9px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;font-weight:bold}.bx-adv-tab[aria-pressed=true]{background:#ffca39;color:#10131d}.bx-adv-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.bx-adv-card{padding:16px;border-radius:14px;background:#172844;border:1px solid #345179}.bx-adv-card small{display:block;color:#aebfda}.bx-adv-card strong{display:block;margin-top:7px;font-size:clamp(17px,2vw,24px);color:#ffd15a}.bx-adv-stats{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;color:#c3d0e8;font-size:12px}.bx-adv-stats span{padding:7px 10px;border-radius:8px;background:#172238}.bx-advance h3{font-size:19px;margin:25px 0 12px;color:#e6edff}.bx-adv-barrow{display:grid;grid-template-columns:minmax(70px,130px) minmax(50px,1fr) auto;align-items:center;gap:10px;margin:9px 0;font-size:12px}.bx-adv-track{height:13px;border-radius:20px;background:#27334e;overflow:hidden}.bx-adv-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#497fff,#8c59e9,#ffbf41)}.bx-adv-scroll{overflow-x:auto}.bx-adv-scroll table{border-collapse:collapse;width:100%;min-width:470px;margin-top:16px;font-size:12px}.bx-adv-scroll th,.bx-adv-scroll td{padding:11px;border-bottom:1px solid #33405a;text-align:left}.bx-adv-scroll thead{background:#203354}.bx-adv-note{color:#8499b8;font-size:11px;margin-top:18px}@media(max-width:600px){.bx-advance{padding:14px}.bx-adv-cards{grid-template-columns:1fr}.bx-adv-barrow{grid-template-columns:80px 1fr auto;font-size:10px}}</style>"""
-    script="""<script>(function(){document.querySelectorAll('.bx-advance').forEach(function(root){if(root.dataset.advBound)return;root.dataset.advBound='1';root.querySelectorAll('[data-advance-target]').forEach(function(btn){btn.addEventListener('click',function(){var i=btn.dataset.advanceTarget;root.querySelectorAll('[data-advance-target]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn))});root.querySelectorAll('[data-advance-day]').forEach(function(p){p.hidden=p.dataset.advanceDay!==i})})})})})();</script>"""
-    return style+'<div class="bx-advance"><h2>'+title+'</h2><p>'+intro+'</p><div class="bx-adv-tabs">'+tabs+'</div>'+''.join(sections)+'<div class="bx-adv-note">Figures are manually updated; regional figures may be partial and are not automatically summed into headline totals. Advance bookings are not final box-office collections.</div></div>'+script
+    running_india=running_overseas=running_tickets=0.0
+    for i,d in enumerate(dates):
+        if not isinstance(d,dict): continue
+        key=str(d.get('key') or d.get('date') or i)
+        matching=[r for r in regions if isinstance(r,dict) and str(r.get('date_key') or '')==key]
+        indian=[r for r in matching if r.get('level')!='country']
+        overseas=[r for r in matching if r.get('level')=='country']
+        states=[r for r in indian if r.get('level') in ('state','city')]
+        territory=[r for r in indian if r.get('level') in ('area','territory')]
+        groups={}
+        for r in states: groups.setdefault(str(r.get('state') or r.get('name') or 'Other'),[]).append(r)
+        leaves=[]; state_rows=[]
+        for state,items in groups.items():
+            children=[r for r in items if str(r.get('district_custom') or r.get('district') or r.get('city') or '').strip()]
+            effective=children or items
+            leaves.extend(effective)
+            total={k:sum(num(r.get(k)) for r in effective) for k in ('gross','tickets','shows','theatres','houseful','fast_filling','occupancy')}
+            parent=next((r for r in items if r not in children),None)
+            if parent and children:
+                for k in total:
+                    if num(parent.get(k))>0: total[k]=num(parent[k])
+            state_rows.append(dict(name=state,**total,children=children))
+        primary=leaves if states else territory
+        def pick(k,rows): return num(d.get(k)) if num(d.get(k))>0 else sum(num(r.get(k)) for r in rows)
+        india=pick('india_gross',[]) if num(d.get('india_gross'))>0 else sum(num(r.get('gross')) for r in primary)
+        abroad=pick('overseas_gross',[]) if num(d.get('overseas_gross'))>0 else sum(num(r.get('gross')) for r in overseas)
+        cards=''.join(f'<div class="bx-adv-card"><small>{label}</small><strong>{money(val)}</strong></div>' for label,val in [('India',india),('Overseas',abroad),('Worldwide',india+abroad)] if val>0)
+        countrows=primary+overseas
+        stats=''.join(f'<span>{label}: <b>{fmt(v)}</b></span>' for label,k in [('Tickets','tickets'),('Shows','shows'),('Theatres','theatres'),('Houseful','houseful'),('Fast filling','fast_filling')] if (v:=pick(k,countrows))>0)
+        occupancy=num(d.get('occupancy'))
+        if not occupancy:
+            occupied=[r for r in countrows if num(r.get('occupancy'))>0]
+            weight=sum(num(r.get('shows')) for r in occupied)
+            occupancy=(sum(num(r.get('occupancy'))*num(r.get('shows')) for r in occupied)/weight if weight else sum(num(r.get('occupancy')) for r in occupied)/len(occupied)) if occupied else 0
+        if occupancy>0: stats+=f'<span>Occupancy: <b>{occupancy:g}%</b></span>'
+        def table(title,items,heading):
+            items=[r for r in items if any(num(r.get(k))>0 for k in ('gross','tickets','shows','theatres','houseful','fast_filling','occupancy'))]
+            if not items:return ''
+            cols=[k for k in ('gross','tickets','shows','theatres','houseful','fast_filling','occupancy') if any(num(r.get(k))>0 for r in items)]
+            labels={'gross':'Gross','tickets':'Tickets','shows':'Shows','theatres':'Theatres','houseful':'Houseful','fast_filling':'Fast filling','occupancy':'Occupancy'}
+            def cells(r):return ''.join('<td>'+ (money(r.get(k)) if k=='gross' else f"{num(r.get(k)):g}%" if k=='occupancy' else fmt(r.get(k))) * (num(r.get(k))>0) + ('—' if num(r.get(k))<=0 else '') +'</td>' for k in cols)
+            trs=''
+            for r in items:
+                trs+=f'<tr class="bx-adv-parent"><th scope="row">{esc(r.get("name"))}</th>{cells(r)}</tr>'
+                if r.get('children'):
+                    children=r['children']
+                    nested=''.join(f'<tr><th scope="row">↳ {esc(ch.get("district_custom") or ch.get("district") or ch.get("city"))}</th>{cells(ch)}</tr>' for ch in children)
+                    trs+=f'<tr><td colspan="{len(cols)+1}" style="padding:0"><details class="bx-adv-city"><summary>Show {esc(r.get("name"))} cities ({len(children)})</summary><table><tbody>{nested}</tbody></table></details></td></tr>'
+            return f'<h3>{esc(title)}</h3><div class="bx-adv-scroll"><table><thead><tr><th>{heading}</th>'+''.join(f'<th>{labels[k]}</th>' for k in cols)+'</tr></thead><tbody>'+trs+'</tbody></table></div>'
+        def remainder_card(label, overall, allocated):
+            if not overall > allocated:
+                return ''
+            rest = overall - allocated
+            pct = max(0.0, min(100.0, allocated / overall * 100.0))
+            place = 'state' if label == 'India' else 'country'
+            collection_label = 'Other States Collection' if label == 'India' else 'Other Countries Collection' if label == 'Overseas' else 'Other Regions Collection'
+            return (f'<div class="bx-adv-remainder-v2" role="group" aria-label="{label} allocation breakdown">'
+                    f'<div class="bx-adv-rem-head"><div><span class="bx-adv-rem-kicker">{label} · Regional breakdown</span>'
+                    f'<strong>{collection_label}</strong><small>Not assigned to a listed {place}</small></div>'
+                    f'<strong class="bx-adv-rem-amount">{money(rest)}</strong></div>'
+                    f'<div class="bx-adv-rem-track" role="img" aria-label="{pct:.1f} percent allocated"><span style="width:{pct:.2f}%"></span></div>'
+                    f'<div class="bx-adv-rem-foot"><span><i class="bx-adv-dot allocated"></i> Allocated {money(allocated)} ({pct:.1f}%)</span>'
+                    f'<span><i class="bx-adv-dot remaining"></i> Remaining {100-pct:.1f}%</span></div></div>')
+        details=table('India Advance Booking – State & City Breakdown',state_rows,'Location')
+        india_left=india-sum(num(r.get("gross")) for r in state_rows)
+        if india_left>0: details+=remainder_card('India',india,india-india_left)
+        if not states:details+=table('Film territory-wise',[dict(r,name=r.get('territory') or r.get('name') or r.get('state') or 'Territory') for r in territory],'Territory')
+        details+=table('Overseas country-wise',[dict(r,name=r.get('custom_country') or r.get('country') or r.get('name') or 'Country') for r in overseas],'Country')
+        allocated_india=sum(num(r.get('gross')) for r in state_rows)
+        allocated_overseas=sum(num(r.get('gross')) for r in overseas)
+        if abroad>allocated_overseas: details+=remainder_card('Overseas',abroad,allocated_overseas)
+        running_india+=india
+        running_overseas+=abroad
+        running_tickets+=pick('tickets',countrows)
+        cumulative_html=''
+        if i>0:
+            totals=''.join(f'<div class="bx-adv-card"><small>{label}</small><strong>{money(val)}</strong></div>' for label,val in [('India',running_india),('Overseas',running_overseas),('Worldwide',running_india+running_overseas)] if val>0)
+            ticket_html=f'<div class="bx-adv-stats"><span>Total tickets sold: <b>{fmt(running_tickets)}</b></span></div>' if running_tickets>0 else ''
+            if totals or ticket_html:
+                cumulative_html=f'<div class="bx-adv-cumulative"><h3>Day 1–{i+1} Total Advance Booking</h3><div class="bx-adv-cards">{totals}</div>{ticket_html}</div>'
+        sections.append(f'<section class="bx-adv-day" data-advance-day="{i}" {"hidden" if i else ""}><div class="bx-adv-cards">{cards}</div><div class="bx-adv-stats">{stats}</div>{cumulative_html}{details}</section>')
+    title=esc(data.get('title') or 'Advance Booking Tracker')
+    summary=f'<p>{esc(data["summary"])}</p>' if data.get('summary') else ''
+    style='<style> /* Advance booking day navigation: visual-only enhancement */ .bx-advance .bx-adv-tabs-label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:20px;font-size:14px;font-weight:850;color:#17385c} .bx-advance .bx-adv-tabs-label span{font-size:12px;font-weight:600;color:#58718b} .bx-advance .bx-adv-tabs{gap:11px;padding:13px 2px 19px;scroll-snap-type:x proximity} .bx-advance .bx-adv-tab{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:126px;padding:13px 16px;border:2px solid #cbd8e8;border-radius:14px;background:#f5f8fd;color:#254766;box-shadow:0 3px 8px rgba(20,50,90,.07);transition:background .15s,border-color .15s,transform .15s;scroll-snap-align:start;text-align:left} .bx-advance .bx-adv-tab:hover{border-color:#468ce4;background:#eaf3ff;transform:translateY(-2px)} .bx-advance .bx-adv-tab:focus-visible{outline:3px solid #f59e0b;outline-offset:3px} .bx-advance .bx-adv-tab[aria-pressed="true"]{border-color:#2563eb;background:#eaf2ff;color:#123e7a;box-shadow:inset 0 -4px #2563eb,0 4px 14px rgba(37,99,235,.12)} .bx-advance .bx-adv-tab-name{font-size:17px;font-weight:900;line-height:1.2} .bx-advance .bx-adv-tab-date{font-size:11px;font-weight:650;color:#617a94} .bx-advance .bx-adv-tab-state{font-size:11px;font-weight:800;color:#4975a6} .bx-advance .bx-adv-tab[aria-pressed="true"] .bx-adv-tab-state{color:#126534} .bx-advance .bx-adv-day:not([hidden]){animation:bxAdvReveal .18s ease-out} @keyframes bxAdvReveal{from{opacity:.6;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}} @media(max-width:600px){.bx-advance .bx-adv-tabs-label{align-items:flex-start;flex-direction:column}.bx-advance .bx-adv-tab{min-width:112px;padding:12px}} .bx-adv-remainder{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#eff6ff;color:#1e40af;border-radius:10px;margin:10px 0 18px}.bx-adv-barrow{display:none!important}.bx-adv-city summary{cursor:pointer;padding:10px 14px;font-weight:700;color:#2863a9}.bx-adv-day[hidden]{display:none!important}</style>'
+    style += '<style> /* Regional allocation breakdown — public tracker */ .bx-advance .bx-adv-remainder-v2{margin:12px 0 22px;padding:15px 17px;border:1px solid #dce6f1;border-radius:16px;background:linear-gradient(130deg,#fff,#f8fbff);box-shadow:0 4px 16px rgba(30,65,110,.045);font-family:Arial,Helvetica,sans-serif;color:#263e5a} .bx-adv-rem-head{display:flex;justify-content:space-between;align-items:center;gap:16px} .bx-adv-rem-head>div{display:flex;flex-direction:column;gap:3px;min-width:0} .bx-adv-rem-kicker{color:#64748b;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase} .bx-adv-rem-head strong{font-size:14px;color:#24364c} .bx-adv-rem-head small{color:#718198;font-size:11px} .bx-adv-rem-amount{font-size:19px!important;color:#a56510!important;white-space:nowrap;font-variant-numeric:tabular-nums} .bx-adv-rem-track{height:10px;border-radius:999px;overflow:hidden;margin:14px 0 10px;background:linear-gradient(90deg,#fbd38d,#f6b84c)} .bx-adv-rem-track span{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#2563eb);border-radius:999px} .bx-adv-rem-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;font-size:11px;color:#64748b} .bx-adv-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}.bx-adv-dot.allocated{background:#2563eb}.bx-adv-dot.remaining{background:#f4b647} @media(max-width:600px){.bx-advance .bx-adv-remainder-v2{padding:12px}.bx-adv-rem-amount{font-size:16px!important}.bx-adv-rem-head strong{font-size:12px}} </style>'
+    style += '<style>.bx-advance .bx-adv-card:first-child{background:#dcfce7}.bx-advance .bx-adv-card:nth-child(2){background:#e0e7ff}.bx-advance .bx-adv-card:nth-child(3){background:#fff0b3}.bx-advance .bx-adv-remainder{background:#f8fafc;border:1px dashed #cbd5e1;color:#475569}.bx-advance .bx-adv-city summary{background:#eaf2ff;border-left:4px solid #3b82f6}.bx-advance .bx-adv-city th{padding-left:24px}.bx-advance .bx-adv-parent{background:#f8fbff;font-weight:700}</style>'
+    style += '<style>.bx-advance .bx-adv-cumulative{margin:20px 0;padding:18px;border:1px solid #93c5fd;border-radius:16px;background:linear-gradient(135deg,#eff6ff,#e0f2fe)}.bx-advance .bx-adv-cumulative h3{margin:0 0 14px;color:#1d4ed8;font-size:19px}.bx-advance .bx-adv-cumulative .bx-adv-card{border-color:#bfdbfe}</style>'
+    script="<script>(function(){document.querySelectorAll('.bx-advance').forEach(function(root){if(root.dataset.advBound)return;root.dataset.advBound='1';root.querySelectorAll('[data-advance-target]').forEach(function(btn){btn.addEventListener('click',function(){var i=btn.dataset.advanceTarget;root.querySelectorAll('[data-advance-target]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn));var st=b.querySelector('.bx-adv-tab-state');if(st)st.textContent=b===btn?'● Viewing':'Tap to view'});root.querySelectorAll('[data-advance-day]').forEach(function(p){p.hidden=p.dataset.advanceDay!==i})})})})})();</script>"
+    return style+'<div class="bx-advance"><h2>'+title+'</h2>'+summary+'<div class="bx-adv-tabs-label">Select a day <span>Tap a day to see its booking details ↓</span></div><div class="bx-adv-tabs" role="group" aria-label="Choose advance booking day">'+tabs+'</div>'+''.join(sections)+'</div>'+script
 
 # ============================================================
 # BOXOFFICEX LIVE TRACKER V2 — ISOLATED ADMIN API

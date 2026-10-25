@@ -870,6 +870,27 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 .bx-manual-result button,.bx-manual-chip button{flex:0 0 auto;padding:5px 9px;font-size:11px;background:#243957;color:#a9c9ff}
 .bx-manual-chip button{background:#351919;color:#ff9a9a}
 .bx-manual-selected{margin-top:8px}
+
+/* Quick Block Position Manager — admin-only layout */
+.bx-quick-reorder{margin-top:12px;padding:13px;border:1px solid #4d8dff;border-radius:13px;background:#101b30}
+.bx-quick-reorder[hidden]{display:none!important}
+.bx-quick-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bx-quick-list-row{display:grid;grid-template-columns:38px minmax(0,1fr) 120px auto auto;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.bx-quick-list-row:last-child{border-bottom:0}
+.bx-quick-list-row select{padding:8px}
+.bx-quick-list-row button{padding:8px;font-size:10px}
+.bx-quick-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.bx-quick-number{font-weight:900;color:#ffcc33;text-align:center}
+@media(max-width:700px){.bx-quick-list-row{grid-template-columns:25px minmax(0,1fr) 90px}.bx-quick-list-row button{grid-column:auto}.bx-quick-label{font-size:10px}}
+/* Compact daily live schedules, full network editors retained in details */
+.bx-auto-compact-row{display:grid;grid-template-columns:85px repeat(10,minmax(90px,1fr)) 105px;gap:8px;align-items:end;padding:12px;border:1px solid #344868;border-radius:12px;background:#0d1729;margin:8px 0}
+.bx-auto-compact-row label{font-size:10px}
+.bx-auto-compact-row input{padding:9px 7px}
+.bx-auto-compact-row button{padding:10px 6px;font-size:11px}
+.bx-auto-compact-row{overflow-x:auto}.bx-auto-compact-row>div{min-width:0}
+.bx-auto-compact-day{font-weight:900;color:#ffcc33;font-size:12px}
+.bx-auto-compact-day small{display:block;color:#9aa8bf;font-size:9px;margin-top:4px}
+@media(max-width:900px){.bx-auto-compact-row{grid-template-columns:repeat(2,minmax(0,1fr))}.bx-auto-compact-day{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -1067,6 +1088,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 </div>
 <div class="blocks-head">
 <h2>Content Blocks</h2>
+<button type="button" class="btn-dark" id="bxQuickReorderButton" onclick="bxOpenQuickReorder()">↕ Quick Reorder</button>
 <div class="block-add">
 <button data-add="paragraph">Paragraph</button>
 <button data-add="heading">Heading</button>
@@ -1086,6 +1108,11 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 </div>
 </div>
 
+<div id="bxQuickReorderPanel" class="bx-quick-reorder" hidden>
+  <div class="bx-quick-head"><strong>Quick Block Position Manager</strong><button type="button" class="btn-dark" onclick="bxCloseQuickReorder()">Close</button></div>
+  <p class="note">Move a block directly to any position. Changes appear in the editor immediately; use Save Article to persist.</p>
+  <div id="bxQuickReorderList"></div>
+</div>
 <div id="blocks" class="blocks"></div>
 <div class="preview-bar">Blocks are saved in the order shown here. Use ↑ and ↓ to move them. Image blocks can be placed anywhere in the story.</div>
 </div>
@@ -1579,6 +1606,28 @@ return base;
 function addBlock(type){blocks.push(blockTemplate(type));renumber();renderBlocks();updateTrackingModeLabel()}
 function renumber(){blocks.forEach((b,i)=>b.block_order=i+1)}
 function moveBlock(i,d){const n=i+d;if(n<0||n>=blocks.length)return;[blocks[i],blocks[n]]=[blocks[n],blocks[i]];renumber();renderBlocks()}
+function bxMoveBlockTo(from,to){
+ if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||from>=blocks.length||to<0||to>=blocks.length||from===to)return;
+ const [item]=blocks.splice(from,1);blocks.splice(to,0,item);renumber();renderBlocks();
+}
+function bxOpenQuickReorder(){const panel=$('bxQuickReorderPanel');if(!panel)return;panel.hidden=false;bxRenderQuickReorder()}
+function bxCloseQuickReorder(){const panel=$('bxQuickReorderPanel');if(panel)panel.hidden=true}
+function bxRenderQuickReorder(){
+ const panel=$('bxQuickReorderPanel'),list=$('bxQuickReorderList');if(!panel||panel.hidden||!list)return;
+ list.innerHTML='';
+ blocks.forEach((b,i)=>{
+  const row=document.createElement('div');row.className='bx-quick-list-row';
+  const number=document.createElement('span');number.className='bx-quick-number';number.textContent=String(i+1);
+  const name=document.createElement('span');name.className='bx-quick-label';name.textContent=(b.block_type||'Block').replaceAll('_',' ').toUpperCase()+(b.content?' · '+String(b.content).replace(/\s+/g,' ').slice(0,55):'');
+  const select=document.createElement('select');select.setAttribute('aria-label','Move block '+(i+1)+' to position');
+  for(let n=0;n<blocks.length;n++){const option=document.createElement('option');option.value=String(n);option.textContent='Position '+(n+1);option.selected=n===i;select.append(option)}
+  select.onchange=()=>bxMoveBlockTo(i,Number(select.value));
+  const top=document.createElement('button');top.type='button';top.className='btn-dark';top.textContent='Top';top.onclick=()=>bxMoveBlockTo(i,0);
+  const bottom=document.createElement('button');bottom.type='button';bottom.className='btn-dark';bottom.textContent='Bottom';bottom.onclick=()=>bxMoveBlockTo(i,blocks.length-1);
+  row.append(number,name,select,top,bottom);list.append(row);
+ });
+}
+
 function removeBlock(i){
 const block=blocks[i];
 if(block?.id){
@@ -2419,6 +2468,7 @@ function bxEnsureDayAllocations(lt){
 }
 function renderBlocks(){
 updateTrackingModeLabel();
+bxRenderQuickReorder();
 const box=$("blocks");box.innerHTML="";
 blocks.forEach((b,i)=>{
 const card=document.createElement("div");card.className="block-card";card.draggable=true;
@@ -2463,7 +2513,7 @@ if(b.block_type==="advance_booking"){
     (level==='area'?`<div><label>Film trade territory</label><select data-adv-region="${j}" data-adv-rfield="territory">${options(territories,territory)}</select></div>`:'')+
     '');
  };
- body=`<div class="bx-advance-editor"><label>Tracker title</label><input data-adv-title value="${advEsc(ad.title||'Advance Booking Tracker')}"><label>Editorial summary</label><textarea data-adv-summary>${advEsc(ad.summary||'')}</textarea><p class="note">Manual entry only. Gross amounts in ₹ crore (₹50 lakh = 0.50). Totals update automatically from entered locations. State/district rows take precedence over overlapping trade territories. Add all locations for complete totals.</p><h3>Booking dates</h3><div data-adv-days>${ad.dates.map((d,j)=>`<div class="bo-period" style="margin:8px 0"><div class="block-row"><div><label>Day label</label><input data-adv-date="${j}" data-adv-field="label" value="${advEsc(d.label)}"></div><div><label>Booking date</label><input type="date" data-adv-date="${j}" data-adv-field="date" value="${advEsc(d.date)}"></div></div><div class="bo-grid">${['india_gross','overseas_gross','tickets','shows','theatres','occupancy','houseful','fast_filling'].map(k=>`<div><label>${k.replaceAll('_',' ')}${k.endsWith('gross')?' (₹ Cr)':''}</label><input type="number" min="0" step="any" data-adv-date="${j}" data-adv-field="${k}" value="${advEsc(d[k]??0)}"></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-delete-day="${j}">Remove day</button></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-add-day>Add booking date</button><h3 style="margin-top:20px">Location booking details</h3><p class="note">Select an Indian state or film trade territory; overseas needs only a country.</p>${ad.regions.map((r,j)=>`<div class="bo-period" style="margin:8px 0"><div class="bo-grid"><div><label>Booking day</label><select data-adv-region="${j}" data-adv-rfield="date_key">${ad.dates.map(d=>`<option value="${advEsc(d.key)}" ${d.key===r.date_key?'selected':''}>${advEsc(d.label)}</option>`).join('')}</select></div>${locationInputs(r,j)}${['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'].map(k=>`<div><label>${k}${k==='gross'?' (₹ Cr)':''}</label><input type="number" min="0" step="any" data-adv-region="${j}" data-adv-rfield="${k}" value="${advEsc(r[k]??0)}"></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-delete-region="${j}">Remove location</button></div>`).join('')}<button type="button" class="btn-dark" data-adv-add-region>Add location</button><div class="bo-period" style="margin-top:12px;border-color:#3a6a62"><strong style="color:#7de2bb">Automatic booking totals</strong><div data-adv-auto-summary class="note" style="font-size:12px;line-height:1.9"></div></div></div>`;
+ body=`<div class="bx-advance-editor"><label>Tracker title</label><input data-adv-title value="${advEsc(ad.title||'Advance Booking Tracker')}"><label>Editorial summary</label><textarea data-adv-summary>${advEsc(ad.summary||'')}</textarea><p class="note">Enter Day 1 totals above. Location entries provide the breakdown.</p><h3>Booking dates</h3><div data-adv-days>${ad.dates.map((d,j)=>`<div class="bo-period" style="margin:8px 0"><div class="block-row"><div><label>Day label</label><input data-adv-date="${j}" data-adv-field="label" value="${advEsc(d.label)}"></div><div><label>Show Date</label><input type="date" data-adv-date="${j}" data-adv-field="date" value="${advEsc(d.date)}"></div></div><div class="bo-grid">${['india_gross','overseas_gross','tickets','shows','theatres','occupancy','houseful','fast_filling'].map(k=>`<div><label>${k.replaceAll('_',' ')}${k.endsWith('gross')?' (₹ Cr)':''}</label><input type="number" min="0" step="any" data-adv-date="${j}" data-adv-field="${k}" value="${advEsc(d[k]??'')}">${k.endsWith('gross')?`<small class="note" data-adv-day-remaining="${j}-${k}" style="display:block;color:#86efac">Remaining: —</small>`:''}</div>`).join('')}</div><button type="button" class="btn-dark" data-adv-delete-day="${j}">Remove day</button></div>`).join('')}</div><button type="button" class="btn-dark" data-adv-add-day>Add booking date</button><h3 style="margin-top:20px">Location booking details</h3><p class="note">Select an Indian state or film trade territory; overseas needs only a country.</p>${ad.regions.map((r,j)=>`<div class="bo-period" style="margin:8px 0"><div class="bo-grid"><div><label>Booking day</label><select data-adv-region="${j}" data-adv-rfield="date_key">${ad.dates.map(d=>`<option value="${advEsc(d.key)}" ${d.key===r.date_key?'selected':''}>${advEsc(d.label)}</option>`).join('')}</select></div>${locationInputs(r,j)}${['gross','tickets','shows','theatres','houseful','fast_filling','occupancy'].map(k=>`<div><label>${k}${k==='gross'?' (₹ Cr)':''}</label><input type="number" min="0" step="any" data-adv-region="${j}" data-adv-rfield="${k}" value="${advEsc(r[k]??'')}">${k==='gross'?`<small class="note" data-adv-region-remaining="${j}" style="display:block;color:#86efac">Remaining: —</small>`:''}</div>`).join('')}</div><button type="button" class="btn-dark" data-adv-delete-region="${j}">Remove location</button></div>`).join('')}<button type="button" class="btn-dark" data-adv-add-region>Add location</button><div class="bo-period" style="margin-top:12px;border-color:#3a6a62"><strong style="color:#7de2bb">Automatic booking totals</strong><div data-adv-auto-summary class="note" style="font-size:12px;line-height:1.9"></div></div></div>`;
 }
 if(b.block_type==="boxoffice"){
 b.extra_data=normalizeBoxOfficeExtra(b.extra_data);
@@ -2565,7 +2615,23 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
         const formatTarget=d=>d?`₹${Number(d.target_value||0).toLocaleString("en-IN",{maximumFractionDigits:2})} Cr`:"Not set";
         const starts=g.entries.map(x=>x.d.start_at).filter(Boolean).sort();
         const ends=g.entries.map(x=>x.d.end_at).filter(Boolean).sort();
-        return `<details class="bx-auto-day-group" data-tracker-day-key="${articleContentEsc(g.key)}" ${g.key===bxOpenDay?"open":""}>
+        const dayIndexIndia=g.entries.find(x=>(x.d.field||"india_gross")==="india_gross")?.j;
+        const dayIndexOverseas=g.entries.find(x=>x.d.field==="overseas_gross")?.j;
+        const firstSchedule=india||overseas||{};
+        const compactInput=(label,kind,value,field)=>`<div><label>${label}</label><input type="${kind}" data-bx-quick-day="${articleContentEsc(g.key)}" data-bx-quick-field="${field}" value="${articleContentEsc(value??'')}" ${kind==='number'?'min="0" step="0.01"':''}></div>`;
+        return `<div class="bx-auto-compact-row" data-bx-compact-group="${articleContentEsc(g.key)}">
+          <div class="bx-auto-compact-day">Day ${gi+1}<small>${articleContentEsc(g.key)}</small></div>
+          ${compactInput('India start ₹ Cr','number',india?.start_value??0,'india_start')}
+          ${compactInput('India end ₹ Cr','number',india?.target_value??0,'india')}
+          ${compactInput('Overseas start ₹ Cr','number',overseas?.start_value??0,'overseas_start')}
+          ${compactInput('Overseas end ₹ Cr','number',overseas?.target_value??0,'overseas')}
+          ${compactInput('Start time (IST)','time',(firstSchedule.start_at||'').slice(11,16),'start')}
+          ${compactInput('End time (IST)','time',(firstSchedule.end_at||'').slice(11,16),'end')}
+          <div><label>Frequency</label><select data-bx-quick-day="${articleContentEsc(g.key)}" data-bx-quick-field="frequency">${[5,10,15,20,30].map(v=>`<option value="${v}" ${Number(firstSchedule.interval_minutes||10)===v?'selected':''}>${v} min</option>`).join('')}</select></div>
+          ${compactInput('Shows','number',firstSchedule.shows??0,'shows')}
+          ${compactInput('Occupancy %','number',firstSchedule.occupancy??0,'occupancy')}
+          <button type="button" class="btn-dark" data-bx-open-network="${articleContentEsc(g.key)}">⚙ Network</button>
+        </div><details class="bx-auto-day-group" data-tracker-day-key="${articleContentEsc(g.key)}" ${g.key===bxOpenDay?"open":""}>
           <summary class="bx-auto-day-summary">
             <div class="bx-auto-day-summary-title">📅 Day ${gi+1} <span>${g.key==="unscheduled"?"Dates not set":articleContentEsc(g.key)+" · 6 AM to next 6 AM"}</span></div>
             <div class="bx-auto-day-summary-meta">Start: ${formatTime(starts[0])} · End: ${formatTime(ends[ends.length-1])}</div>
@@ -2581,9 +2647,7 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
         <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn-dark" data-auto-preset="early" data-auto-index="${j}">6 AM Start</button><button type="button" class="btn-dark" data-auto-preset="regular" data-auto-index="${j}">9 AM–11 PM</button><button type="button" class="btn-dark" data-auto-preset="premiere" data-auto-index="${j}">11:55 PM Premiere</button><button type="button" class="btn-dark" data-auto-preset="now" data-auto-index="${j}">Test Now (30 min)</button></div>
         <div class="block-row" style="margin-top:8px">
           <div><label>Schedule belongs to</label><div class="auto-region-static">${(d.field||"india_gross")==="india_gross"?"🇮🇳 India collection":"🌍 Overseas collection"}</div><div class="note">To track the other area, add its own schedule below.</div></div>
-          <div><label>Update interval</label><select data-auto-index="${j}" data-auto-key="interval_minutes">${[5,10,15,20,30].map(v=>`<option value="${v}" ${Number(d.interval_minutes||10)===v?"selected":""}>${v} minutes</option>`).join("")}</select></div>
-          <div><label>Starting amount (₹ Cr)</label><input type="number" min="0" step="0.01" data-auto-index="${j}" data-auto-key="start_value" value="${articleContentEsc(d.start_value??0)}"></div>
-          <div><label>Estimated target (₹ Cr)</label><input type="number" min="0" step="0.01" data-auto-index="${j}" data-auto-key="target_value" value="${articleContentEsc(d.target_value??0)}"></div>
+          <div class="note">Start amount, end amount, frequency and times are configured in the Day row above.</div>
           <div><label>Manual override amount (optional)</label><input type="number" min="0" step="0.01" data-auto-index="${j}" data-auto-key="override_value" value="${articleContentEsc(d.override?.value??"")}"></div>
           <div><label>Override time (IST)</label><input type="datetime-local" data-auto-index="${j}" data-auto-key="override_at" value="${articleContentEsc(d.override?.at||"")}"></div>
           <label><input type="checkbox" data-auto-index="${j}" data-auto-key="override_locked" ${d.override?.locked?"checked":""} style="width:auto"> Lock manual override</label>
@@ -2762,23 +2826,45 @@ applyArticleFormat(i,btn.dataset.articleFormat,textarea);
 if(b.block_type==="advance_booking"){
  const ad=b.extra_data;
  const updateAdvanceTotals=()=>{
-   const container=card.querySelector('[data-adv-auto-summary]');if(!container)return;
-   const n=v=>Math.max(0,Number(v)||0);
-   container.innerHTML=ad.dates.map(day=>{
-     const rows=ad.regions.filter(r=>r.date_key===day.key);
-     const stateRows=rows.filter(r=>r.level==='state'||r.level==='city');
-     const stateGroups=new Map();for(const r of stateRows){const k=r.state||r.name||'Other';if(!stateGroups.has(k))stateGroups.set(k,[]);stateGroups.get(k).push(r);}
-     const india=[];for(const group of stateGroups.values()){const cities=group.filter(r=>r.district||r.district_custom||r.city);india.push(...(cities.length?cities:group));}
-     if(!stateRows.length)india.push(...rows.filter(r=>r.level==='area'||r.level==='territory'));
-     const abroad=rows.filter(r=>r.level==='country');
-     const sum=(arr,k)=>arr.reduce((s,r)=>s+n(r[k]),0);
-     const inGross=india.length?sum(india,'gross'):n(day.india_gross);
-     const outGross=abroad.length?sum(abroad,'gross'):n(day.overseas_gross);
-     const fmt=v=>'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:2})+' Cr';
-     return `<div><b>${articleContentEsc(day.label||day.date||'Day')}:</b> India ${fmt(inGross)} + Overseas ${fmt(outGross)} = <b>${fmt(inGross+outGross)}</b> <small>(${india.length} India rows, ${abroad.length} overseas rows)</small></div>`;
-   }).join('');
+  const container=card.querySelector('[data-adv-auto-summary]');if(!container)return;
+  const n=v=>Math.max(0,Number(v)||0);const money=v=>'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:2})+' Cr';
+  const issues=bxAdvanceAllocationIssues(ad);
+  // Gross remaining labels: count a state parent once, not again with its cities.
+  for(const day of ad.dates){
+   const rows=ad.regions.filter(r=>r.date_key===day.key);
+   const stateRows=rows.filter(r=>r.level==='state'||r.level==='city');
+   const countryRows=rows.filter(r=>r.level==='country');
+   const groups=new Map();for(const r of stateRows){const key=r.state||r.name||'Other';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
+   const stateGross=[...groups.values()].reduce((sum,items)=>{const parent=items.find(r=>!(r.district||r.district_custom||r.city));return sum+(parent?n(parent.gross):items.reduce((v,r)=>v+n(r.gross),0));},0);
+   const territories=rows.filter(r=>r.level==='area'||r.level==='territory');
+   const indiaUsed=stateRows.length?stateGross:territories.reduce((sum,r)=>sum+n(r.gross),0);
+   const overseasUsed=countryRows.reduce((sum,r)=>sum+n(r.gross),0);
+   const idx=ad.dates.indexOf(day);
+   for(const [field,used] of [['india_gross',indiaUsed],['overseas_gross',overseasUsed]]){
+    const el=card.querySelector(`[data-adv-day-remaining="${idx}-${field}"]`);
+    if(el){const balance=n(day[field])-used;el.textContent=`Remaining: ${money(balance)}`;el.style.color=balance<-.000001?'#ff8080':'#86efac';}
+   }
+   for(const r of rows){
+    const el=card.querySelector(`[data-adv-region-remaining="${ad.regions.indexOf(r)}"]`);if(!el)continue;
+    let balance;
+    if(r.level==='country')balance=n(day.overseas_gross)-overseasUsed;
+    else if(r.level==='state'&&(r.district||r.district_custom||r.city)){
+     const siblings=groups.get(r.state||r.name||'Other')||[];
+     const parent=siblings.find(x=>!(x.district||x.district_custom||x.city));
+     balance=parent?n(parent.gross)-siblings.filter(x=>x!==parent).reduce((sum,x)=>sum+n(x.gross),0):n(day.india_gross)-indiaUsed;
+    }else balance=n(day.india_gross)-indiaUsed;
+    el.textContent=`Remaining: ${money(balance)}`;el.style.color=balance<-.000001?'#ff8080':'#86efac';
+   }
+  }
+  container.innerHTML=ad.dates.map(day=>{
+   const rows=ad.regions.filter(r=>r.date_key===day.key);
+   const country=rows.filter(r=>r.level==='country');const state=rows.filter(r=>r.level==='state'||r.level==='city');
+   const groups=new Map();for(const r of state){const k=r.state||r.name||'Other';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);}
+   const india=[...groups.values()].reduce((sum,items)=>{const parent=items.find(r=>!(r.district||r.district_custom||r.city));return sum+(parent?n(parent.gross):items.reduce((v,r)=>v+n(r.gross),0));},0);
+   const overseas=country.reduce((v,r)=>v+n(r.gross),0);
+   return `<div style="margin:9px 0"><b>${articleContentEsc(day.label||'Day')}</b><div>India ${money(india)} / ${money(n(day.india_gross))} · Remaining <b>${money(n(day.india_gross)-india)}</b></div><div>Overseas ${money(overseas)} / ${money(n(day.overseas_gross))} · Remaining <b>${money(n(day.overseas_gross)-overseas)}</b></div><div style="height:8px;background:#25354b;border-radius:10px;overflow:hidden;margin:6px 0"><div style="height:100%;width:${n(day.overseas_gross)?Math.min(100,overseas/n(day.overseas_gross)*100):0}%;background:${overseas>n(day.overseas_gross)?'#ef4444':'#22c55e'}"></div></div></div>`;
+  }).join('')+(issues.length?`<div style="color:#ff8080;font-weight:800">${issues.map(articleContentEsc).join('<br>')}</div>`:'<div style="color:#86efac">Allocations within overall totals</div>');
  };
-
  updateAdvanceTotals();
  card.querySelector('[data-adv-title]').oninput=e=>ad.title=e.target.value;
  card.querySelector('[data-adv-summary]').oninput=e=>ad.summary=e.target.value;
@@ -2792,6 +2878,34 @@ if(b.block_type==="advance_booking"){
 if(b.block_type==="auto_live_tracker"){
  const ac=b.extra_data=b.extra_data||{enabled:true,paused:false,ssr_enabled:true,h1_enabled:true,days:[]};
  ac.days=Array.isArray(ac.days)?ac.days:[];
+ card.querySelectorAll('[data-bx-quick-day]').forEach(el=>{
+   el.onchange=()=>{
+     const key=el.dataset.bxQuickDay,field=el.dataset.bxQuickField;
+     const schedules=(ac.days||[]).filter(d=>bxTrackerDayKey(d.start_at)===key);
+     if(['india','overseas','india_start','overseas_start'].includes(field)){
+       const schedule=schedules.find(d=>(d.field||'india_gross')===(field.startsWith('india')?'india_gross':'overseas_gross'));
+       if(schedule)schedule[field.endsWith('_start')?'start_value':'target_value']=Math.max(0,Number(el.value)||0);
+     }else if(field==='frequency'||field==='shows'||field==='occupancy'){
+       const value=Math.max(0,Number(el.value)||0);
+       schedules.forEach(d=>d[field==='frequency'?'interval_minutes':field]=field==='occupancy'?Math.min(100,value):value);
+     }else if(/^\d{2}:\d{2}$/.test(el.value)){
+       schedules.forEach(d=>{
+         const prop=field==='start'?'start_at':'end_at';
+         const date=(d[prop]||d.start_at||'').slice(0,10);
+         if(date)d[prop]=date+'T'+el.value;
+       });
+     }
+     // Keep original detailed controls and their values in sync.
+     renderBlocks();
+   };
+ });
+ card.querySelectorAll('[data-bx-open-network]').forEach(btn=>btn.onclick=()=>{
+   const key=btn.dataset.bxOpenNetwork;
+   ac._editor_day_key=key;ac._open_day_key=key;
+   renderBlocks();
+   const details=[...document.querySelectorAll('details.bx-auto-day-group')].find(d=>d.dataset.trackerDayKey===key);
+   if(details){details.open=true;details.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ });
  card.querySelectorAll("[data-auto-root]").forEach(el=>el.onchange=()=>{ac[el.dataset.autoRoot]=el.checked;});
  card.querySelectorAll("[data-auto-root-number]").forEach(el=>el.oninput=()=>{ac[el.dataset.autoRootNumber]=el.value===""?100:Number(el.value);});
  card.querySelectorAll("[data-auto-datetime]").forEach(el=>{
@@ -2834,7 +2948,7 @@ if(b.block_type==="auto_live_tracker"){
  });
  
  bxEnsureDayAllocations(ac);
- const editDay=(ac._editor_day_key&&ac.day_allocations[ac._editor_day_key])?ac._editor_day_key:Object.keys(ac.day_allocations).sort().slice(-1)[0];
+ const editDay=(ac._editor_day_key&&ac.day_allocations[ac._editor_day_key])?ac._editor_day_key:(ac._open_day_key&&ac.day_allocations[ac._open_day_key]?ac._open_day_key:Object.keys(ac.day_allocations).sort().slice(-1)[0]);
  const selected=ac.day_allocations[editDay]||{cinema_regions:[],overseas_countries:[]};
  selected.cinema_regions=Array.isArray(selected.cinema_regions)?selected.cinema_regions:[];
  selected.overseas_countries=Array.isArray(selected.overseas_countries)?selected.overseas_countries:[];
@@ -3696,8 +3810,37 @@ if(!r.ok){
 throw new Error(d.detail||("HTTP "+r.status));
 }
 }
+function bxAdvanceAllocationIssues(ad){
+ const issues=[]; const n=v=>Math.max(0,Number(v)||0); const fields=['gross','tickets','shows','theatres','houseful','fast_filling'];
+ for(const d of (ad.dates||[])){
+  const rows=(ad.regions||[]).filter(r=>r.date_key===d.key);
+  const country=rows.filter(r=>r.level==='country');
+  const state=rows.filter(r=>r.level==='state'||r.level==='city');
+  const territory=rows.filter(r=>r.level==='area'||r.level==='territory');
+  const groups=new Map();for(const r of state){const key=r.state||r.name||'Other';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
+  for(const [name,items] of groups){
+   const cities=items.filter(r=>r.district||r.district_custom||r.city);
+   const parent=items.find(r=>!(r.district||r.district_custom||r.city));
+   for(const f of fields){if(parent&&n(parent[f])>0&&cities.reduce((v,r)=>v+n(r[f]),0)>n(parent[f])+0.000001)issues.push(`${d.label||'Day'}: ${name} cities exceed state ${f}`);}
+   // When the parent exists, count it once; otherwise sum the cities.
+  }
+  const stateTotal=f=>[...groups.values()].reduce((sum,items)=>{const parent=items.find(r=>!(r.district||r.district_custom||r.city));return sum+(parent?n(parent[f]):items.reduce((v,r)=>v+n(r[f]),0));},0);
+  const check=(label,cap,amount)=>{if(amount>cap+0.000001)issues.push(`${d.label||'Day'}: ${label} allocation ${amount.toFixed(2)} exceeds overall ${cap.toFixed(2)}`);};
+  for(const f of fields){
+   const indiaCap=n(d[f==='gross'?'india_gross':f]);const overseasCap=n(d[f==='gross'?'overseas_gross':f]);
+   if(f==='gross'){check('India gross',indiaCap,state.length?stateTotal(f):territory.reduce((v,r)=>v+n(r[f]),0));check('Overseas gross',overseasCap,country.reduce((v,r)=>v+n(r[f]),0));}
+   else if(n(d[f])>0)check('Worldwide '+f,n(d[f]),stateTotal(f)+country.reduce((v,r)=>v+n(r[f]),0));
+  }
+ }
+ return [...new Set(issues)];
+}
 async function saveBlocks(){
 if(!currentArticleId)return;
+// Do not block saving corrections to older booking data with inconsistent allocations.
+// Keep validation visible in the editor; preserve entered numbers exactly.
+const allocationErrors=blocks.filter(b=>b.block_type==="advance_booking").flatMap(b=>bxAdvanceAllocationIssues(b.extra_data||{}));
+if(allocationErrors.length){console.warn("Advance Booking allocation warnings (save allowed):",allocationErrors);}
+
 
 /*
 FAST + SAFE BLOCK SAVE
