@@ -3407,6 +3407,131 @@ line-height:1.75;
 .lt-grid .lt-occupancy-housefull .lt-value,.lt-grid .lt-occupancy-housefull .lt-label{color:#047857}
 .lt-grid .lt-occupancy-housefull .lt-metric-chip{background:#99f6e4;color:#115e59}
 
+
+/* BoxOfficeX Financial Explorer — native dark theme */
+.bx-financial{margin:30px 0;padding:20px;border:1px solid rgba(77,141,255,.22);border-radius:16px;background:linear-gradient(145deg,#101725,#0d1322);color:#e9efff;font-family:inherit}
+.bx-financial *{box-sizing:border-box}
+.bx-financial h2{font-size:clamp(22px,3vw,29px);color:#f6f8ff;margin:0 0 10px;font-family:inherit}
+.bx-financial p{font-size:13px;line-height:1.55;color:#aebbd4;margin:8px 0;font-family:inherit}
+.bx-fx-toolbar{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.bx-fx-toolbar label{display:grid;gap:6px;font-size:12px;color:#aebbd4}
+.bx-fx-toolbar select{background:#101725;color:#fff;border:1px solid rgba(77,141,255,.35);border-radius:10px;padding:10px;min-height:42px;max-width:100%}
+.bx-fx-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
+.bx-fx-card{background:rgba(77,141,255,.07);border:1px solid rgba(77,141,255,.18);border-radius:12px;padding:14px;min-width:0}
+.bx-fx-card small{display:block;color:#aebbd4;font-size:12px}
+.bx-fx-card strong{display:block;color:#f6f8ff;font-size:clamp(17px,2.4vw,24px);margin:8px 0;overflow-wrap:anywhere}
+.bx-fx-card span{font-size:11px;color:#91a3c3}
+.bx-fx-section{margin-top:22px}
+.bx-fx-section h3{font-size:17px;color:#f6f8ff;margin:0 0 10px}
+.bx-fx-scroll{overflow-x:auto;border:1px solid rgba(255,255,255,.09);border-radius:12px}
+.bx-fx-scroll table{width:100%;border-collapse:collapse;min-width:510px;font-family:inherit}
+.bx-fx-scroll th,.bx-fx-scroll td{padding:11px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;color:#dce5f6}
+.bx-fx-scroll th{background:#111a2b;color:#aebbd4}
+.bx-fx-scroll tr:last-child td{border-bottom:0}
+.bx-fx-scroll a{color:#7aaaff}
+.bx-fx-tag{display:inline-block;font-size:10px;border:1px solid rgba(77,141,255,.32);border-radius:99px;padding:3px 7px}
+.bx-fx-note{margin-top:18px;padding:12px;border-radius:10px;background:rgba(77,141,255,.06);color:#aebbd4;font-size:12px;line-height:1.6}
+@media(max-width:600px){.bx-financial{padding:13px}.bx-fx-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Financial Explorer theme controls: scoped so article theme stays unchanged. */
+.bx-financial{--fx-accent:#4d8dff;--fx-rgb:77,141,255;--fx-surface:#0f1522;--fx-card:#151d31;--fx-text:#f4f7fb;background:var(--fx-surface)!important;border:1px solid rgba(var(--fx-rgb),.35)!important;color:var(--fx-text)!important}
+.bx-financial[data-fx-theme="purple"]{--fx-accent:#ae83ff;--fx-rgb:174,131,255;--fx-surface:#171125;--fx-card:#261d3b}
+.bx-financial[data-fx-theme="green"]{--fx-accent:#39d5a0;--fx-rgb:57,213,160;--fx-surface:#0d201c;--fx-card:#15352b}
+.bx-financial[data-fx-theme="gold"]{--fx-accent:#ffcc33;--fx-rgb:255,204,51;--fx-surface:#241c0d;--fx-card:#352b14}
+.bx-financial[data-fx-theme="light"]{--fx-accent:#245bd3;--fx-rgb:36,91,211;--fx-surface:#f7f9ff;--fx-card:#e8eefb;--fx-text:#17233d}
+.bx-financial .bx-fx-card{background:var(--fx-card)!important;border-color:rgba(var(--fx-rgb),.28)!important}
+.bx-financial .bx-fx-card strong{color:var(--fx-accent)!important}
+.bx-financial h2,.bx-financial h3,.bx-financial .bx-fx-card small,.bx-financial .bx-fx-card span,.bx-financial .bx-fx-scroll td,.bx-financial .bx-fx-scroll th{color:var(--fx-text)!important}
+.bx-financial .bx-fx-scroll th,.bx-financial .bx-fx-note{background:var(--fx-card)!important;color:var(--fx-text)!important}
+.bx-financial .bx-fx-scroll,.bx-financial .bx-fx-tag{border-color:rgba(var(--fx-rgb),.3)!important}
+.bx-financial .bx-fx-toolbar select{background:var(--fx-card)!important;color:var(--fx-text)!important;border-color:rgba(var(--fx-rgb),.45)!important}
+.bx-financial .bx-fx-rate-note,.bx-financial p,.bx-financial .bx-fx-toolbar label{color:var(--fx-text)!important;opacity:.85}
+
+
+/* Premium financial explorer, fully scoped to article block */
+.bx-fx-premium{--fx-accent:#4d8dff;--fx-rgb:77,141,255;--fx-surface:#0b1020;--fx-card:#141d32;--fx-text:#f1f5ff;position:relative;overflow:hidden;padding:0!important;border-radius:22px!important;box-shadow:0 18px 65px rgba(0,0,0,.19);isolation:isolate}
+.bx-fx-premium:before{content:"";position:absolute;inset:0 0 auto;height:300px;background:radial-gradient(ellipse at 85% 0%,rgba(var(--fx-rgb),.20),transparent 68%);pointer-events:none;z-index:-1}
+.bx-fx-premium .bx-fx-hero{padding:30px 25px 18px}
+.bx-fx-premium .bx-fx-eyebrow{font-size:10px;letter-spacing:.15em;font-weight:800;color:var(--fx-accent);display:flex;align-items:center;gap:8px}
+.bx-fx-premium .bx-fx-live-dot{width:8px;height:8px;background:var(--fx-accent);border-radius:50%;box-shadow:0 0 12px var(--fx-accent)}
+.bx-fx-premium .bx-fx-hero h2{font-size:clamp(25px,4.2vw,42px)!important;letter-spacing:-.035em;line-height:1.1;margin:14px 0 8px!important}
+.bx-fx-premium .bx-fx-hero h2 em{font-style:normal;color:var(--fx-accent)}
+.bx-fx-premium .bx-fx-hero-metrics{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.bx-fx-premium .bx-fx-hero-metrics span{border:1px solid rgba(var(--fx-rgb),.25);background:rgba(var(--fx-rgb),.09);border-radius:100px;padding:6px 10px;font-size:11px;color:var(--fx-text)}
+.bx-fx-premium .bx-fx-toolbar{padding:16px 25px;margin:0!important;background:rgba(var(--fx-rgb),.045);border-block:1px solid rgba(var(--fx-rgb),.13)}
+.bx-fx-premium .bx-fx-toolbar label{flex:1;min-width:140px;font-weight:650}
+.bx-fx-premium .bx-fx-rate-note{padding:0 25px;margin:14px 0!important;font-size:11px!important}
+.bx-fx-premium .bx-fx-cards{padding:0 25px;margin:18px 0!important;grid-template-columns:repeat(3,minmax(0,1fr))}
+.bx-fx-premium .bx-fx-card{padding:18px!important;border-radius:16px!important;min-height:125px;background:linear-gradient(145deg,rgba(var(--fx-rgb),.16),var(--fx-card))!important;box-shadow:inset 0 1px rgba(255,255,255,.05)}
+.bx-fx-premium .bx-fx-card-kicker{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--fx-text);opacity:.78}
+.bx-fx-premium .bx-fx-card-dot{width:7px;height:7px;background:var(--fx-accent);border-radius:50%}
+.bx-fx-premium .bx-fx-card strong{font-size:clamp(18px,2.5vw,28px)!important;margin:13px 0 10px!important;white-space:normal}
+.bx-fx-premium .bx-fx-tag{font-size:10px!important;line-height:1.3;padding:4px 8px!important;border-radius:99px;color:var(--fx-text)}
+.bx-fx-premium .bx-fx-status-reported{background:rgba(25,187,123,.14);border-color:rgba(25,187,123,.38)!important;color:#56d9a4!important}
+.bx-fx-premium .bx-fx-status-scenario{background:rgba(245,174,59,.13);border-color:rgba(245,174,59,.4)!important;color:#f5c16e!important}
+.bx-fx-premium .bx-fx-status-analysis{background:rgba(var(--fx-rgb),.13);color:var(--fx-accent)!important}
+.bx-fx-premium .bx-fx-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 25px 20px;scrollbar-width:thin}
+.bx-fx-premium .bx-fx-nav a{white-space:nowrap;text-decoration:none;border:1px solid rgba(var(--fx-rgb),.26);color:var(--fx-text);border-radius:9px;padding:9px 12px;background:rgba(var(--fx-rgb),.07);font-size:11px;font-weight:700}
+.bx-fx-premium .bx-fx-nav a:hover{background:rgba(var(--fx-rgb),.2)}
+.bx-fx-premium .bx-fx-section{margin:0 25px 16px!important;border:1px solid rgba(var(--fx-rgb),.2);border-radius:16px;background:linear-gradient(140deg,rgba(var(--fx-rgb),.08),transparent 60%),var(--fx-card);padding:18px}
+.bx-fx-premium .bx-fx-section-head{display:flex;gap:12px;align-items:center}
+.bx-fx-premium .bx-fx-section-icon{width:43px;height:43px;flex:none;border-radius:12px;background:rgba(var(--fx-rgb),.16);color:var(--fx-accent);font-size:24px;display:grid;place-items:center}
+.bx-fx-premium .bx-fx-section-head h3{margin:0!important;font-size:18px!important}
+.bx-fx-premium .bx-fx-section-head p{margin:4px 0 0!important;font-size:11px!important}
+.bx-fx-premium .bx-fx-count{margin-left:auto;font-size:10px;white-space:nowrap;color:var(--fx-text);opacity:.75}
+.bx-fx-premium .bx-fx-section-insights{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0;color:var(--fx-text)}
+.bx-fx-premium .bx-fx-section-insights span{font-size:10px;border-radius:6px;padding:5px 8px;background:rgba(var(--fx-rgb),.09)}
+.bx-fx-premium .bx-fx-chart{padding:15px;border:1px solid rgba(var(--fx-rgb),.14);border-radius:12px;background:rgba(0,0,0,.10);margin:12px 0}
+.bx-fx-premium .bx-fx-chart-title{font-size:13px;font-weight:750;color:var(--fx-text);margin-bottom:14px}
+.bx-fx-premium .bx-fx-chart-title small{display:block;font-weight:400;opacity:.68;margin-top:4px}
+.bx-fx-premium .bx-fx-bar-row{margin:0 0 13px}
+.bx-fx-premium .bx-fx-bar-meta{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--fx-text);margin-bottom:6px}
+.bx-fx-premium .bx-fx-bar-meta>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:68%}
+.bx-fx-premium .bx-fx-bar-meta .bx-fx-money{font-weight:750;white-space:nowrap;color:var(--fx-accent)}
+.bx-fx-premium .bx-fx-track{height:9px;background:rgba(var(--fx-rgb),.13);border-radius:99px;overflow:hidden}
+.bx-fx-premium .bx-fx-track>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--fx-accent),#58d9ce);box-shadow:0 0 10px rgba(var(--fx-rgb),.2)}
+.bx-fx-premium .bx-fx-details{margin-top:14px}
+.bx-fx-premium .bx-fx-details>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;padding:12px 14px;background:rgba(var(--fx-rgb),.10);border:1px solid rgba(var(--fx-rgb),.15);border-radius:10px;font-size:12px;font-weight:700;color:var(--fx-text)}
+.bx-fx-premium .bx-fx-details>summary::-webkit-details-marker{display:none}
+.bx-fx-premium .bx-fx-details[open]>summary{border-radius:10px 10px 0 0}
+.bx-fx-premium .bx-fx-scroll{border-radius:0 0 10px 10px!important}
+.bx-fx-premium .bx-fx-scroll table{min-width:470px}
+.bx-fx-premium .bx-fx-scroll td:nth-child(2){font-weight:750;white-space:nowrap}
+.bx-fx-premium .bx-fx-row-num{color:var(--fx-accent);font-size:10px;margin-right:9px;opacity:.8}
+.bx-fx-premium .bx-fx-note{margin:18px 25px 25px!important;padding:18px!important}
+.bx-fx-premium .bx-fx-note strong{font-size:13px;color:var(--fx-text)}
+@media(max-width:720px){.bx-fx-premium .bx-fx-cards{grid-template-columns:1fr 1fr}.bx-fx-premium .bx-fx-hero{padding:22px 15px 12px}.bx-fx-premium .bx-fx-toolbar{padding:14px 15px}.bx-fx-premium .bx-fx-rate-note{padding:0 15px}.bx-fx-premium .bx-fx-cards{padding:0 15px}.bx-fx-premium .bx-fx-nav{padding:12px 15px}.bx-fx-premium .bx-fx-section{margin:0 15px 12px!important;padding:13px}.bx-fx-premium .bx-fx-note{margin:16px 15px!important}.bx-fx-premium .bx-fx-section-head h3{font-size:15px!important}}
+@media(max-width:410px){.bx-fx-premium .bx-fx-cards{grid-template-columns:1fr}.bx-fx-premium .bx-fx-section-head{gap:8px}.bx-fx-premium .bx-fx-count{display:none}}
+
+
+body:has(.article-content .bx-financial) .bx-manual-related-mount,
+body:has(.article-content .bx-financial) .bx-explore-more,
+body.bx-financial-report-page .bx-manual-related-mount,
+body.bx-financial-report-page .bx-explore-more{display:none!important}
+
+/* Rankings V2: light-first, accessible reader-selected themes. */
+.bx-global-rankings[data-fx-theme="light"]{--fx-surface:#ffffff;--fx-card:#f1f5fb;--fx-text:#17243a;--fx-accent:#245bd3;--fx-rgb:36,91,211}
+.bx-global-rankings[data-fx-theme="light"] .bx-fx-hero{background:linear-gradient(135deg,#eef4ff,#ffffff 70%)}
+.bx-global-rankings[data-fx-theme="light"] .bx-fx-hero h2,.bx-global-rankings[data-fx-theme="light"] .bx-fx-hero p,.bx-global-rankings[data-fx-theme="light"] .bx-fx-hero-metrics span{color:#17243a!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-ranking-table th{background:#eaf0fb!important;color:#33435e!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-ranking-table td{background:#fff!important;color:#17243a!important;border-color:#e0e7f1!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-ranking-table tr:nth-child(even) td{background:#f7f9fd!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-ranking-table td small{color:#53627c!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-ranking-table a{color:#164dbb!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-ranking-rank{background:#e7efff!important;color:#194cb0!important}
+.bx-global-rankings[data-fx-theme="light"] .bx-fx-note,.bx-global-rankings[data-fx-theme="light"] .bx-fx-rate-note{color:#34435d!important}
+.bx-global-rankings .bx-ranking-table a{text-decoration:none;font-weight:800}
+.bx-global-rankings .bx-ranking-table a:hover{text-decoration:underline}
+.bx-global-rankings .bx-ranking-table tr{transition:background .18s ease}
+.bx-global-rankings .bx-ranking-table td{font-variant-numeric:tabular-nums}
+.bx-global-rankings .bx-ranking-table tbody tr:nth-child(1) .bx-ranking-rank{color:#a66b00;border-color:#d4a12e}
+.bx-global-rankings .bx-ranking-table tbody tr:nth-child(2) .bx-ranking-rank{color:#68768b;border-color:#9ca9bb}
+.bx-global-rankings .bx-ranking-table tbody tr:nth-child(3) .bx-ranking-rank{color:#aa6845;border-color:#c98c6d}
+@media(max-width:700px){.bx-global-rankings .bx-ranking-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.bx-global-rankings .bx-ranking-table{min-width:620px}}
+/* Language selector scoped to the two financial blocks. */
+.bx-financial .bx-lang-control{min-width:140px}
+.bx-financial .bx-block-language{max-width:100%;font:inherit}
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -6918,9 +7043,182 @@ if (!window.bxAdvanceBookingClickBound) {
         root.querySelectorAll("[data-advance-day]").forEach(day => { day.hidden = day.dataset.advanceDay !== target; });
     });
 }
+
+/* Financial Explorer V1: client-side formatting; SSR integration is a separate backend phase. */
+const bxFxCurrencies={
+ USD:["$","US Dollar"],INR:["₹","Indian Rupee"],MYR:["RM","Malaysian Ringgit"],
+ SGD:["S$","Singapore Dollar"],PKR:["₨","Pakistani Rupee"],GBP:["£","British Pound"],
+ EUR:["€","Euro"],JPY:["¥","Japanese Yen"],KRW:["₩","South Korean Won"],
+ CNY:["CN¥","Chinese Yuan"],AED:["د.إ ","UAE Dirham"],AUD:["A$","Australian Dollar"],
+ CAD:["C$","Canadian Dollar"],NZD:["NZ$","New Zealand Dollar"],CHF:["CHF ","Swiss Franc"],
+ HKD:["HK$","Hong Kong Dollar"],TWD:["NT$","Taiwan Dollar"],THB:["฿","Thai Baht"],
+ IDR:["Rp ","Indonesian Rupiah"],PHP:["₱","Philippine Peso"],VND:["₫","Vietnamese Dong"],
+ BDT:["৳","Bangladeshi Taka"],LKR:["Rs ","Sri Lankan Rupee"],NPR:["रू ","Nepalese Rupee"],
+ SAR:["﷼ ","Saudi Riyal"],QAR:["ر.ق ","Qatari Riyal"],KWD:["د.ك ","Kuwaiti Dinar"],
+ BHD:[".د.ب ","Bahraini Dinar"],OMR:["ر.ع. ","Omani Rial"],TRY:["₺","Turkish Lira"],
+ RUB:["₽","Russian Ruble"],BRL:["R$","Brazilian Real"],MXN:["MX$","Mexican Peso"],
+ ARS:["AR$","Argentine Peso"],ZAR:["R ","South African Rand"],EGP:["E£","Egyptian Pound"],
+ NGN:["₦","Nigerian Naira"],KES:["KSh ","Kenyan Shilling"],GHS:["GH₵","Ghanaian Cedi"],
+ ILS:["₪","Israeli New Shekel"],PLN:["zł ","Polish Zloty"],SEK:["kr ","Swedish Krona"],
+ NOK:["kr ","Norwegian Krone"],DKK:["kr ","Danish Krone"],CZK:["Kč ","Czech Koruna"],
+ HUF:["Ft ","Hungarian Forint"],RON:["lei ","Romanian Leu"],UAH:["₴","Ukrainian Hryvnia"],
+ CLP:["CL$","Chilean Peso"],COP:["COL$","Colombian Peso"],PEN:["S/ ","Peruvian Sol"],
+ MAD:["د.م. ","Moroccan Dirham"],DZD:["دج ","Algerian Dinar"],TND:["د.ت ","Tunisian Dinar"],
+ ISK:["kr ","Icelandic Krona"],FJD:["FJ$","Fijian Dollar"],MUR:["₨","Mauritian Rupee"],
+ MMK:["K ","Myanmar Kyat"],KHR:["៛","Cambodian Riel"],LAK:["₭","Lao Kip"],
+ BND:["B$","Brunei Dollar"],MOP:["MOP$","Macanese Pataca"],JOD:["د.ا ","Jordanian Dinar"]
+};
+function bxFxSafe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function bxFxFormat(value,code,mode){
+ const n=Number(value),symbol=(bxFxCurrencies[code]||[code+" "])[0];
+ if(!Number.isFinite(n))return "Not disclosed";
+ const indian=mode==="indian"||(mode==="auto"&&["INR","PKR"].includes(code));
+ const abs=Math.abs(n);
+ let divisor=1,unit="";
+ const scales=indian?[[1e7,"Crore"],[1e5,"Lakh"],[1e3,"Thousand"]]:[[1e12,"Trillion"],[1e9,"Billion"],[1e6,"Million"],[1e3,"Thousand"]];
+ if(mode!=="exact")for(const [d,u] of scales){if(abs>=d){divisor=d;unit=u;break;}}
+ const digits=divisor===1?2:2;
+ return symbol+(n/divisor).toLocaleString("en-US",{maximumFractionDigits:digits})+(unit?" "+unit:"");
+}
+function bxFxRender(data){
+ const movie=data.movie||{}, groups=data.financials||{};
+ const definitions=[
+  ["worldwide_box_office","Worldwide Box Office","globe","Territory performance"],
+  ["production","Production & VFX","film","Where the budget goes"],
+  ["marketing","Marketing & Distribution","megaphone","Release campaign spending"],
+  ["cast_salaries","Cast & Crew Salaries","users","Talent compensation"],
+  ["streaming_rights","Streaming & Media Rights","tv","Digital and broadcast licensing"],
+  ["merchandise","Merchandise & Games","shopping-bag","Commercial partnerships"],
+  ["profit_analysis","Financial Recovery","trending-up","Returns and profitability"]
+ ];
+ const entries=definitions.filter(([key])=>Array.isArray(groups[key])&&groups[key].length);
+ if(!entries.length)return "";
+ const base=String(data.base_currency||"USD").toUpperCase();
+ const id="bx-fx-"+Math.random().toString(36).slice(2,11);
+ const icon={globe:"◎",film:"◈",megaphone:"✦",users:"♙",tv:"▣","shopping-bag":"◇","trending-up":"↗"};
+ const currencyOpts=Object.entries(bxFxCurrencies).map(([code,[symbol,name]])=>`<option value="${code}" ${code===base?"selected":""}>${bxFxSafe(symbol)} ${bxFxSafe(name)} (${code})</option>`).join("");
+ const statusText=s=>({reported:"Reported",analysis:"BoxOfficeX analysis",scenario:"Illustrative scenario",not_disclosed:"Not disclosed"})[s]||"Not disclosed";
+ const money=(r,extra="")=>{const code=String(r.currency||base).toUpperCase(),amount=r.amount===null||r.amount===undefined||r.amount===""?"":Number(r.amount);return `<span class="bx-fx-money ${extra}" data-fx-original="${amount===""||!Number.isFinite(amount)?"":amount}" data-fx-code="${bxFxSafe(code)}" title="Original currency: ${bxFxSafe(code)}">${amount===""||!Number.isFinite(amount)?"Not disclosed":bxFxSafe(bxFxFormat(amount,code,"auto"))}</span>`;};
+ const cleanRows=(key)=>groups[key].filter(r=>r&&typeof r==="object");
+ const chart=(key,rows)=>{
+  const comparable=rows.filter(r=>r.amount!==null&&r.amount!==""&&Number.isFinite(Number(r.amount))&&Number(r.amount)>0);
+  const chosen=comparable.slice().sort((a,b)=>Number(b.amount)-Number(a.amount)).slice(0,key==="worldwide_box_office"?12:8);
+  if(!chosen.length)return "";
+  const code=String(chosen[0].currency||base).toUpperCase();
+  const comparableRows=chosen.filter(r=>String(r.currency||base).toUpperCase()===code);
+  if(comparableRows.length<2)return "";
+  const max=Math.max(...comparableRows.map(r=>Number(r.amount)));
+  return `<div class="bx-fx-chart" aria-label="${bxFxSafe(key.replaceAll('_',' '))} ranking chart"><div class="bx-fx-chart-title">${key==="worldwide_box_office"?"Top markets & milestones":"Financial breakdown"}<small>Original currency · ${bxFxSafe(code)} · selected entries</small></div>${comparableRows.map((r,i)=>`<div class="bx-fx-bar-row"><div class="bx-fx-bar-meta"><span>${bxFxSafe(r.label||"Other")}</span>${money(r)}</div><div class="bx-fx-track"><span style="width:${Math.max(.5,Math.min(100,Number(r.amount)/max*100)).toFixed(2)}%;--fx-bar-index:${i}"></span></div></div>`).join("")}</div>`;
+ };
+ const sections=entries.map(([key,title,ic,subtitle],index)=>{
+  const rows=cleanRows(key), reported=rows.filter(r=>r.status==="reported").length, scenarios=rows.filter(r=>r.status==="scenario").length;
+  const allRows=rows.map((r,i)=>`<tr><td><span class="bx-fx-row-num">${String(i+1).padStart(2,"0")}</span>${bxFxSafe(r.label||"Unspecified")}</td><td>${money(r)}</td><td><span class="bx-fx-tag bx-fx-status-${bxFxSafe(r.status||"not_disclosed")}">${statusText(r.status)}</span></td></tr>`).join("");
+  return `<section class="bx-fx-section bx-fx-section-${key}" id="${id}-${key}"><div class="bx-fx-section-head"><span class="bx-fx-section-icon">${icon[ic]}</span><div><h3>${title}</h3><p>${subtitle}</p></div><span class="bx-fx-count">${rows.length} entries</span></div><div class="bx-fx-section-insights"><span>${reported} reported</span><span>${scenarios} scenarios</span><span>${rows.length} total records</span></div>${chart(key,rows)}<details class="bx-fx-details" ${index===0?"open":""}><summary>View detailed figures <span>▾</span></summary><div class="bx-fx-scroll"><table><thead><tr><th>Financial item / market</th><th>Amount</th><th>Data status</th></tr></thead><tbody>${allRows}</tbody></table></div></details></section>`;
+ }).join("");
+ const boxRows=cleanRows("worldwide_box_office");
+ const pick=(words)=>boxRows.find(r=>words.some(w=>String(r.label||"").toLowerCase().includes(w))&&r.amount!==null&&r.amount!=="");
+ const top=[pick(["worldwide","global"]),pick(["domestic","north america"]),pick(["international","overseas"])].filter(Boolean);
+ const cards=(top.length?top:boxRows.slice(0,3)).map((r,i)=>`<div class="bx-fx-card bx-fx-card-${i%3}"><div class="bx-fx-card-kicker"><span class="bx-fx-card-dot"></span>${bxFxSafe(r.label)}</div><strong>${money(r)}</strong><span class="bx-fx-tag bx-fx-status-${bxFxSafe(r.status||"not_disclosed")}">${statusText(r.status)}</span></div>`).join("");
+ let saved="boxofficex";try{const v=localStorage.getItem("boxofficex_fx_theme");if(["purple","green","gold","light"].includes(v))saved=v}catch(e){}
+ return `<section class="bx-financial bx-fx-premium" data-fx-theme="${saved}" id="${id}" aria-label="Movie financial explorer"><div class="bx-fx-hero"><div class="bx-fx-eyebrow"><span class="bx-fx-live-dot"></span> BOXOFFICEX · GLOBAL FINANCIAL INTELLIGENCE</div><h2>${bxFxSafe(movie.title||"Movie")} <em>Financial Explorer</em></h2><p>${bxFxSafe([movie.year,movie.country,movie.industry].filter(Boolean).join(" · "))} · Worldwide movie economics at a glance</p><div class="bx-fx-hero-metrics"><span>◉ ${entries.length} financial categories</span><span>◈ ${entries.reduce((n,[k])=>n+cleanRows(k).length,0)} data entries</span><span>◎ Global currencies</span></div></div><div class="bx-fx-toolbar"><label class="bx-lang-control">Language<select class="bx-block-language" aria-label="Block language"></select></label><label>Currency<select class="bx-fx-currency">${currencyOpts}</select></label><label>Number format<select class="bx-fx-units"><option value="auto">Automatic</option><option value="international">Million / Billion</option><option value="indian">Lakh / Crore</option><option value="exact">Exact numbers</option></select></label><label>Colour theme<select class="bx-fx-theme"><option value="boxofficex">BoxOfficeX Blue</option><option value="purple">Royal Purple</option><option value="green">Emerald</option><option value="gold">Gold</option><option value="light">Light</option></select></label></div><p class="bx-fx-rate-note">Choose a currency to view converted amounts. Reference exchange rates may differ from historical rates.</p><div class="bx-fx-cards">${cards}</div><nav class="bx-fx-nav" aria-label="Financial report sections">${entries.map(([k,title])=>`<a href="#${id}-${k}">${title}</a>`).join("")}</nav>${sections}${data.disclaimer_enabled!==false?`<div class="bx-fx-note"><strong>About these financial figures</strong><p>Reported figures, BoxOfficeX analysis and illustrative scenarios are labelled separately. Hypothetical amounts are not confirmed deals or audited earnings. Theatrical gross is not studio revenue or profit. Currency conversions use reference exchange rates, not historical settlement rates.</p></div>`:""}</section>`;
+}
+
+const bxFxRatesCache={};
+async function bxFxGetRates(base){
+ const code=String(base||"USD").toUpperCase();
+ if(bxFxRatesCache[code])return bxFxRatesCache[code];
+ const response=await fetch("https://open.er-api.com/v6/latest/"+encodeURIComponent(code),{mode:"cors"});
+ if(!response.ok)throw new Error("FX service unavailable");
+ const payload=await response.json();
+ if(payload.result!=="success"||!payload.rates||!payload.time_last_update_utc)throw new Error("FX response invalid");
+ const result={rates:payload.rates,date:payload.time_last_update_utc,provider:"ExchangeRate-API"};
+ bxFxRatesCache[code]=result;
+ return result;
+}
+async function bxFxUpdate(root){
+ const selected=root.querySelector(".bx-fx-currency").value;
+ const mode=root.querySelector(".bx-fx-units").value;
+ const note=root.querySelector(".bx-fx-rate-note");
+ const elements=Array.from(root.querySelectorAll(".bx-fx-money"));
+ const codes=[...new Set(elements.map(el=>el.dataset.fxCode))];
+ const available={};
+ try{
+  note.textContent="Loading dated exchange rates…";
+  await Promise.all(codes.map(async code=>{if(code!==selected)available[code]=await bxFxGetRates(code)}));
+  elements.forEach(el=>{
+   const original=el.dataset.fxOriginal,code=el.dataset.fxCode;
+   if(original===""){el.textContent="Not disclosed";return;}
+   const rate=code===selected?1:available[code]?.rates?.[selected];
+   if(!Number.isFinite(rate)||rate<=0){el.textContent=bxFxFormat(Number(original),code,mode);return;}
+   const converted=Number(original)*rate;
+   el.textContent=bxFxFormat(converted,selected,mode);
+   el.title=bxFxFormat(Number(original),code,"exact")+" "+code+" · "+bxFxFormat(converted,selected,"exact")+" "+selected;
+  });
+  const dates=Object.values(available).map(x=>x.date);
+  note.textContent="Converted to "+selected+" using reference exchange rates from ExchangeRate-API"+(dates.length?" (updated "+dates[0]+")":"")+". Tap or hover amounts to see their original values. Rates are for reference, not historical transaction dates.";
+ }catch(err){
+  elements.forEach(el=>{const value=el.dataset.fxOriginal;el.textContent=value===""?"Not disclosed":bxFxFormat(Number(value),el.dataset.fxCode,mode)});
+  note.textContent="Live currency conversion is unavailable. Original currencies are displayed; no conversion was assumed.";
+ }
+}
+if(!window.bxFxEventsBound){
+ window.bxFxEventsBound=true;
+ document.addEventListener("change",event=>{
+  const root=event.target.closest(".bx-financial");
+  if(!root)return;
+  if(event.target.matches(".bx-fx-theme")){
+   root.dataset.fxTheme=event.target.value;
+   try{localStorage.setItem(root.classList.contains("bx-global-rankings")?"boxofficex_rankings_theme":"boxofficex_fx_theme",event.target.value)}catch(e){}
+   return;
+  }
+  bxFxUpdate(root);
+ });
+ document.addEventListener("DOMContentLoaded",()=>{
+  let saved="boxofficex";
+  try{saved=localStorage.getItem("boxofficex_fx_theme")||saved}catch(e){}
+  if(!["boxofficex","purple","green","gold","light"].includes(saved))saved="boxofficex";
+  document.querySelectorAll(".bx-financial:not(.bx-fx-ssr)").forEach(root=>{
+   let choice=saved;
+   if(root.classList.contains("bx-global-rankings")){
+    choice="light";
+    try{choice=localStorage.getItem("boxofficex_rankings_theme")||"light"}catch(e){}
+    if(!["boxofficex","purple","green","gold","light"].includes(choice))choice="light";
+   }
+   root.dataset.fxTheme=choice;
+   const picker=root.querySelector(".bx-fx-theme");if(picker)picker.value=choice;
+  });
+ });
+}
+
+function bxRankFinancialUrl(movie){
+ const raw=String(movie.financial_article_url|| (movie.financial_article_slug ? "/article/"+movie.financial_article_slug : "") || "").trim();
+ if(!raw)return "";
+ try{
+  const url=new URL(raw,window.location.origin);
+  if(!["http:","https:"].includes(url.protocol))return "";
+  if(url.origin!==window.location.origin && url.hostname!=="boxofficex.in" && url.hostname!=="www.boxofficex.in")return "";
+  if(!/^\/article\/[a-z0-9][a-z0-9-]*\/?$/.test(url.pathname))return "";
+  return url.href;
+ }catch(e){return "";}
+}
+function bxRankRender(data, financialLinks={}){
+ const safe=bxFxSafe,base=String(data.base_currency||"USD").toUpperCase(),metric=["worldwide","domestic","international"].includes(data.metric)?data.metric:"worldwide";
+ const rows=(Array.isArray(data.movies)?data.movies:[]).filter(m=>m&&typeof m==="object"&&m.status!=="scenario"&&m.status!=="not_disclosed"&&Number.isFinite(Number(m[metric]))&&m[metric]!==null&&m[metric]!==""&&Number(m[metric])>=0);
+ // Rankings across different currencies must be normalized before publishing. Only comparable base-currency rows are ranked.
+ const comparable=rows.filter(m=>String(m.currency||base).toUpperCase()===base);
+ comparable.sort((a,b)=>Number(b[metric])-Number(a[metric]));
+ const limit=Math.max(0,Number(data.count)||0),visible=limit?comparable.slice(0,limit):comparable;
+ const opts=Object.entries(bxFxCurrencies).map(([c,[symbol,name]])=>`<option value="${safe(c)}" ${c===base?"selected":""}>${safe(symbol)} ${safe(name)} (${safe(c)})</option>`).join("");
+ const amount=(m,key)=>{const v=m[key],n=v===null||v===undefined||v===""?NaN:Number(v);return `<span class="bx-fx-money" data-fx-original="${Number.isFinite(n)?n:""}" data-fx-code="${safe(base)}">${Number.isFinite(n)?safe(bxFxFormat(n,base,"auto")):"—"}</span>`};
+ const id="bx-ranking-"+Math.random().toString(36).slice(2,9);
+ return `<section class="bx-financial bx-fx-premium bx-global-rankings" id="${id}" data-fx-theme="light"><div class="bx-fx-hero"><div class="bx-fx-eyebrow">🏆 BOXOFFICEX · GLOBAL BOX OFFICE RANKINGS</div><h2>${safe(data.title||"Global Box Office Rankings")}</h2><p>${safe(data.subtitle||"")} · ${safe(data.territory||"Worldwide")} · ${safe(metric)} ranking</p><div class="bx-fx-hero-metrics"><span>◉ ${visible.length} movies</span><span>◎ ${safe(base)} original figures</span><span>↗ Financial reports linked where available</span></div></div><div class="bx-fx-toolbar"><label class="bx-lang-control">Language<select class="bx-block-language" aria-label="Block language"></select></label><label>Currency<select class="bx-fx-currency">${opts}</select></label><label>Number format<select class="bx-fx-units"><option value="auto">Automatic</option><option value="international">Million / Billion</option><option value="indian">Lakh / Crore</option><option value="exact">Exact numbers</option></select></label><label>Colour theme<select class="bx-fx-theme"><option value="boxofficex">BoxOfficeX Blue</option><option value="purple">Royal Purple</option><option value="green">Emerald</option><option value="gold">Gold</option><option value="light">Light</option></select></label></div><p class="bx-fx-rate-note">Currency changes affect display only; ranking order is based on original ${safe(base)} amounts.</p><div class="bx-ranking-scroll"><table class="bx-ranking-table"><thead><tr><th>Rank</th><th>Movie</th><th>Domestic</th><th>International</th><th>Worldwide</th></tr></thead><tbody>${visible.map((m,i)=>{const link=bxRankFinancialUrl(m);const name=link?`<a href="${link}">${safe(m.title||"Untitled movie")} ↗</a>`:safe(m.title||"Untitled movie");return `<tr><td><span class="bx-ranking-rank">${i+1}</span></td><td><strong>${name}</strong><small>${safe(m.year||"")} · ${safe(m.status==="analysis"?"BoxOfficeX analysis":"Reported")}</small></td><td>${amount(m,"domestic")}</td><td>${amount(m,"international")}</td><td><strong>${amount(m,"worldwide")}</strong></td></tr>`}).join("")||`<tr><td colspan="5">No comparable reported data entered yet.</td></tr>`}</tbody></table></div>${rows.length>comparable.length?`<p class="bx-fx-rate-note">${rows.length-comparable.length} entries in other original currencies are excluded until converted to ${safe(base)} with verified historical rates.</p>`:""}<div class="bx-fx-note">Domestic refers to the US/Canada market for global box-office figures unless this article specifies another convention. International excludes that domestic market. Missing figures are not treated as zero. Illustrative scenarios do not affect rankings. Converted currencies use reference rates, not historical rates.</div></section>`;
+}
 async function renderBlock(block) {
     const type = block.block_type;
     const data = block.extra_data || {};
+
+    if (type === "movie_financial_explorer") return bxFxRender(data);
+    if (type === "global_boxoffice_rankings") return bxRankRender(data);
 
     if (type === "advance_booking") return bxRenderAdvanceBooking(data);
 
@@ -7092,6 +7390,7 @@ function renderManualRelatedArticles(article){
 }
 
 function renderArticleExploreMore(article) {
+    if (Array.isArray(article?.blocks) && article.blocks.some(b => b.block_type === "movie_financial_explorer" || b.type === "movie_financial_explorer")) return "";
     const movies = Array.isArray(article?.movies) ? article.movies.slice(0, 3) : [];
     const actors = Array.isArray(article?.actors) ? article.actors.slice(0, 5) : [];
     const links = [];
@@ -7399,8 +7698,14 @@ async function renderArticle(article) {
     `;
 
     // The article DOM has now been rebuilt; populate the new mount, not the old one.
+    const isFinancialReport = !!document.querySelector('.article-content .bx-financial');
+    document.body.classList.toggle('bx-financial-report-page', isFinancialReport);
+    if (isFinancialReport) {
+        const explore = document.querySelector('.article-content .bx-explore-more');
+        if (explore) explore.style.display = 'none';
+    }
     const manualMount = document.getElementById("bxManualRelatedMount");
-    if (manualMount) manualMount.innerHTML = renderManualRelatedArticles(article);
+    if (manualMount) manualMount.innerHTML = isFinancialReport ? "" : renderManualRelatedArticles(article);
 
     bxRestoreArticleHashAnchor();
     window.currentBoxOfficeXArticle = article;
@@ -7559,10 +7864,20 @@ async function loadArticleRelatedContent(id){
     const articleGrid=document.getElementById("bxRelatedArticlesGrid");
     const movieGrid=document.getElementById("bxRelatedMoviesGrid");
     if(!section || !articleGrid || !movieGrid)return;
+    const financialMode = document.body.classList.contains('bx-financial-report-page');
+    if (financialMode) {
+        section.querySelector('.bx-related-title').textContent = '🌍 More Global Financial Reports';
+        section.querySelector('.bx-related-subtitle').textContent = 'Explore worldwide box office, budgets, rights and film profitability.';
+        articleBlock.querySelector('.bx-related-block-title').textContent = 'Financial Reports';
+        movieBlock.style.display = 'none';
+        document.getElementById('bxRelatedActorsBlock').style.display = 'none';
+        document.getElementById('bxRelatedCompareBlock').style.display = 'none';
+    }
+
 
     try{
         const response=await fetch(
-            `${API_BASE}/articles/${encodeURIComponent(id)}/related?limit=6`,
+            `${API_BASE}/articles/${encodeURIComponent(id)}/related?limit=6${financialMode ? "&financial_only=1" : ""}`,
             {cache:"no-store"}
         );
         if(!response.ok)throw new Error("Related content API returned HTTP " + response.status);
@@ -7570,8 +7885,8 @@ async function loadArticleRelatedContent(id){
         const data=await response.json();
         const articles=Array.isArray(data.related_articles)?data.related_articles:[];
         const movies=Array.isArray(data.related_movies)?data.related_movies:[];
-        const actors=await loadArticleRelatedActors(window.currentBoxOfficeXArticle);
-        renderArticleRelatedComparisons(movies,actors);
+        const actors=financialMode ? [] : await loadArticleRelatedActors(window.currentBoxOfficeXArticle);
+        if (!financialMode) renderArticleRelatedComparisons(movies,actors);
 
         if(articles.length){
             articleGrid.innerHTML="";
@@ -7598,7 +7913,7 @@ async function loadArticleRelatedContent(id){
             articleBlock.style.display="none";
         }
 
-        if(movies.length){
+        if(!financialMode && movies.length){
             movieGrid.innerHTML="";
             movies.forEach(movie=>{
                 const card=document.createElement("article");
@@ -7637,7 +7952,7 @@ async function loadArticleRelatedContent(id){
         const compareBlock=document.getElementById("bxRelatedCompareBlock");
         const hasActors=actorBlock && actorBlock.style.display!=="none";
         const hasComparisons=compareBlock && compareBlock.style.display!=="none";
-        if(!articles.length && !movies.length && !hasActors && !hasComparisons)section.style.display="none";
+        if(financialMode ? !articles.length : (!articles.length && !movies.length && !hasActors && !hasComparisons))section.style.display="none";
     }catch(error){
         console.error("Article related content loading error:",error);
         section.style.display="none";
@@ -9379,6 +9694,82 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
     transform: none !important;
 }
 </style>
+<script>
+/* BoxOfficeX free block-only translations. No external service, no page translation. */
+(function(){
+'use strict';
+const LANGS=[['en','English'],['ta','தமிழ்'],['te','తెలుగు'],['hi','हिन्दी'],['ml','മലയാളം'],['kn','ಕನ್ನಡ'],['ms','Bahasa Melayu'],['id','Bahasa Indonesia'],['zh','中文'],['ja','日本語'],['ko','한국어'],['fr','Français'],['es','Español'],['de','Deutsch'],['ar','العربية'],['pt','Português']];
+const keys=['Currency','Number format','Colour theme','Rank','Movie','Domestic','International','Worldwide','Financial Explorer','Worldwide Box Office','Production & VFX','Marketing & Distribution','Cast & Crew Salaries','Streaming & Media Rights','Merchandise & Games','Financial Recovery','Reported','BoxOfficeX analysis','Not disclosed','Amount','Data status','View detailed figures','Financial item / market','Light','Automatic','Exact numbers','Global Box Office Rankings','Language'];
+const words={
+ ta:['நாணயம்','எண் வடிவம்','நிறத் தோற்றம்','தரவரிசை','திரைப்படம்','உள்நாட்டு','சர்வதேச','உலகளாவிய','நிதி ஆய்வு','உலகளாவிய வசூல்','தயாரிப்பு மற்றும் VFX','விளம்பரம் மற்றும் விநியோகம்','நடிகர்கள் மற்றும் குழுவின் சம்பளம்','ஸ்ட்ரீமிங் மற்றும் ஊடக உரிமைகள்','வணிகப் பொருட்கள் மற்றும் விளையாட்டுகள்','நிதி மீட்பு','அறிவிக்கப்பட்டது','BoxOfficeX ஆய்வு','வெளியிடப்படவில்லை','தொகை','தரவு நிலை','விரிவான விவரங்கள்','நிதி விவரம் / சந்தை','ஒளி','தானியங்கி','துல்லிய எண்கள்','உலகளாவிய வசூல் தரவரிசை','மொழி'],
+ te:['కరెన్సీ','సంఖ్య ఆకృతి','రంగు థీమ్','ర్యాంక్','సినిమా','దేశీయ','అంతర్జాతీయ','ప్రపంచవ్యాప్తంగా','ఆర్థిక విశ్లేషణ','ప్రపంచ బాక్సాఫీస్','నిర్మాణం మరియు VFX','మార్కెటింగ్ మరియు పంపిణీ','నటీనటులు మరియు సిబ్బంది వేతనాలు','స్ట్రీమింగ్ మరియు మీడియా హక్కులు','వస్తువులు మరియు ఆటలు','ఆర్థిక రికవరీ','నివేదించబడింది','BoxOfficeX విశ్లేషణ','వెల్లడించలేదు','మొత్తం','డేటా స్థితి','వివరాలు చూడండి','ఆర్థిక అంశం / మార్కెట్','లైట్','ఆటోమేటిక్','ఖచ్చితమైన సంఖ్యలు','ప్రపంచ బాక్సాఫీస్ ర్యాంకింగ్స్','భాష'],
+ hi:['मुद्रा','संख्या प्रारूप','रंग थीम','रैंक','फ़िल्म','घरेलू','अंतरराष्ट्रीय','विश्वव्यापी','वित्तीय विश्लेषण','विश्वव्यापी बॉक्स ऑफिस','निर्माण और VFX','विपणन और वितरण','कलाकार और क्रू वेतन','स्ट्रीमिंग और मीडिया अधिकार','मर्चेंडाइज़ और गेम','वित्तीय वसूली','रिपोर्ट किया गया','BoxOfficeX विश्लेषण','प्रकट नहीं','राशि','डेटा स्थिति','विस्तृत आंकड़े देखें','वित्तीय मद / बाज़ार','लाइट','स्वचालित','सटीक संख्याएँ','वैश्विक बॉक्स ऑफिस रैंकिंग','भाषा'],
+ ml:['കറൻസി','സംഖ്യാ രൂപം','നിറ തീം','റാങ്ക്','സിനിമ','ആഭ്യന്തര','അന്താരാഷ്ട്ര','ലോകമെമ്പാടും','സാമ്പത്തിക വിശകലനം','ലോക ബോക്സ് ഓഫീസ്','നിർമ്മാണവും VFX-ഉം','വിപണനവും വിതരണവും','താരങ്ങളുടെയും അണിയറക്കാരുടെയും പ്രതിഫലം','സ്ട്രീമിംഗ്, മീഡിയ അവകാശങ്ങൾ','ഉൽപ്പന്നങ്ങളും ഗെയിമുകളും','സാമ്പത്തിക വീണ്ടെടുക്കൽ','റിപ്പോർട്ട് ചെയ്തത്','BoxOfficeX വിശകലനം','വെളിപ്പെടുത്തിയിട്ടില്ല','തുക','ഡാറ്റ നില','വിശദാംശങ്ങൾ കാണുക','സാമ്പത്തിക ഇനം / വിപണി','ലൈറ്റ്','സ്വയമേവ','കൃത്യമായ സംഖ്യകൾ','ആഗോള ബോക്സ് ഓഫീസ് റാങ്കിംഗ്','ഭാഷ'],
+ kn:['ಕರೆನ್ಸಿ','ಸಂಖ್ಯೆ ಸ್ವರೂಪ','ಬಣ್ಣದ ಥೀಮ್','ಶ್ರೇಣಿ','ಚಲನಚಿತ್ರ','ದೇಶೀಯ','ಅಂತರರಾಷ್ಟ್ರೀಯ','ವಿಶ್ವಾದ್ಯಂತ','ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ','ವಿಶ್ವ ಬಾಕ್ಸ್ ಆಫೀಸ್','ನಿರ್ಮಾಣ ಮತ್ತು VFX','ಮಾರ್ಕೆಟಿಂಗ್ ಮತ್ತು ವಿತರಣೆ','ನಟರು ಮತ್ತು ಸಿಬ್ಬಂದಿ ವೇತನ','ಸ್ಟ್ರೀಮಿಂಗ್ ಮತ್ತು ಮಾಧ್ಯಮ ಹಕ್ಕುಗಳು','ಸರಕುಗಳು ಮತ್ತು ಆಟಗಳು','ಹಣಕಾಸು ಚೇತರಿಕೆ','ವರದಿಯಾಗಿದೆ','BoxOfficeX ವಿಶ್ಲೇಷಣೆ','ಬಹಿರಂಗಪಡಿಸಿಲ್ಲ','ಮೊತ್ತ','ಡೇಟಾ ಸ್ಥಿತಿ','ವಿವರಗಳನ್ನು ನೋಡಿ','ಹಣಕಾಸು ಅಂಶ / ಮಾರುಕಟ್ಟೆ','ಲೈಟ್','ಸ್ವಯಂಚಾಲಿತ','ನಿಖರ ಸಂಖ್ಯೆಗಳು','ಜಾಗತಿಕ ಬಾಕ್ಸ್ ಆಫೀಸ್ ಶ್ರೇಯಾಂಕ','ಭಾಷೆ'],
+ ms:['Mata wang','Format nombor','Tema warna','Kedudukan','Filem','Domestik','Antarabangsa','Seluruh dunia','Analisis kewangan','Kutipan box office dunia','Produksi & VFX','Pemasaran & pengedaran','Gaji pelakon dan kru','Hak penstriman dan media','Barangan dan permainan','Pemulihan kewangan','Dilaporkan','Analisis BoxOfficeX','Tidak didedahkan','Jumlah','Status data','Lihat butiran','Item kewangan / pasaran','Cerah','Automatik','Nombor tepat','Kedudukan box office global','Bahasa'],
+ id:['Mata uang','Format angka','Tema warna','Peringkat','Film','Domestik','Internasional','Seluruh dunia','Analisis keuangan','Box office dunia','Produksi & VFX','Pemasaran & distribusi','Gaji pemeran dan kru','Hak streaming dan media','Merchandise dan gim','Pemulihan keuangan','Dilaporkan','Analisis BoxOfficeX','Tidak diungkapkan','Jumlah','Status data','Lihat rincian','Item keuangan / pasar','Terang','Otomatis','Angka persis','Peringkat box office global','Bahasa'],
+ zh:['货币','数字格式','颜色主题','排名','电影','本土','国际','全球','财务分析','全球票房','制作与特效','营销与发行','演员及剧组薪酬','流媒体与媒体版权','周边商品与游戏','财务回收','已报道','BoxOfficeX 分析','未披露','金额','数据状态','查看详细数据','财务项目 / 市场','浅色','自动','精确数字','全球票房排名','语言'],
+ ja:['通貨','数字形式','カラーテーマ','順位','映画','国内','海外','全世界','財務分析','世界興行収入','制作・VFX','宣伝・配給','出演者・スタッフ報酬','配信・メディア権','商品・ゲーム','資金回収','報告済み','BoxOfficeX 分析','非公開','金額','データ状況','詳細を見る','財務項目 / 市場','ライト','自動','正確な数値','世界興行収入ランキング','言語'],
+ ko:['통화','숫자 형식','색상 테마','순위','영화','국내','해외','전 세계','재무 분석','전 세계 박스오피스','제작 및 VFX','마케팅 및 배급','출연진 및 제작진 급여','스트리밍 및 미디어 판권','상품 및 게임','재무 회수','보고됨','BoxOfficeX 분석','비공개','금액','데이터 상태','상세 수치 보기','재무 항목 / 시장','라이트','자동','정확한 숫자','글로벌 박스오피스 순위','언어'],
+ fr:['Devise','Format numérique','Thème de couleur','Rang','Film','National','International','Mondial','Analyse financière','Box-office mondial','Production et VFX','Marketing et distribution','Salaires des acteurs et équipes','Droits de diffusion et médias','Produits dérivés et jeux','Recouvrement financier','Rapporté','Analyse BoxOfficeX','Non divulgué','Montant','Statut des données','Voir les chiffres détaillés','Poste financier / marché','Clair','Automatique','Chiffres exacts','Classement mondial du box-office','Langue'],
+ es:['Moneda','Formato numérico','Tema de color','Puesto','Película','Nacional','Internacional','Mundial','Análisis financiero','Taquilla mundial','Producción y VFX','Marketing y distribución','Salarios del elenco y equipo','Derechos de streaming y medios','Mercancía y videojuegos','Recuperación financiera','Reportado','Análisis de BoxOfficeX','No divulgado','Importe','Estado de los datos','Ver cifras detalladas','Concepto financiero / mercado','Claro','Automático','Cifras exactas','Clasificación mundial de taquilla','Idioma'],
+ de:['Währung','Zahlenformat','Farbschema','Rang','Film','Inland','International','Weltweit','Finanzanalyse','Weltweites Einspielergebnis','Produktion & VFX','Marketing & Vertrieb','Gagen von Besetzung und Team','Streaming- und Medienrechte','Fanartikel und Spiele','Finanzielle Amortisation','Gemeldet','BoxOfficeX-Analyse','Nicht veröffentlicht','Betrag','Datenstatus','Details anzeigen','Finanzposten / Markt','Hell','Automatisch','Genaue Zahlen','Weltweite Kino-Rangliste','Sprache'],
+ ar:['العملة','تنسيق الأرقام','سمة الألوان','الترتيب','الفيلم','محلي','دولي','عالمي','التحليل المالي','شباك التذاكر العالمي','الإنتاج والمؤثرات','التسويق والتوزيع','أجور الممثلين والطاقم','حقوق البث والإعلام','المنتجات والألعاب','الاسترداد المالي','تم الإبلاغ','تحليل BoxOfficeX','غير معلن','المبلغ','حالة البيانات','عرض التفاصيل','البند المالي / السوق','فاتح','تلقائي','أرقام دقيقة','تصنيف شباك التذاكر العالمي','اللغة'],
+ pt:['Moeda','Formato numérico','Tema de cores','Posição','Filme','Doméstico','Internacional','Mundial','Análise financeira','Bilheteria mundial','Produção e VFX','Marketing e distribuição','Salários do elenco e equipe','Direitos de streaming e mídia','Produtos e jogos','Recuperação financeira','Reportado','Análise BoxOfficeX','Não divulgado','Valor','Status dos dados','Ver números detalhados','Item financeiro / mercado','Claro','Automático','Números exatos','Ranking mundial de bilheteria','Idioma']
+};
+const extra={
+ en:{'movies':'movies','original figures':'original figures','reported':'reported','entries':'entries'},
+ ta:{'movies':'திரைப்படங்கள்','original figures':'அசல் தொகைகள்','reported':'அறிவிக்கப்பட்டது','entries':'பதிவுகள்'},
+ hi:{'movies':'फ़िल्में','original figures':'मूल आंकड़े','reported':'रिपोर्ट किए गए','entries':'प्रविष्टियाँ'},
+ ms:{'movies':'filem','original figures':'angka asal','reported':'dilaporkan','entries':'entri'},
+ es:{'movies':'películas','original figures':'cifras originales','reported':'reportados','entries':'entradas'},
+ fr:{'movies':'films','original figures':'chiffres originaux','reported':'rapportés','entries':'entrées'}
+};
+function translation(text,lang){
+ if(lang==='en')return text;
+ const dict=words[lang];if(!dict)return text;
+ let result=text;
+ // Replace longest phrases first; never translate raw figures or URLs.
+ const pairs=keys.map((k,i)=>[k,dict[i]]).filter(x=>x[1]).sort((a,b)=>b[0].length-a[0].length);
+ for(const [a,b] of pairs){const escaped=a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');result=result.replace(new RegExp('(^|[^A-Za-z])('+escaped+')(?=$|[^A-Za-z])','gi'),(all,lead)=>lead+b)}
+ for(const [a,b] of Object.entries(extra[lang]||{})){result=result.replace(new RegExp('\\b'+a+'\\b','gi'),b)}
+ return result;
+}
+const orig=new WeakMap();
+function translate(root,lang){
+ const skip='script,style,select,option,.bx-fx-money,.bx-fx-currency,.bx-fx-units,.bx-fx-theme,.bx-block-language';
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;
+ while(n=walker.nextNode()){
+  const el=n.parentElement;if(!el||el.closest(skip))continue;
+  if(!orig.has(n))orig.set(n,n.nodeValue);
+  const original=orig.get(n);
+  if(!original.trim())continue;
+  n.nodeValue=translation(original,lang);
+ }
+ root.dataset.bxLanguage=lang;
+}
+function init(root){
+ if(root.dataset.bxLangReady)return;
+ const picker=root.querySelector('.bx-block-language');if(!picker)return;
+ root.dataset.bxLangReady='1';
+ picker.innerHTML=LANGS.map(([code,name])=>'<option value="'+code+'">'+name+'</option>').join('');
+ let lang='en';try{lang=localStorage.getItem('boxofficex_block_language')||'en'}catch(e){}
+ if(!LANGS.some(([code])=>code===lang))lang='en';
+ picker.value=lang;translate(root,lang);
+}
+document.addEventListener('change',e=>{
+ if(!e.target.matches('.bx-block-language'))return;
+ const root=e.target.closest('.bx-financial');if(!root)return;
+ const lang=e.target.value;
+ try{localStorage.setItem('boxofficex_block_language',lang)}catch(err){}
+ document.querySelectorAll('.bx-financial .bx-block-language').forEach(p=>{p.value=lang;translate(p.closest('.bx-financial'),lang)});
+});
+function scan(){document.querySelectorAll('.bx-financial:not([data-bx-lang-ready])').forEach(init)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan);else scan();
+const obs=new MutationObserver(mutations=>{if(mutations.some(m=>m.addedNodes.length))scan()});
+obs.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
 <style id="bx-final-header-layout-fix-v4">
@@ -9479,4 +9870,70 @@ background:rgba(255,255,255,.94)!important;color:#111827!important;font:900 8px/
 .bx-adv-rem-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;font-size:11px;color:#64748b}
 .bx-adv-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}.bx-adv-dot.allocated{background:#2563eb}.bx-adv-dot.remaining{background:#f4b647}
 @media(max-width:600px){.bx-advance .bx-adv-remainder-v2{padding:12px}.bx-adv-rem-amount{font-size:16px!important}.bx-adv-rem-head strong{font-size:12px}}
+
+
+/* Financial Explorer article-only premium layout.
+   :has() activates ONLY when this article contains a Financial Explorer. */
+body:has(.article-content .bx-financial) .article-shell{
+ width:min(1320px,calc(100% - 44px))!important;
+}
+body:has(.article-content .bx-financial) .article-layout{
+ max-width:1240px!important;
+}
+body:has(.article-content .bx-financial) .article-content{
+ width:100%!important;
+ max-width:1180px!important;
+}
+body:has(.article-content .bx-financial) .article-top{
+ max-width:1100px!important;
+ border:1px solid rgba(125,160,240,.16);
+ background:linear-gradient(135deg,rgba(42,70,120,.14),rgba(15,23,42,.03));
+ border-radius:24px;
+ padding:clamp(18px,3vw,36px);
+}
+body:has(.article-content .bx-financial) .article-top h1{
+ font-size:clamp(30px,4.2vw,56px);
+ line-height:1.12;
+ letter-spacing:-.035em;
+}
+body:has(.article-content .bx-financial) .article-content > p,
+body:has(.article-content .bx-financial) .article-content > h2,
+body:has(.article-content .bx-financial) .article-content > h3,
+body:has(.article-content .bx-financial) .article-content > ul,
+body:has(.article-content .bx-financial) .article-content > ol{
+ max-width:850px;
+ margin-left:auto;
+ margin-right:auto;
+}
+body:has(.article-content .bx-financial) .article-content > p{
+ font-family:inherit!important;
+ font-size:clamp(16px,1.6vw,19px)!important;
+ line-height:1.75!important;
+}
+body:has(.article-content .bx-financial) .article-content .bx-financial{
+ width:100%;
+ max-width:none!important;
+ margin:28px auto 34px;
+ box-shadow:0 20px 60px rgba(0,0,0,.16);
+}
+body:has(.article-content .bx-financial) .article-content .bx-fx-hero{
+ padding:clamp(18px,3vw,38px);
+}
+@media(max-width:700px){
+ body:has(.article-content .bx-financial) .article-shell{
+  width:100%!important;padding-left:10px!important;padding-right:10px!important;
+ }
+ body:has(.article-content .bx-financial) .article-top{
+  border-radius:16px;padding:16px;
+ }
+ body:has(.article-content .bx-financial) .article-content{
+  width:100%!important;max-width:100%!important;
+ }
+ body:has(.article-content .bx-financial) .article-content .bx-financial{
+  margin:18px 0 26px;
+ }
+}
+
+
+.bx-ranking-scroll{overflow-x:auto;padding:12px 16px 24px}.bx-ranking-table{width:100%;border-collapse:separate;border-spacing:0 7px;min-width:690px}.bx-ranking-table th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:12px;opacity:.7}.bx-ranking-table td{padding:16px 12px;background:rgba(105,133,201,.09);border-top:1px solid rgba(155,177,224,.12);border-bottom:1px solid rgba(155,177,224,.12)}.bx-ranking-table tr td:first-child{border-radius:12px 0 0 12px}.bx-ranking-table tr td:last-child{border-radius:0 12px 12px 0}.bx-ranking-table td small{display:block;opacity:.7;margin-top:4px}.bx-ranking-table a{color:#71b8ff;text-decoration:none}.bx-ranking-table a:hover{text-decoration:underline}.bx-ranking-rank{font-weight:850;font-size:18px;color:#f3bb57}
 </style>

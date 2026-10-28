@@ -1100,6 +1100,8 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button data-add="auto_live_tracker">⚡ Automatic Live Tracker</button>
 <button data-add="pre_release_business">💰 Pre-Release Business</button>
 <button data-add="salary_details">💵 Salary Details</button>
+<button data-add="movie_financial_explorer">🌍 Financial Explorer</button>
+<button data-add="global_boxoffice_rankings">🏆 Global Rankings</button>
 <button data-add="table">Table</button>
 <button data-add="gallery">Gallery</button>
 <button data-add="movie">Movie</button>
@@ -1593,6 +1595,17 @@ people:[{name:"",department:"Actor",role:"",salary:null,profit_share:null,other_
 fixed_salary_total:null,
 note:""
 };
+if(type==="movie_financial_explorer")base.extra_data={
+version:1,
+movie:{title:"",year:null,country:"",industry:""},
+base_currency:"USD",
+financials:{
+worldwide_box_office:[],production:[],marketing:[],cast_salaries:[],
+streaming_rights:[],merchandise:[],profit_analysis:[]
+},
+disclaimer_enabled:true
+};
+if(type==="global_boxoffice_rankings")base.extra_data={version:1,title:"Top 20 Highest-Grossing Malaysian Movies",subtitle:"All-time box office rankings",territory:"Malaysia",metric:"worldwide",count:20,base_currency:"MYR",movies:[]};
 if(type==="table")base.extra_data={
 headers:[],
 rows:[]
@@ -2485,6 +2498,49 @@ ${articleFormatToolsHTML(i)}
 <textarea data-field="content">${articleContentEsc(b.content??"")}</textarea>
 <div class="article-format-note">Tip: select words before Bold/Italic. For lists, select one item per line, then press Numbered List or Bullet List.</div>`;
 }
+if(b.block_type==="global_boxoffice_rankings"){
+const r=b.extra_data=b.extra_data||{};
+const safe=v=>articleContentEsc(String(v??""));
+const rows=Array.isArray(r.movies)?r.movies:[];
+body=`<div class="note">Reusable global rankings. Paste the Financial Explorer article URL for each movie. No movie ID is needed. Leave the URL blank to display plain text. Enter original reported amounts. Missing amounts remain blank; illustrative scenarios are excluded from rankings.</div>
+<div class="block-row"><div><label>Ranking title</label><input data-rank-prop="title" value="${safe(r.title)}"></div><div><label>Subtitle</label><input data-rank-prop="subtitle" value="${safe(r.subtitle)}"></div><div><label>Territory / country</label><input data-rank-prop="territory" value="${safe(r.territory)}"></div><div><label>Show first N movies (0 = all)</label><input type="number" min="0" data-rank-prop="count" value="${safe(r.count??20)}"></div><div><label>Ranking metric</label><select data-rank-prop="metric">${["worldwide","domestic","international"].map(k=>`<option value="${k}" ${r.metric===k?"selected":""}>${k}</option>`).join("")}</select></div><div><label>Default currency</label><select data-rank-prop="base_currency">${["USD","MYR","SGD","INR","EUR","GBP","JPY","KRW","CNY","AUD"].map(k=>`<option value="${k}" ${r.base_currency===k?"selected":""}>${k}</option>`).join("")}</select></div></div>
+<div style="margin:12px 0"><button type="button" class="btn-dark" data-rank-add>+ Add movie</button></div>
+${rows.map((m,j)=>`<div style="padding:12px;margin:8px 0;border:1px solid #29334d;border-radius:12px"><div class="block-row"><div><label>Movie name</label><input data-rank-row="${j}" data-rank-field="title" value="${safe(m.title)}"></div><div><label>Financial Article URL</label><input type="text" placeholder="/article/movie-financial-report" data-rank-row="${j}" data-rank-field="financial_article_url" value="${safe(m.financial_article_url|| (m.financial_article_slug ? "/article/"+m.financial_article_slug : ""))}"></div><div><label>Year</label><input type="number" data-rank-row="${j}" data-rank-field="year" value="${safe(m.year??"")}"></div><div><label>Currency</label><input maxlength="3" data-rank-row="${j}" data-rank-field="currency" value="${safe(m.currency||r.base_currency||"USD")}"></div><div><label>Domestic amount</label><input type="number" step="any" data-rank-row="${j}" data-rank-field="domestic" value="${safe(m.domestic??"")}"></div><div><label>International amount</label><input type="number" step="any" data-rank-row="${j}" data-rank-field="international" value="${safe(m.international??"")}"></div><div><label>Worldwide amount</label><input type="number" step="any" data-rank-row="${j}" data-rank-field="worldwide" value="${safe(m.worldwide??"")}"></div><div><label>Data status</label><select data-rank-row="${j}" data-rank-field="status">${["reported","analysis","scenario","not_disclosed"].map(k=>`<option value="${k}" ${m.status===k?"selected":""}>${k}</option>`).join("")}</select></div></div><button type="button" class="btn-dark" data-rank-delete="${j}">Remove movie</button></div>`).join("")}`;
+}
+if(b.block_type==="movie_financial_explorer"){
+const fx=b.extra_data=b.extra_data||{};
+fx.movie=fx.movie||{};
+fx.financials=fx.financials||{};
+const groups=[
+["worldwide_box_office","Worldwide Box Office"],
+["production","Production Costs"],["marketing","Marketing"],
+["cast_salaries","Cast & Crew Salaries"],["streaming_rights","OTT / Rights"],
+["merchandise","Merchandise / Licensing"],["profit_analysis","Profit Analysis"]
+];
+const esc=v=>articleContentEsc(String(v??""));
+body=`<div class="block-row">
+<div><label>Movie title</label><input data-fx-movie="title" value="${esc(fx.movie.title)}"></div>
+<div><label>Release year</label><input type="number" min="1888" max="2200" data-fx-movie="year" value="${esc(fx.movie.year??"")}"></div>
+<div><label>Country</label><input data-fx-movie="country" value="${esc(fx.movie.country)}"></div>
+<div><label>Industry</label><input data-fx-movie="industry" value="${esc(fx.movie.industry)}"></div>
+<div><label>Base currency</label><select data-fx-currency>${["USD","INR","MYR","SGD","PKR","GBP","EUR","JPY","KRW","CNY","AED","AUD"].map(c=>`<option value="${c}" ${fx.base_currency===c?"selected":""}>${c}</option>`).join("")}</select></div>
+</div><div class="note">Enter exact amounts in their ORIGINAL currency. No exchange conversion or profit calculation is performed in this editor yet.</div>
+${groups.map(([key,label])=>{
+const rows=Array.isArray(fx.financials[key])?fx.financials[key]:[];
+return `<section style="margin-top:16px;padding:12px;border:1px solid #29334d;border-radius:12px">
+<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong>${label}</strong><button type="button" class="btn-dark" data-fx-add="${key}">+ Add row</button></div>
+${rows.map((r,j)=>`<div style="margin-top:10px;padding:10px;background:#101725;border-radius:10px">
+<div class="block-row">
+<div><label>Label / Person / Territory</label><input data-fx-key="${key}" data-fx-index="${j}" data-fx-field="label" value="${esc(r.label)}"></div>
+<div><label>Amount</label><input type="number" min="0" step="any" data-fx-key="${key}" data-fx-index="${j}" data-fx-field="amount" value="${esc(r.amount??"")}"></div>
+<div><label>Currency</label><input maxlength="3" data-fx-key="${key}" data-fx-index="${j}" data-fx-field="currency" value="${esc(r.currency||fx.base_currency||"USD")}"></div>
+<div><label>Evidence status</label><select data-fx-key="${key}" data-fx-index="${j}" data-fx-field="status">${["reported","analysis","scenario","not_disclosed"].map(v=>`<option value="${v}" ${r.status===v?"selected":""}>${v.replaceAll("_"," ")}</option>`).join("")}</select></div>
+<div><label>Source URL</label><input type="url" data-fx-key="${key}" data-fx-index="${j}" data-fx-field="source_url" value="${esc(r.source_url)}"></div>
+<div><label>Source / update date</label><input type="date" data-fx-key="${key}" data-fx-index="${j}" data-fx-field="source_date" value="${esc(r.source_date)}"></div>
+</div><button type="button" class="btn-red" style="margin-top:8px" data-fx-remove="${key}" data-fx-row="${j}">Remove row</button></div>`).join("")}
+</section>`}).join("")}
+<label style="margin-top:12px"><input type="checkbox" style="width:auto" data-fx-disclaimer ${fx.disclaimer_enabled!==false?"checked":""}> Show financial disclaimer</label>`;
+}
 if(b.block_type==="image"){
 body=`<div class="block-row"><div><label>Image filename</label><input data-field="image" value="${b.image??""}"></div><div><label>Upload</label><input type="file" data-upload accept="image/jpeg,image/png,image/webp"></div></div><div class="block-row" style="margin-top:9px"><div><label>Caption</label><input data-field="image_caption" value="${b.image_caption??""}"></div><div><label>Credit</label><input data-field="image_credit" value="${b.image_credit??""}"></div></div><div class="media-preview"><img src="${mediaUrl(b.image)}" onerror="this.onerror=null;this.src='${ARTICLE_FALLBACK}'"></div>`;
 }
@@ -2815,6 +2871,40 @@ card.innerHTML=`<div class="block-top"><span class="block-type">${b.block_order}
 card.querySelector("[data-up]").onclick=()=>moveBlock(i,-1);
 card.querySelector("[data-down]").onclick=()=>moveBlock(i,1);
 card.querySelector("[data-remove]").onclick=()=>removeBlock(i);
+if(b.block_type==="global_boxoffice_rankings"){
+const r=b.extra_data;
+card.querySelectorAll("[data-rank-prop]").forEach(el=>el.addEventListener("change",()=>{const k=el.dataset.rankProp;r[k]=k==="count"?Math.max(0,Number(el.value)||0):el.value;}));
+card.querySelectorAll("[data-rank-row]").forEach(el=>el.addEventListener("change",()=>{const row=r.movies[Number(el.dataset.rankRow)],k=el.dataset.rankField;if(!row)return;row[k]=["movie_id","year","domestic","international","worldwide"].includes(k)?(el.value===""?null:Number(el.value)):el.value;}));
+card.querySelector("[data-rank-add]").onclick=()=>{r.movies=Array.isArray(r.movies)?r.movies:[];r.movies.push({title:"",year:null,financial_article_url:"",currency:r.base_currency||"USD",domestic:null,international:null,worldwide:null,status:"reported"});renderBlocks();};
+card.querySelectorAll("[data-rank-delete]").forEach(el=>el.onclick=()=>{r.movies.splice(Number(el.dataset.rankDelete),1);renderBlocks();});
+}
+if(b.block_type==="movie_financial_explorer"){
+const fx=b.extra_data;
+card.querySelectorAll("[data-fx-movie]").forEach(el=>el.oninput=()=>{
+const k=el.dataset.fxMovie;fx.movie[k]=k==="year"?(el.value===""?null:Number(el.value)):el.value;
+});
+const cur=card.querySelector("[data-fx-currency]");
+if(cur)cur.onchange=()=>{fx.base_currency=cur.value};
+card.querySelectorAll("[data-fx-add]").forEach(el=>el.onclick=()=>{
+const key=el.dataset.fxAdd;fx.financials[key]=Array.isArray(fx.financials[key])?fx.financials[key]:[];
+fx.financials[key].push({label:"",amount:null,currency:fx.base_currency||"USD",status:"not_disclosed",source_url:"",source_date:""});
+renderBlocks();
+});
+card.querySelectorAll("[data-fx-remove]").forEach(el=>el.onclick=()=>{
+fx.financials[el.dataset.fxRemove].splice(Number(el.dataset.fxRow),1);renderBlocks();
+});
+card.querySelectorAll("[data-fx-key]").forEach(el=>{
+const update=()=>{
+const row=fx.financials[el.dataset.fxKey]?.[Number(el.dataset.fxIndex)];
+if(!row)return;
+const field=el.dataset.fxField;
+row[field]=field==="amount"?(el.value===""?null:Math.max(0,Number(el.value))):field==="currency"?el.value.trim().toUpperCase():el.value;
+};
+el.addEventListener("input",update);el.addEventListener("change",update);
+});
+const disclaimer=card.querySelector("[data-fx-disclaimer]");
+if(disclaimer)disclaimer.onchange=()=>{fx.disclaimer_enabled=disclaimer.checked};
+}
 card.querySelectorAll("[data-field]").forEach(el=>el.oninput=()=>updateBlock(i,el.dataset.field,el.value));
 card.querySelectorAll("[data-article-format]").forEach(btn=>{
 btn.onmousedown=e=>e.preventDefault();

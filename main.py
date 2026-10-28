@@ -13366,6 +13366,101 @@ def _article_ssr_salary_details(data, article=None):
             f'{f"<p class=\"bx-salary-note\"><strong>BoxOfficeX Note:</strong> {html_escape(note)}</p>" if note else ""}'
             f'<p class="bx-salary-note"><strong>Disclaimer:</strong> {html_escape(disclaimer)}</p></section>')
 
+
+# Global Financial Explorer: source-currency values only, never inferred FX rates.
+_BX_FX_SYMBOLS = {
+    "USD": "$", "INR": "₹", "MYR": "RM", "SGD": "S$", "PKR": "Rs ",
+    "GBP": "£", "EUR": "€", "JPY": "¥", "KRW": "₩",
+    "CNY": "CN¥", "AED": "د.إ ", "AUD": "A$",
+}
+_BX_FX_GROUPS = (
+    ("worldwide_box_office", "Worldwide & Territory Box Office"),
+    ("production", "Production Costs"),
+    ("marketing", "Marketing & Promotion"),
+    ("cast_salaries", "Cast & Crew Salaries"),
+    ("streaming_rights", "OTT, Television & Other Rights"),
+    ("merchandise", "Merchandise & Licensing"),
+    ("profit_analysis", "Financial Recovery & Analysis"),
+)
+
+def _bx_fx_money(value, currency):
+    from decimal import Decimal, InvalidOperation
+    try:
+        number = Decimal(str(value))
+        if not number.is_finite() or number < 0:
+            return "Not disclosed"
+    except (InvalidOperation, TypeError, ValueError):
+        return "Not disclosed"
+    code = str(currency or "USD").upper()
+    symbol = _BX_FX_SYMBOLS.get(code, code + " ")
+    indian = code in {"INR", "PKR"}
+    scales = ((Decimal("10000000"), "Crore"), (Decimal("100000"), "Lakh"), (Decimal("1000"), "Thousand")) if indian else (
+        (Decimal("1000000000000"), "Trillion"), (Decimal("1000000000"), "Billion"),
+        (Decimal("1000000"), "Million"), (Decimal("1000"), "Thousand"))
+    for divisor, unit in scales:
+        if number >= divisor:
+            return f"{symbol}{number / divisor:,.2f} {unit}"
+    return f"{symbol}{number:,.2f}".rstrip("0").rstrip(".")
+
+def _article_ssr_financial_explorer(data):
+    if not isinstance(data, dict):
+        return ""
+    movie = data.get("movie") if isinstance(data.get("movie"), dict) else {}
+    groups = data.get("financials") if isinstance(data.get("financials"), dict) else {}
+    base = str(data.get("base_currency") or "USD").upper()
+    sections = []
+    cards = []
+    for key, title in _BX_FX_GROUPS:
+        rows = groups.get(key)
+        if not isinstance(rows, list) or not rows:
+            continue
+        rendered_rows = []
+        for row in rows[:300]:
+            if not isinstance(row, dict):
+                continue
+            label = html_escape(str(row.get("label") or "Unspecified"))
+            code = str(row.get("currency") or base).upper()
+            amount = row.get("amount")
+            money = "Not disclosed" if amount is None or amount == "" else _bx_fx_money(amount, code)
+            status = str(row.get("status") or "not_disclosed").replace("_", " ").title()
+            rendered_rows.append(
+                f'<tr><td>{label}</td><td>{html_escape(money)}</td>'
+                f'<td>{html_escape(status)}</td></tr>'
+            )
+            if key == "worldwide_box_office" and len(cards) < 4:
+                cards.append(
+                    '<div class="bx-fx-card"><small>' + label + '</small>'
+                    '<strong>' + html_escape(money) + '</strong>'
+                    '<span>' + html_escape(code) + '</span></div>'
+                )
+        if rendered_rows:
+            sections.append(
+                '<section class="bx-fx-section"><h3>' + html_escape(title) + '</h3>'
+                '<div class="bx-fx-scroll"><table><thead><tr><th>Item / Market</th>'
+                '<th>Amount</th><th>Status</th></tr></thead><tbody>'
+                + "".join(rendered_rows) + '</tbody></table></div></section>'
+            )
+    if not sections:
+        return ""
+    title = str(movie.get("title") or "Movie")
+    year = str(movie.get("year") or "")
+    subtitle = " · ".join(str(movie.get(k) or "") for k in ("country", "industry") if movie.get(k))
+    disclaimer = (
+        '<div class="bx-fx-note">Reported figures, BoxOfficeX analysis and illustrative '
+        'scenarios are identified separately. Worldwide theatrical gross is not studio profit. '
+        'Financial figures may reflect different sources and reporting dates. '
+        'Amounts are shown in their original currencies.</div>'
+        if data.get("disclaimer_enabled", True) else ""
+    )
+    return (
+        '<section class="bx-financial bx-fx-ssr" data-ssr="1" aria-label="Movie financial explorer">'
+        '<h2>' + html_escape(title) + ' Financial Explorer'
+        + (' (' + html_escape(year) + ')' if year else '') + '</h2>'
+        + ('<p>' + html_escape(subtitle) + '</p>' if subtitle else '')
+        + ('<div class="bx-fx-cards">' + "".join(cards) + '</div>' if cards else '')
+        + "".join(sections) + disclaimer + '</section>'
+    )
+
 def _article_ssr_block(block, article=None):
     block_type = str(block.get("block_type") or "").lower()
     data = block.get("extra_data") or {}
@@ -13438,6 +13533,8 @@ def _article_ssr_block(block, article=None):
             release_date=release_date,
             movie_title=movie_title,
         )
+    if block_type == "movie_financial_explorer":
+        return _article_ssr_financial_explorer(data)
     if block_type == "pre_release_business":
         return _article_ssr_pre_release_business(data, article=article)
     if block_type == "salary_details":
@@ -16080,6 +16177,33 @@ def _public_article_boxoffice_extra(extra):
     return result
 
 
+
+# Global ranking movie links: only published financial reports qualify.
+# No title guessing and no outbound destinations.
+@app.get("/api/global-financial-links")
+def global_financial_links():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT am.movie_id, a.slug
+                FROM article_movies am
+                JOIN articles a ON a.id = am.article_id
+                WHERE a.status = 'published'
+                  AND EXISTS (
+                    SELECT 1 FROM article_blocks ab
+                    WHERE ab.article_id = a.id
+                      AND ab.block_type = 'movie_financial_explorer'
+                  )
+                ORDER BY am.movie_id, a.published_at DESC NULLS LAST, a.id DESC
+            """)
+            rows = cur.fetchall()
+    links = {}
+    for movie_id, slug in rows:
+        key = str(movie_id)
+        if key not in links:
+            links[key] = "/article/" + quote(str(slug), safe="")
+    return {"links": links}
+
 @app.get("/articles/{slug}/blocks")
 def get_article_blocks(slug: str):
     with get_connection() as conn:
@@ -16700,7 +16824,8 @@ def validate_block_type(value: str) -> str:
     allowed = {
         "paragraph", "heading", "image", "quote", "gallery",
         "boxoffice", "movie", "actor", "video", "table", "live_tracker", "auto_live_tracker",
-        "pre_release_business", "salary_details", "advance_booking",
+        "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer",
+        "global_boxoffice_rankings",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
@@ -16760,7 +16885,7 @@ def ensure_live_tracker_article_block_type():
             constraint_def = constraint_row[0] if constraint_row else ""
             constraint_def_lower = constraint_def.lower()
 
-            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking")
+            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer")
             if all(block_type in constraint_def_lower for block_type in required_types):
                 return
 
@@ -16788,7 +16913,8 @@ def ensure_live_tracker_article_block_type():
                         'auto_live_tracker',
                         'pre_release_business',
                         'salary_details',
-                        'advance_booking'
+                        'advance_booking',
+                        'movie_financial_explorer'
                     )
                 )
             """)
