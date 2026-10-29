@@ -14854,9 +14854,17 @@ def _render_article_detail_html(slug):
     category = str(article.get("category") or "Movies & Box Office")
     hero_missing = not str(article.get("hero_image") or "").strip()
     hero = _article_ssr_image(article.get("hero_image")) if not hero_missing else _article_ssr_hero_placeholder(title, "ARTICLE")
-    hero_abs = hero if hero.startswith(("http://", "https://")) else f"https://boxofficex.in{hero}"
-    if not hero_abs.startswith(("https://", "http://")) or "data:" in hero_abs:
-        hero_abs = "https://boxofficex.in/images/boxofficex-og.png"
+    # Social previews and structured data require a public HTTP(S) image.
+    # The generated SVG data URI remains available for the visible article hero.
+    social_fallback = "https://boxofficex.in/images/boxofficex-share.jpg"
+    if hero.startswith(("https://", "http://")):
+        hero_abs = hero
+    elif hero.startswith("/") and not hero.startswith("//"):
+        hero_abs = f"https://boxofficex.in{hero}"
+    else:
+        hero_abs = social_fallback
+    if "data:" in hero_abs.lower():
+        hero_abs = social_fallback
 
     published = article.get("published_at") or article.get("created_at")
     modified = article.get("updated_at") or published
