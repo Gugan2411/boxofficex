@@ -11957,7 +11957,7 @@ def _article_ssr_hero_placeholder(title="Cinema Article", category="ARTICLE"):
     return "data:image/svg+xml;charset=UTF-8," + _quote(svg, safe="")
 
 
-def _article_ssr_image(value, fallback="/images/boxofficex-og.png"):
+def _article_ssr_image(value, fallback="/images/boxofficex-share.jpg"):
     value = str(value or "").strip()
     if not value:
         return fallback
@@ -13461,11 +13461,102 @@ def _article_ssr_financial_explorer(data):
         + "".join(sections) + disclaimer + '</section>'
     )
 
+def _bx_ssr_data_table(title, records, columns=None):
+    """Crawlable HTML for published structured article data."""
+    if not isinstance(records, list) or not records:
+        return ""
+    records = [r for r in records if isinstance(r, dict)]
+    if not records:
+        return ""
+    columns = columns or [k for k in records[0] if not str(k).startswith("_")]
+    columns = [k for k in columns if any(r.get(k) is not None and r.get(k) != "" for r in records)]
+    if not columns:
+        return ""
+    def cell(value):
+        if isinstance(value, (dict, list)):
+            return ""
+        return html_escape(str(value)) if value is not None else ""
+    head = "".join(f'<th scope="col">{html_escape(str(k).replace("_", " ").title())}</th>' for k in columns)
+    body = "".join('<tr>' + ''.join(f'<td>{cell(row.get(k))}</td>' for k in columns) + '</tr>' for row in records)
+    return (f'<section class="bx-structured-ssr"><h3>{html_escape(title)}</h3>'
+            '<div class="article-table-scroll" role="region" tabindex="0">'
+            f'<table class="article-data-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
+            '</div></section>')
+
+
+def _bx_ssr_data_facts(title, facts):
+    if not isinstance(facts, dict):
+        return ""
+    rows = []
+    for key, value in facts.items():
+        if str(key).startswith("_") or value is None or value == "" or isinstance(value, (dict, list)):
+            continue
+        rows.append((key, value))
+    if not rows:
+        return ""
+    body = "".join('<div class="bx-ssr-fact"><dt>' + html_escape(str(k).replace('_', ' ').title())
+                   + '</dt><dd>' + html_escape(str(v)) + '</dd></div>' for k, v in rows)
+    return f'<section class="bx-structured-ssr"><h3>{html_escape(title)}</h3><dl>{body}</dl></section>'
+
+
+def _bx_ssr_special_block(block_type, data):
+    """Initial HTML for Gaming V3 and worldwide ranking blocks; JS enhances later."""
+    if not isinstance(data, dict):
+        return ""
+    if block_type == "global_boxoffice_rankings":
+        base = str(data.get("base_currency") or "USD").upper()
+        metric = data.get("metric") if data.get("metric") in ("worldwide", "domestic", "international") else "worldwide"
+        movies = [m for m in (data.get("movies") or []) if isinstance(m, dict)
+                  and m.get("status") not in ("scenario", "not_disclosed")
+                  and str(m.get("currency") or base).upper() == base]
+        def numeric(m):
+            try:
+                v = m.get(metric)
+                return float(v) if v is not None and v != "" else -1
+            except (ValueError, TypeError):
+                return -1
+        movies = sorted([m for m in movies if numeric(m) >= 0], key=numeric, reverse=True)
+        try:
+            count = int(data.get("count") or 0)
+        except (ValueError, TypeError):
+            count = 0
+        if count > 0:
+            movies = movies[:count]
+        rows = [{"rank": i, "title": m.get("title") or m.get("name"), "year": m.get("year"),
+                 "worldwide": m.get("worldwide"), "domestic": m.get("domestic"),
+                 "international": m.get("international"), "currency": base}
+                for i, m in enumerate(movies, 1)]
+        return ('<section class="bx-global-rankings-ssr" data-ssr="1"><h2>'
+                + html_escape(str(data.get("title") or "Global Box Office Rankings")) + '</h2>'
+                + _bx_ssr_data_table("Ranked movies", rows,
+                                     ["rank", "title", "year", "worldwide", "domestic", "international", "currency"])
+                + '</section>')
+    if block_type == "gaming":
+        sections = data.get("sections") if isinstance(data.get("sections"), dict) else {}
+        parts = ['<section class="bx-gaming-ssr" data-ssr="1"><h2>Game Information and Financial Report</h2>']
+        for key, title in (("game", "Game details"), ("financials", "Game financials"),
+                           ("verification", "Data verification")):
+            if sections.get(key) is not False:
+                parts.append(_bx_ssr_data_facts(title, data.get(key)))
+        for key, title in (("sales_history", "Sales history"), ("country_sales", "Country sales"),
+                           ("platform_sales", "Platform sales"), ("benchmarks", "Performance benchmarks"),
+                           ("release_schedule", "Release schedule"), ("player_stats", "Player statistics"),
+                           ("price_history", "Price history"), ("dlc_sales", "Expansion sales"),
+                           ("rankings", "Game rankings"), ("sources", "Sources")):
+            if sections.get(key) is not False:
+                parts.append(_bx_ssr_data_table(title, data.get(key)))
+        parts.append('</section>')
+        return ''.join(parts)
+    return ""
+
+
 def _article_ssr_block(block, article=None):
     block_type = str(block.get("block_type") or "").lower()
     data = block.get("extra_data") or {}
     content = block.get("content") or ""
 
+    if block_type in {"gaming", "global_boxoffice_rankings"}:
+        return _bx_ssr_special_block(block_type, data)
     if block_type == "paragraph":
         return _article_ssr_paragraph(content)
     if block_type == "heading":
@@ -14482,19 +14573,15 @@ def _article_seo_faq_items(article):
                 except (TypeError, ValueError):
                     pass
 
-    # Normal editorial articles still get useful, source-grounded FAQ only when
-    # the article itself supplies enough metadata to answer it.
-    category = str(article.get("category") or "").strip()
-    if not items and category:
-        items.append((
-            f"What does this {movie_name} article cover?",
-            f"This BoxOfficeX article is filed under {category} and covers the information presented in the report above."
-        ))
+    # No generic FAQ filler: only publish questions supported by page data.
+    # Google structured FAQ must correspond to visible, meaningful answers.
 
     return items[:8]
 
 
 def _article_seo_faq_html(article):
+    if str(article.get("category") or "").strip().lower() == "gaming":
+        return ""
     items = _article_seo_faq_items(article)
     if not items:
         return ""
@@ -14539,6 +14626,10 @@ def _article_breadcrumb_schema(article, canonical):
 
 
 def _article_faq_schema(article):
+    # The gaming article renderer does not display the shared FAQ section.
+    # Never describe invisible FAQ content in structured data.
+    if str(article.get("category") or "").strip().lower() == "gaming":
+        return None
     items = _article_seo_faq_items(article)
     if not items:
         return None
@@ -14751,7 +14842,11 @@ def _render_article_detail_html(slug):
     description = _article_normalize_seo_text(description)
     canonical = f"https://boxofficex.in/article/{article['slug']}"
     # Fictional test articles must not be indexed even if accidentally published.
-    is_test_article = str(article.get("slug") or "") == "boxofficex-tracker-test-2026"
+    article_slug = str(article.get("slug") or "").lower()
+    is_test_article = (article_slug == "boxofficex-tracker-test-2026"
+                       or article_slug.endswith("-test")
+                       or "local-test" in article_slug
+                       or "demo-game" in article_slug)
     noindex_article = is_test_article or str(article.get("status") or "").lower() != "published"
     author = str(article.get("author") or "BoxOfficeX").strip()
     if author.casefold() == "boxofficex owner":
@@ -14760,6 +14855,8 @@ def _render_article_detail_html(slug):
     hero_missing = not str(article.get("hero_image") or "").strip()
     hero = _article_ssr_image(article.get("hero_image")) if not hero_missing else _article_ssr_hero_placeholder(title, "ARTICLE")
     hero_abs = hero if hero.startswith(("http://", "https://")) else f"https://boxofficex.in{hero}"
+    if not hero_abs.startswith(("https://", "http://")) or "data:" in hero_abs:
+        hero_abs = "https://boxofficex.in/images/boxofficex-og.png"
 
     published = article.get("published_at") or article.get("created_at")
     modified = article.get("updated_at") or published
@@ -14888,8 +14985,12 @@ def _render_article_detail_html(slug):
                 f"Article SSR SEO head injection failed for pattern: {pattern}"
             )
 
+    # Reserve NewsArticle for timely reporting; evergreen financial,
+    # ranking, and gaming reports are ordinary Article entities.
+    category_key = category.casefold()
+    is_timely_news = any(word in category_key for word in ("news", "breaking", "updates"))
     structured = {
-        "@type": "NewsArticle",
+        "@type": "NewsArticle" if is_timely_news else "Article",
         # Match the server-rendered page title and social metadata.
         "headline": seo_title,
         "description": description,
@@ -16825,7 +16926,7 @@ def validate_block_type(value: str) -> str:
         "paragraph", "heading", "image", "quote", "gallery",
         "boxoffice", "movie", "actor", "video", "table", "live_tracker", "auto_live_tracker",
         "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer",
-        "global_boxoffice_rankings",
+        "global_boxoffice_rankings", "gaming",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
@@ -16885,7 +16986,7 @@ def ensure_live_tracker_article_block_type():
             constraint_def = constraint_row[0] if constraint_row else ""
             constraint_def_lower = constraint_def.lower()
 
-            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer")
+            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer", "gaming")
             if all(block_type in constraint_def_lower for block_type in required_types):
                 return
 
@@ -16914,7 +17015,9 @@ def ensure_live_tracker_article_block_type():
                         'pre_release_business',
                         'salary_details',
                         'advance_booking',
-                        'movie_financial_explorer'
+                        'movie_financial_explorer',
+                        'global_boxoffice_rankings',
+                        'gaming'
                     )
                 )
             """)

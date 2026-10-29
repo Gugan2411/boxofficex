@@ -3532,6 +3532,29 @@ body.bx-financial-report-page .bx-explore-more{display:none!important}
 /* Language selector scoped to the two financial blocks. */
 .bx-financial .bx-lang-control{min-width:140px}
 .bx-financial .bx-block-language{max-width:100%;font:inherit}
+.bx-gaming{margin:30px 0;background:#0a1213;color:#f4fff8;border:1px solid #28463b;border-radius:20px;overflow:hidden;font-family:Arial,Helvetica,sans-serif}.bx-game-hero{position:relative;min-height:250px;background:linear-gradient(135deg,#123b30,#101d36);display:flex;align-items:flex-end}.bx-game-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}.bx-game-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#0a1213,transparent 85%)}.bx-game-hero-copy{position:relative;z-index:1;padding:24px}.bx-game-hero-copy span{font-size:11px;font-weight:900;color:var(--game-accent)}.bx-game-hero-copy h2{font-size:clamp(26px,5vw,43px);margin:9px 0;color:#fff}.bx-game-hero-copy p{color:#d8f6e5;font-family:inherit;font-size:15px}.bx-game-section{padding:20px 22px;border-top:1px solid #263d35;display:flex;flex-wrap:wrap;gap:10px}.bx-game-section h3{width:100%;color:var(--game-accent);font-size:19px;margin:0 0 6px}.bx-game-section>p{width:100%;color:#d1e5db;font-family:inherit;font-size:15px;line-height:1.7;margin:0 0 8px;white-space:pre-line}.bx-game-stat,.bx-game-spec,.bx-game-pill,.bx-game-update{padding:13px;border:1px solid #29463a;border-radius:12px;background:#11231f;flex:1 1 145px;min-width:0}.bx-game-stat small,.bx-game-pill small,.bx-game-update small{display:block;color:#9ebdaf;font-size:11px}.bx-game-stat strong{display:block;margin-top:7px;color:#fff;font-size:19px;overflow-wrap:anywhere}.bx-game-pill a,.bx-game-section>a{color:var(--game-accent)}.bx-game-spec{flex-basis:230px}.bx-game-spec pre{font:12px/1.7 monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:10px}.bx-game-update{flex-basis:220px}.bx-game-update p{font:13px/1.6 Arial,sans-serif;margin-top:8px;color:#cbded4}@media(max-width:600px){.bx-game-section{padding:15px}.bx-game-hero{min-height:220px}.bx-game-hero-copy{padding:16px}}
+
+/* Gaming V2.1 — scoped color and contrast corrections */
+.bx-gaming{--game-heading:#f5fff9;--game-body:#d8e8e0;--game-muted:#b9d0c3;--game-border:#426453;--game-custom-accent:#62e6a0;--game-accent:#62e6a0}
+.bx-gaming.bx-game-theme-custom{--game-accent:var(--game-custom-accent);--game-bg:#0c1420;--game-card:#182536;--game-border:#49617b}
+.bx-gaming.bx-game-theme-blue{--game-border:#476b90}.bx-gaming.bx-game-theme-purple{--game-border:#695080}.bx-gaming.bx-game-theme-gold{--game-border:#7a653c}
+.bx-gaming.bx-game-theme-light{--game-heading:#17382a;--game-body:#254637;--game-muted:#436755;--game-border:#b5d2c3}
+.bx-gaming .bx-game-section h3{color:var(--game-heading)!important;font-weight:900!important;font-size:clamp(20px,2.5vw,25px)!important;line-height:1.3!important;letter-spacing:-.02em!important;opacity:1!important;text-shadow:none!important;display:flex;align-items:center;gap:10px}
+.bx-gaming .bx-game-section h3:before{content:"";width:5px;height:25px;border-radius:4px;background:var(--game-accent);flex:none}
+.bx-gaming .bx-game-stat strong,.bx-gaming .bx-game-spec strong,.bx-gaming .bx-game-update strong,.bx-gaming .bx-game-pill{color:var(--game-heading)!important;opacity:1!important}
+.bx-gaming .bx-game-section>p,.bx-gaming .bx-game-update p,.bx-gaming .bx-game-spec pre,.bx-gaming .bx-game-table td{color:var(--game-body)!important;opacity:1!important}
+.bx-gaming .bx-game-stat small,.bx-gaming .bx-game-pill small,.bx-gaming .bx-game-update small{color:var(--game-muted)!important;opacity:1!important}
+.bx-gaming .bx-game-section{border-top:1px solid var(--game-border)!important}
+.bx-gaming .bx-game-stat,.bx-gaming .bx-game-spec,.bx-gaming .bx-game-pill,.bx-gaming .bx-game-update{border-color:var(--game-border)!important}
+.bx-gaming .bx-game-hero-copy h2{color:#fff!important;text-shadow:0 2px 14px #000b!important;font-weight:900!important}
+.bx-gaming .bx-game-hero-copy span{color:var(--game-accent)!important;font-weight:900!important}
+.bx-gaming .bx-game-theme,.bx-gaming .bx-game-currency,.bx-gaming .bx-game-units{color:var(--game-heading)!important;background:var(--game-card)!important;border-color:var(--game-border)!important}
+.bx-gaming .bx-game-toolbar label{color:var(--game-heading)!important}
+.bx-gaming .bx-game-table th{color:var(--game-heading)!important;background:var(--game-card)!important;font-weight:900!important}
+.bx-gaming .bx-game-bar-fill{background:var(--game-accent)!important}
+.bx-gaming .bx-game-bar-row span,.bx-gaming .bx-game-bar-row strong{color:var(--game-body)!important}
+.bx-gaming .bx-game-theme-light .bx-game-hero-copy h2{color:#fff!important}
+
 </style>
 
 <style id="bx-ad-v12-fixes">
@@ -5144,6 +5167,89 @@ html{scroll-padding-top:var(--bx-article-anchor-offset)!important}
 </style>
 <script>window.__BOXOFFICEX_ARTICLE_SSR_DATA__={"id":230,"title":"Ranabaali Day 9 Box Office Collection LIVE Updates","slug":"ranabaali-day-wise-box-office-collection-worldwide-total-region-wise-performance-breakeven","subtitle":"Track Ranabaali's Day 9 box office performance LIVE with collection updates, occupancy trends, show counts, previous days' earnings and theatrical recovery progress.","category":"Box Office","author":"BoxOfficeX Owner","hero_image":null,"hero_caption":null,"hero_credit":null,"status":"published","meta_title":"Ranabaali Day 9 Box Office LIVE: Collection & Budget","meta_description":"Ranabaali Day 9 box office collection LIVE: Check day-wise earnings, theatre occupancy, show counts, budget recovery and collection milestones.","views":22,"published_at":"2026-10-17T07:59:13.075254","created_at":"2026-10-17T07:58:54.773029","updated_at":"2026-10-24T07:34:30.374550","tracking_enabled":true,"final_h1":null,"final_subtitle":null,"final_meta_title":null,"final_meta_description":null,"tracking_finalized_at":null,"seo_mode":"auto","movie_ids":[3452],"actor_ids":[34],"movies":[{"id":3452,"title":"Ranabaali","release_date":"2026-10-16","language":"Telugu","industry":"Tollywood","url":"/movie/ranabaali-2026"}],"actors":[{"id":34,"name":"Vijay Deverakonda","url":"/actor/vijay-deverakonda"}],"blocks":[{"id":5965,"block_order":1,"block_type":"boxoffice","content":null,"image":null,"image_caption":null,"image_credit":null,"extra_data":{"days":[{"date":"2026-10-16","type":"REGULAR","label":"","kerala":0.05,"number":1,"status":"ESTIMATED_FINAL","overseas":3.98,"karnataka":0.72,"tamil_nadu":0.1,"rest_of_india":0.12,"telugu_states":6.95},{"date":"2026-10-17","type":"REGULAR","label":"","kerala":0.01,"number":2,"status":"ESTIMATED_FINAL","overseas":2.1,"karnataka":1.08,"tamil_nadu":0.17,"rest_of_india":0.25,"telugu_states":7},{"date":"2026-10-18","type":"REGULAR","label":"","kerala":0.03,"number":3,"status":"ESTIMATED_FINAL","overseas":1.5,"karnataka":1.05,"tamil_nadu":0.2,"rest_of_india":0.25,"telugu_states":7.25},{"date":"2026-10-19","type":"REGULAR","label":"","kerala":0.02,"number":4,"status":"ESTIMATED_FINAL","overseas":0.5,"karnataka":0.6,"tamil_nadu":0.15,"rest_of_india":0.1,"telugu_states":5.5},{"date":"2026-10-20","type":"REGULAR","label":"","kerala":0.01,"number":5,"status":"ESTIMATED_FINAL","overseas":0.75,"karnataka":0.87,"tamil_nadu":0.13,"rest_of_india":0.2,"telugu_states":7}],"budget":130,"verdict":"","movie_id":3452,"report_updated_at":"2026-10-21T12:36:49Z","theatrical_kerala":1.5,"theatrical_overseas":9.5,"theatrical_karnataka":4,"theatrical_worldwide":62,"theatrical_tamil_nadu":2,"theatrical_rest_of_india":8,"theatrical_telugu_states":37,"analysis":{"milestone_step":50,"budget_crore":130.0,"milestones":[],"theatrical_performance":{"model":"BOXOFFICEX_ESTIMATED_THEATRICAL_PERFORMANCE_V1","earned_worldwide_gross":48.64,"advance_excluded":true,"run_stage":{"key":"FIRST_WEEK","label":"First Week Tracking","day":5,"verdict_enabled":false},"budget":{"reported_budget":130.0,"worldwide_gross":48.64,"gross_budget_multiple":0.37,"gross_budget_percent":37.42},"combined":{"label":"Available Markets","market_count":6,"markets":["tamil_nadu","kerala","karnataka","telugu_states","rest_of_india","overseas"],"gross":48.64,"theatrical_value":62.0,"multiple":0.78,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":93.0,"remaining":44.36,"progress_percent":52.3},"atb_achieved":false,"estimated_net":42.57,"estimated_theatrical_share":20.4},"regions":{"tamil_nadu":{"key":"tamil_nadu","label":"Tamil Nadu","gross":0.75,"theatrical_value":2.0,"multiple":0.38,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":3.0,"remaining":2.25,"progress_percent":25.0},"atb_achieved":false,"estimated_net":0.64,"estimated_theatrical_share":0.32},"kerala":{"key":"kerala","label":"Kerala","gross":0.12,"theatrical_value":1.5,"multiple":0.08,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":2.25,"remaining":2.13,"progress_percent":5.33},"atb_achieved":false,"estimated_net":0.1,"estimated_theatrical_share":0.05},"karnataka":{"key":"karnataka","label":"Karnataka","gross":4.32,"theatrical_value":4.0,"multiple":1.08,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":6.0,"remaining":1.68,"progress_percent":72.0},"atb_achieved":false,"estimated_net":3.66,"estimated_theatrical_share":1.83},"telugu_states":{"key":"telugu_states","label":"AP & Telangana","gross":33.7,"theatrical_value":37.0,"multiple":0.91,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":55.5,"remaining":21.8,"progress_percent":60.72},"atb_achieved":false,"estimated_net":28.56,"estimated_theatrical_share":14.28},"rest_of_india":{"key":"rest_of_india","label":"Rest of India","gross":0.92,"theatrical_value":8.0,"multiple":0.11,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":12.0,"remaining":11.08,"progress_percent":7.67},"atb_achieved":false,"estimated_net":0.78,"estimated_theatrical_share":0.39},"overseas":{"key":"overseas","label":"Overseas","gross":8.83,"theatrical_value":9.5,"multiple":0.93,"current_level":{"key":"FLOP","label":"Flop","minimum_multiple":0.0},"next_level":{"key":"AVERAGE","label":"Average","multiple":1.5,"target_gross":14.25,"remaining":5.42,"progress_percent":61.96},"atb_achieved":false,"estimated_net":8.83,"estimated_theatrical_share":3.53}},"disclaimer":"Theatrical values, distribution rights, distributor shares and territory-wise recovery figures are based on available industry reports and estimates. Actual commercial agreements, revenue shares and final settlements are private financial information known fully only to the producers, distributors, exhibitors/theatre owners and other parties involved.","performance_note":"BoxOfficeX performance labels are estimates based on reported theatrical values and available box-office gross. Estimated net and theatrical share are editorial calculations, not official settlements. India net uses an 18% GST assumption and theatrical share uses 50% of estimated net. Overseas uses a simplified 40% share assumption because taxes and settlement structures vary by market.","estimation_assumptions":{"india_gst_rate_percent":18.0,"india_share_of_net_percent":50.0,"overseas_net_factor_percent":100.0,"overseas_share_of_net_percent":40.0}},"tracker_seo":{"movie":{"id":3452,"title":"Ranabaali","release_date":"2026-10-16","language":"Telugu","industry":"Tollywood","url":"/movie/ranabaali-2026"},"movies":[{"id":3452,"title":"Ranabaali","release_date":"2026-10-16","language":"Telugu","industry":"Tollywood","url":"/movie/ranabaali-2026"}],"actors":[{"id":34,"name":"Vijay Deverakonda","url":"/actor/vijay-deverakonda"}],"actor_comparisons":[],"movie_comparisons":[]}}}}],"manual_related_articles":[{"id":212,"title":"Ranabaali Box Office Collection day 1","slug":"ranabaali-box-office-collection-day-1"},{"id":194,"title":"Ranabaali Pre-Release Business: ₹144 Cr Rights, Budget & Cast Salaries","slug":"ranabaali-box-office-collection"},{"id":227,"title":"Ranabaali Box Office Collection day 2","slug":"ranabaali-box-office-collection-day-2"}],"generated_tracking_seo":{"source":"combined_live_workspace","mode":"LIVE"}};</script>
 <style>.bx-advance .bx-adv-cumulative{margin:20px 0;padding:18px;border:1px solid #93c5fd;border-radius:16px;background:linear-gradient(135deg,#eff6ff,#e0f2fe)}.bx-advance .bx-adv-cumulative h3{margin:0 0 14px;color:#1d4ed8;font-size:19px}.bx-advance .bx-adv-cumulative .bx-adv-card{border-color:#bfdbfe}</style>
+<style id="bx-gaming-v2-style">
+.bx-gaming{--game-accent:#62e6a0;--game-bg:#0a1213;--game-card:#11231f;background:var(--game-bg);color:#f4fff8}.bx-game-theme-blue{--game-accent:#62b6ff;--game-bg:#0b1529;--game-card:#142b45}.bx-game-theme-purple{--game-accent:#c6a1ff;--game-bg:#1a102b;--game-card:#2b1b40}.bx-game-theme-gold{--game-accent:#ffd166;--game-bg:#20190c;--game-card:#332814}.bx-game-theme-light{--game-accent:#156f56;--game-bg:#f4faf7;--game-card:#e7f2ed;color:#183126}.bx-gaming .bx-game-stat,.bx-gaming .bx-game-pill,.bx-gaming .bx-game-update,.bx-gaming .bx-game-spec{background:var(--game-card)}.bx-game-toolbar{display:flex;flex-wrap:wrap;gap:12px;padding:16px 20px;border-top:1px solid #40564d}.bx-game-toolbar label{flex:1 1 145px;font-size:12px;font-weight:800}.bx-game-toolbar select{display:block;width:100%;margin-top:6px;padding:10px;border-radius:8px;border:1px solid #567066;background:var(--game-card);color:inherit}.bx-game-rate-note,.bx-game-footnote{padding:8px 22px 15px;font-size:11px;line-height:1.5;color:inherit;opacity:.8}.bx-game-table-wrap{width:100%;overflow-x:auto}.bx-game-table{border-collapse:collapse;width:100%;min-width:480px}.bx-game-table th,.bx-game-table td{padding:11px;border-bottom:1px solid #51695b;text-align:left;font-size:12px}.bx-game-table th{color:var(--game-accent)}.bx-game-bars{width:100%;display:grid;gap:12px;margin:8px 0 18px}.bx-game-bar-row{display:grid;grid-template-columns:minmax(100px,1fr) minmax(80px,3fr) minmax(90px,1fr);gap:9px;align-items:center;font-size:12px}.bx-game-bar-track{height:14px;border-radius:8px;background:#68786e55;overflow:hidden}.bx-game-bar-fill{height:100%;background:var(--game-accent);border-radius:8px}.bx-game-bar-row strong{font-size:11px;text-align:right}.bx-game-faq{width:100%;padding:12px;border:1px solid #607b6544;border-radius:9px}.bx-game-faq summary{cursor:pointer;font-weight:800}.bx-game-faq p{padding-top:9px}.bx-game-gallery-img{width:min(240px,100%);aspect-ratio:16/9;object-fit:cover;border-radius:9px}.bx-game-theme-light .bx-game-stat strong,.bx-game-theme-light .bx-game-hero-copy h2{color:#17382a}.bx-game-theme-light .bx-game-section>p{color:#29483b}@media(max-width:600px){.bx-game-bar-row{grid-template-columns:1fr 1fr}.bx-game-bar-track{grid-column:1/-1;grid-row:2}.bx-game-bar-row strong{text-align:right}}
+</style>
+<style id="bx-gaming-v22-contrast">
+/* Gaming V2.2: readable contrast and professional disclosures */
+.bx-gaming{--game-heading:#f7fbff;--game-body:#e1ece8;--game-muted:#bed0ca;--game-border:#446157;color:var(--game-body)!important}
+.bx-gaming.bx-game-theme-light{--game-heading:#102e27;--game-body:#23433a;--game-muted:#456359;--game-border:#b3cfc4;color:var(--game-body)!important}
+.bx-gaming .bx-game-hero{background:linear-gradient(135deg,#153f34,#13243c)!important}
+.bx-gaming .bx-game-hero:after{background:linear-gradient(0deg,rgba(5,15,18,.96),rgba(5,15,18,.2))!important}
+.bx-gaming .bx-game-hero-copy p{color:#edf8f4!important;opacity:1!important;font:500 16px/1.6 Arial,sans-serif!important;text-shadow:0 1px 5px #000a!important}
+.bx-gaming .bx-game-hero-copy span{color:#b8ffe3!important;text-shadow:0 1px 5px #000a!important}
+.bx-gaming .bx-game-section h3{color:var(--game-heading)!important;text-shadow:none!important}
+.bx-gaming .bx-game-section p,.bx-gaming .bx-game-rate-note,.bx-gaming .bx-game-table td{font-family:Arial,Helvetica,sans-serif!important;color:var(--game-body)!important;line-height:1.6!important;opacity:1!important}
+.bx-gaming .bx-game-rate-note{font-size:12px!important;padding:12px 22px!important}
+.bx-gaming .bx-game-table th{color:var(--game-heading)!important}
+.bx-gaming .bx-game-toolbar select{color:var(--game-heading)!important;background:var(--game-card)!important}
+.bx-gaming .bx-game-disclosure{margin:12px 22px 22px;padding:15px 18px;border:1px solid var(--game-border);border-left:4px solid var(--game-accent);border-radius:12px;background:var(--game-card);color:var(--game-body);font-family:Arial,Helvetica,sans-serif}
+.bx-gaming .bx-game-disclosure strong{display:block;font-size:14px;color:var(--game-heading)!important;margin-bottom:6px}
+.bx-gaming .bx-game-disclosure p{margin:0;font:13px/1.65 Arial,Helvetica,sans-serif!important;color:var(--game-body)!important;opacity:1!important}
+@media(max-width:600px){.bx-gaming .bx-game-disclosure{margin:12px 14px 18px}.bx-gaming .bx-game-hero-copy p{font-size:14px!important}}
+</style>
+
+<style id="bx-game-v23-theme-fix">
+/* V2.3: Theme colors apply to the HERO as well as content. Scoped to gaming only. */
+.bx-gaming.bx-game-theme-neon{--game-hero-a:#103c31;--game-hero-b:#09231f;--game-hero-highlight:#62e6a0}
+.bx-gaming.bx-game-theme-blue{--game-hero-a:#123c73;--game-hero-b:#071a35;--game-hero-highlight:#62b6ff}
+.bx-gaming.bx-game-theme-purple{--game-hero-a:#4b237d;--game-hero-b:#1b1137;--game-hero-highlight:#c6a1ff}
+.bx-gaming.bx-game-theme-gold{--game-hero-a:#715018;--game-hero-b:#281b0c;--game-hero-highlight:#ffd166}
+.bx-gaming.bx-game-theme-light{--game-hero-a:#dcefe8;--game-hero-b:#b8d6cb;--game-hero-highlight:#156f56}
+.bx-gaming.bx-game-theme-custom{--game-hero-a:color-mix(in srgb,var(--game-custom-accent) 42%,#07131b);--game-hero-b:color-mix(in srgb,var(--game-custom-accent) 16%,#07131b);--game-hero-highlight:var(--game-custom-accent)}
+.bx-gaming .bx-game-hero{background:linear-gradient(120deg,var(--game-hero-a),var(--game-hero-b))!important;transition:background .2s ease}
+.bx-gaming .bx-game-hero:after{background:linear-gradient(0deg,rgba(2,10,14,.72),rgba(2,10,14,.06))!important}
+.bx-gaming.bx-game-theme-light .bx-game-hero:after{background:linear-gradient(0deg,rgba(242,250,247,.72),rgba(242,250,247,.10))!important}
+.bx-gaming .bx-game-hero-copy span{color:var(--game-hero-highlight)!important}
+.bx-gaming.bx-game-theme-light .bx-game-hero-copy h2{color:#102e27!important;text-shadow:none!important}
+.bx-gaming.bx-game-theme-light .bx-game-hero-copy p{color:#204a3c!important;text-shadow:none!important}
+.bx-gaming.bx-game-theme-light .bx-game-hero-copy span{color:#13583f!important;text-shadow:none!important}
+.bx-gaming .bx-game-hero-copy{width:100%}
+.bx-gaming .bx-game-hero{min-height:210px}
+@media(max-width:600px){.bx-gaming .bx-game-hero{min-height:185px}}
+</style>
+<style id="bx-gaming-v24-polish">
+/* Gaming V2.4: scoped responsive layout, accessible contrast and visual hierarchy */
+@supports selector(:has(*)) {
+  .article-content:has(> .bx-gaming), .article-body:has(> .bx-gaming), .article-main:has(> .bx-gaming){max-width:1080px!important}
+}
+.bx-gaming{width:100%;max-width:1080px;margin:24px auto 34px;border-radius:20px;box-shadow:0 16px 40px rgba(15,23,42,.10);--game-border:#446157}
+.bx-gaming .bx-game-hero{min-height:190px!important;display:flex;align-items:end}
+.bx-gaming .bx-game-hero-copy{padding:30px 30px 27px!important;position:relative;z-index:2}
+.bx-gaming .bx-game-hero-copy h2{font-size:clamp(27px,4vw,43px)!important;line-height:1.12!important;overflow-wrap:anywhere}
+.bx-gaming .bx-game-hero-copy p{max-width:760px}
+.bx-gaming .bx-game-toolbar{gap:12px;background:var(--game-card);border-bottom:1px solid var(--game-border);padding:18px 26px}
+.bx-gaming .bx-game-toolbar label{flex:1 1 190px;min-width:0}
+.bx-gaming .bx-game-toolbar select{min-height:44px;max-width:100%;border:1px solid var(--game-border)!important;cursor:pointer}
+.bx-gaming .bx-game-toolbar select:focus-visible{outline:3px solid var(--game-accent);outline-offset:2px}
+.bx-gaming .bx-game-section{padding:24px 26px!important;border-top:1px solid var(--game-border)}
+.bx-gaming .bx-game-section h3{font-size:clamp(21px,2.6vw,27px)!important;line-height:1.3!important;letter-spacing:-.015em}
+.bx-gaming .bx-game-stat{min-width:0;overflow-wrap:anywhere}
+.bx-gaming .bx-game-stat strong{font-size:clamp(15px,2vw,21px)!important;line-height:1.35!important}
+.bx-gaming .bx-game-bar-row{grid-template-columns:minmax(115px,1.2fr) minmax(120px,3fr) minmax(110px,1fr);gap:14px;align-items:center}
+.bx-gaming .bx-game-bar-track{height:18px;background:color-mix(in srgb,var(--game-accent) 14%,var(--game-card));border:1px solid var(--game-border)}
+.bx-gaming .bx-game-bar-fill{background:linear-gradient(90deg,var(--game-accent),color-mix(in srgb,var(--game-accent) 70%,white));min-width:0}
+.bx-gaming .bx-game-bar-row strong{font-size:13px!important;white-space:nowrap}
+.bx-gaming .bx-game-table th,.bx-gaming .bx-game-table td{font-size:13px!important;padding:13px 12px!important}
+.bx-gaming .bx-game-rate-note{padding:10px 26px!important;font-size:12px!important}
+.bx-gaming.bx-game-theme-light{--game-bg:#fff;--game-card:#edf6f2;--game-border:#c4d9d0;--game-heading:#102b24;--game-body:#203c33;--game-muted:#425f54}
+.bx-gaming.bx-game-theme-light .bx-game-section{background:#fff}
+.bx-gaming.bx-game-theme-light .bx-game-bar-track{background:#d8e7e0}
+.bx-gaming .bx-game-disclosure{margin:18px 26px 26px!important}
+@media(max-width:680px){
+ .bx-gaming{border-radius:14px;margin:18px 0}
+ .bx-gaming .bx-game-hero{min-height:165px!important}
+ .bx-gaming .bx-game-hero-copy{padding:22px 18px!important}
+ .bx-gaming .bx-game-toolbar{padding:14px;gap:10px}
+ .bx-gaming .bx-game-toolbar label{flex:1 1 100%;font-size:12px}
+ .bx-gaming .bx-game-section{padding:20px 16px!important}
+ .bx-gaming .bx-game-bar-row{grid-template-columns:minmax(0,1fr) auto;gap:7px}
+ .bx-gaming .bx-game-bar-track{grid-column:1/-1;grid-row:2}
+ .bx-gaming .bx-game-bar-row strong{text-align:right}
+ .bx-gaming .bx-game-rate-note{padding:10px 16px!important}
+ .bx-gaming .bx-game-disclosure{margin:16px!important}
+}
+</style>
 </head>
 
 <body>
@@ -7213,10 +7319,81 @@ function bxRankRender(data, financialLinks={}){
  const id="bx-ranking-"+Math.random().toString(36).slice(2,9);
  return `<section class="bx-financial bx-fx-premium bx-global-rankings" id="${id}" data-fx-theme="light"><div class="bx-fx-hero"><div class="bx-fx-eyebrow">🏆 BOXOFFICEX · GLOBAL BOX OFFICE RANKINGS</div><h2>${safe(data.title||"Global Box Office Rankings")}</h2><p>${safe(data.subtitle||"")} · ${safe(data.territory||"Worldwide")} · ${safe(metric)} ranking</p><div class="bx-fx-hero-metrics"><span>◉ ${visible.length} movies</span><span>◎ ${safe(base)} original figures</span><span>↗ Financial reports linked where available</span></div></div><div class="bx-fx-toolbar"><label class="bx-lang-control">Language<select class="bx-block-language" aria-label="Block language"></select></label><label>Currency<select class="bx-fx-currency">${opts}</select></label><label>Number format<select class="bx-fx-units"><option value="auto">Automatic</option><option value="international">Million / Billion</option><option value="indian">Lakh / Crore</option><option value="exact">Exact numbers</option></select></label><label>Colour theme<select class="bx-fx-theme"><option value="boxofficex">BoxOfficeX Blue</option><option value="purple">Royal Purple</option><option value="green">Emerald</option><option value="gold">Gold</option><option value="light">Light</option></select></label></div><p class="bx-fx-rate-note">Currency changes affect display only; ranking order is based on original ${safe(base)} amounts.</p><div class="bx-ranking-scroll"><table class="bx-ranking-table"><thead><tr><th>Rank</th><th>Movie</th><th>Domestic</th><th>International</th><th>Worldwide</th></tr></thead><tbody>${visible.map((m,i)=>{const link=bxRankFinancialUrl(m);const name=link?`<a href="${link}">${safe(m.title||"Untitled movie")} ↗</a>`:safe(m.title||"Untitled movie");return `<tr><td><span class="bx-ranking-rank">${i+1}</span></td><td><strong>${name}</strong><small>${safe(m.year||"")} · ${safe(m.status==="analysis"?"BoxOfficeX analysis":"Reported")}</small></td><td>${amount(m,"domestic")}</td><td>${amount(m,"international")}</td><td><strong>${amount(m,"worldwide")}</strong></td></tr>`}).join("")||`<tr><td colspan="5">No comparable reported data entered yet.</td></tr>`}</tbody></table></div>${rows.length>comparable.length?`<p class="bx-fx-rate-note">${rows.length-comparable.length} entries in other original currencies are excluded until converted to ${safe(base)} with verified historical rates.</p>`:""}<div class="bx-fx-note">Domestic refers to the US/Canada market for global box-office figures unless this article specifies another convention. International excludes that domestic market. Missing figures are not treated as zero. Illustrative scenarios do not affect rankings. Converted currencies use reference rates, not historical rates.</div></section>`;
 }
+
+function bxGamingRender(d){
+ const safe=bxFxSafe,g=d.game||{},f=d.financials||{},sections=d.sections||{},t=d.theme||{},base=String(f.currency||"USD").toUpperCase();
+ const enabled=k=>sections[k]!==false, present=v=>v!==null&&v!==undefined&&String(v).trim()!=="";
+ const validUrl=v=>{try{const u=new URL(String(v||""));return /^(https?:)$/.test(u.protocol)?safe(u.href):""}catch{return ""}};
+ const num=v=>present(v)&&Number.isFinite(Number(v))?Number(v):null;
+ const amount=v=>{const n=num(v);return n===null?"—":`<span class="bx-game-money" data-base="${safe(base)}" data-value="${n}">${safe(bxFxFormat(n,base,"auto"))}</span>`};
+ const metric=(label,value)=>`<div class="bx-game-stat"><small>${safe(label)}</small><strong>${value}</strong></div>`;
+ const section=(key,title,content)=>enabled(key)&&content?`<section class="bx-game-section" id="bx-game-${safe(key)}"><h3>${safe(title)}</h3>${content}</section>`:"";
+ const cards=(arr)=>arr.map(([label,value])=>metric(label,value)).join("");
+ const table=(heads,rows)=>rows.length?`<div class="bx-game-table-wrap"><table class="bx-game-table"><thead><tr>${heads.map(h=>`<th>${safe(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:"";
+ const chart=(items,key,label)=>{const vals=items.map(x=>num(x[key])||0),max=Math.max(1,...vals);return `<div class="bx-game-bars" aria-label="${safe(label)} bar chart">${items.map((x,i)=>`<div class="bx-game-bar-row"><span>${safe(x.label||x.platform||x.region||x.game||'Entry')}</span><div class="bx-game-bar-track"><div class="bx-game-bar-fill" role="img" aria-label="${safe(x.label||x.platform||x.region||x.game||'Entry')}: ${((vals[i]/max)*100).toFixed(1)} percent of chart maximum" style="width:${Math.min(100,100*vals[i]/max).toFixed(2)}%"></div></div><strong>${amount(x[key])}</strong></div>`).join("")}</div>`};
+ const opts=Object.entries(bxFxCurrencies).map(([code,[sym,name]])=>`<option value="${safe(code)}" ${code===base?'selected':''}>${safe(sym)} ${safe(name)} (${safe(code)})</option>`).join('');
+ const art=validUrl(g.hero_url||g.cover_url||d.media?.hero_url||d.media?.cover_url);
+ const overview=(present(g.description)?`<p>${safe(g.description)}</p>`:'')+cards([["Developer",g.developer],["Publisher",g.publisher],["Genre",g.genre],["Release",g.release_date],["Engine",g.engine],["Franchise",g.franchise],["Age rating",g.age_rating]].filter(x=>present(x[1])).map(([a,b])=>[a,safe(b)]));
+ const budget=(num(f.development_budget)!==null&&num(f.marketing_budget)!==null)?num(f.development_budget)+num(f.marketing_budget):null;
+ const financial=cards([["Development budget",amount(f.development_budget)],["Marketing budget",amount(f.marketing_budget)],["Combined budget",amount(budget)],["Gross revenue",amount(f.revenue)],["Copies sold",num(f.copies_sold)?.toLocaleString('en-US')||'—'],["Gross revenue / combined budget",budget>0&&num(f.revenue)!==null?(num(f.revenue)/budget).toFixed(2)+"×":"—"]]);
+ const platform=(d.platforms||[]).filter(x=>present(x.name)).map(x=>`<div class="bx-game-pill">🎮 ${safe(x.name)} ${present(x.release_date)?`<small>${safe(x.release_date)}</small>`:''}${validUrl(x.store_url)?`<a href="${validUrl(x.store_url)}" rel="noopener noreferrer">Store</a>`:''}</div>`).join('');
+ const specs=[["Minimum",d.requirements?.minimum],["Recommended",d.requirements?.recommended]].filter(x=>present(x[1])).map(x=>`<div class="bx-game-spec"><strong>${safe(x[0])}</strong><pre>${safe(x[1])}</pre></div>`).join('');
+ const rating=(d.ratings||[]).filter(x=>present(x.source)).map(x=>metric(x.source,safe(x.score||'—'))).join('');
+ const updates=(d.updates||[]).filter(x=>present(x.title)).map(x=>`<div class="bx-game-update"><strong>${safe(x.title)}</strong><small>${safe(x.date)}</small><p>${safe(x.description)}</p></div>`).join('');
+ const milestones=(d.sales_milestones||[]).filter(x=>present(x.label));
+ const regions=(d.regional_sales||[]).filter(x=>present(x.region));
+ const sales=(d.platform_sales||[]).filter(x=>present(x.platform));
+ const editions=(d.editions||[]).filter(x=>present(x.name));
+ const comparisons=(d.comparisons||[]).filter(x=>present(x.game));
+ const awards=(d.awards||[]).filter(x=>present(x.name));
+
+ const history=(d.sales_history||[]).filter(x=>present(x.date)).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ const countries=(d.country_sales||[]).filter(x=>present(x.country));
+ const benchmarks=(d.benchmarks||[]).filter(x=>present(x.gpu));
+ const releases=(d.release_schedule||[]).filter(x=>present(x.event));
+ const players=(d.player_stats||[]).filter(x=>present(x.platform));
+ const prices=(d.price_history||[]).filter(x=>present(x.store));
+ const dlcs=(d.dlc_sales||[]).filter(x=>present(x.title));
+ const ranks=(d.rankings||[]).filter(x=>present(x.category)&&num(x.rank)!==null);
+ const verify=d.verification||{};
+ const citeLink=(url)=>validUrl(url)?` <a href="${validUrl(url)}" target="_blank" rel="noopener noreferrer" aria-label="Open source">Source ↗</a>`:'';
+ const historyChart=history.length?`<div class="bx-game-bars" aria-label="Cumulative game revenue history">${history.map(x=>`<div class="bx-game-bar-row"><span>${safe(x.date)}</span><div class="bx-game-bar-track"><div class="bx-game-bar-fill" style="width:${(100*(num(x.revenue)||0)/Math.max(1,...history.map(y=>num(y.revenue)||0))).toFixed(2)}%"></div></div><strong>${amount(x.revenue)}</strong></div>`).join('')}</div>`:'';
+ const historyContent=historyChart+table(['Date','Cumulative copies','Cumulative revenue'],history.map(x=>[safe(x.date),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue)]));
+ const countryContent=chart(countries,'revenue','Country revenue')+table(['Country','Copies','Revenue','Reference'],countries.map(x=>[safe(x.country),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue),citeLink(x.source_url)]));
+ const benchmarkContent=table(['GPU / device','Resolution','Preset','FPS','Reference'],benchmarks.map(x=>[safe(x.gpu),safe(x.resolution),safe(x.preset),safe(x.fps),citeLink(x.source_url)]));
+ const releaseContent=table(['Event','Date / time','Region','Time zone','Reference'],releases.map(x=>[safe(x.event),safe(x.date),safe(x.region),safe(x.timezone),citeLink(x.source_url)]));
+ const playerContent=table(['Observed','Platform','Current','24h peak','All-time peak','Reference'],players.map(x=>[safe(x.date),safe(x.platform),safe(x.concurrent),safe(x.peak_24h),safe(x.all_time_peak),citeLink(x.source_url)]));
+ const priceContent=table(['Observed','Store / region','Price','Reference'],prices.map(x=>[safe(x.date),safe(x.store),String(x.currency||base).toUpperCase()===base?amount(x.price):safe(String(x.currency||base).toUpperCase()+' '+String(x.price??'—')),citeLink(x.source_url)]));
+ const dlcContent=table(['Expansion','Release','Copies','Revenue','Reference'],dlcs.map(x=>[safe(x.title),safe(x.release_date),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue),citeLink(x.source_url)]));
+ const rankContent=table(['Ranking','Position','Territory / period','Reference'],ranks.map(x=>[safe(x.category),safe('#'+x.rank),safe(x.scope),citeLink(x.source_url)]));
+ const verificationContent=[present(verify.status)?metric('Data classification',safe(verify.status)):'',present(verify.as_of)?metric('Figures as of',safe(verify.as_of)):'',present(verify.last_verified)?metric('Last verified',safe(verify.last_verified)):'',present(verify.methodology)?`<p>${safe(verify.methodology)}</p>`:''].join('');
+ const gallery=(d.media?.gallery||[]).map(x=>typeof x==='string'?x:x?.url).filter(validUrl);
+ const media=(validUrl(d.media?.trailer_url)?`<a href="${validUrl(d.media.trailer_url)}" target="_blank" rel="noopener noreferrer">Watch trailer ↗</a>`:'')+gallery.map(x=>`<img class="bx-game-gallery-img" src="${validUrl(x)}" loading="lazy" alt="Game gallery artwork">`).join('');
+ const sourceLinks=[...(d.sources||[]),...(validUrl(f.source_url)?[{title:'Financial source',url:f.source_url}]:[])].filter(x=>validUrl(x.url)).map(x=>`<a href="${validUrl(x.url)}" target="_blank" rel="noopener noreferrer">${safe(x.title||'Source')}</a>`).join(' · ');
+ const theme=['neon','blue','purple','gold','light','custom'].includes(t.preset)?t.preset:'neon';
+ const html=`<article class="bx-gaming bx-game-theme-${theme}" style="--game-custom-accent:${/^#[0-9a-fA-F]{6}$/.test(String(t.accent||''))?t.accent:'#62e6a0'}" data-game-base="${safe(base)}"><div class="bx-game-hero">${art?`<img src="${art}" alt="${safe(g.title||'Game')} artwork" loading="lazy">`:''}<div class="bx-game-hero-copy"><span>🎮 BOXOFFICEX GAMING</span><h2>${safe(g.title||'Gaming Intelligence')}</h2>${present(g.tagline)?`<p>${safe(g.tagline)}</p>`:''}</div></div><div class="bx-game-toolbar"><label>Currency<select class="bx-game-currency">${opts}</select></label><label>Number format<select class="bx-game-units"><option value="auto">Automatic</option><option value="international">Million / Billion</option><option value="indian">Lakh / Crore</option><option value="exact">Exact</option></select></label><label>Theme<select class="bx-game-theme"><option value="neon" ${theme==='neon'?'selected':''}>Neon Green</option><option value="blue" ${theme==='blue'?'selected':''}>Cyber Blue</option><option value="purple" ${theme==='purple'?'selected':''}>Royal Purple</option><option value="gold" ${theme==='gold'?'selected':''}>Gold</option><option value="light" ${theme==='light'?'selected':''}>Light</option><option value="custom" ${theme==='custom'?'selected':''}>Custom Accent</option></select></label></div><p class="bx-game-rate-note">Original amounts in ${safe(base)}. Currency conversion uses current reference rates and may differ from historical rates.</p>${section('overview','Game Overview',overview)}${section('financials','Financial Performance',financial)}${section('sales_milestones','Sales Milestones',milestones.length?chart(milestones,'revenue','Cumulative revenue')+table(['Date','Milestone','Copies sold','Revenue'],milestones.map(x=>[safe(x.date),safe(x.label),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue)])):'')}${section('regional_sales','Regional Sales',regions.length?chart(regions,'revenue','Regional revenue')+table(['Region','Copies sold','Revenue'],regions.map(x=>[safe(x.region),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue)])):'')}${section('platform_sales','Platform Sales',sales.length?chart(sales,'revenue','Platform revenue')+table(['Platform','Copies sold','Revenue'],sales.map(x=>[safe(x.platform),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue)])):'')}${section('platforms','Platforms',platform)}${section('editions','Game Editions',table(['Edition','Price','Includes'],editions.map(x=>[safe(x.name),String(x.currency||base).toUpperCase()===base?amount(x.price):safe(String(x.currency||base).toUpperCase()+' '+String(x.price??'—')),safe(x.contents)])))}${section('requirements','System Requirements',specs)}${section('ratings','Ratings',rating)}${section('updates','Updates & DLC',updates)}${section('awards','Awards',table(['Year','Award','Category','Result'],awards.map(x=>[safe(x.year),safe(x.name),safe(x.category),safe(x.result)])))}${section('comparisons','Game Comparisons',comparisons.length?chart(comparisons,'revenue','Game revenue comparison')+table(['Game','Copies sold','Revenue'],comparisons.map(x=>[safe(x.game),safe(num(x.copies_sold)?.toLocaleString('en-US')||'—'),amount(x.revenue)])):'')}${section('sales_history','Sales History & Growth',historyContent)}${section('country_sales','Country-wise Sales',countryContent)}${section('benchmarks','PC Performance Benchmarks',benchmarkContent)}${section('release_schedule','Release Schedule',releaseContent)}${section('player_stats','Player Statistics',playerContent)}${section('price_history','Price History',priceContent)}${section('dlc_sales','DLC & Expansion Sales',dlcContent)}${section('rankings','Game Rankings & Milestones',rankContent)}${section('verification','Data Verification',verificationContent)}${section('media','Media',media)}${sourceLinks?section('sources','Sources',sourceLinks):''}${d.test_only?`<aside class="bx-game-disclosure" role="note"><strong>Demo data notice</strong><p>This page contains fictional game information and financial figures for local interface testing only. It is not intended for publication.</p></aside>`:`<aside class="bx-game-disclosure" role="note"><strong>Financial data &amp; sources</strong><p>Revenue represents gross sales, not net profit. Currency conversions use reference exchange rates and may differ from historical transaction values. Figures are shown for the stated reporting periods; consult the linked sources and methodology for definitions and limitations.</p></aside>`}</article>`;
+ return html;
+}
+if(!window.bxGamingControlsBound){
+ window.bxGamingControlsBound=true;
+ document.addEventListener('change',async event=>{
+  const root=event.target.closest('.bx-gaming');if(!root)return;
+  if(event.target.matches('.bx-game-theme')){root.classList.remove('bx-game-theme-neon','bx-game-theme-blue','bx-game-theme-purple','bx-game-theme-gold','bx-game-theme-light','bx-game-theme-custom');root.classList.add('bx-game-theme-'+event.target.value);return;}
+  if(!event.target.matches('.bx-game-currency,.bx-game-units'))return;
+  const target=root.querySelector('.bx-game-currency').value,mode=root.querySelector('.bx-game-units').value,base=root.dataset.gameBase;
+  const note=root.querySelector('.bx-game-rate-note');const amounts=root.querySelectorAll('.bx-game-money');
+  let rate=1;
+  if(target!==base){try{note.textContent='Loading currency reference rates…';rate=(await bxFxGetRates(base)).rates[target];if(!Number.isFinite(rate)||rate<=0)throw new Error('No rate');}catch(e){note.textContent='Currency service unavailable. Showing original '+base+' values.';root.querySelector('.bx-game-currency').value=base;rate=1;}}
+  amounts.forEach(el=>{const n=Number(el.dataset.value);el.textContent=bxFxFormat(n*rate,rate===1&&target!==base?base:root.querySelector('.bx-game-currency').value,mode);el.title=bxFxFormat(n,base,'exact')+' '+base;});
+  if(target===base||rate!==1)note.textContent='Display converted using reference exchange rates; historical exchange rates and actual proceeds may differ.';
+ });
+}
+
 async function renderBlock(block) {
     const type = block.block_type;
     const data = block.extra_data || {};
 
+    if (type === "gaming") return bxGamingRender(data);
     if (type === "movie_financial_explorer") return bxFxRender(data);
     if (type === "global_boxoffice_rankings") return bxRankRender(data);
 
