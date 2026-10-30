@@ -2470,6 +2470,9 @@ body.bx-bottom-ad-visible{
 .movie-financials{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:7px;color:#aeb8ce;font-size:13px;line-height:1.5}
 @media(max-width:900px){#boxOfficeOverviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.actor-deck{font-size:13px;line-height:1.68}.actor-freshness{font-size:10px}#boxOfficeOverviewGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.movie-financials{font-size:11px}}
+
+/* Hide public view count only; tracking and analytics remain active. */
+#actorViewCount, .actor-view-count { display: none !important; }
 </style>
 
 

@@ -3463,6 +3463,9 @@ body.bx-bottom-ad-visible{
 @keyframes bxTrackerPrompt{0%,100%{box-shadow:0 3px 10px rgba(50,111,229,.18)}50%{box-shadow:0 3px 17px rgba(50,111,229,.34)}}
 @media(prefers-reduced-motion:reduce){.bx-poster-tracker,.bx-poster-tracker-link{animation:none!important;transition:none!important}.bx-poster-tracker-link::before{animation:none!important}}
 
+
+/* Hide public view count only; tracking and analytics remain active. */
+#movieViewCount, .movie-view-count { display: none !important; }
 </style>
 
 

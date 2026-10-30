@@ -48,7 +48,7 @@
         content="index, follow"
     >
 
-    
+
 
     <title>
         BoxOfficeX - Indian Movie Box Office, Collections & Rankings
@@ -5067,6 +5067,45 @@ body.bx-bottom-ad-visible{
 
     /* Cached SSR cards use real crawlable links while preserving card layout. */
     .bx-home-card-link{color:inherit;text-decoration:none;display:contents;}
+
+/* Homepage-only presentation: retain APIs, data, and other pages. */
+#latest-releases, #upcoming-movies { display: none !important; }
+/* Hide engagement counters only; preserve BoxOfficeX database statistics. */
+#trendingMoviesGrid .movie-collection,
+#trendingMoviesGrid .movie-verdict,
+#trendingArticlesGrid .article-trending-stats,
+.article-trending-stats,
+#hypedMoviesGrid .movie-collection,
+.fan-activity-count,
+.leader-count { display: none !important; }
+
+
+.bx-category-status{margin:24px 0;padding:18px;border:1px solid #d9e2ee;border-radius:12px;background:#f5f8fd;color:#273750;font-size:14px}
+.bx-category-status a{color:#245bc4;text-decoration:underline}
+/* Category article discovery — homepage only */
+.bx-category-feed{margin-top:28px}
+.bx-category-feed .section-header{margin-bottom:14px}
+.bx-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.bx-category-card{display:block;min-width:0;overflow:hidden;text-decoration:none;color:inherit;background:linear-gradient(180deg,#131e31,#0c1423);border:1px solid var(--border);border-radius:14px;transition:transform .2s,border-color .2s}
+.bx-category-card:hover{transform:translateY(-3px);border-color:var(--border-strong)}
+.bx-category-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#172139}
+.bx-category-copy{padding:12px}
+.bx-category-type{font-size:10px;font-weight:800;color:var(--blue-light);text-transform:uppercase;letter-spacing:.5px}
+.bx-category-copy h3{margin:7px 0 0;font-size:14px;line-height:1.45;color:#fff;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.bx-category-feed .section-header a{color:var(--blue-light)}
+@media(max-width:900px){.bx-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.bx-category-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:2px 2px 10px;scrollbar-width:thin}.bx-category-card{flex:0 0 min(76vw,260px);scroll-snap-align:start}}
+
+
+/* Editorial hero refinement — existing BoxOfficeX light palette retained */
+.hero{padding-top:clamp(52px,7vw,100px)!important;padding-bottom:clamp(52px,7vw,96px)!important;text-align:center!important}
+.hero-content{max-width:980px!important;margin-inline:auto!important}
+.hero h1{max-width:900px!important;margin-inline:auto!important;font-size:clamp(2.35rem,5.4vw,4.7rem)!important;line-height:1.09!important;letter-spacing:-.045em!important;font-weight:850!important}
+.hero h1 span{display:block!important;margin-top:.14em}
+.hero-content>p{max-width:690px!important;margin:22px auto 30px!important;line-height:1.75!important;font-size:clamp(1rem,1.6vw,1.18rem)!important}
+.hero-badge{letter-spacing:.13em!important;font-size:10px!important}
+.hero .global-search{max-width:690px!important;margin-inline:auto!important;text-align:left!important}
+@media(max-width:640px){.hero{padding:48px 17px 58px!important}.hero h1{font-size:clamp(2rem,9vw,3rem)!important}.hero-content>p{margin:17px auto 25px!important;line-height:1.6!important}}
 </style>
 
 
@@ -6420,6 +6459,13 @@ html,body{scroll-padding-top:0!important}
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#031123">
+<style id="bx-typography-refresh">
+/* Typography-only refresh. No layout, color, or visibility changes. */
+:root { --bx-ui-font: "Inter", "Segoe UI", Arial, sans-serif; }
+body, button, input, select, textarea { font-family: var(--bx-ui-font) !important; }
+.logo, .bx-master-mobile-logo, .bx-unified-brand { font-family: var(--bx-ui-font) !important; }
+h1, h2, h3, h4, h5, h6, .bx-category-card h3 { font-family: var(--bx-ui-font) !important; letter-spacing: -0.025em; }
+</style>
 </head>
 
 
@@ -6509,25 +6555,14 @@ html,body{scroll-padding-top:0!important}
     <div class="hero-content">
 
         <div class="hero-badge">
-            ✦ YOUR MOVIE BOX OFFICE HUB
+            ✦ BEYOND THE BOX OFFICE
         </div>
 
 
-        <h1>
-
-            Discover Movies.
-            <span>Compare Heroes & Movies.</span>
-
-        </h1>
+        <h1>The Spotlight Never Stops.</h1>
 
 
-        <p>
-
-            Explore movie collections, verdicts,
-            popular actors, Top 10 rankings and
-            hero-versus-hero and movie-versus-movie comparisons.
-
-        </p>
+        <p>From box office records to the stories captivating the world. Explore cinema, Hollywood, gaming, K-pop, music and global entertainment—all in one place.</p>
 
 
         <div class="global-search">
@@ -6575,102 +6610,6 @@ html,body{scroll-padding-top:0!important}
 
 </section>
 
-
-<!-- ======================================================
-     QUICK LINKS
-====================================================== -->
-
-<section
-    class="quick-links"
-    aria-label="Quick links"
->
-
-    <a
-        href="actors.html"
-        class="quick-card"
-    >
-
-        <div class="icon">
-            🎭
-        </div>
-
-        <h3>
-            Popular Actors
-        </h3>
-
-        <p>
-            Discover actor profiles and movie careers.
-        </p>
-
-    </a>
-
-
-    <a
-        href="compare-select.html"
-        class="quick-card quick-card-actor-compare"
-    >
-
-        <div class="icon">
-            ⚔️
-        </div>
-
-        <div class="quick-card-badge">
-            COMPARE
-        </div>
-
-        <h3>
-            Hero vs Hero
-        </h3>
-
-        <p>
-            Compare your favourite stars.
-        </p>
-
-    </a>
-
-
-    <a
-        href="#rankings"
-        class="quick-card"
-    >
-
-        <div class="icon">
-            🏆
-        </div>
-
-        <h3>
-            Top 10 Rankings
-        </h3>
-
-        <p>
-            See the highest-grossing movies.
-        </p>
-
-    </a>
-
-
-    <a
-        href="movie-compare-select.html"
-        class="quick-card quick-card-movie-compare"
-    >
-        <div class="icon">
-            🎬
-        </div>
-
-        <div class="quick-card-badge">
-            COMPARE
-        </div>
-
-        <h3>
-            Movies vs Movies
-        </h3>
-
-        <p>
-            Compare budget, verdict and worldwide box office.
-        </p>
-    </a>
-
-</section>
 
 <!-- ======================================================
      LATEST RELEASES
@@ -6763,6 +6702,9 @@ html,body{scroll-padding-top:0!important}
         <!-- BOXOFFICEX_SSR_TRENDING_ARTICLES -->
     </div>
 </section>
+
+<!-- Homepage article categories: populated by the published-article API. -->
+<div id="bxHomepageArticleCategories" aria-label="Explore entertainment articles"></div>
 
 <section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>
 
@@ -8033,10 +7975,10 @@ async function loadTrendingMovies() {
                     <h3>${escapeHTML(movie.title || "Untitled")}</h3>
                     <p>${escapeHTML(movie.language || movie.industry || "Cinema")}</p>
                     <p class="movie-collection">
-                        👁 ${views.toLocaleString()} Views • 🔥 ${hype.toLocaleString()} Hype
+
                     </p>
                     <p class="movie-verdict">
-                        ❤️ ${fans.toLocaleString()} • 🗳 ${votes.toLocaleString()} • 💬 ${comments.toLocaleString()}
+
                     </p>
                 </div>
             `;
@@ -8131,8 +8073,7 @@ async function loadTrendingArticles() {
                         ${escapeHTML(article.title || "Untitled Article")}
                     </h3>
                     <div class="article-trending-stats">
-                        👁 ${views.toLocaleString()} • ❤️ ${likes.toLocaleString()}
-                        • 🔥 ${hype.toLocaleString()} • 💬 ${comments.toLocaleString()}
+
                     </div>
                 </div>
             `;
@@ -8193,7 +8134,7 @@ async function loadMostHypedMovies() {
                 <div class="movie-info">
                     <h3>${escapeHTML(movie.title || "Untitled")}</h3>
                     <p>${escapeHTML(movie.language || movie.industry || "Cinema")}</p>
-                    <p class="movie-collection">🔥 ${Number(movie.hype_count || 0).toLocaleString()} Hype</p>
+                    <p class="movie-collection"></p>
                 </div>`;
             const openMovie = () => { window.location.href = bxMoviePublicUrl(movie); };
             card.addEventListener("click", openMovie);
@@ -8240,7 +8181,7 @@ async function loadTrendingFanActivity(){
                 <div class="fan-activity-copy">
                     <div class="fan-activity-type">${escapeHTML(labels[item.type]||"Fan Activity")}</div>
                     <div class="fan-activity-title">${escapeHTML(item.title||"BoxOfficeX")}</div>
-                    <div class="fan-activity-count">🔥 ${Number(item.activity_count||0).toLocaleString()} interactions • 7 days</div>
+                    <div class="fan-activity-count"></div>
                 </div>
             </article>`;
         }).join("");
@@ -8803,6 +8744,105 @@ if (comparisonCard) {
    START HOMEPAGE
 ========================================================= */
 
+
+/* Category-based published articles; other homepage sections are unchanged. */
+const BX_CATEGORY_META = {
+  "box-office": ["💰 Box Office", "COLLECTIONS & REPORTS"],
+  "movies-cinema": ["🎬 Movies & Cinema", "MOVIE STORIES"],
+  "hollywood-international": ["🌍 Hollywood & International", "GLOBAL CINEMA"],
+  "gaming": ["🎮 Gaming", "GAMING STORIES"],
+  "k-pop": ["🎵 K-Pop", "KOREAN ENTERTAINMENT"],
+  "actors-celebrities": ["⭐ Actors & Celebrities", "PEOPLE & PROFILES"],
+  "television": ["📺 Television", "TV COVERAGE"],
+  "entertainment-news": ["📰 Entertainment News", "LATEST NEWS"],
+  "box-office-guides": ["📚 Box Office Guides", "EXPLAINERS & GUIDES"]
+};
+async function loadHomepageArticleCategories() {
+  const root = document.getElementById("bxHomepageArticleCategories");
+  if (!root) return;
+
+  // The established /articles API is a fallback when the new endpoint is
+  // unavailable, so category sections don't silently disappear.
+  const categoryGroups = {
+    "box-office": ["Box Office", "boxoffice", "Special"],
+    "movies-cinema": ["Movies", "Cinema Business", "Cinema Guide"],
+    "hollywood-international": ["Hollywood", "International Cinema", "Hollywood Business"],
+    "gaming": ["Gaming"],
+    "k-pop": ["K-Pop"],
+    "actors-celebrities": ["Actors", "Actor Biography"],
+    "television": ["Television"],
+    "entertainment-news": ["Entertainment", "News"],
+    "box-office-guides": ["Box Office Guide"]
+  };
+  root.innerHTML = '<div class="bx-category-status" role="status">Loading entertainment categories…</div>';
+
+  let sections = [];
+  try {
+    const response = await bxHomeFetch(`${API_BASE}/articles/homepage-categories?limit=6`, 9000);
+    if (!response.ok) throw new Error(`Category endpoint returned ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data.sections)) throw new Error("Invalid category response");
+    sections = data.sections;
+  } catch (primaryError) {
+    console.warn("Using existing articles API for homepage categories:", primaryError);
+    try {
+      const response = await bxHomeFetch(`${API_BASE}/articles`, 12000);
+      if (!response.ok) throw new Error(`Articles endpoint returned ${response.status}`);
+      const data = await response.json();
+      const published = Array.isArray(data.articles) ? data.articles : [];
+      sections = Object.entries(categoryGroups).map(([key, names]) => {
+        const normalized = new Set(names.map(n => n.trim().toLowerCase()));
+        return {
+          key,
+          articles: published.filter(a => normalized.has(String(a.category || "").trim().toLowerCase()))
+            .sort((a,b) => (Date.parse(b.published_at || 0) || 0) - (Date.parse(a.published_at || 0) || 0) || Number(b.id || 0) - Number(a.id || 0))
+            .slice(0,6)
+        };
+      });
+    } catch (fallbackError) {
+      console.error("Homepage category feeds unavailable:", fallbackError);
+      root.innerHTML = '<div class="bx-category-status" role="status">Entertainment categories are temporarily unavailable. <a href="/articles.html">Browse all articles</a></div>';
+      return;
+    }
+  }
+
+  const fragment = document.createDocumentFragment();
+  sections.forEach(section => {
+    const articles = Array.isArray(section.articles) ? section.articles.slice(0,6) : [];
+    if (!articles.length) return;
+    const [heading, eyebrow] = BX_CATEGORY_META[section.key] || [section.key, "LATEST ARTICLES"];
+    const block = document.createElement("section");
+    block.className = "section bx-category-feed";
+    block.innerHTML = `<div class="section-header"><div class="section-title-wrap"><div class="section-label">${escapeHTML(eyebrow)}</div><h2>${escapeHTML(heading)}</h2></div><a href="/articles.html" aria-label="View all articles">View All →</a></div><div class="bx-category-grid"></div>`;
+    const grid = block.querySelector(".bx-category-grid");
+    articles.forEach(article => {
+      if (!article.slug) return;
+      const link = document.createElement("a");
+      link.className = "bx-category-card";
+      link.href = "/article/" + encodeURIComponent(String(article.slug));
+      const image = document.createElement("img");
+      image.src = articleImage(article);
+      image.alt = String(article.title || "Article");
+      image.loading = "lazy";
+      image.decoding = "async";
+      image.onerror = function(){setArticleFallback(this)};
+      const copy = document.createElement("div");
+      copy.className = "bx-category-copy";
+      const category = document.createElement("div");
+      category.className = "bx-category-type";
+      category.textContent = article.category || "Entertainment";
+      const title = document.createElement("h3");
+      title.textContent = article.title || "Article";
+      copy.append(category, title);
+      link.append(image, copy);
+      grid.appendChild(link);
+    });
+    if (grid.children.length) fragment.appendChild(block);
+  });
+  if (fragment.childNodes.length) root.replaceChildren(fragment);
+  else root.innerHTML = '<div class="bx-category-status">No published articles match the configured homepage categories yet. <a href="/articles.html">Browse articles</a></div>';
+}
+
 async function startHomePage() {
     // Start independent homepage requests immediately instead of waiting
     // for the full movie catalogue before rendering other sections.
@@ -8812,6 +8852,7 @@ async function startHomePage() {
         loadLatestMovies(),
         loadTrendingMovies(),
         loadTrendingArticles(),
+        loadHomepageArticleCategories(),
         loadMostHypedMovies(),
         loadTrendingFanActivity()
     ]);
@@ -8870,7 +8911,7 @@ async function updateSiteNewBadges(){
         const [moviesRes,articlesRes]=await Promise.all([
             fetch("/movies/new-system"),
             fetch("/articles/latest?limit=10")
-            
+
         ]);
 
         if(moviesRes.ok){
@@ -9151,7 +9192,7 @@ async function loadFanLeaderboards(){
     try{
         const r=await bxHomeFetch(`${API_BASE}/fan-leaderboards`); if(!r.ok)throw new Error("Leaderboard API "+r.status); const d=await r.json();
         const items=(Array.isArray(d.leaders)?d.leaders:[]).filter(Boolean);
-        el.innerHTML=items.length?items.map(x=>`<article class="leader-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count">${Number(x.count||0).toLocaleString("en-IN")} interactions</div></article>`).join(""):'<div class="movie-empty">No leaderboard data yet.</div>';
+        el.innerHTML=items.length?items.map(x=>`<article class="leader-card" onclick="location.href='${bxNormalizePublicUrl(x.url, x)}'"><div class="leader-label">${launchEsc(x.label)}</div><div class="leader-title">${launchEsc(x.title)}</div><div class="leader-count"></div></article>`).join(""):'<div class="movie-empty">No leaderboard data yet.</div>';
     }catch(e){console.error("Fan leaderboards:",e);el.innerHTML='<div class="movie-empty">Leaderboards unavailable.</div>'}
 }
 

@@ -15472,6 +15472,59 @@ def get_articles():
 # IMPORTANT: KEEP BEFORE /articles/{article_id}/... routes
 # ============================================================
 
+# ============================================================
+# HOMEPAGE ARTICLE CATEGORY FEEDS (phase 1: API only)
+# Existing article categories and public URLs remain unchanged.
+# ============================================================
+HOMEPAGE_ARTICLE_CATEGORIES = {
+    "box-office": ("Box Office", "boxoffice", "Special"),
+    "movies-cinema": ("Movies", "Cinema Business", "Cinema Guide"),
+    "hollywood-international": ("Hollywood", "International Cinema", "Hollywood Business"),
+    "gaming": ("Gaming",),
+    "k-pop": ("K-Pop",),
+    "actors-celebrities": ("Actors", "Actor Biography"),
+    "television": ("Television",),
+    "entertainment-news": ("Entertainment", "News"),
+    "box-office-guides": ("Box Office Guide",),
+}
+
+
+@app.get("/articles/homepage-categories", include_in_schema=False)
+def get_homepage_article_categories(limit: int = 6):
+    # Clamp user input to keep the homepage API inexpensive.
+    limit = max(1, min(limit, 6))
+    sections = []
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            for key, category_names in HOMEPAGE_ARTICLE_CATEGORIES.items():
+                cur.execute("""
+                    SELECT id, title, slug, subtitle, category, hero_image, published_at
+                    FROM articles
+                    WHERE status = 'published'
+                      AND LOWER(TRIM(COALESCE(category, ''))) = ANY(%s)
+                    ORDER BY published_at DESC NULLS LAST, id DESC
+                    LIMIT %s
+                """, ([c.casefold() for c in category_names], limit))
+                rows = cur.fetchall()
+                if not rows:
+                    continue
+                sections.append({
+                    "key": key,
+                    "categories": list(category_names),
+                    "articles": [
+                        {
+                            "id": r[0], "title": r[1], "slug": r[2],
+                            "subtitle": r[3], "category": r[4],
+                            "hero_image": r[5],
+                            "published_at": r[6].isoformat() if r[6] else None,
+                            "url": f"/article/{quote(str(r[2]), safe='')}",
+                        }
+                        for r in rows
+                    ],
+                })
+    return {"limit_per_category": limit, "sections": sections}
+
+
 @app.get("/articles/trending")
 def trending_articles(limit: int = 10):
     limit = max(1, min(int(limit or 10), 50))
@@ -28821,4 +28874,3 @@ def bx_public_live_v2_snapshot(movie_id: int):
 @app.get("/admin-live-tracker.html", dependencies=[_v2_Depends(require_owner)], include_in_schema=False)
 def live_v2_admin_page():
     return FileResponse(BASE_DIR / "admin-live-tracker.html")
-
