@@ -13546,8 +13546,94 @@ def _bx_ssr_special_block(block_type, data):
             if sections.get(key) is not False:
                 parts.append(_bx_ssr_data_table(title, data.get(key)))
         parts.append('</section>')
-        return ''.join(parts)
+        return ''.join(parts) if len(parts) > 2 else ""
     return ""
+
+
+def _bx_anime_ssr(data):
+    """Indexable, escaped Anime Studio content; browser upgrades it interactively."""
+    if not isinstance(data, dict):
+        return ""
+    anime = data.get("anime") if isinstance(data.get("anime"), dict) else {}
+    financials = data.get("financials") if isinstance(data.get("financials"), dict) else {}
+    esc = lambda v: html_escape(str(v), quote=True)
+    def value(v):
+        return v is not None and str(v).strip() != ""
+    def records(key):
+        rows = data.get(key)
+        return [r for r in rows[:300] if isinstance(r, dict) and any(value(v) for v in r.values())] if isinstance(rows, list) else []
+    def paragraph(v):
+        return '<p>' + esc(v).replace('\n', '<br>') + '</p>' if value(v) else ''
+    def cards(key, fields):
+        out = []
+        for item in records(key):
+            pieces = []
+            for i, (field, label) in enumerate(fields):
+                if not value(item.get(field)):
+                    continue
+                if i == 0:
+                    pieces.append('<h4>' + esc(item[field]) + '</h4>')
+                else:
+                    pieces.append('<p><strong>' + esc(label) + ':</strong> ' + esc(item[field]) + '</p>')
+            if pieces:
+                out.append('<div class="bx-anime-card">' + ''.join(pieces) + '</div>')
+        return ''.join(out)
+    def table(key, fields):
+        items = records(key)
+        if not items:
+            return ''
+        columns = [(field, label) for field, label in fields if any(value(r.get(field)) for r in items)]
+        if not columns:
+            return ''
+        head = ''.join('<th scope="col">' + esc(label) + '</th>' for field, label in columns)
+        body = ''.join('<tr>' + ''.join('<td>' + esc(r.get(field) or '') + '</td>' for field, _ in columns) + '</tr>' for r in items)
+        return '<div class="article-table-scroll"><table class="bx-anime-table"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>'
+    sections = []
+    def add(title, body):
+        if body:
+            sections.append('<section class="bx-anime-section"><h2>' + esc(title) + '</h2>' + body + '</section>')
+    add('Overview', paragraph(anime.get('synopsis')))
+    add('Story & Plot', cards('story', [('heading','Heading'),('text','Story')]))
+    add('Characters & Voice Cast', cards('characters', [('name','Name'),('voice_actor','Voice actor'),('description','About')]))
+    add('Seasons & Episodes', table('episodes', [('season','Season'),('number','Episode'),('title','Title'),('date','Release'),('summary','Summary')]))
+    add('Production & Animation', cards('production', [('label','Topic'),('details','Details')]))
+    add('Streaming & Distribution', table('streaming', [('platform','Platform'),('territory','Territory'),('details','Availability')]))
+    add('Manga & Publishing', cards('manga', [('label','Topic'),('details','Details')]))
+    add('Reviews & Awards', cards('reception', [('label','Topic'),('details','Details')]))
+    add('News & Updates', cards('updates', [('title','Update'),('date','Date'),('details','Details')]))
+    add('Comparisons', cards('comparisons', [('title','Comparison'),('details','Analysis')]))
+    faq = ''.join('<details><summary>' + esc(r['question']) + '</summary>' + paragraph(r['answer']) + '</details>' for r in records('faq') if value(r.get('question')) and value(r.get('answer')))
+    add('Frequently Asked Questions', faq)
+    names = [('production','Production & Animation Costs'),('marketing','Marketing'),('voice_cast_salaries','Voice Cast & Crew Salaries'),('worldwide_box_office','Box Office'),('streaming_licensing','Streaming & Licensing'),('manga_publishing','Manga Publishing & Sales'),('merchandise_licensing','Merchandise & Licensing'),('gaming','Gaming Revenue'),('profit_analysis','Profit Analysis')]
+    finparts = []
+    base = str(data.get('base_currency') or 'USD').upper()
+    for key, title in names:
+        rows = financials.get(key)
+        if not isinstance(rows, list):
+            continue
+        rendered = []
+        for r in rows[:300]:
+            if not isinstance(r, dict) or not value(r.get('label')) or not value(r.get('amount')):
+                continue
+            try:
+                amount = float(r['amount'])
+                if not math.isfinite(amount):
+                    continue
+            except (TypeError, ValueError):
+                continue
+            currency = str(r.get('currency') or base).upper()
+            note = ('<small>' + esc(r['note']) + '</small>' if value(r.get('note')) else '')
+            rendered.append('<tr><td>' + esc(r['label']) + note + '</td><td class="bx-anime-amount-cell">' + esc(f'{currency} {amount:,.2f}') + '</td></tr>')
+        if rendered:
+            finparts.append('<section><h3>' + esc(title) + '</h3><div class="article-table-scroll"><table class="bx-anime-table"><tbody>' + ''.join(rendered) + '</tbody></table></div></section>')
+    if finparts:
+        add('Financial Intelligence', ''.join(finparts) + '<p>Gross revenue is not net profit. Categories may overlap.</p>')
+    if not sections:
+        return ''
+    title = anime.get('title') or 'Anime Information'
+    metadata = [anime.get(k) for k in ('japanese_title','format','year','studio','director','genre','release_date')]
+    meta = '<p>' + ' · '.join(esc(v) for v in metadata if value(v)) + '</p>' if any(value(v) for v in metadata) else ''
+    return '<div class="bx-anime-ssr" data-ssr="1">' + meta + ''.join(sections) + '</div>'
 
 
 def _article_ssr_block(block, article=None):
@@ -13555,6 +13641,8 @@ def _article_ssr_block(block, article=None):
     data = block.get("extra_data") or {}
     content = block.get("content") or ""
 
+    if block_type == "anime_content":
+        return _bx_anime_ssr(data)
     if block_type in {"gaming", "global_boxoffice_rankings"}:
         return _bx_ssr_special_block(block_type, data)
     if block_type == "paragraph":
@@ -13566,7 +13654,8 @@ def _article_ssr_block(block, article=None):
             or "h2"
         ).strip().lower()
         tag = "h3" if heading_level in {"3", "h3"} else "h2"
-        return f"<{tag}>{_article_ssr_inline(content)}</{tag}>"
+        heading_text = _article_ssr_inline(content).strip()
+        return f"<{tag}>{heading_text}</{tag}>" if heading_text else ""
     if block_type == "quote":
         return "<blockquote>" + _article_ssr_inline(content).replace("\n", "<br>") + "</blockquote>"
     if block_type == "image":
@@ -13653,6 +13742,8 @@ def _article_ssr_block(block, article=None):
         return _article_ssr_boxoffice(data)
     if block_type in {"movie", "actor"}:
         return _article_ssr_related_entity(block_type, data)
+    if block_type:
+        print(f"[ARTICLE SSR] Unsupported block type: {block_type}", flush=True)
     return ""
 
 
@@ -14828,8 +14919,6 @@ def _render_article_detail_html(slug):
 
     title = str(article.get("title") or "BoxOfficeX Article")
     seo_title = str(article.get("meta_title") or title).strip()
-    if not combined_v2_seo and "boxofficex" not in seo_title.lower():
-        seo_title += " | BoxOfficeX"
     description = str(
         article.get("meta_description")
         or article.get("subtitle")
@@ -16987,7 +17076,7 @@ def validate_block_type(value: str) -> str:
         "paragraph", "heading", "image", "quote", "gallery",
         "boxoffice", "movie", "actor", "video", "table", "live_tracker", "auto_live_tracker",
         "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer",
-        "global_boxoffice_rankings", "gaming",
+        "global_boxoffice_rankings", "gaming", "anime_content",
     }
     value = (value or "").lower().strip()
     if value not in allowed:
@@ -17047,7 +17136,7 @@ def ensure_live_tracker_article_block_type():
             constraint_def = constraint_row[0] if constraint_row else ""
             constraint_def_lower = constraint_def.lower()
 
-            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer", "gaming")
+            required_types = ("live_tracker", "auto_live_tracker", "pre_release_business", "salary_details", "advance_booking", "movie_financial_explorer", "gaming", "anime_content")
             if all(block_type in constraint_def_lower for block_type in required_types):
                 return
 
@@ -17078,7 +17167,8 @@ def ensure_live_tracker_article_block_type():
                         'advance_booking',
                         'movie_financial_explorer',
                         'global_boxoffice_rankings',
-                        'gaming'
+                        'gaming',
+                        'anime_content'
                     )
                 )
             """)

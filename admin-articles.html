@@ -892,6 +892,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 .bx-auto-compact-day small{display:block;color:#9aa8bf;font-size:9px;margin-top:4px}
 @media(max-width:900px){.bx-auto-compact-row{grid-template-columns:repeat(2,minmax(0,1fr))}.bx-auto-compact-day{grid-column:1/-1}}
 .game-admin-banner{padding:14px;background:linear-gradient(90deg,#123526,#14253a);border:1px solid #2e7956;border-radius:12px;color:#a9f5cc;font-weight:900;margin-bottom:12px}.game-admin-section{padding:13px;margin-top:12px;border:1px solid #284438;border-radius:12px;background:#0e1b19}.game-admin-section>strong{display:block;margin-bottom:12px;color:#9deac2}.game-admin-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.game-admin-row{padding:10px;border:1px solid #294336;border-radius:10px;margin-top:8px}.game-admin-row button{margin-top:8px}.game-admin-toggles{display:flex;flex-wrap:wrap;gap:12px}.game-admin-toggles label{display:flex;align-items:center;gap:7px;text-transform:capitalize}.game-admin-toggles input{width:auto}
+.anime-editor-section{border:1px solid #29334d;border-radius:12px;padding:12px;margin:10px 0;background:#101725}.anime-editor-section summary{cursor:pointer;font-weight:800;padding:5px}.anime-editor-entry{padding:12px;margin:10px 0;border:1px solid #29334d;border-radius:10px}.anime-editor-entry textarea{min-height:65px}
 </style>
 </head>
 <body>
@@ -1092,6 +1093,7 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 <button type="button" class="btn-dark" id="bxQuickReorderButton" onclick="bxOpenQuickReorder()">↕ Quick Reorder</button>
 <div class="block-add">
 <button data-add="gaming">🎮 Gaming Studio</button>
+<button data-add="anime_content">🌸 Anime Studio</button>
 <button data-add="paragraph">Paragraph</button>
 <button data-add="heading">Heading</button>
 <button data-add="image">Image</button>
@@ -1523,6 +1525,7 @@ document.querySelectorAll(".article-item").forEach(x=>x.classList.remove("active
 }
 function blockTemplate(type){
 const base={id:null,block_order:blocks.length+1,block_type:type,content:"",image:"",image_caption:"",image_credit:"",extra_data:{}};
+if(type==="anime_content")base.extra_data={version:1,anime:{title:"",japanese_title:"",format:"movie",year:"",studio:"",director:"",genre:"",release_date:"",hero_url:"",synopsis:""},theme:{accent:"#b987ff"},base_currency:"USD",sections:{},story:[],characters:[],episodes:[],production:[],streaming:[],manga:[],reception:[],updates:[],comparisons:[],faq:[],financials:{production:[],marketing:[],voice_cast_salaries:[],worldwide_box_office:[],streaming_licensing:[],manga_publishing:[],merchandise_licensing:[],gaming:[],profit_analysis:[]}};
 if(type==="gaming")base.extra_data={version:1,game:{title:"",tagline:"",developer:"",publisher:"",genre:"",release_date:"",cover_url:"",hero_url:"",description:""},theme:{accent:"#62e6a0"},financials:{currency:"USD",development_budget:null,marketing_budget:null,revenue:null,copies_sold:null,source_url:""},platforms:[],requirements:{minimum:"",recommended:""},ratings:[],updates:[],sources:[],sections:{overview:true,financials:true,platforms:true,requirements:true,ratings:true,updates:true}};
 if(type==="advance_booking")base.extra_data={title:"Advance Booking Tracker",summary:"",dates:[{key:"day1",label:"Day 1",date:"",india_gross:0,overseas_gross:0,tickets:0,shows:0,theatres:0,occupancy:0,houseful:0,fast_filling:0}],regions:[]};
 if(type==="boxoffice")base.extra_data={
@@ -2545,6 +2548,18 @@ ${rows.map((r,j)=>`<div style="margin-top:10px;padding:10px;background:#101725;b
 <label style="margin-top:12px"><input type="checkbox" style="width:auto" data-fx-disclaimer ${fx.disclaimer_enabled!==false?"checked":""}> Show financial disclaimer</label>`;
 }
 
+
+if(b.block_type==="anime_content"){
+ const d=b.extra_data=b.extra_data||{};d.anime=d.anime||{};d.theme=d.theme||{};d.financials=d.financials||{};
+ const esc=v=>articleContentEsc(String(v??""));
+ const fields=[["title","Anime title"],["japanese_title","Japanese title"],["format","Format (movie / series / manga / franchise / news)"],["year","Year"],["studio","Studio"],["director","Director"],["genre","Genre"],["release_date","Release date"],["hero_url","Hero image URL"],["synopsis","Synopsis / overview"]];
+ const rowTypes={story:[["heading","Heading"],["text","Detailed story / plot"]],characters:[["name","Character"],["voice_actor","Voice actor"],["description","Description"],["image","Image URL"]],episodes:[["season","Season"],["number","Episode"],["title","Title"],["date","Release date"],["summary","Summary"]],production:[["label","Department / topic"],["details","Details"]],streaming:[["platform","Platform"],["territory","Territory"],["details","Availability details"]],manga:[["label","Manga / publishing topic"],["details","Details"]],reception:[["label","Review / award"],["details","Details"]],updates:[["date","Date"],["title","Update"],["details","Details"]],comparisons:[["title","Comparison"],["details","Analysis"]],faq:[["question","Question"],["answer","Answer"]]};
+ const financeLabels={production:"Production & animation costs",marketing:"Marketing",voice_cast_salaries:"Voice cast & crew salaries",worldwide_box_office:"Worldwide / regional box office",streaming_licensing:"Streaming & licensing",manga_publishing:"Manga publishing & sales",merchandise_licensing:"Merchandise & licensing",gaming:"Games & related revenue",profit_analysis:"Profit analysis"};
+ const sections=Object.entries(rowTypes).map(([key,cols])=>`<details class="anime-editor-section"><summary>${key.replaceAll('_',' ').toUpperCase()} (${(d[key]||[]).length})</summary><button type="button" class="btn-dark" data-anime-add="${key}">+ Add entry</button>${(d[key]||[]).map((r,j)=>`<div class="anime-editor-entry"><div class="block-row">${cols.map(([f,l])=>`<div><label>${l}</label><textarea rows="2" data-anime-row="${key}" data-anime-index="${j}" data-anime-field="${f}">${esc(r[f])}</textarea></div>`).join('')}</div><button type="button" class="btn-red" data-anime-remove="${key}" data-anime-index="${j}">Remove</button></div>`).join('')}</details>`).join('');
+ const financial=Object.entries(financeLabels).map(([key,label])=>`<details class="anime-editor-section"><summary>💰 ${label} (${(d.financials[key]||[]).length})</summary><button type="button" class="btn-dark" data-anime-fin-add="${key}">+ Add financial entry</button>${(d.financials[key]||[]).map((r,j)=>`<div class="anime-editor-entry"><div class="block-row">${[["label","Metric / territory"],["amount","Amount"],["currency","Original currency"],["status","Evidence status (reported / analysis / scenario)"],["note","Explanation"],["source_url","Verification URL (internal)"]].map(([f,l])=>`<div><label>${l}</label><input ${f==='amount'?'type="number" min="0" step="any"':''} data-anime-fin="${key}" data-anime-index="${j}" data-anime-field="${f}" value="${esc(r[f])}"></div>`).join('')}</div><button type="button" class="btn-red" data-anime-fin-remove="${key}" data-anime-index="${j}">Remove</button></div>`).join('')}</details>`).join('');
+ body=`<div class="game-admin-banner">🌸 ANIME STUDIO V1 · One complete block · Empty sections hidden · Enter only verifiable figures</div><div class="block-row">${fields.map(([k,l])=>`<div><label>${l}</label>${k==='synopsis'?`<textarea data-anime-meta="${k}">${esc(d.anime[k])}</textarea>`:`<input data-anime-meta="${k}" value="${esc(d.anime[k])}">`}</div>`).join('')}<div><label>Accent color</label><input type="color" data-anime-accent value="${/^#[0-9a-fA-F]{6}$/.test(d.theme.accent||'')?d.theme.accent:'#b987ff'}"></div><div><label>Base currency</label><select data-anime-currency>${["USD","INR","JPY","MYR","SGD","EUR","GBP","KRW","CNY","AUD"].map(c=>`<option value="${c}" ${d.base_currency===c?'selected':''}>${c}</option>`).join('')}</select></div></div><h3 style="margin:20px 0 8px">Anime & editorial sections</h3>${sections}<h3 style="margin:20px 0 8px">Financial intelligence</h3>${financial}`;
+}
+
 if(b.block_type==="gaming"){
  const d=b.extra_data=b.extra_data||{},g=d.game=d.game||{},f=d.financials=d.financials||{},t=d.theme=d.theme||{},s=d.sections=d.sections||{};
  const escg=v=>articleContentEsc(String(v??""));
@@ -2915,6 +2930,20 @@ el.addEventListener("input",update);el.addEventListener("change",update);
 });
 const disclaimer=card.querySelector("[data-fx-disclaimer]");
 if(disclaimer)disclaimer.onchange=()=>{fx.disclaimer_enabled=disclaimer.checked};
+}
+
+
+if(b.block_type==="anime_content"){
+ const d=b.extra_data;d.version=1;d.anime=d.anime||{};d.theme=d.theme||{};d.financials=d.financials||{};
+ card.querySelectorAll('[data-anime-meta]').forEach(el=>el.addEventListener('input',()=>d.anime[el.dataset.animeMeta]=el.value));
+ const accent=card.querySelector('[data-anime-accent]');if(accent)accent.oninput=()=>d.theme.accent=accent.value;
+ const curr=card.querySelector('[data-anime-currency]');if(curr)curr.onchange=()=>d.base_currency=curr.value;
+ card.querySelectorAll('[data-anime-add]').forEach(el=>el.onclick=()=>{const k=el.dataset.animeAdd;d[k]=d[k]||[];d[k].push({});renderBlocks()});
+ card.querySelectorAll('[data-anime-remove]').forEach(el=>el.onclick=()=>{d[el.dataset.animeRemove].splice(+el.dataset.animeIndex,1);renderBlocks()});
+ card.querySelectorAll('[data-anime-row]').forEach(el=>el.addEventListener('input',()=>{const r=d[el.dataset.animeRow]?.[+el.dataset.animeIndex];if(r)r[el.dataset.animeField]=el.value}));
+ card.querySelectorAll('[data-anime-fin-add]').forEach(el=>el.onclick=()=>{const k=el.dataset.animeFinAdd;d.financials[k]=d.financials[k]||[];d.financials[k].push({currency:d.base_currency||'USD',status:'reported'});renderBlocks()});
+ card.querySelectorAll('[data-anime-fin-remove]').forEach(el=>el.onclick=()=>{d.financials[el.dataset.animeFinRemove].splice(+el.dataset.animeIndex,1);renderBlocks()});
+ card.querySelectorAll('[data-anime-fin]').forEach(el=>el.addEventListener('input',()=>{const r=d.financials[el.dataset.animeFin]?.[+el.dataset.animeIndex];if(r)r[el.dataset.animeField]=el.dataset.animeField==='amount'?(el.value===''?null:Number(el.value)):el.value}));
 }
 
 if(b.block_type==="gaming"){
