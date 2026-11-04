@@ -2711,7 +2711,7 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
           ${compactInput('End time (IST)','time',(firstSchedule.end_at||'').slice(11,16),'end')}
           <div><label>Frequency</label><select data-bx-quick-day="${articleContentEsc(g.key)}" data-bx-quick-field="frequency">${[5,10,15,20,30].map(v=>`<option value="${v}" ${Number(firstSchedule.interval_minutes||10)===v?'selected':''}>${v} min</option>`).join('')}</select></div>
           ${compactInput('Shows','number',firstSchedule.shows??0,'shows')}
-          ${compactInput('Occupancy %','number',firstSchedule.occupancy??0,'occupancy')}
+          ${compactInput('Occupancy %','number',firstSchedule.occupancy??'','occupancy')}
           <button type="button" class="btn-dark" data-bx-open-network="${articleContentEsc(g.key)}">⚙ Network</button>
         </div><details class="bx-auto-day-group" data-tracker-day-key="${articleContentEsc(g.key)}" ${g.key===bxOpenDay?"open":""}>
           <summary class="bx-auto-day-summary">
@@ -3025,8 +3025,9 @@ if(b.block_type==="auto_live_tracker"){
        const schedule=schedules.find(d=>(d.field||'india_gross')===(field.startsWith('india')?'india_gross':'overseas_gross'));
        if(schedule)schedule[field.endsWith('_start')?'start_value':'target_value']=Math.max(0,Number(el.value)||0);
      }else if(field==='frequency'||field==='shows'||field==='occupancy'){
+       const cleared=field==='occupancy' && el.value.trim()==='';
        const value=Math.max(0,Number(el.value)||0);
-       schedules.forEach(d=>d[field==='frequency'?'interval_minutes':field]=field==='occupancy'?Math.min(100,value):value);
+       schedules.forEach(d=>d[field==='frequency'?'interval_minutes':field]=cleared?null:(field==='occupancy'?Math.min(100,value):value));
      }else if(/^\d{2}:\d{2}$/.test(el.value)){
        schedules.forEach(d=>{
          const prop=field==='start'?'start_at':'end_at';
@@ -3034,9 +3035,12 @@ if(b.block_type==="auto_live_tracker"){
          if(date)d[prop]=date+'T'+el.value;
        });
      }
-     // Keep original detailed controls and their values in sync.
-     renderBlocks();
+     // Shows and occupancy must not rebuild the editor: doing so destroys
+     // the focused input and jumps the user back to the first row.
+     if(field!=='shows' && field!=='occupancy')renderBlocks();
    };
+   // Persist these values while typing, including a deliberately blank occupancy.
+   if(['shows','occupancy'].includes(el.dataset.bxQuickField))el.oninput=el.onchange;
  });
  card.querySelectorAll('[data-bx-open-network]').forEach(btn=>btn.onclick=()=>{
    const key=btn.dataset.bxOpenNetwork;
