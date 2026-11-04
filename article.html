@@ -6078,7 +6078,7 @@ function renderTheatricalPerformance(analysis) {
             <div class="bx-tp-next-row bx-tp-next-simple">
                 <span>${verdictEnabled
                     ? `<strong>${money(next.remaining)}</strong> more gross collection needed to reach <strong>${esc(String(next.label || "").toUpperCase())}</strong>`
-                    : `<strong>Next Target: ${esc(String(next.label || "Recovery"))} Range (${Number(next.multiple||0).toFixed(2)}×)</strong><br><strong>${money(next.remaining)}</strong> more gross needed<br><small>Current: <strong>${multiple(item?.multiple)}</strong> → Target: <strong>${Number(next.multiple||0).toFixed(2)}×</strong> · Tracking benchmark only; estimated verdict begins from Day 8.</small>`
+                    : `<strong>Next Target: ${esc(String(next.label || "Recovery"))} Range (${Number(next.multiple||0).toFixed(2)}×)</strong><br><strong>${money(next.remaining)}</strong> more gross needed<br><small>Current: <strong>${multiple(item?.multiple)}</strong> → Target: <strong>${Number(next.multiple||0).toFixed(2)}×</strong> · Tracking benchmark only; performance labels begin from Day 8.</small>`
                 }</span>
             </div>
             <div class="bx-tp-progress" aria-label="${esc(next.label)} progress">
@@ -6098,10 +6098,10 @@ function renderTheatricalPerformance(analysis) {
             <div class="bx-tp-stats">
                 <div class="bx-tp-stat"><span>Theatrical Rights</span><strong>${money(combined.theatrical_value)}</strong></div>
                 <div class="bx-tp-stat"><span>Current Gross</span><strong>${money(combined.gross)}</strong></div>
-                <div class="bx-tp-stat"><span>Estimated Net</span><strong>${money(combined.estimated_net)}</strong></div>
-                <div class="bx-tp-stat"><span>Estimated Theatrical Share</span><strong>${money(combined.estimated_theatrical_share)}</strong></div>
+                <div class="bx-tp-stat"><span>Calculated Net</span><strong>${money(combined.estimated_net)}</strong></div>
+                <div class="bx-tp-stat"><span>Theatrical Share</span><strong>${money(combined.estimated_theatrical_share)}</strong></div>
                 <div class="bx-tp-stat"><span>Performance</span><strong>${multiple(combined.multiple)}</strong></div>
-                <div class="bx-tp-stat level"><span>${verdictEnabled ? "Estimated Level" : "Run Stage"}</span><strong class="bx-tp-level-big bx-tp-level-${String(shownLevel.key || "tracking").toLowerCase().replaceAll("_","-")}">${esc(shownLevel.label || stageLabel)}</strong></div>
+                <div class="bx-tp-stat level"><span>${verdictEnabled ? "Performance Level" : "Run Stage"}</span><strong class="bx-tp-level-big bx-tp-level-${String(shownLevel.key || "tracking").toLowerCase().replaceAll("_","-")}">${esc(shownLevel.label || stageLabel)}</strong></div>
             </div>
             ${nextHtml(combined)}
         </div>`;
@@ -6123,8 +6123,8 @@ function renderTheatricalPerformance(analysis) {
                 <div class="bx-tp-region-values">
                     <div class="bx-tp-mini"><span>Theatrical Rights</span><strong>${money(r.theatrical_value)}</strong></div>
                     <div class="bx-tp-mini"><span>Current Gross</span><strong>${money(r.gross)}</strong></div>
-                    ${key !== "overseas" ? `<div class="bx-tp-mini"><span>Estimated Net</span><strong>${money(r.estimated_net)}</strong></div>` : ""}
-                    <div class="bx-tp-mini"><span>Estimated Theatrical Share</span><strong>${money(r.estimated_theatrical_share)}</strong></div>
+                    ${key !== "overseas" ? `<div class="bx-tp-mini"><span>Calculated Net</span><strong>${money(r.estimated_net)}</strong></div>` : ""}
+                    <div class="bx-tp-mini"><span>Theatrical Share</span><strong>${money(r.estimated_theatrical_share)}</strong></div>
                     <div class="bx-tp-mini"><span>Multiple</span><strong>${multiple(r.multiple)}</strong></div>
                 </div>
                 ${nextHtml(r)}
@@ -6167,27 +6167,27 @@ function renderTheatricalPerformance(analysis) {
         </div>` : "";
 
     const faqVerdict = !verdictEnabled
-        ? `${esc(movieTitle)} is still in ${esc(stageLabel)} on Day ${runDay}. BoxOfficeX does not assign an estimated hit/flop performance level during the first seven days; verdict tracking begins from Day 8.`
-        : `Based on the currently stored theatrical-value and box-office data, ${esc(movieTitle)} is in the ${esc(currentLevelLabel)} estimated performance range. The estimate can change as the theatrical run develops.`;
+        ? `${esc(movieTitle)} is still in ${esc(stageLabel)} on Day ${runDay}. BoxOfficeX does not assign an hit/flop performance level during the first seven days; verdict tracking begins from Day 8.`
+        : `Based on the currently stored theatrical-value and box-office data, ${esc(movieTitle)} is in the ${esc(currentLevelLabel)} performance range. The assessment can change as the theatrical run develops.`;
 
     const seoHtml = `
         <section class="bx-tp-seo" aria-label="${esc(movieTitle)} budget and box office recovery explained">
             <h2>${esc(movieTitle)} Budget &amp; Box Office Recovery Tracker</h2>
-            <p>${esc(movieTitle)} has <strong>${theatricalValue}</strong> in reported theatrical rights. From <strong>${currentGross}</strong> tracked gross, BoxOfficeX estimates <strong>${estimatedNet}</strong> net and <strong>${estimatedShare}</strong> theatrical share, equal to <strong>${shareRecoveryPct.toFixed(1)}%</strong> of reported theatrical rights. An estimated <strong>${remainingShare}</strong> in theatrical share remains to recover the reported rights value; track territory-wise recovery and the next box office target below.</p>
+            <p>${esc(movieTitle)} has <strong>${theatricalValue}</strong> in reported theatrical rights. From <strong>${currentGross}</strong> tracked gross, BoxOfficeX calculates <strong>${estimatedNet}</strong> net and <strong>${estimatedShare}</strong> theatrical share, equal to <strong>${shareRecoveryPct.toFixed(1)}%</strong> of reported theatrical rights. A calculated <strong>${remainingShare}</strong> in theatrical share remains to recover the reported rights value; track territory-wise recovery and the next box office target below.</p>
             ${visibleRegionNames.length ? `<h3>${esc(movieTitle)} Territory-wise Theatrical Performance</h3><p>Current theatrical recovery is being tracked only for markets with reported theatrical values and collection data: <strong>${esc(regionPhrase)}</strong>. Markets without usable reported values are not shown as artificial zeroes.</p>` : ""}
             ${relatedHtml}
             <div class="bx-tp-faq">
                 <h3>${esc(movieTitle)} Box Office FAQ</h3>
                 <details><summary>Is ${esc(movieTitle)} a hit or flop?</summary><p>${faqVerdict}</p></details>
                 <details><summary>What is ${esc(movieTitle)}’s theatrical recovery?</summary><p>The tracker currently shows <strong>${currentMultiple.toFixed(2)}×</strong> recovery across markets with reported theatrical values, based on a tracked gross of <strong>${currentGross}</strong> against <strong>${theatricalValue}</strong>.</p></details>
-                <details><summary>How does BoxOfficeX calculate ${esc(movieTitle)}’s theatrical performance?</summary><p>BoxOfficeX compares reported territory theatrical values with stored box office gross and estimated theatrical share. Missing territories are excluded rather than treated as zero, and the public estimated performance label begins from Day 8.</p></details>
+                <details><summary>How does BoxOfficeX calculate ${esc(movieTitle)}’s theatrical performance?</summary><p>BoxOfficeX compares reported territory theatrical values with stored box office gross and calculated theatrical share. Missing territories are excluded rather than treated as zero, and the public performance label begins from Day 8.</p></details>
             </div>
         </section>`;
 
-    return `<section class="bx-tp" aria-label="Estimated theatrical performance">
+    return `<section class="bx-tp" aria-label="Theatrical performance">
         <div class="bx-tp-head">
             <div>
-                <div class="bx-tp-title">🎯 Estimated Theatrical Performance</div>
+                <div class="bx-tp-title">🎯 Theatrical Performance</div>
                 <div class="bx-tp-sub">${verdictEnabled ? "Reported theatrical values compared with matching earned box-office gross" : "Recovery tracking during the opening week — verdict labels begin from Day 8"}</div>
             </div>
         </div>
@@ -6451,7 +6451,7 @@ w.includesPreview
 }</td>${visibleTerritories.map(([key])=>`<td>${w[key]>0?money(w[key]):"—"}</td>`).join("")}<td class="bo-auto-total">${money(w.india)}</td><td class="bo-auto-total">${money(w.worldwide)}</td></tr>`).join("")}</tbody></table></div>`:""}
 <div class="bo-subtitle">${esc(currentGrossHeading)}</div><div class="bo-final-grid">${visibleTerritories.filter(([key])=>actualTotal[key]>0).map(([key,label])=>`<div class="bo-final-item"><span>${esc(label)}</span><strong>${money(actualTotal[key])}</strong></div>`).join("")}<div class="bo-final-item total"><span>India Gross</span><strong>${money(actualTotal.india)}</strong></div><div class="bo-final-item total"><span>Worldwide</span><strong>${money(actualTotal.worldwide)}</strong></div></div>
 ${hasAdvance?`<div class="bo-subtitle">${esc(advanceHeading)}</div><div class="bo-final-grid">${visibleTerritories.filter(([key])=>advanceTotal[key]>0).map(([key,label])=>`<div class="bo-final-item"><span>${esc(label)}</span><strong>${money(advanceTotal[key])}</strong></div>`).join("")}<div class="bo-final-item total"><span>India Advance</span><strong>${money(advanceTotal.india)}</strong></div><div class="bo-final-item total"><span>Worldwide Advance</span><strong>${money(advanceTotal.worldwide)}</strong></div></div>
-<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>${renderBoxOfficeAnalysis(data?.analysis, data)}`;
+<div class="bo-subtitle">Tracked Business — Current Gross + Advance</div><div class="bo-final-grid"><div class="bo-final-item total"><span>India Tracked</span><strong>${money(trackedTotal.india)}</strong></div><div class="bo-final-item"><span>Overseas Tracked</span><strong>${money(trackedTotal.overseas)}</strong></div><div class="bo-final-item total"><span>Worldwide Tracked</span><strong>${money(trackedTotal.worldwide)}</strong></div></div>`:""}</div>`;
 }
 
 // =========================================================
@@ -7578,7 +7578,7 @@ async function renderBlock(block) {
         const dayHead = `<header class="bx-seo-section-head"><h2>${safeMovie} Day-Wise Box Office Collection</h2><p>Track ${safeMovie} day-wise India, overseas and worldwide box office collection with the latest reported figures in the table below.</p></header>`;
         const tpHead = data?.analysis?.theatrical_performance ? `<header class="bx-seo-section-head bx-seo-theatrical-head"><h2>${safeMovie} Theatrical Performance</h2><p>Track ${safeMovie} area-wise theatrical performance, reported theatrical values, current gross and recovery milestones.</p></header>` : "";
         const tpPerformance = splitTheatricalPerformance(data?.analysis).performance;
-        return `<section id="boxoffice-report" class="bx-daywise-seo">${dayHead}${renderBoxOffice(data)}</section>${tpHead}${tpPerformance}`;
+        return `<section id="boxoffice-report" class="bx-daywise-seo">${dayHead}${renderBoxOffice(data)}</section>${tpHead}${tpPerformance}${renderBoxOfficeAnalysis(data?.analysis, data)}`;
     }
 
     if (type === "pre_release_business") {
