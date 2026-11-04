@@ -6668,20 +6668,17 @@ h1, h2, h3, h4, h5, h6, .bx-category-card h3 { font-family: var(--bx-ui-font) !i
 </section>
 
 <!-- ======================================================
-     TRENDING MOVIES
+     LATEST 10 ARTICLES
 ====================================================== -->
-
-<section class="section" id="trending-movies">
+<section class="section" id="latest-articles">
     <div class="section-header">
         <div class="section-title-wrap">
-            <div class="section-label">AUDIENCE ACTIVITY • LAST 7 DAYS</div>
-            <h2>📈 Trending Movies</h2>
+            <div class="section-label">FRESH FROM BOXOFFICEX</div>
+            <h2>📰 Latest 10 Articles</h2>
         </div>
+        <a href="/articles.html">View All →</a>
     </div>
-
-    <div class="movie-grid ranking-grid" id="trendingMoviesGrid">
-        <!-- BOXOFFICEX_SSR_TRENDING_MOVIES -->
-    </div>
+    <div class="article-trending-grid" id="latestArticlesGrid" aria-live="polite"><!-- BOXOFFICEX_SSR_LATEST_ARTICLES --></div>
 </section>
 
 
@@ -6704,7 +6701,7 @@ h1, h2, h3, h4, h5, h6, .bx-category-card h3 { font-family: var(--bx-ui-font) !i
 </section>
 
 <!-- Homepage article categories: populated by the published-article API. -->
-<div id="bxHomepageArticleCategories" aria-label="Explore entertainment articles"></div>
+<div id="bxHomepageArticleCategories" aria-label="Explore entertainment articles"><!-- BOXOFFICEX_SSR_ARTICLE_CATEGORIES --></div>
 
 <section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>
 
@@ -7917,94 +7914,51 @@ async function loadMovies() {
 
 
 /* =========================================================
-   TRENDING MOVIES
+   LATEST 10 ARTICLES — published articles in newest-first order
 ========================================================= */
-
-async function loadTrendingMovies() {
-    const grid = document.getElementById("trendingMoviesGrid");
-    if (document.getElementById("trendingMoviesGrid")?.dataset.ssr === "1") return;
+async function loadLatestArticles() {
+    const grid = document.getElementById("latestArticlesGrid");
     if (!grid) return;
-
+    if (grid.dataset.ssr === "1" && grid.children.length > 0) return;
     try {
-        const response = await bxHomeFetch(`${API_BASE}/movies/trending?limit=10`);
-
-        if (!response.ok) {
-            throw new Error("Trending movies API error: " + response.status);
-        }
-
+        const response = await bxHomeFetch(`${API_BASE}/articles/latest?limit=10`);
+        if (!response.ok) throw new Error("Latest articles API error: " + response.status);
         const data = await response.json();
-        const movies = Array.isArray(data.movies) ? data.movies : [];
-
-        grid.innerHTML = "";
-
-        if (!movies.length) {
-            grid.innerHTML = `
-                <div class="movie-empty">
-                    Trending movies will appear as visitors view, like, hype,
-                    vote and comment on movies.
-                </div>
-            `;
+        const articles = (Array.isArray(data.articles) ? data.articles : [])
+            .filter(article => article && article.slug)
+            .sort((a, b) => (Date.parse(b.published_at || 0) || 0) - (Date.parse(a.published_at || 0) || 0) || Number(b.id || 0) - Number(a.id || 0))
+            .slice(0, 10);
+        grid.replaceChildren();
+        if (!articles.length) {
+            grid.innerHTML = '<div class="movie-empty">No published articles available yet.</div>';
             return;
         }
-
-        movies.forEach((movie, index) => {
-            const card = document.createElement("article");
-            card.className = "movie-card ranking-card";
-            card.tabIndex = 0;
-            card.setAttribute("role", "link");
-
-            const views = Number(movie.view_count || 0);
-            const hype = Number(movie.hype_count || 0);
-            const fans = Number(movie.fan_count || 0);
-            const votes = Number(movie.vote_count || 0);
-            const comments = Number(movie.comment_count || 0);
-
-            card.innerHTML = `
-                <div class="ranking-number">#${Number(movie.rank || index + 1)}</div>
-
-                <img
-                    class="movie-poster"
-                    src="${movieImage(movie)}"
-                    alt="${escapeHTML(movie.title || "Movie")}"
-                    loading="lazy"
-                    decoding="async"
-                    onerror="setMovieFallback(this)"
-                >
-
-                <div class="movie-info">
-                    <h3>${escapeHTML(movie.title || "Untitled")}</h3>
-                    <p>${escapeHTML(movie.language || movie.industry || "Cinema")}</p>
-                    <p class="movie-collection">
-
-                    </p>
-                    <p class="movie-verdict">
-
-                    </p>
-                </div>
-            `;
-
-            const openMovie = () => {
-                window.location.href = bxMoviePublicUrl(movie);
-            };
-
-            card.addEventListener("click", openMovie);
-            card.addEventListener("keydown", event => {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    openMovie();
-                }
-            });
-
-            grid.appendChild(card);
+        articles.forEach(article => {
+            const link = document.createElement("a");
+            link.className = "article-trending-card";
+            link.href = "/article/" + encodeURIComponent(String(article.slug));
+            const img = document.createElement("img");
+            img.className = "article-trending-image";
+            img.src = articleImage(article);
+            img.alt = String(article.title || "Article");
+            img.loading = "lazy";
+            img.decoding = "async";
+            img.onerror = function() { setArticleFallback(this); };
+            const copy = document.createElement("div");
+            copy.className = "article-trending-copy";
+            const category = document.createElement("div");
+            category.className = "article-trending-type";
+            category.textContent = article.category || "Entertainment";
+            const title = document.createElement("h3");
+            title.className = "article-trending-title";
+            title.textContent = article.title || "Untitled Article";
+            copy.append(category, title);
+            link.append(img, copy);
+            grid.appendChild(link);
         });
-
     } catch (error) {
-        console.error("Trending movies loading error:", error);
-        grid.innerHTML = `
-            <div class="movie-empty">
-                Unable to load trending movies.
-            </div>
-        `;
+        console.error("Latest articles loading error:", error);
+        grid.innerHTML = '<div class="movie-empty">Latest articles are temporarily unavailable.</div>';
     }
 }
 
@@ -8751,6 +8705,7 @@ const BX_CATEGORY_META = {
   "movies-cinema": ["🎬 Movies & Cinema", "MOVIE STORIES"],
   "hollywood-international": ["🌍 Hollywood & International", "GLOBAL CINEMA"],
   "gaming": ["🎮 Gaming", "GAMING STORIES"],
+  "anime": ["🌸 Anime", "ANIME STORIES & FINANCIAL REPORTS"],
   "k-pop": ["🎵 K-Pop", "KOREAN ENTERTAINMENT"],
   "actors-celebrities": ["⭐ Actors & Celebrities", "PEOPLE & PROFILES"],
   "television": ["📺 Television", "TV COVERAGE"],
@@ -8760,6 +8715,7 @@ const BX_CATEGORY_META = {
 async function loadHomepageArticleCategories() {
   const root = document.getElementById("bxHomepageArticleCategories");
   if (!root) return;
+  if (root.dataset.ssr === "1" && root.children.length > 0) return;
 
   // The established /articles API is a fallback when the new endpoint is
   // unavailable, so category sections don't silently disappear.
@@ -8768,6 +8724,7 @@ async function loadHomepageArticleCategories() {
     "movies-cinema": ["Movies", "Cinema Business", "Cinema Guide"],
     "hollywood-international": ["Hollywood", "International Cinema", "Hollywood Business"],
     "gaming": ["Gaming"],
+    "anime": ["Anime"],
     "k-pop": ["K-Pop"],
     "actors-celebrities": ["Actors", "Actor Biography"],
     "television": ["Television"],
@@ -8803,6 +8760,32 @@ async function loadHomepageArticleCategories() {
       console.error("Homepage category feeds unavailable:", fallbackError);
       root.innerHTML = '<div class="bx-category-status" role="status">Entertainment categories are temporarily unavailable. <a href="/articles.html">Browse all articles</a></div>';
       return;
+    }
+  }
+
+  // The category endpoint may be running an older server-side category list.
+  // Supplement Anime from the established published-articles API when absent.
+  const hasAnime = sections.some(section =>
+    String(section.key || "").trim().toLowerCase() === "anime" &&
+    Array.isArray(section.articles) && section.articles.length > 0
+  );
+  if (!hasAnime) {
+    try {
+      const animeResponse = await bxHomeFetch(`${API_BASE}/articles`, 12000);
+      if (animeResponse.ok) {
+        const animeData = await animeResponse.json();
+        const animeArticles = (Array.isArray(animeData.articles) ? animeData.articles : [])
+          .filter(article => String(article.category || "").trim().toLowerCase() === "anime")
+          .sort((a,b) => (Date.parse(b.published_at || 0) || 0) - (Date.parse(a.published_at || 0) || 0) || Number(b.id || 0) - Number(a.id || 0))
+          .slice(0,6);
+        if (animeArticles.length) {
+          sections = sections.filter(section => String(section.key || "").trim().toLowerCase() !== "anime");
+          const gamingIndex = sections.findIndex(section => String(section.key || "").trim().toLowerCase() === "gaming");
+          sections.splice(gamingIndex >= 0 ? gamingIndex + 1 : sections.length, 0, {key: "anime", articles: animeArticles});
+        }
+      }
+    } catch (animeError) {
+      console.warn("Anime homepage articles unavailable:", animeError);
     }
   }
 
@@ -8850,7 +8833,7 @@ async function startHomePage() {
 
     const independentSections = Promise.allSettled([
         loadLatestMovies(),
-        loadTrendingMovies(),
+        loadLatestArticles(),
         loadTrendingArticles(),
         loadHomepageArticleCategories(),
         loadMostHypedMovies(),
@@ -11480,7 +11463,7 @@ html body #bxSponsoredLinkAd .bx-sponsored-story-cta{
 (function(){
   function clearStalledHomeSections(){
     var sections={
-      trendingMoviesGrid:'Trending movie activity is temporarily unavailable.',
+      latestArticlesGrid:'Latest articles are temporarily unavailable.',
       mostHypedMoviesGrid:'Movie hype rankings are temporarily unavailable.',
       fanActivityGrid:'Recent fan activity is temporarily unavailable.',
       latestUpdatesList:'Latest updates are temporarily unavailable.',

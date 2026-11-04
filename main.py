@@ -2970,12 +2970,95 @@ def _home_extra_ssr_sections():
     fetch("stats", site_stats, stats_cards, "Statistics unavailable.")
     return results
 
+def _home_new_article_ssr_sections():
+    """Render the new homepage article feeds in the initial HTML response."""
+    from urllib.parse import quote as url_quote
+
+    def esc(value):
+        return html_escape(str(value or ""), quote=True)
+
+    def article_card(article, category_card=False):
+        slug = str(article.get("slug") or "").strip()
+        if not slug:
+            return ""
+        title = esc(article.get("title") or "Article")
+        category = esc(article.get("category") or "Entertainment")
+        img, _ = _home_cloudinary_article_thumbnail(article.get("hero_image"), width=500)
+        img = img or _home_article_placeholder(article)
+        outer = "bx-category-card" if category_card else "article-trending-card"
+        img_class = "" if category_card else ' class="article-trending-image"'
+        copy_class = "bx-category-copy" if category_card else "article-trending-copy"
+        type_class = "bx-category-type" if category_card else "article-trending-type"
+        title_class = "" if category_card else ' class="article-trending-title"'
+        return (f'<a class="{outer}" href="/article/{url_quote(slug, safe="")}">'
+                f'<img{img_class} src="{esc(img)}" alt="{title}" loading="lazy" decoding="async">'
+                f'<div class="{copy_class}"><div class="{type_class}">{category}</div>'
+                f'<h3{title_class}>{title}</h3></div></a>')
+
+    try:
+        latest = get_latest_articles(limit=10).get("articles") or []
+        latest_html = "".join(article_card(a) for a in latest)
+        if not latest_html:
+            latest_html = '<div class="movie-empty">No published articles yet.</div>'
+    except Exception as exc:
+        print(f"Homepage latest SSR warning: {exc}", flush=True)
+        latest_html = '<div class="movie-empty">Latest articles are being updated.</div>'
+
+    meta = {
+        "box-office": ("💰 Box Office", "COLLECTIONS & REPORTS"),
+        "movies-cinema": ("🎬 Movies & Cinema", "MOVIE STORIES"),
+        "hollywood-international": ("🌍 Hollywood & International", "GLOBAL CINEMA"),
+        "gaming": ("🎮 Gaming", "GAMING STORIES"),
+        "anime": ("🌸 Anime", "ANIME STORIES & FINANCIAL REPORTS"),
+        "k-pop": ("🎵 K-Pop", "KOREAN ENTERTAINMENT"),
+        "actors-celebrities": ("⭐ Actors & Celebrities", "PEOPLE & PROFILES"),
+        "television": ("📺 Television", "TV COVERAGE"),
+        "entertainment-news": ("📰 Entertainment News", "LATEST NEWS"),
+        "box-office-guides": ("📚 Box Office Guides", "EXPLAINERS & GUIDES"),
+    }
+    try:
+        sections = get_homepage_article_categories(limit=6).get("sections") or []
+        # Older backend category maps can omit Anime; fetch it directly.
+        if not any(str(x.get("key") or "").lower() == "anime" for x in sections):
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("""SELECT title, slug, category, hero_image FROM articles
+                        WHERE status='published' AND LOWER(TRIM(category))='anime'
+                        ORDER BY published_at DESC NULLS LAST, id DESC LIMIT 6""")
+                    anime_rows = cur.fetchall()
+            if anime_rows:
+                anime = {"key": "anime", "articles": [
+                    {"title": r[0], "slug": r[1], "category": r[2], "hero_image": r[3]}
+                    for r in anime_rows]}
+                position = next((i + 1 for i, x in enumerate(sections) if x.get("key") == "gaming"), len(sections))
+                sections.insert(position, anime)
+        blocks = []
+        for section in sections:
+            key = str(section.get("key") or "")
+            cards = "".join(article_card(a, True) for a in (section.get("articles") or [])[:6])
+            if not cards:
+                continue
+            heading, eyebrow = meta.get(key, (key, "LATEST ARTICLES"))
+            blocks.append('<section class="section bx-category-feed"><div class="section-header">'
+                f'<div class="section-title-wrap"><div class="section-label">{esc(eyebrow)}</div>'
+                f'<h2>{esc(heading)}</h2></div><a href="/articles.html">View All →</a></div>'
+                f'<div class="bx-category-grid">{cards}</div></section>')
+        categories_html = "".join(blocks) or '<div class="bx-category-status">No published category articles yet.</div>'
+    except Exception as exc:
+        print(f"Homepage categories SSR warning: {exc}", flush=True)
+        categories_html = '<div class="bx-category-status">Article categories are being updated.</div>'
+    return {"latest_articles": latest_html, "categories": categories_html}
+
+
 def _render_homepage_html():
     template = _inject_boxofficex_global_icons((BASE_DIR / "index.html").read_text(encoding="utf-8"))
     sections = _build_homepage_ssr_sections()
     extra_sections = _home_extra_ssr_sections()
+    new_article_sections = _home_new_article_ssr_sections()
 
     replacements = {
+        "<!-- BOXOFFICEX_SSR_LATEST_ARTICLES -->": new_article_sections["latest_articles"],
+        "<!-- BOXOFFICEX_SSR_ARTICLE_CATEGORIES -->": new_article_sections["categories"],
         "<!-- BOXOFFICEX_SSR_RUNNING -->": sections["running"],
         "<!-- BOXOFFICEX_SSR_UPCOMING -->": sections["upcoming"],
         "<!-- BOXOFFICEX_SSR_RANKINGS -->": sections["rankings"],
@@ -2991,10 +3074,14 @@ def _render_homepage_html():
 
     for marker, content in replacements.items():
         if marker not in template:
+            if marker == "<!-- BOXOFFICEX_SSR_TRENDING_MOVIES -->":
+                continue  # Section intentionally replaced by Latest 10 Articles.
             raise RuntimeError(f"Homepage SSR marker missing: {marker}")
         template = template.replace(marker, content, 1)
 
     # The browser loaders use this marker to avoid replacing the server-rendered copy.
+    template = template.replace('id="latestArticlesGrid"', 'id="latestArticlesGrid" data-ssr="1"', 1)
+    template = template.replace('id="bxHomepageArticleCategories"', 'id="bxHomepageArticleCategories" data-ssr="1"', 1)
     template = template.replace('id="latestMoviesGrid"', 'id="latestMoviesGrid" data-ssr="1"', 1)
     template = template.replace('id="upcomingMoviesGrid"', 'id="upcomingMoviesGrid" data-ssr="1"', 1)
     template = template.replace('id="rankingGrid"', 'id="rankingGrid" data-ssr="1"', 1)
@@ -14392,45 +14479,37 @@ def _article_apply_tracking_ctr(article):
 
 # Universal article SEO: no film-specific rules or database changes.
 def _bx_article_weak_seo(value, article, *, description=False):
-    """Recognize empty, duplicated and obviously generic metadata conservatively."""
+    """Conservatively flag empty or boilerplate SEO; preserve editorial overrides."""
     value = re.sub(r"\s+", " ", str(value or "")).strip()
     headline = re.sub(r"\s+", " ", str(article.get("title") or "")).strip()
     if not value:
         return True
-    plain = re.sub(r"\s*\|\s*BoxOfficeX\s*$", "", value, flags=re.I).strip()
+    plain = re.sub(r"\s*[|–—-]\s*BoxOfficeX\s*$", "", value, flags=re.I).strip()
     if plain.casefold() in {"article", "boxofficex article", "box office collection", "movie box office collection"}:
         return True
     if description:
         if plain.casefold() == headline.casefold():
             return True
-        # A short description that is just the generic film + topic does not
-        # explain a comprehensive article. Don't overwrite informative copy.
         if len(plain) < 65 and re.search(r"\b(box office collection|movie update|latest news)\b", plain, re.I):
             return True
-        return False
-    # A movie-name + generic collection title is weak when the actual
-    # editorial headline covers a different lifecycle topic, even if shorter.
+        boilerplate = (
+            r"^read .+ on boxofficex, with the latest available details and analysis\.?$",
+            r"^explore .+ get the latest available details on boxofficex\.?$",
+        )
+        return any(re.search(pattern, plain, re.I) for pattern in boilerplate)
     movie = _article_seo_movie_name(article)
     if movie and plain.casefold() != headline.casefold():
         remainder = plain[len(movie):].strip(" :-|–—") if plain.casefold().startswith(movie.casefold()) else ""
         if remainder.casefold() in {"box office collection", "box office collections", "movie update", "latest news", "box office update"}:
             return True
     if len(plain) < 55 and len(headline) >= len(plain) + 12:
-        movie = _article_seo_movie_name(article)
-        if movie and plain.casefold().startswith(movie.casefold()) and re.search(
-            r"\b(box office|collection|budget|update|news)\b", plain, re.I
-        ):
+        if movie and plain.casefold().startswith(movie.casefold()) and re.search(r"\b(box office|collection|budget|update|news)\b", plain, re.I):
             return True
     return False
 
 
 def _bx_article_universal_seo(article):
-    """Content-aware, universal article SEO; no invented financial facts.
-
-    Live/final tracking metadata has precedence. Strong editorial overrides
-    remain authoritative. Weak generic titles/descriptions use the actual
-    article H1, linked movie and the topics present in published blocks.
-    """
+    """Safe metadata fallback: no paragraph copying, invented figures or DB changes."""
     if article.get("generated_tracking_seo") or str(article.get("seo_mode") or "auto").lower() == "manual":
         return article
     headline = _article_normalize_seo_text(article.get("title") or "")
@@ -14440,20 +14519,14 @@ def _bx_article_universal_seo(article):
     stored_title = str(article.get("meta_title") or "").strip()
     stored_description = str(article.get("meta_description") or "").strip()
     subtitle = re.sub(r"\s+", " ", str(article.get("subtitle") or "")).strip()
-
-    # Inspect the actual editorial headings and text as well as structured
-    # blocks. Presence of an unused tracker must not imply a live collection.
     blocks = [b for b in (article.get("blocks") or []) if isinstance(b, dict)]
     types = {str(b.get("block_type") or "").strip().lower() for b in blocks}
-    visible_text = " ".join(
-        str(b.get("content") or "")[:1000] for b in blocks
-        if str(b.get("block_type") or "").lower() in {"heading", "paragraph"}
-    )
+    visible_text = " ".join(str(b.get("content") or "")[:1000] for b in blocks
+                            if str(b.get("block_type") or "").lower() in {"heading", "paragraph"})
     visible_text = re.sub(r"<[^>]*>", " ", visible_text)
     context = " ".join((headline, subtitle, visible_text))
     def has(pattern):
         return bool(re.search(pattern, context, re.I))
-
     topics = []
     if "pre_release_business" in types or has(r"\b(pre[- ]release business|theatrical rights|distribution rights|non[- ]theatrical rights)\b"):
         topics.append("theatrical and non-theatrical rights")
@@ -14463,49 +14536,31 @@ def _bx_article_universal_seo(article):
         topics.insert(0, "budget")
     if has(r"\b(advance booking|pre[- ]sales|tickets (?:sold|booked)|ticket sales)\b"):
         topics.append("advance booking")
-    # A real box-office report block is sufficient for the collection topic;
-    # don't infer that Day N data exists without an actual tracking report.
     if "boxoffice" in types or has(r"\b(day[- ]wise collections?|worldwide (?:gross|collection)|box office collections?)\b"):
         topics.append("box office collections")
     if has(r"\b(final verdict|theatrical verdict|lifetime collections?)\b"):
         topics.append("lifetime performance and verdict")
     topics = list(dict.fromkeys(topics))
-
     if _bx_article_weak_seo(stored_title, article):
-        # The visible H1 is the editorial headline; align the search title
-        # with it instead of changing a published article's heading or URL.
         result["meta_title"] = headline
     if _bx_article_weak_seo(stored_description, article, description=True):
-        if subtitle and subtitle.casefold() != headline.casefold() and len(subtitle) >= 65:
-            description = subtitle
-        elif topics:
-            movie = _article_seo_movie_name(article)
-            subject = movie if movie and len(movie) < 65 else headline
-            # Prefer factual figures actually written in the article. This
-            # avoids generic snippets and never fabricates financial data.
-            factual_parts = []
-            for block in blocks:
-                if str(block.get("block_type") or "").lower() not in {
-                    "paragraph", "heading", "boxoffice", "pre_release_business",
-                    "salary_details", "table",
-                }:
-                    continue
-                part = re.sub(r"<[^>]*>", " ", str(block.get("content") or ""))
-                part = re.sub(r"\s+", " ", part).strip()
-                if part and re.search(r"₹\s*[\d,.]+\s*(?:Cr|crore|lakh)|\b\d[\d,]*\s*(?:tickets|shows)\b", part, re.I):
-                    factual_parts.append(part)
-                if len(factual_parts) >= 2:
-                    break
-            if factual_parts:
-                description = f"{subject}: " + "; ".join(factual_parts)
-            else:
-                description = f"Explore {subject}: " + ", ".join(topics[:4]) + ". Get the latest available details on BoxOfficeX."
-        elif subtitle and subtitle.casefold() != headline.casefold():
+        # Subtitles are editorial text, but may be internal notes or stale LIVE copy.
+        safe_subtitle = (65 <= len(subtitle) <= 160
+                         and subtitle.casefold() != headline.casefold()
+                         and not re.search(r"\b(tracker note|internal note|debug|placeholder|test article)\b", subtitle, re.I))
+        if safe_subtitle:
             description = subtitle
         else:
-            description = f"Read {headline} on BoxOfficeX, with the latest available details and analysis."
-        if len(description) > 165:
-            description = description[:162].rsplit(" ", 1)[0].rstrip(" ,;:") + "..."
+            movie = _article_seo_movie_name(article)
+            subject = movie if movie and len(movie) <= 70 else headline
+            # Describe only topics evidenced in published blocks or headings.
+            if topics:
+                description = f"{subject}: " + ", ".join(topics[:4]) + "."
+            else:
+                description = f"{headline}. Read the article for details and context."
+        # Trim on a word boundary, without appending dangling copied content.
+        if len(description) > 160:
+            description = description[:157].rsplit(" ", 1)[0].rstrip(" ,;:") + "."
         result["meta_description"] = _article_normalize_seo_text(description)
     return result
 
@@ -14691,29 +14746,22 @@ def _article_seo_faq_html(article):
 
 
 def _article_breadcrumb_schema(article, canonical):
-    return {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-            {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://boxofficex.in/",
-            },
-            {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Articles",
-                "item": "https://boxofficex.in/articles.html",
-            },
-            {
-                "@type": "ListItem",
-                "position": 3,
-                "name": str(article.get("title") or "Article"),
-                "item": canonical,
-            },
-        ],
-    }
+    """Match the visible, server-rendered article breadcrumb trail."""
+    category = str(article.get("category") or "").strip()
+    items = [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://boxofficex.in/"},
+        {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://boxofficex.in/articles.html"},
+    ]
+    if category:
+        category_url = "https://boxofficex.in/articles.html?category=" + quote(category, safe="")
+        items.append({"@type": "ListItem", "position": 3, "name": category, "item": category_url})
+    items.append({
+        "@type": "ListItem",
+        "position": len(items) + 1,
+        "name": str(article.get("title") or "Article"),
+        "item": canonical,
+    })
+    return {"@type": "BreadcrumbList", "itemListElement": items}
 
 
 def _article_faq_schema(article):
@@ -15184,6 +15232,13 @@ def _render_article_detail_html(slug):
 <main id="app" data-ssr="1">
 <article class="article-shell">
 <div class="article-top">
+<nav class="bx-article-breadcrumb" aria-label="Breadcrumb" data-ssr="1">
+<a href="/">Home</a><span class="bx-crumb-sep" aria-hidden="true">›</span>
+<a href="/articles.html">Articles</a>
+{f'<span class="bx-crumb-sep" aria-hidden="true">›</span><a class="bx-crumb-category" href="/articles.html?category={quote(category, safe="")}#latestGrid">{html_escape(category)}</a>' if category else ''}
+<span class="bx-crumb-sep" aria-hidden="true">›</span>
+<span class="bx-crumb-current" aria-current="page">{html_escape(title)}</span>
+</nav>
 <span class="category">{html_escape(category)}</span>
 <h1>{html_escape(title)}</h1>
 {f'<div class="subtitle">{html_escape(subtitle)}</div>' if subtitle else ''}

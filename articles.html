@@ -3203,11 +3203,47 @@ function trendMarkup(a,i){
 return `<a class="trend-card" href="/article/${encodeURIComponent(a.slug || "")}"><div class="trend-num">${String(i+1).padStart(2,"0")}</div><div><span class="badge">${esc(a.category||"News")}</span><h3>${esc(articleTitle(a))}</h3><div class="meta">${Number(a.views||0).toLocaleString("en-IN")} views</div></div></a>`;
 }
 function bindCards(){}
+function bxCategoryNormalize(value){
+  return String(value||"").trim().toLocaleLowerCase().replace(/[\s_-]+/g," ");
+}
+function bxCategoryFromURL(){
+  return new URLSearchParams(window.location.search).get("category") || "All";
+}
+function bxApplyCategoryFromURL(){
+  const requested=bxCategoryNormalize(bxCategoryFromURL());
+  const buttons=[...document.querySelectorAll(".category-tabs button")];
+  const button=buttons.find(b=>bxCategoryNormalize(b.dataset.category)===requested);
+  if(button){
+    renderCategory(button.dataset.category);
+    if(requested!=="all"){
+      const target=document.querySelector(".category-tabs");
+      if(target){
+        // Rendered category tabs may arrive after the initial hash scroll.
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          const top=target.getBoundingClientRect().top+window.scrollY-95;
+          window.scrollTo({top:Math.max(0,top),behavior:"instant"});
+        }));
+      }
+    }
+  }
+}
+function bxBindCategoryButtons(){
+  document.querySelectorAll(".category-tabs button").forEach(b=>b.onclick=()=>{
+    const category=b.dataset.category;
+    renderCategory(category);
+    const url=new URL(window.location.href);
+    if(bxCategoryNormalize(category)==="all")url.searchParams.delete("category");
+    else url.searchParams.set("category",category);
+    window.history.replaceState(null,"",url.pathname+url.search+url.hash);
+  });
+}
 function renderCategory(category){
-document.querySelectorAll(".category-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.category===category));
-const filtered=category==="All"?allArticles:allArticles.filter(a=>(a.category||"News")===category);
-document.getElementById("latestGrid").innerHTML=filtered.length?filtered.map(cardMarkup).join(""):`<div class="empty">No stories in this category yet.</div>`;
-bindCards();
+  const selected=bxCategoryNormalize(category);
+  document.querySelectorAll(".category-tabs button").forEach(b=>b.classList.toggle("active",bxCategoryNormalize(b.dataset.category)===selected));
+  const filtered=selected==="all"?allArticles:allArticles.filter(a=>bxCategoryNormalize(a.category||"News")===selected);
+  const grid=document.getElementById("latestGrid");
+  if(grid)grid.innerHTML=filtered.length?filtered.map(cardMarkup).join(""):`<div class="empty">No stories in this category yet.</div>`;
+  bindCards();
 }
 function render(){
 if(!allArticles.length){document.getElementById("content").innerHTML=`<div class="empty">No published articles yet.</div>`;return}
@@ -3227,7 +3263,8 @@ document.getElementById("content").innerHTML=`
 <div class="mobile-swipe-hint">↔ Swipe to explore more</div><section class="trending">${trending.map(trendMarkup).join("")}</section>
 <section id="bxSmartAdSlot2" class="bx-smart-ad-slot" aria-label="Advertisement slot 2"></section>`;
 document.dispatchEvent(new CustomEvent("boxofficex:articles-rendered"));
-document.querySelectorAll(".category-tabs button").forEach(b=>b.onclick=()=>renderCategory(b.dataset.category));
+bxBindCategoryButtons();
+bxApplyCategoryFromURL();
 bindCards();
 }
 async function load(){
@@ -3236,7 +3273,8 @@ const ssrContent=document.getElementById("content");
 const ssrData=window.__BOXOFFICEX_ARTICLES_SSR_DATA__;
 if(ssrContent?.dataset?.ssr==="1" && ssrData && Array.isArray(ssrData.articles)){
 allArticles=ssrData.articles;
-document.querySelectorAll(".category-tabs button").forEach(b=>b.onclick=()=>renderCategory(b.dataset.category));
+bxBindCategoryButtons();
+bxApplyCategoryFromURL();
 updateSiteNewBadges();
 return;
 }
