@@ -941,6 +941,19 @@ color:#7de2bb!important;border:1px solid #2e6b4f!important
 </div>
 </div>
 
+
+<section class="panel" id="hotTopicPanel" style="margin-top:20px;display:none">
+ <div class="panel-head"><h2>🔥 Today’s Hot Topic — Sitewide Link</h2><span style="color:#8e99b3;font-size:11px">Owner only</span></div>
+ <div class="panel-body">
+  <div class="form-grid">
+   <div><label for="hotTopicArticle">Published article</label><select id="hotTopicArticle"><option value="">Select published article</option></select></div>
+   <div><label for="hotTopicHeadline">Custom headline (optional)</label><input id="hotTopicHeadline" maxlength="180" placeholder="Use article title by default"></div>
+   <div class="full" style="display:flex;align-items:center;gap:10px"><input id="hotTopicEnabled" type="checkbox" style="width:auto"><label for="hotTopicEnabled" style="margin:0">Enable on public pages</label></div>
+  </div>
+  <button type="button" id="hotTopicSave" class="btn btn-primary" style="margin-top:12px">Save Hot Topic</button>
+  <span id="hotTopicMessage" style="margin-left:12px;font-size:12px;color:#aeb9cb" role="status"></span>
+ </div>
+</section>
 <div class="layout">
 <section class="panel">
 <div class="panel-head"><h2>Articles</h2><span id="countLabel"></span></div>
@@ -4846,6 +4859,39 @@ if($("trackingEnabled")){
  back.addEventListener('click',()=>{if(location.hash==='#seo-views')history.replaceState(null,'',location.pathname);hide();});
  window.addEventListener('hashchange',()=>{if(location.hash==='#seo-views')show();else hide();});
  if(location.hash==='#seo-views')show();
+})();
+</script>
+
+<script>
+(async function initHotTopic(){
+ const panel=document.getElementById('hotTopicPanel'), msg=document.getElementById('hotTopicMessage');
+ try {
+  const res=await fetch('/admin/hot-topic',{credentials:'same-origin',cache:'no-store'});
+  if(res.status===403)return;
+  if(!res.ok)throw Error('HTTP '+res.status+'; run hot_topic.sql migration first');
+  panel.style.display='block';
+  const data=await res.json();
+  const select=document.getElementById('hotTopicArticle');
+  // Existing admin article listing endpoint; no new article API required.
+  const articlesRes=await fetch('/admin/articles',{credentials:'same-origin',cache:'no-store'});
+  if(!articlesRes.ok)throw Error('Could not load article list');
+  const payload=await articlesRes.json();
+  const list=Array.isArray(payload)?payload:(payload.articles||payload.items||[]);
+  for(const a of list.filter(a=>a.status==='published'&&a.slug)){
+   const option=document.createElement('option');option.value=String(a.id);option.textContent=a.title;select.appendChild(option);
+  }
+  select.value=String(data.article_id||'');
+  document.getElementById('hotTopicHeadline').value=data.headline||'';
+  document.getElementById('hotTopicEnabled').checked=!!data.enabled;
+  document.getElementById('hotTopicSave').addEventListener('click',async()=>{
+   msg.textContent='Saving...';
+   try{
+    const r=await fetch('/admin/hot-topic',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({article_id:select.value?Number(select.value):null,headline:document.getElementById('hotTopicHeadline').value,enabled:document.getElementById('hotTopicEnabled').checked})});
+    if(!r.ok){const e=await r.json();throw Error(e.detail||'HTTP '+r.status)}
+    msg.textContent='Saved. Public pages update within approximately 15 seconds.';
+   }catch(e){msg.textContent='Save failed: '+e.message}
+  });
+ }catch(e){panel.style.display='block';msg.textContent='Hot Topic setup: '+e.message}
 })();
 </script>
 </body>

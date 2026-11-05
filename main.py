@@ -29094,3 +29094,119 @@ def bx_public_live_v2_snapshot(movie_id: int):
 @app.get("/admin-live-tracker.html", dependencies=[_v2_Depends(require_owner)], include_in_schema=False)
 def live_v2_admin_page():
     return FileResponse(BASE_DIR / "admin-live-tracker.html")
+
+
+# ============================================================
+# TODAY'S HOT TOPIC — sitewide server-rendered internal link
+# Requires hot_topic.sql migration before enabling.
+# ============================================================
+from starlette.responses import StreamingResponse
+
+class HotTopicUpdate(BaseModel):
+    article_id: Optional[int] = None
+    headline: Optional[str] = None
+    enabled: bool = False
+
+_hot_topic_cache = {"until": 0.0, "data": None}
+_hot_topic_lock = threading.Lock()
+
+def _active_hot_topic():
+    now = time_module.monotonic()
+    with _hot_topic_lock:
+        if now < _hot_topic_cache["until"]:
+            return _hot_topic_cache["data"]
+        try:
+            with get_connection() as conn, conn.cursor() as cur:
+                cur.execute("""SELECT a.slug, COALESCE(NULLIF(h.headline, ''), a.title)
+                    FROM hot_topic_settings h JOIN articles a ON a.id=h.article_id
+                    WHERE h.id=1 AND h.enabled=TRUE AND a.status='published'
+                    AND a.slug IS NOT NULL AND a.slug<>''""")
+                row = cur.fetchone()
+            value = {"slug": row[0], "title": row[1]} if row else None
+        except Exception as exc:
+            print('HOT TOPIC READ WARNING:', type(exc).__name__, str(exc), flush=True)
+            value = None
+        _hot_topic_cache.update(until=now+15, data=value)
+        return value
+
+def _hot_topic_inject(document, path):
+    if 'data-bx-hot-topic="1"' in document or not re.search(r'<header\b', document, re.I):
+        return document
+    topic = _active_hot_topic()
+    if not topic or path.rstrip('/') == '/article/' + topic['slug']:
+        return document
+    href = '/article/' + quote(topic['slug'], safe='')
+    title = html_escape(str(topic['title']), quote=True)
+    css = """<style id="bx-hot-topic-css">
+    .bx-hot-topic{position:relative;isolation:isolate;z-index:2;overflow:hidden;background:linear-gradient(110deg,#3b0714 0%,#82122a 47%,#44091a 100%);border-bottom:1px solid #e44b65;color:#fff;font:700 13px/1.4 Arial,Helvetica,sans-serif;box-shadow:0 4px 18px rgba(125,15,45,.2)}
+    .bx-hot-topic::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(105deg,transparent 25%,rgba(255,210,119,.17) 46%,transparent 64%);transform:translateX(-110%);animation:bxHotSweep 7s ease-in-out infinite}
+    .bx-hot-topic::after{content:"";position:absolute;inset:auto 0 0;height:2px;background:linear-gradient(90deg,transparent,#ffc36b,#ff466b,#ffc36b,transparent);background-size:200% 100%;animation:bxHotEdge 6s linear infinite;opacity:.8;pointer-events:none}
+    .bx-hot-topic a{display:flex;align-items:center;gap:14px;max-width:1280px;margin:auto;padding:11px 18px;color:inherit;text-decoration:none;min-height:53px}
+    .bx-hot-topic-label{display:inline-flex;align-items:center;gap:7px;flex:none;white-space:nowrap;font-size:11px;font-weight:900;letter-spacing:.5px;color:#ffe4a7}
+    .bx-hot-topic-flame{display:inline-block;font-size:18px;transform-origin:50% 85%;animation:bxHotFlame 2s ease-in-out infinite}
+    .bx-hot-topic-dot{width:7px;height:7px;border-radius:50%;background:#ffda75;box-shadow:0 0 0 0 rgba(255,218,117,.6);animation:bxHotPulse 2.5s ease-out infinite}
+    .bx-hot-topic-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800;color:#fff}
+    .bx-hot-topic-action{flex:none;white-space:nowrap;padding:7px 13px;border:1px solid rgba(255,226,170,.6);border-radius:999px;background:linear-gradient(120deg,#ffd68a,#ffad5d);color:#4c1020;font-size:11px;font-weight:900;box-shadow:0 2px 10px rgba(0,0,0,.15);transition:transform .2s ease,box-shadow .2s ease}
+    .bx-hot-topic a:hover .bx-hot-topic-action,.bx-hot-topic a:focus-visible .bx-hot-topic-action{transform:translateX(3px);box-shadow:0 4px 15px rgba(255,195,107,.35)}
+    .bx-hot-topic a:hover .bx-hot-topic-title{text-decoration:underline;text-decoration-color:#ffdc9a;text-underline-offset:3px}
+    .bx-hot-topic a:focus-visible{outline:2px solid #ffe4a7;outline-offset:-3px}
+    @keyframes bxHotFlame{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(6deg) scale(1.18)}}
+    @keyframes bxHotPulse{0%{box-shadow:0 0 0 0 rgba(255,218,117,.6)}65%,100%{box-shadow:0 0 0 8px rgba(255,218,117,0)}}
+    @keyframes bxHotSweep{0%,15%{transform:translateX(-110%)}48%,100%{transform:translateX(110%)}}
+    @keyframes bxHotEdge{to{background-position:200% 0}}
+    @media(max-width:650px){.bx-hot-topic a{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 9px;padding:9px 12px;min-height:67px}.bx-hot-topic-label{grid-column:1;font-size:10px}.bx-hot-topic-title{grid-column:1;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.4}.bx-hot-topic-action{grid-column:2;grid-row:1/3;align-self:center;padding:7px 10px;font-size:10px}}
+    @media(prefers-reduced-motion:reduce){.bx-hot-topic::before,.bx-hot-topic::after,.bx-hot-topic-flame,.bx-hot-topic-dot{animation:none}.bx-hot-topic-action{transition:none}}
+    </style>"""
+    bar = f'<aside class="bx-hot-topic" data-bx-hot-topic="1" aria-label="Today’s hot topic"><a href="{href}"><span class="bx-hot-topic-label"><span class="bx-hot-topic-flame" aria-hidden="true">🔥</span><span class="bx-hot-topic-dot" aria-hidden="true"></span> TODAY’S HOT TOPIC</span><span class="bx-hot-topic-title">{title}</span><span class="bx-hot-topic-action">READ NOW →</span></a></aside>'
+    document = re.sub(r'</head\s*>', lambda m: css + m.group(), document, count=1, flags=re.I)
+    return re.sub(r'</header\s*>', lambda m: m.group() + bar, document, count=1, flags=re.I)
+
+@app.middleware('http')
+async def hot_topic_html_middleware(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if request.method != 'GET' or response.status_code != 200 or path.startswith(('/admin', '/api', '/static', '/seo')) or path.endswith(('.js','.css','.xml','.json','.png','.jpg','.jpeg','.webp','.svg')):
+        return response
+    content_type = response.headers.get('content-type','').lower()
+    if 'text/html' not in content_type or response.headers.get('content-encoding'):
+        return response
+    try:
+        body = b''.join([chunk async for chunk in response.body_iterator])
+        document = body.decode('utf-8')
+        updated = _hot_topic_inject(document, path)
+        headers = dict(response.headers)
+        headers.pop('content-length', None)
+        headers['Cache-Control'] = 'public, max-age=15, must-revalidate'
+        return Response(content=updated, status_code=response.status_code, headers=headers, media_type='text/html')
+    except Exception as exc:
+        print('HOT TOPIC INJECT WARNING:', repr(exc), flush=True)
+        return response
+
+@app.get('/admin/hot-topic', dependencies=[Depends(require_owner)])
+def admin_get_hot_topic():
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute("""SELECT h.article_id,h.headline,h.enabled,a.title,a.slug
+            FROM hot_topic_settings h LEFT JOIN articles a ON a.id=h.article_id WHERE h.id=1""")
+        row=cur.fetchone()
+    return {'article_id':row[0], 'headline':row[1] or '', 'enabled':row[2], 'article_title':row[3], 'slug':row[4]} if row else {'article_id':None,'headline':'','enabled':False}
+
+@app.put('/admin/hot-topic', dependencies=[Depends(require_owner)])
+def admin_put_hot_topic(data: HotTopicUpdate):
+    headline=(data.headline or '').strip()
+    if len(headline)>180:
+        raise HTTPException(422, 'Headline must be 180 characters or fewer')
+    if data.enabled and not data.article_id:
+        raise HTTPException(422, 'Select a published article first')
+    with get_connection() as conn, conn.cursor() as cur:
+        if data.article_id is not None:
+            cur.execute("SELECT id FROM articles WHERE id=%s AND status='published' AND slug IS NOT NULL AND slug<>''", (data.article_id,))
+            if not cur.fetchone():
+                raise HTTPException(422, 'Selected article is not published')
+        cur.execute("""INSERT INTO hot_topic_settings(id,article_id,headline,enabled,updated_at)
+            VALUES(1,%s,%s,%s,NOW()) ON CONFLICT(id) DO UPDATE SET
+            article_id=EXCLUDED.article_id, headline=EXCLUDED.headline,
+            enabled=EXCLUDED.enabled, updated_at=NOW()""", (data.article_id, headline, data.enabled))
+        conn.commit()
+    with _hot_topic_lock:
+        _hot_topic_cache['until']=0
+    return {'ok':True}
