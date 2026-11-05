@@ -12646,6 +12646,15 @@ def _bx_auto_day1_report(extra, article=None, movie_title=None):
     day = identity.get("day") if isinstance(identity, dict) else None
     if day is None and isinstance(article, dict):
         day = article.get("tracking_day")
+    if day is None and extra.get("release_date"):
+        try:
+            release_day = date.fromisoformat(str(extra["release_date"])[:10])
+            current_day = (datetime.now(ZoneInfo("Asia/Kolkata")) - timedelta(hours=6)).date()
+            candidate = (current_day - release_day).days + 1
+            if candidate >= 1:
+                day = candidate
+        except (TypeError, ValueError):
+            pass
     if day is None and isinstance(article, dict):
         heading = str(article.get("seo_h1") or article.get("title") or "")
         match = re.search(r"\bDay\s*[-:]?\s*(\d+)\b", heading, re.I)
@@ -13859,13 +13868,13 @@ def _article_ssr_block(block, article=None):
         )
     if block_type == "auto_live_tracker":
         linked_movie = ((article or {}).get("movies") or [None])[0]
-        movie_title = (linked_movie or {}).get("title") or (article or {}).get("title", "Movie").split(" Box Office")[0]
+        movie_title = (linked_movie or {}).get("title") or data.get("movie_name") or (article or {}).get("title", "Movie").split(" Box Office")[0]
         return (_bx_auto_day1_report(data, article=article, movie_title=movie_title)
                 + _article_ssr_auto_tracker(data, movie_title=movie_title))
     if block_type == "live_tracker":
         linked_movie = ((article or {}).get("movies") or [None])[0]
-        release_date = (linked_movie or {}).get("release_date")
-        movie_title = (linked_movie or {}).get("title")
+        release_date = (linked_movie or {}).get("release_date") or data.get("release_date")
+        movie_title = (linked_movie or {}).get("title") or data.get("movie_name")
         return _article_ssr_live_tracker(
             data,
             release_date=release_date,
@@ -14387,7 +14396,7 @@ def _bx_permanent_daily_seo(article, auto):
     if not auto.get("permanent_daily_save") and not auto.get("_public_daily_frozen") and not auto.get("_permanent_daily_snapshot"):
         return None
     movie = next((m for m in article.get("movies", []) if isinstance(m, dict)), {})
-    name = str(movie.get("title") or "").strip()
+    name = str(movie.get("title") or auto.get("movie_name") or "").strip()
     if not name:
         return None
     # Article-scoped identity wins over legacy title and URL text.
@@ -14483,10 +14492,10 @@ def _bx_auto_only_seo(article):
         return None
     movies = article.get("movies") or []
     movie = movies[0] if movies and isinstance(movies[0], dict) else {}
-    name = str(movie.get("title") or "").strip()
+    name = str(movie.get("title") or auto.get("movie_name") or "").strip()
     if not name:
         return None
-    release = str(movie.get("release_date") or "")[:10]
+    release = str(movie.get("release_date") or auto.get("release_date") or "")[:10]
     try:
         day = (datetime.now(ZoneInfo("Asia/Kolkata")) - timedelta(hours=6)).date() - date.fromisoformat(release)
         day = day.days + 1
@@ -14648,6 +14657,11 @@ def _article_seo_movie_name(article):
         name = str(movies[0].get("title") or "").strip()
         if name:
             return name
+    for block in article.get("blocks") or []:
+        if block.get("block_type") == "auto_live_tracker":
+            custom = str((block.get("extra_data") or {}).get("movie_name") or "").strip()
+            if custom:
+                return custom
     title = str(article.get("title") or "This movie").strip()
     return re.sub(
         r"\s+(?:Day\s+\d+\s+)?Box Office.*$",
@@ -15370,6 +15384,7 @@ By <strong>{html_escape(author)}</strong>
             # Preserve them for JS hydration rather than replacing them with None.
             if "_public_auto_values" in original_extra:
                 block["extra_data"] = {
+                    "movie_name": original_extra.get("movie_name"), "release_date": original_extra.get("release_date"),
                     "_public_daily_frozen": bool(original_extra.get("_public_daily_frozen")),
                     "_daily_identity": original_extra.get("_daily_identity"),
                     "_public_auto_lifecycle": original_extra.get("_public_auto_lifecycle"),
@@ -15382,6 +15397,7 @@ By <strong>{html_escape(author)}</strong>
                 }
             else:
                 block["extra_data"] = {
+                    "movie_name": original_extra.get("movie_name"), "release_date": original_extra.get("release_date"),
                     "_public_auto_values": _bx_separate_auto_values(original_extra),
                     "_auto_configured": bool(original_extra.get("enabled") and original_extra.get("days")),
                     "_public_cinema_regions": _bx_public_cinema_config(original_extra),
@@ -16788,8 +16804,6 @@ def _bx_persist_daily_identity(cur, article_id):
                    JOIN movies m ON m.id=am.movie_id
                    WHERE am.article_id=%s ORDER BY am.movie_id LIMIT 1""", (article_id,))
     movie = cur.fetchone()
-    if not movie or not movie[0]:
-        return
     cur.execute("""SELECT id, extra_data FROM article_blocks
                    WHERE article_id=%s AND block_type='auto_live_tracker'
                    FOR UPDATE""", (article_id,))
@@ -16799,7 +16813,7 @@ def _bx_persist_daily_identity(cur, article_id):
             continue
         if extra.get("_permanent_daily_snapshot"):
             continue
-        identity = _bx_daily_identity_from_dates(movie[0], extra)
+        identity = _bx_daily_identity_from_dates(movie[0] if movie and movie[0] else extra.get("release_date"), extra)
         if not identity:
             continue
         # Before finalization, changing the scheduled date may correct the day.
@@ -17030,11 +17044,29 @@ def get_article(slug: str):
         if not _extra.get("permanent_daily_save") and not _extra.get("_permanent_daily_snapshot"):
             continue
         _identity = _extra.get("_daily_identity")
-        if not isinstance(_identity, dict) and linked_movies:
-            _identity = _bx_daily_identity_from_dates(linked_movies[0].get("release_date"), _extra)
+        if not isinstance(_identity, dict):
+            linked_release = linked_movies[0].get("release_date") if linked_movies else None
+            _identity = _bx_daily_identity_from_dates(linked_release or _extra.get("release_date"), _extra)
         if isinstance(_identity, dict) and _identity.get("day"):
             article["tracking_day"] = int(_identity["day"])
             article["daily_tracking_date"] = _identity.get("tracking_date")
+            break
+
+    if not article.get("tracking_day"):
+        for _block in article["blocks"]:
+            if _block.get("block_type") != "auto_live_tracker":
+                continue
+            _extra = _block.get("extra_data") or {}
+            linked_release = linked_movies[0].get("release_date") if linked_movies else None
+            raw_release = linked_release or _extra.get("release_date")
+            try:
+                release_day = date.fromisoformat(str(raw_release)[:10])
+                current_day = (datetime.now(ZoneInfo("Asia/Kolkata")) - timedelta(hours=6)).date()
+                n = (current_day - release_day).days + 1
+                if n >= 1:
+                    article["tracking_day"] = n
+            except (TypeError, ValueError):
+                pass
             break
 
     # Public API and cached SSR must resolve the exact same article state.
@@ -17061,7 +17093,7 @@ def get_article(slug: str):
             if (not bool(article.get("tracking_enabled", True)) and not frozen) or not extra.get("ssr_enabled", True):
                 continue
             block = dict(block)
-            block["extra_data"] = {"_public_daily_frozen": bool(frozen), "_public_auto_lifecycle": _bx_public_auto_lifecycle(extra), "permanent_daily_save": bool(extra.get("permanent_daily_save")), "_daily_identity": extra.get("_daily_identity"), "_public_auto_values": (frozen.get("values") if frozen else _bx_separate_auto_values(extra)), "_auto_configured": bool(extra.get("enabled") and extra.get("days")), "_public_cinema_regions": (frozen.get("cinema_regions", _bx_public_cinema_config_at(extra, datetime.fromisoformat(frozen["closed_at"]) - timedelta(microseconds=1))) if frozen else _bx_public_cinema_config(extra)), "_public_overseas_countries": (frozen.get("overseas_countries", _bx_public_overseas_at(extra, datetime.fromisoformat(frozen["closed_at"]) - timedelta(microseconds=1))) if frozen else _bx_public_overseas_countries(extra)), "_public_cinema_window": (frozen.get("cinema_window") if frozen else _bx_public_cinema_window(extra)), "_public_tracker_schedules": ({"india_gross": {"status": "final"}, "overseas_gross": {"status": "final"}} if frozen else _bx_public_tracker_schedules(extra))}
+            block["extra_data"] = {"_public_daily_frozen": bool(frozen), "_public_auto_lifecycle": _bx_public_auto_lifecycle(extra), "permanent_daily_save": bool(extra.get("permanent_daily_save")), "_daily_identity": extra.get("_daily_identity"), "movie_name": extra.get("movie_name"), "release_date": extra.get("release_date"), "_public_auto_values": (frozen.get("values") if frozen else _bx_separate_auto_values(extra)), "_auto_configured": bool(extra.get("enabled") and extra.get("days")), "_public_cinema_regions": (frozen.get("cinema_regions", _bx_public_cinema_config_at(extra, datetime.fromisoformat(frozen["closed_at"]) - timedelta(microseconds=1))) if frozen else _bx_public_cinema_config(extra)), "_public_overseas_countries": (frozen.get("overseas_countries", _bx_public_overseas_at(extra, datetime.fromisoformat(frozen["closed_at"]) - timedelta(microseconds=1))) if frozen else _bx_public_overseas_countries(extra)), "_public_cinema_window": (frozen.get("cinema_window") if frozen else _bx_public_cinema_window(extra)), "_public_tracker_schedules": ({"india_gross": {"status": "final"}, "overseas_gross": {"status": "final"}} if frozen else _bx_public_tracker_schedules(extra))}
         elif kind == "live_tracker":
             block = dict(block)
             extra = dict(block.get("extra_data") or {})

@@ -2488,6 +2488,11 @@ function bxTrackerDayKey(start){
   if(Number(v.slice(11,13))<6)dt.setUTCDate(dt.getUTCDate()-1);
   return dt.toISOString().slice(0,10);
 }
+function bxTrackerLabelNumber(dayKey,release){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)||!/^\d{4}-\d{2}-\d{2}$/.test(String(release||'')))return null;
+ const n=Math.round((Date.parse(dayKey+'T00:00:00Z')-Date.parse(release+'T00:00:00Z'))/86400000)+1;
+ return n>=1?n:null;
+}
 function bxEnsureDayAllocations(lt){
   lt.day_allocations=lt.day_allocations&&typeof lt.day_allocations==="object"&&!Array.isArray(lt.day_allocations)?lt.day_allocations:{};
   const keys=[...new Set((lt.days||[]).map(d=>bxTrackerDayKey(d.start_at)).filter(k=>k!=="unscheduled"))].sort();
@@ -2681,6 +2686,11 @@ const cinemaConfigHTML=`    <div style="margin-top:16px;padding:13px;border:1px 
 body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1px solid #394b6e;border-radius:12px;background:#111b2d">
     <strong style="color:#ffcc33">Independent Automatic Live Collection Scheduler</strong>
     <div class="note">Temporary estimated live numbers only. Never updates the day-wise collection report. Times are IST.</div>
+    <div class="block-row" style="margin-top:12px">
+      <div><label>Movie name (no movie database record required)</label><input data-auto-identity="movie_name" maxlength="180" placeholder="KGF" value="${articleContentEsc(lt.movie_name||'')}"></div>
+      <div><label>Release date (India / IST)</label><input type="date" data-auto-identity="release_date" value="${articleContentEsc(lt.release_date||'')}"></div>
+    </div>
+    <div class="note">An existing linked movie remains optional. When linked, its title and release date take priority for public SEO. Otherwise these article-specific values are used. Enter a release date before creating a new day.</div>
     <div class="block-row" style="margin-top:10px">
       <label><input type="checkbox" data-auto-root="enabled" ${lt.enabled?"checked":""} style="width:auto"> Enable automatic tracker</label>
       <label><input type="checkbox" data-auto-root="permanent_daily_save" ${lt.permanent_daily_save?"checked":""} style="width:auto"> Save this day permanently when tracker ends</label>
@@ -2715,7 +2725,7 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
         const firstSchedule=india||overseas||{};
         const compactInput=(label,kind,value,field)=>`<div><label>${label}</label><input type="${kind}" data-bx-quick-day="${articleContentEsc(g.key)}" data-bx-quick-field="${field}" value="${articleContentEsc(value??'')}" ${kind==='number'?'min="0" step="0.01"':''}></div>`;
         return `<div class="bx-auto-compact-row" data-bx-compact-group="${articleContentEsc(g.key)}">
-          <div class="bx-auto-compact-day">Day ${gi+1}<small>${articleContentEsc(g.key)}</small></div>
+          <div class="bx-auto-compact-day">Day ${bxTrackerLabelNumber(g.key,lt.release_date)||gi+1}<small>${articleContentEsc(g.key)}</small></div>
           ${compactInput('India start ₹ Cr','number',india?.start_value??0,'india_start')}
           ${compactInput('India end ₹ Cr','number',india?.target_value??0,'india')}
           ${compactInput('Overseas start ₹ Cr','number',overseas?.start_value??0,'overseas_start')}
@@ -2728,7 +2738,7 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
           <button type="button" class="btn-dark" data-bx-open-network="${articleContentEsc(g.key)}">⚙ Network</button>
         </div><details class="bx-auto-day-group" data-tracker-day-key="${articleContentEsc(g.key)}" ${g.key===bxOpenDay?"open":""}>
           <summary class="bx-auto-day-summary">
-            <div class="bx-auto-day-summary-title">📅 Day ${gi+1} <span>${g.key==="unscheduled"?"Dates not set":articleContentEsc(g.key)+" · 6 AM to next 6 AM"}</span></div>
+            <div class="bx-auto-day-summary-title">📅 Day ${bxTrackerLabelNumber(g.key,lt.release_date)||gi+1} <span>${g.key==="unscheduled"?"Dates not set":articleContentEsc(g.key)+" · 6 AM to next 6 AM"}</span></div>
             <div class="bx-auto-day-summary-meta">Start: ${formatTime(starts[0])} · End: ${formatTime(ends[ends.length-1])}</div>
             <div class="bx-auto-day-summary-meta">🇮🇳 India: <b>${formatTarget(india)}</b> · 🌍 Overseas: <b>${formatTarget(overseas)}</b></div>
           </summary>
@@ -2750,13 +2760,13 @@ body=`  <div class="lt-auto-panel" style="margin-top:14px;padding:13px;border:1p
       </div>`).join("")}</div>
           <div class="bx-day-cinema-config" style="padding:12px;border-top:1px solid #394b6e">
             ${g.key===bxSelectedDay?`<div class="note" style="color:#86efac;margin:8px 0">Editing allocations for ${articleContentEsc(g.key)} only. Other days are independent.</div>${cinemaConfigHTML}`:
-              `<button type="button" class="btn-dark" data-edit-day-allocations="${articleContentEsc(g.key)}">Edit Day ${gi+1} Cinema Network & Overseas Countries</button>
+              `<button type="button" class="btn-dark" data-edit-day-allocations="${articleContentEsc(g.key)}">Edit Day ${bxTrackerLabelNumber(g.key,lt.release_date)||gi+1} Cinema Network & Overseas Countries</button>
                <div class="note">Independent allocations saved for this day.</div>`}
           </div>
           </details>`;
       }).join("");
     })()}</div>
-    <div class="auto-add-region" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><button type="button" data-auto-add-next-day style="background:#ffcc33;color:#111827;font-weight:900">＋ Add Next Day</button><span class="note" style="margin:0">Creates both India and Overseas schedules for the next calendar day automatically. You can prepare many days before saving.</span></div>
+    <div class="auto-add-region" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><button type="button" data-auto-generate-three class="btn-dark">Generate Day 1–3</button><button type="button" data-auto-add-next-day style="background:#ffcc33;color:#111827;font-weight:900">＋ Add Next Day</button><span class="note" style="margin:0">Creates both India and Overseas schedules for the next calendar day automatically. You can prepare many days before saving.</span></div>
     <div class="note">Choose the date for Day 1 only. Use Add Next Day to prepare Day 2, Day 3 and more. Existing dates remain editable for corrections.</div>
   </div>
 `;
@@ -3048,12 +3058,14 @@ if(b.block_type==="auto_live_tracker"){
          if(date)d[prop]=date+'T'+el.value;
        });
      }
-     // Shows and occupancy must not rebuild the editor: doing so destroys
-     // the focused input and jumps the user back to the first row.
-     if(field!=='shows' && field!=='occupancy')renderBlocks();
+     // All quick-row edits stay in place. Re-rendering here destroys focus,
+     // resets horizontal scroll and jumps to the first target row.
+     // The schedules are already updated above; the next deliberate render
+     // (switch day, add schedule, save/reopen) refreshes summaries.
    };
-   // Persist these values while typing, including a deliberately blank occupancy.
-   if(['shows','occupancy'].includes(el.dataset.bxQuickField))el.oninput=el.onchange;
+   // Persist every quick-row number while typing, without replacing the DOM.
+   // Time/select controls remain change-driven.
+   if(el.tagName==='INPUT' && el.type==='number')el.oninput=el.onchange;
  });
  card.querySelectorAll('[data-bx-open-network]').forEach(btn=>btn.onclick=()=>{
    const key=btn.dataset.bxOpenNetwork;
@@ -3061,6 +3073,10 @@ if(b.block_type==="auto_live_tracker"){
    renderBlocks();
    const details=[...document.querySelectorAll('details.bx-auto-day-group')].find(d=>d.dataset.trackerDayKey===key);
    if(details){details.open=true;details.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ });
+ card.querySelectorAll('[data-auto-identity]').forEach(el=>{
+   el.oninput=()=>{ac[el.dataset.autoIdentity]=el.value.trim();};
+   el.onchange=()=>{ac[el.dataset.autoIdentity]=el.value.trim();renderBlocks();};
  });
  card.querySelectorAll("[data-auto-root]").forEach(el=>el.onchange=()=>{ac[el.dataset.autoRoot]=el.checked;});
  card.querySelectorAll("[data-auto-root-number]").forEach(el=>el.oninput=()=>{ac[el.dataset.autoRootNumber]=el.value===""?100:Number(el.value);});
@@ -3242,6 +3258,17 @@ if(b.block_type==="auto_live_tracker"){
  card.querySelectorAll("[data-cinema-add-city]").forEach(el=>el.onclick=()=>{const r=selected.cinema_regions[Number(el.dataset.cinemaAddCity)];if(!r)return;r.cities=r.cities||[];const name=(BX_CINEMA_LOCATIONS[r.name]||[]).find(n=>!r.cities.some(c=>c.name===n));if(!name)return;r.cities.push({name,share:0,theatres:0,shows:0,ticket_price:180,seats_per_show:200,enabled:true});renderBlocks();});
  card.querySelectorAll("[data-cinema-remove-city]").forEach(el=>el.onclick=()=>{const [ri,ci]=el.dataset.cinemaRemoveCity.split(":").map(Number);selected.cinema_regions[ri]?.cities?.splice(ci,1);renderBlocks();});
  refreshCinemaRemaining();
+ card.querySelectorAll('[data-auto-generate-three]').forEach(el=>el.onclick=()=>{
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(String(ac.release_date||''))){alert('Enter a valid release date first.');return;}
+   const base=Date.parse(ac.release_date+'T00:00:00Z');
+   const existing=new Set((ac.days||[]).map(d=>bxTrackerDayKey(d.start_at)));
+   for(let n=0;n<3;n++){
+     const date=new Date(base+n*86400000).toISOString().slice(0,10);
+     if(existing.has(date))continue; // Preserve previously entered targets and times.
+     for(const field of ['india_gross','overseas_gross'])ac.days.push({start_at:date+'T09:00',end_at:date+'T23:00',field,interval_minutes:10,start_value:0,target_value:0});
+   }
+   bxEnsureDayAllocations(ac);ac._editor_day_key=ac.release_date;ac._open_day_key=ac.release_date;renderBlocks();
+ });
  card.querySelectorAll("[data-auto-add-next-day]").forEach(el=>el.onclick=()=>{
    const existing=[...new Set(ac.days.map(d=>bxTrackerDayKey(d.start_at)).filter(k=>k!=="unscheduled"))].sort();
    const fmt=d=>d.toISOString().slice(0,10);
@@ -3250,7 +3277,8 @@ if(b.block_type==="auto_live_tracker"){
    const todayISO=Object.fromEntries(todayParts.map(p=>[p.type,p.value]));
    const fallback=`${todayISO.year}-${todayISO.month}-${todayISO.day}`;
    const previous=existing[existing.length-1]||"";
-   const dateObj=new Date((previous||fallback)+"T00:00:00Z");
+   if(!previous && !/^\d{4}-\d{2}-\d{2}$/.test(String(ac.release_date||''))){alert('Enter a valid movie release date before adding Day 1.');return;}
+   const dateObj=new Date((previous||ac.release_date)+"T00:00:00Z");
    if(previous)dateObj.setUTCDate(dateObj.getUTCDate()+1);
    const next=fmt(dateObj);
    const make=(field)=>({start_at:`${next}T09:00`,end_at:`${next}T23:00`,field,interval_minutes:10,start_value:0,target_value:0});

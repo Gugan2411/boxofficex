@@ -1980,6 +1980,17 @@ body.bx-bottom-ad-visible{
 }
 
 
+
+/* BOXOFFICEX UPCOMING RELEASE COUNTDOWN */
+.bx-release-countdown{margin:9px 0;padding:9px 7px;border:1px solid #bfdbfe;border-radius:10px;background:linear-gradient(135deg,#eff6ff,#f8faff)}
+.bx-release-countdown-label{font-size:9px;font-weight:800;color:#1d4ed8;margin-bottom:6px}
+.bx-countdown-units{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+.bx-countdown-unit{min-width:0;text-align:center;border-radius:6px;background:white;padding:5px 1px;border:1px solid #dbeafe}
+.bx-countdown-unit strong{display:block;font-size:13px;color:#1e3a8a;font-variant-numeric:tabular-nums}
+.bx-countdown-unit small{font-size:7px;color:#64748b}
+.bx-countdown-today{font-size:11px;font-weight:900;color:#047857}
+@media(max-width:700px){.bx-release-countdown{padding:7px 4px}.bx-countdown-unit strong{font-size:11px}.bx-countdown-unit small{font-size:6px}}
+
 </style>
 
 
@@ -4051,6 +4062,46 @@ function statusLabel(status) {
     return "FINAL";
 }
 
+// Release dates are date-only in the database. Countdown targets 00:00 Asia/Kolkata.
+function bxReleaseTimestamp(dateValue){
+    const match=String(dateValue||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!match)return null;
+    const y=Number(match[1]),m=Number(match[2]),d=Number(match[3]);
+    const stamp=Date.UTC(y,m-1,d,0,0,0)-330*60000;
+    const check=new Date(stamp+330*60000);
+    if(check.getUTCFullYear()!==y||check.getUTCMonth()!==m-1||check.getUTCDate()!==d)return null;
+    return stamp;
+}
+function bxCountdownHTML(dateValue){
+    const target=bxReleaseTimestamp(dateValue);
+    if(target===null)return '';
+    return `<div class="bx-release-countdown" data-release-ts="${target}" aria-label="Countdown to release date"><div class="bx-release-countdown-label">⏳ Release countdown · IST</div><div class="bx-countdown-display">Calculating...</div></div>`;
+}
+function bxUpdateCountdowns(){
+    const now=Date.now();
+    document.querySelectorAll('.bx-release-countdown[data-release-ts]').forEach(el=>{
+        const remaining=Number(el.dataset.releaseTs)-now;
+        const display=el.querySelector('.bx-countdown-display');
+        if(!display)return;
+        if(remaining<=0){display.innerHTML='<span class="bx-countdown-today">Release date reached</span>';return;}
+        let seconds=Math.floor(remaining/1000);
+        const days=Math.floor(seconds/86400);seconds%=86400;
+        const hours=Math.floor(seconds/3600);seconds%=3600;
+        const mins=Math.floor(seconds/60);seconds%=60;
+        const parts=[[days,'Days'],[hours,'Hrs'],[mins,'Min'],[seconds,'Sec']];
+        display.innerHTML='<div class="bx-countdown-units">'+parts.map(([v,label])=>`<div class="bx-countdown-unit"><strong>${String(v).padStart(2,'0')}</strong><small>${label}</small></div>`).join('')+'</div>';
+    });
+}
+function bxAttachSSRCountdowns(movies){
+    const cards=document.querySelectorAll('#upcomingGrid .movie-card');
+    (Array.isArray(movies)?movies:[]).forEach((movie,i)=>{
+        const content=cards[i]?.querySelector('.movie-content');
+        if(content && !content.querySelector('.bx-release-countdown'))content.insertAdjacentHTML('beforeend',bxCountdownHTML(movie.release_date));
+    });
+    bxUpdateCountdowns();
+}
+setInterval(bxUpdateCountdowns,1000);
+
 function createNewMovieCard(movie, sectionStatus) {
     const card = document.createElement("div");
     card.className = "movie-card";
@@ -4097,6 +4148,7 @@ function createNewMovieCard(movie, sectionStatus) {
                 📅 Release:
                 ${formatReleaseDate(movie.release_date)}
             </div>
+            ${status === "upcoming" ? bxCountdownHTML(movie.release_date) : ""}
 
             <div class="movie-info">
                 🎭 Language:
@@ -4267,6 +4319,7 @@ function renderMovieSection(gridId, countId, movies, status) {
             )
         );
     });
+    bxUpdateCountdowns();
 }
 
 function boxOfficeXApplyNewMoviesData(data, renderMovieGrids = true) {
@@ -4284,6 +4337,7 @@ const bxNewMoviesSSR =
 
 if (bxNewMoviesSSR) {
     boxOfficeXApplyNewMoviesData(window.__BOXOFFICEX_NEW_MOVIES_SSR_DATA__, false);
+    bxAttachSSRCountdowns(window.__BOXOFFICEX_NEW_MOVIES_SSR_DATA__.upcoming);
 } else {
     fetch(window.location.origin + "/movies/new-system")
     .then(response => {
